@@ -1,3 +1,5 @@
+> Note (Nov 2026): booking, SMS and the salon panel were removed in favour of the Telegram bot; see README.md. The evidence below describes the earlier version.
+
 # Development verification — 31 October 2026
 
 ## Automated integration tests

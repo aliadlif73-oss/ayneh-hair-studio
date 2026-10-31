@@ -1,244 +1,184 @@
-import {styles} from './legacy.js';
+// Owner console (/ and /admin). Salons have no panel: they use the Telegram bot.
+// Only the project owner signs in here to create salons, fill in their details and hand
+// each salon its one-time Telegram link.
 import {baseCSS,markSVG} from './design.js';
-const adminCSS=String.raw`
-body{font-size:14.5px}
-.appbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;max-width:1280px;margin:0 auto}
-.appbar__brand{display:inline-flex;align-items:center;gap:9px;color:var(--ink);font-family:var(--display);font-weight:700;font-size:22px}
+
+const css=String.raw`
+.appbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;max-width:1080px;margin:0 auto}
+.appbar__brand{display:inline-flex;align-items:center;gap:9px;color:var(--ink);font-family:var(--display);font-weight:800;font-size:22px}
 .appbar__brand svg{width:22px;height:28px}
-.appbar nav{display:flex;align-items:center;gap:6px}
-.appbar nav a,.appbar nav button{min-height:40px;padding:0 14px;border-radius:12px;border:0;background:transparent;color:var(--ink-2);font-weight:600;font-size:13.5px;display:inline-flex;align-items:center}
-.appbar nav a:hover,.appbar nav button:hover{background:var(--glass-2)}
-main#app{max-width:1280px;margin:0 auto;padding:6px 20px 60px;min-height:70vh}
-h1{font-size:28px}h2{font-size:18px}h3{font-size:16px}
-h1.display,h2.display,.display{font-family:var(--display)}
-p{line-height:1.9}
-small{color:var(--muted);font-size:12.5px;line-height:1.8}
-.muted{color:var(--muted)}
-.legal{font-size:12.5px;line-height:1.9;color:var(--muted);margin-top:10px}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.between{justify-content:space-between}
-.grow{flex:1;min-width:0}
-.hidden{display:none!important}
-.full{width:100%}
-
-/* buttons the panel script creates by class name */
-.primary,.secondary,.danger,.ghost{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:0 18px;border-radius:12px;border:1px solid transparent;font-weight:600;font-size:14px;white-space:nowrap;text-decoration:none;cursor:pointer;transition:background-color .14s var(--ease),border-color .14s var(--ease),transform .14s var(--ease)}
-.primary{background:var(--accent);color:#fff;box-shadow:0 8px 20px -14px rgba(7,76,77,.9)}
-.primary:hover{background:var(--accent-ink)}
-.secondary{background:var(--surface);color:var(--ink);border-color:var(--line)}
-.secondary:hover{border-color:#aebbb5}
-.ghost{background:transparent;color:var(--ink-2);border-color:var(--line)}
-.ghost:hover{background:var(--surface)}
-.danger{background:transparent;color:var(--danger);border-color:#e6c3c8}
-.danger:hover{background:var(--danger-soft)}
-.primary:active,.secondary:active,.danger:active,.ghost:active{transform:translateY(1px)}
-button:disabled{opacity:.45;cursor:default}
-
-/* fields: the helpers wrap inputs in a <label> with text */
-label{display:block;font-size:13px;font-weight:600;color:var(--ink-2);line-height:1.9;margin-bottom:14px}
-input:not([type=checkbox]):not([type=range]):not([type=file]),select,textarea{display:block;width:100%;min-height:46px;margin-top:6px;padding:10px 13px;border:1px solid var(--line);border-radius:var(--r-sm);background:#fff;color:var(--ink);font-weight:400;min-width:0;transition:border-color .14s var(--ease),box-shadow .14s var(--ease)}
-textarea{min-height:96px;resize:vertical;line-height:1.8}
-input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-ring)}
-#newSlug,#memberId,input[type=url],input[type=tel]{direction:ltr;text-align:right}
-label.check{display:flex;gap:11px;align-items:flex-start;font-weight:500;font-size:13.5px;color:var(--ink-2);cursor:pointer}
-label.check input{width:20px;height:20px;margin:3px 0 0;flex:none;accent-color:var(--accent)}
-.row label{flex:1;min-width:150px}
-
-.card{background:var(--surface);border:1px solid var(--line-2);border-radius:22px;padding:22px;margin-bottom:16px;box-shadow:0 1px 2px rgba(35,23,15,.05)}
-.card>h2,.card__head h2{font-family:var(--display);font-size:21px;margin-bottom:14px}
-.card__head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
-.card__head h2{margin-bottom:0}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 11px;border-radius:999px;background:var(--glass-2);color:var(--ink-2);font-size:12px;font-weight:600;white-space:nowrap}
-.alert{background:#f8efdd;color:#674511;border-inline-start:3px solid var(--honey);border-radius:var(--r-sm);padding:12px 14px;line-height:1.9;margin:12px 0;font-size:13.5px}
-.error{background:#f8e8ea;color:#7c2230;border-color:var(--danger)}
-.messagebody{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--glass);padding:12px 14px;border-radius:12px;font-size:13px;line-height:1.9;margin-top:10px}
-.empty{padding:60px 20px;text-align:center;color:var(--muted)}
-.loading{animation:pulse 1.2s infinite}
-@keyframes pulse{50%{opacity:.45}}
-
-/* ---------- panel layout ---------- */
-.admin{display:grid;gap:18px}
-.admin__side{display:grid;gap:12px;align-content:start}
-.admin__salon small{display:block;font-size:12px}
-.admin__salon strong{font-family:var(--display);font-size:26px;line-height:1.3}
-.admin__view{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:13.5px}
-.tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0;scrollbar-width:none;position:sticky;top:0;z-index:5;background:var(--glass);margin:0 -20px;padding-inline:20px}
-.tabs::-webkit-scrollbar{display:none}
-.tabs button{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 14px;border:1px solid var(--line);border-radius:999px;background:transparent;color:var(--ink-2);font-weight:600;font-size:13.5px}
-.tabs button:hover{background:var(--surface)}
-.tabs button.active{background:var(--ink);border-color:var(--ink);color:#fff}
-.tabs .count{min-width:22px;height:22px;padding:0 6px;border-radius:999px;background:var(--honey);color:#fff;font-size:12px;display:inline-grid;place-items:center}
-.admin__head{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px}
-.admin__head h1{font-size:clamp(24px,6vw,30px)}
-.admin__head p{font-size:14px;max-width:62ch;line-height:1.85;margin-top:2px}
-@media(min-width:960px){
- .admin{grid-template-columns:250px minmax(0,1fr);gap:36px;align-items:start}
- .admin__side{position:sticky;top:16px;padding:20px;border-radius:22px;background:var(--surface);border:1px solid var(--line-2)}
- .tabs{flex-direction:column;position:static;margin:4px 0;padding:0;background:transparent;gap:2px}
- .tabs button{justify-content:space-between;border:0;border-radius:12px;min-height:44px;width:100%}
- .tabs button:hover{background:var(--glass)}
- .admin__view{padding-top:12px;border-top:1px solid var(--line-2)}
-}
-
-/* ---------- request cards ---------- */
-.reqcard{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
-@media(min-width:720px){.reqcard{grid-template-columns:auto minmax(0,1fr);gap:22px}}
-.reqcard__photos{display:flex;gap:10px;align-items:flex-start}
-.thumb{display:block;width:92px;text-align:center}
-.thumb img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:999px 999px 12px 12px;background:var(--glass-2);border:4px solid #fff;box-shadow:0 8px 18px -12px rgba(35,23,15,.5)}
-.thumb small{display:block;margin-top:4px;font-size:11.5px}
-.thumb:first-child{width:118px}
-.reqcard__head{display:flex;gap:12px;align-items:flex-start}
-.reqcard__head h3{font-size:18px}
-.reqcard__meta{font-size:13px;color:var(--muted);line-height:1.7}
-.reqcard__phone{display:inline-block;font-weight:600;font-size:14px;margin-top:4px}
-.reqcard__note{margin:12px 0 0;padding:10px 14px;border-inline-start:3px solid var(--line);background:var(--surface-2);border-radius:0 12px 12px 0;font-size:13.5px;line-height:1.9;color:var(--ink-2)}
-.reqcard__none{font-size:13px;color:var(--muted);margin-top:10px}
-.reqcard__reply{font-size:13.5px;margin-top:8px;color:var(--accent-ink)}
-.reqcard__body>.row{margin-top:14px}
-.time{grid-column:1/-1;border-radius:16px;background:var(--glass);padding:14px 16px}
-.time__head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px}
-.time__when{display:block;font-size:19px;margin:6px 0 2px}
-.time__note{font-size:13px;margin-top:6px}
-.time .row{margin-top:12px}
-.badge--accent{background:var(--accent-soft);color:var(--accent-ink)}
-.badge--ok{background:var(--ok-soft);color:var(--ok)}
-.badge--warn{background:var(--warn-soft);color:var(--warn)}
-.badge--danger{background:var(--danger-soft);color:var(--danger)}
-
-.emptystate{display:grid;justify-items:center;gap:14px;text-align:center;padding:48px 20px;border:1.5px dashed var(--line);border-radius:22px;grid-column:1/-1}
-.emptystate__mirror{width:64px;height:84px;border-radius:999px 999px 10px 10px;border:2px solid var(--line);background:linear-gradient(170deg,#f6f9f8,#e3eae7)}
-.emptystate p{max-width:46ch;color:var(--muted)}
-
-/* ---------- uploads ---------- */
-.uploads{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:6px}
-.uploadbox{display:flex;align-items:center;gap:12px;padding:10px;border:1.5px dashed #b2c0ba;border-radius:16px;background:var(--surface-2);cursor:pointer;margin:0 0 12px;transition:border-color .14s var(--ease),background-color .14s var(--ease)}
-.uploadbox:hover{border-color:var(--accent);background:#eef6f4}
-.uploadbox.is-busy{opacity:.6;pointer-events:none}
-.uploadbox__img{width:52px;height:66px;flex:none;border-radius:999px 999px 8px 8px;overflow:hidden;background:var(--glass-2);display:grid;place-items:center}
-.uploadbox__img img{width:100%;height:100%;object-fit:cover}
-.uploadbox__ph{font-size:24px;color:var(--accent);font-weight:400}
-.uploadbox__txt{display:grid;line-height:1.5}
-.uploadbox__txt strong{font-size:13.5px;color:var(--ink)}
-.uploadbox__txt small{font-weight:500}
-.photos{display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 12px}
-.photos a{width:80px}
-.photos img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:999px 999px 10px 10px;background:var(--glass-2)}
-.photos small{display:block;font-size:11px;text-align:center}
-
-.savebar{position:sticky;bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 12px 12px 18px;border-radius:18px;background:var(--ink);color:#fff;box-shadow:var(--float)}
-.savebar .muted{color:rgba(255,255,255,.7);font-size:13px}
-@media(min-width:720px){.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}.formgrid>.card:first-child{grid-column:1/-1}}
-
-/* ---------- lists ---------- */
-.list{display:grid}
-.list__row{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line-2)}
-.list__row:last-child{border-bottom:0}
-.list__row strong{display:block;font-size:14.5px}
-.avatar-dot{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent-ink);font-weight:700;flex:none}
-.inline-add{display:flex;gap:10px;align-items:flex-end;margin-top:12px}
-.inline-add label{flex:1;margin:0}
-.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.toolbar h2{font-family:var(--display);font-size:21px}
-.portgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-@media(min-width:720px){.portgrid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}}
-.portcard .row .secondary,.portcard .row .danger{min-height:38px;padding:0 12px;font-size:13px}
-.portcard{padding:10px;margin:0;display:grid;gap:10px}
-.portcard__img{aspect-ratio:4/5;border-radius:999px 999px 14px 14px;overflow:hidden;background:var(--glass-2)}
-.portcard__img img{width:100%;height:100%;object-fit:cover}
-.portcard__body{padding:0 6px 6px;display:grid;gap:4px}
-.portcard__body .row{margin-top:6px}
-.status{list-style:none;margin:0;padding:0;display:grid;gap:2px}
-.status li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;font-size:13.5px;line-height:1.75}
+main#app{max-width:1080px;margin:0 auto;padding:6px 20px 80px;min-height:70vh}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:10px 0 22px}
+.page-head h1{font-family:var(--display);font-weight:800;font-size:clamp(26px,6vw,34px)}
+.page-head p{color:var(--muted);margin-top:4px;max-width:60ch;line-height:1.9}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;font-weight:600;margin-bottom:6px}
+.grid{display:grid;gap:16px}
+@media(min-width:900px){.grid--2{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);align-items:start}}
+.card{background:var(--surface);border:1px solid var(--line-2);border-radius:22px;padding:22px;box-shadow:0 1px 2px rgba(35,23,15,.05)}
+.card>h2{font-family:var(--display);font-weight:800;font-size:21px;margin-bottom:6px}
+.card>.lead{color:var(--muted);font-size:13.5px;line-height:1.9;margin-bottom:16px}
+.stack{display:grid;gap:16px}
+.salons{display:grid;gap:12px}
+.salon{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:16px 18px;border-radius:18px;background:var(--surface);border:1px solid var(--line-2)}
+.salon strong{font-size:17px;display:block}
+.salon small{color:var(--muted);font-size:12.5px;direction:ltr;display:inline-block}
+.salon .grow{min-width:160px}
+.status{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.status li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.75;padding:5px 0}
 .status .dot{width:22px;height:22px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:12px;font-weight:700;margin-top:1px}
 .status .on .dot{background:var(--ok-soft);color:var(--ok)}
-.status .off .dot{background:var(--glass-2);color:var(--muted)}
 .status .off{color:var(--muted)}
-.msg{padding:16px 18px}
-.msg h3{font-size:15px}
-.salonrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 0;border-bottom:1px solid var(--line-2)}
-.salonrow:last-child{border-bottom:0}
-.salonrow strong{display:block;font-size:16px}
-.salonrow small{direction:ltr;display:inline-block}
-
-/* ---------- home ---------- */
-.home{display:grid;gap:28px;padding-top:20px}
-@media(min-width:900px){.home{grid-template-columns:minmax(0,1fr) 440px;gap:60px;align-items:start;padding-top:40px}}
-.home__intro{display:grid;gap:24px;align-content:start}
-@media(min-width:900px){.home__intro{position:sticky;top:30px}}
-.home__mirror{width:min(220px,58%)}
-.home__mirror .mirror__glass{aspect-ratio:3/4;display:grid;place-items:center}
-.home__mark{display:block;width:38%;position:relative;z-index:1}
-.home__mark svg{width:100%;height:auto}
-.home__title{font-family:var(--display);font-size:clamp(34px,6vw,56px);line-height:1.15}
-.home__lead{font-size:16px;color:var(--ink-2);max-width:46ch;margin-top:12px;line-height:2}
-.home__acct{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;margin:4px 0 14px}
-.home__acct code{direction:ltr;background:var(--surface);border:1px solid var(--line-2);padding:4px 10px;border-radius:8px;font-size:12.5px;overflow-wrap:anywhere}
-.home__acct .ghost{min-height:34px;padding:0 12px;font-size:12.5px}
-
-/* ---------- dialog + calendar ---------- */
-dialog#modal{border:0;padding:0;background:transparent;max-width:600px;width:100%;margin:auto auto 0;color:var(--ink);max-height:none}
-dialog#modal::backdrop{background:rgba(35,23,15,.42);backdrop-filter:blur(4px)}
-dialog#modal[open]{animation:sheetIn .26s var(--ease)}
-.modal__panel{position:relative;background:var(--surface);border-radius:26px 26px 0 0;padding:24px 20px calc(24px + var(--safe-b));max-height:90vh;overflow:auto;box-shadow:var(--float)}
-@media(min-width:700px){dialog#modal{margin:auto}.modal__panel{border-radius:26px;padding:28px}}
-#modalbody>h2:first-child{font-family:var(--display);font-size:23px;margin:0 0 14px;padding-inline-end:48px}
-#modalbody>.card{box-shadow:none}
-.close{position:absolute;top:18px;inset-inline-end:18px;width:40px;height:40px;border:0;border-radius:50%;background:var(--glass);font-size:22px;color:var(--ink-2);z-index:2}
-.close:hover{background:var(--glass-2)}
-.calendar{border:1px solid var(--line-2);border-radius:16px;padding:12px;margin:8px 0 14px;background:#fff}
-.calhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.calhead strong{font-size:15px}
-.calhead button{min-height:36px;width:36px;padding:0;border-radius:50%;font-size:18px}
-.calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
-.calgrid small{font-weight:700;font-size:12px}
-.calgrid button{border:0;background:transparent;border-radius:10px;min-height:38px;font-size:13.5px;color:var(--ink)}
-.calgrid button:hover{background:var(--glass)}
-.calgrid .chosen{background:var(--ink);color:#fff}
-.calgrid .chosen:hover{background:var(--ink)}
-.calgrid .outside{opacity:.3}
-#toast{position:fixed;bottom:calc(20px + var(--safe-b));inset-inline:16px;max-width:520px;margin:auto;z-index:99;background:var(--ink);color:#fff;box-shadow:var(--float);padding:14px 18px;border-radius:16px;display:none;white-space:pre-line;font-size:14px}
-footer.foot{padding:26px 20px 34px;text-align:center;color:var(--muted);font-size:12px}
+.status .off .dot{background:var(--glass-2)}
+.linkbox{display:flex;gap:8px;align-items:center;margin-top:12px;padding:10px 10px 10px 14px;border-radius:14px;background:var(--glass)}
+.linkbox code{flex:1;min-width:0;direction:ltr;text-align:left;font-size:13px;overflow-wrap:anywhere}
+.tg-state{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;margin-bottom:14px}
+.tg-state--on{background:var(--ok-soft);color:#1f4f30}
+.tg-state--off{background:#f8efdd;color:#674511}
+.tg-state b{display:block;font-size:15px}
+.tg-state span{font-size:13px;line-height:1.8}
+.tg-state svg{width:30px;height:30px;flex:none}
+.uploads{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.uploadbox{display:flex;align-items:center;gap:12px;padding:10px;border:1.5px dashed #b2c0ba;border-radius:16px;background:var(--surface-2);cursor:pointer;margin:0}
+.uploadbox:hover{border-color:var(--accent);background:#eef6f4}
+.uploadbox.is-busy{opacity:.6;pointer-events:none}
+.uploadbox__img{width:48px;height:62px;flex:none;border-radius:999px 999px 8px 8px;overflow:hidden;background:var(--glass-2);display:grid;place-items:center;color:var(--accent);font-size:22px}
+.uploadbox__img img{width:100%;height:100%;object-fit:cover}
+.uploadbox__txt{display:grid;line-height:1.5}
+.uploadbox__txt strong{font-size:13.5px}
+.uploadbox__txt small{color:var(--muted);font-size:12px}
+.two{display:grid;gap:0 14px}
+@media(min-width:620px){.two{grid-template-columns:1fr 1fr}}
+.field input[type=url],.field input[type=tel],#slug{direction:ltr;text-align:right}
+.ports{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
+.port{display:grid;gap:6px}
+.port img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:999px 999px 12px 12px;background:var(--glass-2)}
+.port b{font-size:13px;line-height:1.5}
+.port .btn{min-height:34px;font-size:12.5px}
+.log{display:grid}
+.log__row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line-2);font-size:13.5px}
+.log__row:last-child{border-bottom:0}
+.log__row small{color:var(--muted);font-size:12px}
+.empty-note{color:var(--muted);font-size:13.5px;line-height:1.9;padding:8px 0}
+.login{max-width:420px;margin:30px auto 0}
+.login .mirror{width:120px;margin:0 auto 18px}
+.login .mirror__glass{aspect-ratio:3/4;display:grid;place-items:center}
+.login .mirror__glass span{display:block;width:40%;position:relative;z-index:1}
+.login h1{font-family:var(--display);font-weight:800;font-size:28px;text-align:center}
+.login p{text-align:center;color:var(--muted);margin:6px 0 18px;line-height:1.9}
+.loading{padding:60px 20px;text-align:center;color:var(--muted)}
+.foot{padding:26px 20px 34px;text-align:center;color:var(--muted);font-size:12px}
 `;
-export const appHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#e8edeb"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preload" href="/fonts/vazirmatn-arabic.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/reem-kufi-arabic.woff2" as="font" type="font/woff2" crossorigin><title>آینه | انتخاب مدل و هماهنگی با سالن</title><style>__CSS__</style></head><body><a class="skip" href="#app">پرش به محتوای اصلی</a><header class="appbar"><a href="/" class="appbar__brand">__MARKHTML__<span>آینه</span></a><nav aria-label="پیوندها"><a href="/admin">سالن‌ها</a><button id="help" type="button">راهنما</button></nav></header><main id="app"><div class="empty loading">در حال باز کردن پنل…</div></main><div id="toast" role="status" aria-live="polite"></div><dialog id="modal" aria-label="پنجره"><div class="modal__panel"><button class="close" id="close" type="button" aria-label="بستن">×</button><div id="modalbody"></div></div></dialog><footer class="foot">آینه: شبیه‌سازی پیشنهادی برای مشاورهٔ مو. تصمیم اجرای واقعی با آرایشگر است.</footer><script>
-const STYLES=__STYLES__;function uuid(){const b=crypto.getRandomValues(new Uint8Array(16));b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;const h=Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);}const $=id=>document.getElementById(id),el=(tag,attrs={},children=[])=>{const e=document.createElement(tag);for(const [k,v]of Object.entries(attrs)){if(k==='text')e.textContent=v;else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);else if(k==='class')e.className=v;else if(k==='checked')e.checked=!!v;else e.setAttribute(k,v)}for(const child of children)e.append(child);return e};const h=(tag,text,cls)=>el(tag,{text,class:cls||''});const button=(text,fn,cls='secondary')=>el('button',{text,class:cls,onclick:fn,type:'button'});const input=(id,label,type='text',value='')=>el('label',{text:label},[el('input',{id,type,value})]);const check=(id,label,checked=false)=>el('label',{class:'check'},[el('input',{id,type:'checkbox',checked}),h('span',label)]);const select=(id,label,options,value)=>{const s=el('select',{id});for(const [v,t]of options)s.append(el('option',{value:v,text:t}));if(value!==undefined)s.value=value;return el('label',{text:label},[s])};const area=(id,label,value='')=>el('label',{text:label},[el('textarea',{id,text:value})]);const fa=n=>new Intl.NumberFormat('fa-IR').format(n);const fmt=ms=>ms?new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Tehran',dateStyle:'medium',timeStyle:'short'}).format(ms):'زمانی پیشنهاد نشده';const parse=s=>{try{return JSON.parse(s||'{}')}catch{return {}}};const MARK=__MARK__;const TABS=[['requests','درخواست‌ها','عکس و مدل انتخابی مشتری را ببینید و بگویید قابل اجراست یا نه. بررسی مدل و تعیین زمان دو کار جدا هستند.'],['appointments','نوبت‌ها','زمان‌های پیشنهادی و قطعی، به ترتیب تاریخ.'],['customers','مشتریان','مشتری را دستی ثبت کنید یا ترجیح پیام‌هایش را تغییر دهید.'],['portfolio','نمونه‌کارها','کارهای واقعی سالن که مشتری در صفحه می‌بیند و می‌تواند روی عکس خودش امتحان کند.'],['profile','صفحهٔ سالن','نام، عکس‌ها و اطلاعات تماسی که مشتری می‌بیند.'],['services','خدمات و آرایشگرها','هر خدمت یک مسئول و یک مدت تقریبی دارد.'],['messages','پیام‌ها','پیامک‌ها، یادآوری‌ها و وضعیت ارسال.']];const reviewTone={pending:'warn',possible:'ok',in_person:'accent',changes:'accent',unavailable:'danger'};const statusTone={awaiting_salon:'warn',awaiting_customer:'accent',confirmed:'ok',rejected:'danger',cancelled:'danger',done:''};const smsTone={submitted:'ok',failed:'danger',unknown:'warn',retry:'warn',sending:'accent'};const badge=(t,tone)=>h('span',t,'badge'+(tone?' badge--'+tone:''));const phoneText=p=>String(p||'').replace(/^\+98/,'0').replace(/^(\d{4})(\d{3})(\d{4})$/,'$1 $2 $3').replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);function timePick(id,value){const opts=[];for(let m=8*60;m<=22*60;m+=30){const hh=String(Math.floor(m/60)).padStart(2,'0'),mm=m%60?'30':'00';opts.push([hh+':'+mm,fa(+hh)+':'+(m%60?'۳۰':'۰۰')])}if(value&&!opts.some(o=>o[0]===value))opts.unshift([value,value.replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d])]);return select(id,'ساعت (به وقت تهران)',opts,value||'10:00')}function thumb(id,label){return id?el('a',{href:media(id),target:'_blank',rel:'noopener',class:'thumb'},[img(id,label),h('small',label)]):null}function empty(text,action){const e=el('div',{class:'emptystate'},[el('span',{class:'emptystate__mirror'}),h('p',text)]);if(action)e.append(action);return e}function toast(t){$('toast').textContent=t;$('toast').style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('toast').style.display='none',9000)}const row=(...xs)=>el('div',{class:'row'},xs);const card=(...xs)=>el('section',{class:'card'},xs);function modal(...xs){$('modalbody').replaceChildren(...xs);$('modal').showModal()}$('close').onclick=()=>$('modal').close();$('modal').addEventListener('click',e=>{if(e.target===$('modal'))$('modal').close()});$('help').onclick=()=>modal(h('h2','انتخاب، مشاوره و هماهنگی'),h('p','عکس خودت و عکس مدل دلخواه دو ورودی جدا هستند. عکس دوم فقط مرجع مو است. خروجی، شبیه‌سازی پیشنهادی است و حفظ دقیق شباهت یا اجرای رنگ را تضمین نمی‌کند.'),h('p','تأیید امکان اجرا از تأیید زمان جداست. نوبت تنها پس از توافق دو طرف قطعی می‌شود. هیچ قیمت یا پرداختی در این جریان وجود ندارد.'),h('p','عکس‌ها حداکثر ۳۰ روز در این سامانه قابل مشاهده‌اند. فایل ورودی و خروجی برای تولید به KIE فرستاده می‌شود؛ حذف جلسه به معنی حذف فوری نسخه تأمین‌کننده نیست. اجازه انتشار نمونه‌کار مستقل است.'));
-async function api(path,body,raw=false){const r=await fetch(path,body===undefined?{}:{method:'POST',headers:raw?{}:{'Content-Type':'application/json'},body:raw?body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw Error(d.error||'خطای ارتباط');return d}let slug='',pub=null,adminData=null,adminTab='requests',busy=false,sessionReady=false,original=null,reference=null,result=null,currentGeneration=null,history=[],selectedStyle=0,filter='همه',referenceMode='both',generationKey=null,requestKey=uuid();let selectedDay=null;
-const endpoint=route=>'/api/s/'+slug+'/'+route;const media=id=>endpoint('media/'+id);const img=(id,alt)=>el('img',{src:media(id),alt,loading:'lazy'});async function act(fn){try{await fn()}catch(e){toast(e.message)}}
-const pdate=d=>new Intl.DateTimeFormat('en-US-u-ca-persian',{year:'numeric',month:'numeric',day:'numeric',timeZone:'Asia/Tehran'}).formatToParts(d).reduce((a,x)=>(a[x.type]=+x.value,a),{});
-function calendar(id,initial=null){let chosen=initial?new Date(initial):null;let cursor=initial?new Date(initial):new Date();cursor.setUTCHours(12,0,0,0);const root=el('div',{class:'calendar',id});root.value=initial||null;const draw=()=>{root.replaceChildren();let parts=pdate(cursor),first=new Date(cursor);first.setUTCDate(first.getUTCDate()-(parts.day-1));const monthName=new Intl.DateTimeFormat('fa-IR-u-ca-persian',{month:'long',year:'numeric',timeZone:'Asia/Tehran'}).format(first);const go=delta=>{let d=new Date(first);d.setUTCDate(d.getUTCDate()+(delta<0?-1:32));if(delta>0){let p=pdate(d);d.setUTCDate(d.getUTCDate()-p.day+1)}cursor=d;draw()};root.append(el('div',{class:'calhead'},[button('‹',()=>go(-1)),h('strong',monthName),button('›',()=>go(1))]));const g=el('div',{class:'calgrid'});for(const s of ['ش','ی','د','س','چ','پ','ج'])g.append(h('small',s));let start=new Date(first);start.setUTCDate(start.getUTCDate()-(first.getUTCDay()+1)%7);for(let i=0;i<42;i++){let d=new Date(start);d.setUTCDate(d.getUTCDate()+i);let p=pdate(d);let b=button(fa(p.day),()=>{chosen=d;root.dataset.date=d.toISOString().slice(0,10);draw()},'');b.className=(p.month!==parts.month?'outside ':'')+(chosen&&chosen.toDateString()===d.toDateString()?'chosen':'');b.setAttribute('aria-label',new Intl.DateTimeFormat('fa-IR',{dateStyle:'full',timeZone:'Asia/Tehran'}).format(d));g.append(b)}root.append(g);};draw();if(initial)root.dataset.date=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tehran'}).format(new Date(initial)).slice(0,10);return root}
-function timeValue(id,time){const d=$(id)?.dataset.date,t=$(time)?.value;if(!d||!t)return null;const n=Date.parse(d+'T'+t+':00+03:30');if(!Number.isFinite(n))throw Error('تاریخ و ساعت معتبر انتخاب کنید');return n}
-async function ensureSession(){if(sessionReady)return;try{await api(endpoint('requests'));sessionReady=true}catch{await api(endpoint('session'),{});sessionReady=true}}
-async function upload(file,kind){if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>12*1024*1024)throw Error('عکس JPG، PNG یا WebP و کمتر از ۱۲ مگابایت انتخاب کنید.');const bitmap=await createImageBitmap(file);if(bitmap.width<300||bitmap.height<300){bitmap.close();throw Error('عکس خیلی کوچک است؛ حداقل ۳۰۰ در ۳۰۰ پیکسل انتخاب کنید.')}try{const c=document.createElement('canvas');let scale=Math.min(1,1600/Math.max(bitmap.width,bitmap.height));for(let attempt=0;attempt<6;attempt++){c.width=Math.max(300,Math.round(bitmap.width*scale));c.height=Math.max(300,Math.round(bitmap.height*scale));const ctx=c.getContext('2d');ctx.drawImage(bitmap,0,0,c.width,c.height);if(attempt===0){const sample=ctx.getImageData(0,0,c.width,c.height).data;let light=0,count=0;for(let i=0;i<sample.length;i+=160){light+=(sample[i]+sample[i+1]+sample[i+2])/3;count++}if(light/count<25)throw Error('عکس بسیار تاریک است؛ یک عکس با نور یکنواخت انتخاب کنید.')}const blob=await new Promise(r=>c.toBlob(r,'image/jpeg',attempt<2?.85:.75));if(!blob)throw Error('تبدیل عکس انجام نشد؛ عکس دیگری انتخاب کنید.');if(blob.size<=820*1024){const d=await api(endpoint('upload')+'?kind='+kind,blob,true);return d.id}scale*=0.72}throw Error('حجم عکس پس از فشرده‌سازی زیاد است؛ عکس ساده‌تری انتخاب کنید.')}finally{bitmap.close()}}
-function uploadBox(id,title,kind,onDone,existing=null){const f=el('input',{type:'file',accept:'image/jpeg,image/png,image/webp',id,'aria-label':title,class:'sr-only'});const preview=el('span',{class:'uploadbox__img'});const hint=h('small',existing?'برای تعویض بزنید':'انتخاب عکس');const show=x=>{preview.replaceChildren(x?img(x,title):el('span',{class:'uploadbox__ph',text:'+'}))};show(kind==='portfolio'?null:existing);const box=el('label',{class:'uploadbox',for:id},[preview,el('span',{class:'uploadbox__txt'},[h('strong',title),hint]),f]);f.onchange=()=>act(async()=>{f.disabled=true;box.classList.add('is-busy');hint.textContent='در حال بارگذاری…';try{if(!['brand','portfolio'].includes(kind))await ensureSession();const image=await upload(f.files[0],kind);await onDone(image);if(kind!=='portfolio')show(image);hint.textContent=kind==='portfolio'?'عکس دیگری اضافه کنید':'برای تعویض بزنید'}finally{f.disabled=false;f.value='';box.classList.remove('is-busy')}});return box}
-async function home(){const d=await api('/api/me');const main=$('app');main.className='home';const intro=el('section',{class:'home__intro'},[el('div',{class:'mirror home__mirror'},[el('div',{class:'mirror__glass'},[Object.assign(el('span',{class:'home__mark'}),{innerHTML:MARK})])]),el('div',{},[h('h1','آینه برای سالن شما','home__title'),h('p','مشتری عکسش را می‌فرستد و مدل دلخواهش را روی چهرهٔ خودش می‌بیند. شما امکان اجرا را بررسی می‌کنید و زمان را با او هماهنگ می‌کنید.','home__lead')])]);const col=el('div',{class:'home__col'});main.replaceChildren(intro,col);if(!d.user){const box=card(h('h2','ورود به پنل سالن'),h('p','مشتری‌ها از لینک اختصاصی سالن وارد می‌شوند و به ورود نیازی ندارند.','muted'));if(d.passwordLogin){const pw=input('ownerPassword','رمز مدیر','password');const go=button('ورود',()=>act(async()=>{await api('/api/login',{password:$('ownerPassword').value});await home()}),'primary full');pw.querySelector('input').addEventListener('keydown',e=>{if(e.key==='Enter')go.click()});box.append(pw,go)}else box.append(el('a',{href:'/signin-with-chatgpt?return_to=/admin',target:'_top',class:'primary full',text:'ورود مدیر با ChatGPT'}));col.append(box);return}if(d.salons.length){const list=card(h('h2','سالن‌های شما'));for(const s of d.salons)list.append(el('div',{class:'salonrow'},[el('div',{class:'grow'},[h('strong',s.name),h('small','/s/'+s.slug)]),el('a',{href:'/s/'+s.slug,target:'_blank',rel:'noopener',class:'ghost',text:'صفحهٔ مشتری'}),el('a',{href:'/admin/'+s.slug,class:'primary',text:'ورود به پنل'})]));col.append(list)}else col.append(card(h('h2','هنوز سالنی ندارید'),h('p','اگر مدیر یک سالن هستید، شناسهٔ حساب زیر را برای مالک سالن بفرستید تا شما را اضافه کند.','muted')));if(d.canCreate)col.append(card(h('h2','راه‌اندازی سالن تازه'),input('newName','نام سالن'),input('newSlug','نشانی انگلیسی صفحه، مثل my-salon'),button('ساخت صفحهٔ سالن',()=>act(async()=>{const s=await api('/api/salons',{name:$('newName').value,slug:$('newSlug').value});location.href='/admin/'+s.slug}),'primary')));col.append(el('div',{class:'home__acct'},[h('span','شناسهٔ حساب شما:','muted'),h('code',d.userId),button('کپی',()=>{if(navigator.clipboard)navigator.clipboard.writeText(d.userId).then(()=>toast('شناسه کپی شد.'))},'ghost')]));const foot=row();if(d.passwordLogin)foot.append(button('خروج از حساب',()=>act(async()=>{await api('/api/logout',{});await home()}),'ghost'));foot.append(el('a',{href:'/legacy',class:'ghost',text:'استودیوی قبلی (مدیر پروژه)'}));col.append(foot)}
-function photoLink(id,label){return id?el('a',{href:media(id),target:'_blank',rel:'noopener'},[img(id,label),h('small',label)]):h('small',label+' ثبت نشده');}
-function profileHero(){const p=pub.salon.profile,box=el('section',{class:'hero'});if(p.cover){const im=img(p.cover,'کاور سالن');im.className='cover';box.append(im)}const inner=el('div',{class:'inner'});if(p.logo){const im=img(p.logo,'لوگو');im.className='avatar';inner.append(im)}inner.append(h('h1',pub.salon.name),h('p',p.bio||'انتخاب مدل مو را با مشاوره آرایشگرت کامل کن.'));const links=row();if(p.phone)links.append(el('a',{href:'tel:'+p.phone,class:'secondary',text:'تماس با سالن'}));for(const[k,t]of [['map','موقعیت روی نقشه'],['instagram','اینستاگرام'],['telegram','تلگرام'],['website','وب‌سایت']])if(p[k])links.append(el('a',{href:p[k],target:'_blank',rel:'noopener noreferrer',class:'secondary',text:t}));inner.append(links);if(p.address)inner.append(h('p',p.address));if(p.hours)inner.append(h('small','ساعات کار: '+p.hours));if(p.manager){const bio=row();if(p.portrait){const im=img(p.portrait,'آرایشگر');im.className='avatar';bio.append(im)}bio.append(h('p',p.manager));inner.append(bio)}box.append(inner);return box}
-async function salonPage(){pub=await api(endpoint('public'));$('app').replaceChildren(profileHero(),row(button('مدل دلخواهت را امتحان کن',()=>document.querySelector('#studio').scrollIntoView({behavior:'smooth'}),'primary'),button('از نمونه‌کارهای سالن انتخاب کن',()=>document.querySelector('#gallery').scrollIntoView({behavior:'smooth'})),button('درخواست بررسی و زمان ثبت کن',()=>document.querySelector('#requestForm').scrollIntoView({behavior:'smooth'})),button('درخواست‌های من',()=>act(myRequests))));renderGallery();renderStudio();renderRequestForm();if(location.pathname.endsWith('/access')){const raw=location.hash.slice(1);if(raw){await api(endpoint('access'),{token:raw});sessionReady=true;window.proposalVersion=Number(new URLSearchParams(location.search).get('v'))||null;historyReplace();}await myRequests()}}
-function historyReplace(){window.history.replaceState(null,'',location.pathname+(location.search||''))}
-function renderGallery(){const gallery=card(h('h2','نمونه‌کارهای واقعی '+pub.salon.name));gallery.id='gallery';const g=el('div',{class:'portfolio'});for(const p of pub.portfolio){const box=card(h('span','نمونه‌کار واقعی سالن','badge'));for(const id of parse(p.images))box.append(img(id,p.title));box.append(h('h3',p.title),h('small',p.category+(p.stylist?' · '+p.stylist:'')),h('p',p.description));if(p.try_on)box.append(button('این مدل را روی عکس من امتحان کن',()=>{reference=parse(p.images)[0];referenceMode='both';renderStudio();document.querySelector('#studio').scrollIntoView({behavior:'smooth'})},'primary'));g.append(box)}gallery.append(g);if(!pub.portfolio.length)gallery.append(h('p','هنوز نمونه‌کار منتشرشده‌ای وجود ندارد.'));$('app').append(gallery)}
-function renderStudio(){const old=$('studio');const root=el('section',{id:'studio',class:'grid'});const controls=card(h('h2','مدل دلخواهت را امتحان کن'),row(h('span','۱ · عکس خودت','badge'),h('span','۲ · انتخاب مدل یا مرجع','badge')));controls.append(uploadBox('selfPhoto','عکس خودت · چهره مشتری','original',id=>{original=id;result=null;renderStudio();},original));controls.append(h('p','صورت کامل، نور یکنواخت، بدون فیلتر شدید. تشخیص قطعی چهره یا سلامت مو انجام نمی‌شود.','legal'));const modelSelect=select('style','مدل‌های آماده',STYLES.map((s,i)=>[i,s[0]]),selectedStyle);modelSelect.querySelector('select').onchange=e=>selectedStyle=+e.target.value;controls.append(modelSelect,uploadBox('refPhoto','عکس مدل دلخواه · فقط مرجع مو','reference',id=>{reference=id;renderStudio()},reference));if(reference){controls.append(h('span','تصویر مرجع آپلودشده / نمونه انتخابی','badge'),select('transfer','چه چیزی از مرجع منتقل شود؟',[['style','فقط مدل مو؛ حفظ رنگ فعلی'],['color','فقط رنگ مو؛ حفظ مدل فعلی'],['both','مدل و رنگ مو']],referenceMode),button('حذف مرجع و استفاده از مدل آماده',()=>{reference=null;renderStudio()}));$('transfer')?.addEventListener('change',e=>referenceMode=e.target.value)}controls.append(area('color','رنگ دلخواه (برای مدل آماده؛ تا ۲۴۰ کاراکتر)'),check('imageConsent','با اجازه صاحب عکس بزرگسال، ارسال عکس خودم و مرجع به KIE برای شبیه‌سازی را می‌پذیرم.'));controls.querySelector('#color').maxLength=240;
- if(!pub.generation)controls.append(h('p','تولید واقعی برای این سالن هنوز فعال نشده؛ عکس و درخواست بررسی را می‌توانید ثبت کنید.','alert'));else if(reference&&!pub.reference)controls.append(h('p','انتقال مرجع هنوز تست و فعال‌سازی نشده است. می‌توانید مرجع را برای بررسی آرایشگر بفرستید.','alert'));
- const gen=button(busy?'در حال پردازش…':'ساخت شبیه‌سازی پیشنهادی',()=>act(async()=>{if(!original)throw Error('عکس خودت را انتخاب کن');if(!$('imageConsent').checked)throw Error('رضایت پردازش را تأیید کن');busy=true;gen.disabled=true;await ensureSession();try{generationKey=generationKey||uuid();const job=await api(endpoint('generate'),{image_consent:true,idem:generationKey,original_id:original,reference_id:reference,style:selectedStyle,transfer:$('transfer')?.value||'both',color:$('color').value});currentGeneration=job.id;sessionStorage.setItem('ayneh-job-'+slug,job.id);await poll(job.id,false)}finally{busy=false;gen.disabled=false}}),'primary full');gen.disabled=busy||!pub.generation||(!!reference&&!pub.reference);controls.append(gen);
- const preview=card(h('h2','پیش‌نمایش انتخابی'));const stage=el('div',{class:'stage'});if(result)stage.append(img(result,'شبیه‌سازی پیشنهادی'));else if(original)stage.append(img(original,'عکس اصلی'));else stage.append(h('div','پیش‌نمایش تو اینجا ظاهر می‌شود','placeholder'));stage.append(h('span',result?'شبیه‌سازی پیشنهادی':'عکس اصلی / فضای پیش‌نمایش','badge'));preview.append(stage);if(result){preview.append(row(button('مقایسه با عکس اصلی',()=>{const im=stage.querySelector('img');im.src=im.src===new URL(media(original),location.origin).href?media(result):media(original)}),el('a',{href:media(result),download:'ayneh.png',class:'secondary',text:'دانلود خروجی'}),button('هشت نمای تخمینی',()=>act(async()=>{if(busy)return;busy=true;try{const g=await api(endpoint('views'),{parent:currentGeneration,idem:uuid()});await poll(g.id,true)}finally{busy=false}}))));const rating=select('quality','شباهت و مدل را چطور ارزیابی می‌کنی؟',[[0,'انتخاب امتیاز'],[1,'۱ — نامناسب'],[2,'۲'],[3,'۳'],[4,'۴'],[5,'۵ — مناسب']]);const ratingKey='ayneh-rating-'+result;rating.querySelector('select').value=localStorage.getItem(ratingKey)||'0';rating.querySelector('select').onchange=e=>{try{localStorage.setItem(ratingKey,e.target.value);toast('امتیاز روی همین دستگاه ذخیره شد.')}catch{}};preview.append(rating,h('p','امتیاز فقط روی همین دستگاه ذخیره می‌شود و به سالن ارسال نمی‌شود؛ نتیجه را با آرایشگر بررسی کنید.','legal'))}const hist=el('div',{class:'history'});for(const x of history){let b=button('',()=>{result=x.media;currentGeneration=x.job;original=x.original;reference=x.reference;renderStudio()});b.append(img(x.media,'ترکیب این جلسه'));hist.append(b)}preview.append(hist,h('p','جزئیات پشت سر و نماهای ندیده‌شده تخمینی‌اند. تصویر سه‌بعدی قابل اندازه‌گیری نیست.','legal'),button('جلسه جدید و پاک‌کردن نمایش محلی',()=>{original=null;reference=null;result=null;currentGeneration=null;history=[];generationKey=null;requestKey=uuid();renderStudio()}));root.append(controls,preview);if(old)old.replaceWith(root);else $('app').append(root)}
-async function poll(id,views){toast('در حال پیگیری همان درخواست؛ دوباره تولید نکنید.');for(let i=0;i<65;i++){let d;try{d=await api(endpoint('generation/'+id))}catch{await new Promise(r=>setTimeout(r,5000));continue}if(d.state==='success'){sessionStorage.removeItem('ayneh-job-'+slug);generationKey=null;if(views){showViews(d.result_id)}else{result=d.result_id;currentGeneration=id;history.unshift({media:result,job:id,original,reference});history=history.slice(0,8);renderStudio()}toast('خروجی آماده است؛ شباهت و مدل را بررسی کنید.');return}if(['fail','unknown'].includes(d.state)){toast(d.state==='fail'?'تولید ناموفق بود.':'وضعیت ارسال نیاز به بررسی دارد؛ بازتولید خودکار انجام نمی‌شود.');return}await new Promise(r=>setTimeout(r,Math.min(9000,2500+i*250)))}toast('هنوز نتیجه آماده نشده؛ با بازکردن دوباره صفحه همان درخواست پیگیری می‌شود.')}
-function showViews(id){const range=el('input',{type:'range',min:0,max:7,value:0,'aria-label':'زاویه نمای تخمینی'}),canvas=el('canvas',{style:'max-width:100%;max-height:55vh;display:block;margin:auto'}),label=h('p','۰ درجه');const im=new Image();im.onload=()=>{canvas.width=im.width/4;canvas.height=im.height/2;paint()};function paint(){const n=+range.value;canvas.getContext('2d').drawImage(im,(n%4)*canvas.width,Math.floor(n/4)*canvas.height,canvas.width,canvas.height,0,0,canvas.width,canvas.height);label.textContent=fa(n*45)+' درجه · نمای تخمینی'}range.oninput=paint;im.src=media(id);modal(h('h2','هشت نمای تخمینی'),canvas,range,label,h('p','ترتیب و هماهنگی نماها به نتیجه مدل وابسته است؛ اسکن سه‌بعدی نیست.'))}
-function renderRequestForm(){const root=card(h('h2','درخواست بررسی و هماهنگی زمان'),h('p','امکان اجرا را آرایشگر بررسی می‌کند. تأیید مدل به معنی قطعی‌شدن نوبت نیست.'));root.id='requestForm';root.append(row(input('customerName','نام مشتری'),input('customerPhone','شماره موبایل','tel')),select('service','نوع خدمت',pub.services.map(s=>[s.id,s.name])),area('customerNote','توضیح اختیاری، مثل سابقه رنگ مو'),h('h3','زمان پیشنهادی شما (اختیاری)'),calendar('customerDate'),input('customerTime','ساعت تهران','time'),check('requestConsent','ارسال و نگهداری عکس‌های انتخابی و اطلاعات تماس را برای بررسی همین سالن می‌پذیرم.'),check('smsConsent','برای دریافت پیام‌های مربوط به درخواست و نوبت رضایت دارم.'),check('followupConsent','یک پیام پیگیری غیرضروری در صورت نیمه‌تمام‌ماندن درخواست دریافت کنم.'));
- const submit=button('ارسال برای بررسی سالن',()=>act(async()=>{if(!original)throw Error('ابتدا عکس خودت را بارگذاری کن');if(!$('requestConsent').checked)throw Error('رضایت بررسی را تأیید کن');if(!pub.services.length)throw Error('سالن هنوز خدمت و مسئول آن را ثبت نکرده است');submit.disabled=true;try{await ensureSession();await api(endpoint('requests'),{data_consent:true,idem:requestKey,name:$('customerName').value,phone:$('customerPhone').value,service_id:$('service').value,note:$('customerNote').value,start_at:timeValue('customerDate','customerTime'),original_id:original,reference_id:reference,preview_id:result,consent:$('smsConsent').checked,followup:$('followupConsent').checked});toast('درخواست در همین سالن ثبت شد.');requestKey=uuid();await myRequests()}finally{submit.disabled=false}}),'primary');root.append(submit,h('p','پس از ثبت، وضعیت را از «درخواست‌های من» ببینید. برای ادامه روی دستگاه دیگر، لینک امن را از سالن دریافت کنید.','legal'));$('app').append(root)}
-const reviewNames={pending:'در انتظار بررسی آرایشگر',possible:'قابل اجراست',in_person:'نیاز به بررسی حضوری دارد',changes:'با تغییراتی قابل اجراست',unavailable:'امکان اجرا در این سالن وجود ندارد'};const statusNames={awaiting_salon:'در انتظار بررسی زمان توسط سالن',awaiting_customer:'زمان جایگزین؛ در انتظار پاسخ مشتری',confirmed:'نوبت قطعی',rejected:'ردشده',cancelled:'لغوشده',done:'انجام‌شده'};
-async function myRequests(){await ensureSession();const d=await api(endpoint('requests'));const root=card(h('h2','درخواست‌های من در '+pub.salon.name));root.id='myRequests';if(!d.requests.length)root.append(h('p','هنوز درخواستی در این جلسه ثبت نشده است.'));for(const r of d.requests)root.append(requestCard(r,false));if(d.customer){root.append(check('prefConsent','دریافت پیام‌های مربوط به درخواست و نوبت',d.customer.consent),check('prefFollowup','اجازه یک پیگیری غیرضروری',d.customer.followup),button('ذخیره ترجیح پیام‌ها',()=>act(async()=>{await api(endpoint('preferences'),{consent:$('prefConsent').checked,followup:$('prefFollowup').checked});toast('ترجیح پیام‌ها ذخیره شد.')})))}if($('myRequests'))$('myRequests').replaceWith(root);else $('app').append(root);root.scrollIntoView({behavior:'smooth'})}
-function requestCard(r,isAdmin){const box=el('article',{class:'card reqcard'});const photos=el('div',{class:'reqcard__photos'},[thumb(r.original_id,'عکس مشتری'),thumb(r.reference_id,'مرجع'),thumb(r.preview_id,'شبیه‌سازی')].filter(Boolean));const body=el('div',{class:'reqcard__body'});body.append(el('div',{class:'reqcard__head'},[el('div',{class:'grow'},[h('h3',r.name),h('p',r.service+(r.created_at?'، فرستاده‌شده '+fmt(r.created_at):''),'reqcard__meta')]),badge(reviewNames[r.review]||r.review,reviewTone[r.review])]));if(isAdmin&&r.phone)body.append(el('a',{href:'tel:'+r.phone,class:'reqcard__phone',dir:'ltr',text:phoneText(r.phone)}));body.append(r.note?el('blockquote',{class:'reqcard__note',text:r.note}):h('p','مشتری توضیحی ننوشته.','reqcard__none'));if(r.review_note)body.append(h('p',(isAdmin?'پاسخ شما: ':'پاسخ آرایشگر: ')+r.review_note,'reqcard__reply'));if(isAdmin)body.append(row(button(r.review==='pending'?'ثبت پاسخ امکان اجرا':'تغییر پاسخ',()=>{modal(h('h2','این مدل قابل اجراست؟'),select('reviewValue','پاسخ شما به مشتری',Object.entries(reviewNames).filter(x=>x[0]!=='pending'),r.review),area('reviewNote','توضیح کوتاه برای مشتری',r.review_note||''),button('ثبت پاسخ',()=>act(async()=>{await api(endpoint('admin/review'),{id:r.id,review:$('reviewValue').value,note:$('reviewNote').value,version:r.review_version});$('modal').close();await refreshAdmin();toast('پاسخ ثبت شد.')}),'primary full'))},r.review==='pending'?'primary':'secondary')));if(photos.childNodes.length)box.append(photos);box.append(body);const a=r.appointment;if(a){const t=el('div',{class:'time'});t.append(el('div',{class:'time__head'},[h('span','زمان نوبت','muted'),badge(a.status==='awaiting_salon'&&a.version>1?'زمان جدید مشتری؛ منتظر پاسخ شما':statusNames[a.status],statusTone[a.status])]),h('strong',fmt(a.start_at),'time__when'),h('small','آرایشگر: '+a.staff_name+'، حدود '+fa(a.duration)+' دقیقه. آخرین پیشنهاد از '+(a.last_actor==='salon'?'سالن':'مشتری')+'.'));if(a.note)t.append(h('p',a.note,'time__note'));let stale=!isAdmin&&window.proposalVersion&&window.proposalVersion!==a.version;if(stale)t.append(h('p','لینک پیشنهاد قدیمی است. وضعیت فعلی را می‌بینید؛ برای پاسخ، آخرین لینک را از سالن بگیرید.','alert'));if(!['rejected','cancelled','done'].includes(a.status)&&!stale){const acts=row();const target=isAdmin?'admin/appointment':'appointment';const action=kind=>act(async()=>{await api(endpoint(target),{request_id:r.id,action:kind,version:a.version});isAdmin?await refreshAdmin():await myRequests()});if((isAdmin&&a.status==='awaiting_salon')||(!isAdmin&&a.status==='awaiting_customer'))acts.append(button('تأیید همین زمان',()=>action('accept'),'primary'));if(isAdmin&&a.status==='confirmed')acts.append(button('ثبت انجام خدمت',()=>action('done'),'primary'));if(a.status!=='confirmed')acts.append(button('پیشنهاد زمان دیگر',()=>proposal(r,isAdmin),'secondary'));acts.append(button('لغو نوبت',()=>{if(confirm('نوبت لغو شود؟'))action('cancel')},'danger'));if(isAdmin&&a.status!=='confirmed')acts.append(button('رد درخواست نوبت',()=>proposal(r,true,'reject'),'danger'));t.append(acts)}box.append(t)}return box}
-function proposal(r,isAdmin,reject=false){const a=r.appointment;const list=[h('h2',reject?'رد درخواست زمان':'پیشنهاد زمان دیگر')];if(!reject){list.push(calendar('proposalDate',a.start_at),timePick('proposalTime',a.start_at?new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Tehran',hour:'2-digit',minute:'2-digit',hour12:false}).format(a.start_at):''));if(isAdmin)list.push(select('proposalStaff','مسئول خدمت',adminData.staff.map(s=>[s.id,s.name]),a.staff_id),input('proposalDuration','مدت تقریبی (دقیقه)','number',a.duration))}list.push(area('proposalNote','توضیح کوتاه'),button(reject?'ثبت رد':'ارسال پیشنهاد',()=>act(async()=>{const start=reject?null:timeValue('proposalDate','proposalTime');if(!reject&&!start)throw Error('زمان را انتخاب کنید');await api(endpoint(isAdmin?'admin/appointment':'appointment'),{request_id:r.id,action:reject?'reject':'propose',start_at:start,version:a.version,note:$('proposalNote').value,...(!reject&&isAdmin?{staff_id:$('proposalStaff').value,duration:+$('proposalDuration').value}:{})});$('modal').close();isAdmin?await refreshAdmin():await myRequests()}),'primary'));modal(...list)}
-async function refreshAdmin(){adminData=await api(endpoint('admin'));renderAdmin()}
-function renderAdmin(){const main=$('app');main.className='admin';const A=adminData;const counts={requests:A.requests.filter(r=>r.review==='pending').length,appointments:A.requests.filter(r=>r.appointment&&r.appointment.status==='awaiting_salon').length};const nav=el('nav',{class:'tabs','aria-label':'بخش‌های پنل'});for(const[k,t]of TABS){const b=button('',()=>{adminTab=k;renderAdmin();window.scrollTo({top:0,behavior:'smooth'})},adminTab===k?'active':'');b.append(h('span',t));if(counts[k])b.append(el('span',{class:'count','aria-label':fa(counts[k])+' مورد منتظر',text:fa(counts[k])}));if(adminTab===k)b.setAttribute('aria-current','page');nav.append(b)}const side=el('aside',{class:'admin__side'},[el('div',{class:'admin__salon'},[h('small','پنل سالن'),h('strong',A.salon.name)]),nav,el('a',{href:'/s/'+slug,target:'_blank',rel:'noopener',class:'admin__view',text:'دیدن صفحهٔ مشتری'})]);const tab=TABS.find(x=>x[0]===adminTab)||TABS[0];const content=el('div',{id:'adminContent',class:'admin__content'});requestAnimationFrame(()=>{const act=nav.querySelector('.active');if(act&&nav.scrollWidth>nav.clientWidth)act.scrollIntoView({block:'nearest',inline:'center'})});main.replaceChildren(side,el('div',{class:'admin__main'},[el('header',{class:'admin__head'},[el('div',{class:'grow'},[h('h1',tab[1],'display'),h('p',tab[2],'muted')]),button('به‌روزرسانی',()=>act(async()=>{await refreshAdmin();toast('به‌روز شد.')}),'ghost')]),content]));if(adminTab==='requests'||adminTab==='appointments'){const rs=A.requests.filter(r=>adminTab==='requests'||!!r.appointment).sort((a,b)=>adminTab==='appointments'?(a.appointment?.start_at||Infinity)-(b.appointment?.start_at||Infinity):b.created_at-a.created_at);for(const r of rs)content.append(requestCard(r,true));if(!rs.length)content.append(adminTab==='requests'?empty('هنوز درخواستی نیامده. لینک صفحهٔ سالن را برای مشتری‌ها بفرستید تا عکس و مدل دلخواهشان را بفرستند.',el('a',{href:'/s/'+slug,target:'_blank',rel:'noopener',class:'secondary',text:'باز کردن صفحهٔ مشتری'})):empty('هنوز نوبتی پیشنهاد نشده. وقتی مشتری زمانی پیشنهاد بدهد اینجا می‌آید.'))}if(adminTab==='profile'){profileForm(content);if(A.isOwner)membersForm(content);}if(adminTab==='services')servicesForm(content);if(adminTab==='customers')customersForm(content);if(adminTab==='portfolio')portfolioForm(content);if(adminTab==='messages')messagesForm(content)}
-function profileForm(root){const p=adminData.salon.profile;const ident=card(h('h2','هویت'),input('salonName','نام سالن','text',adminData.salon.name),el('div',{class:'uploads'},[['logo','لوگو'],['cover','عکس کاور'],['portrait','عکس مدیر']].map(([k,t])=>uploadBox('brand'+k,t,'brand',id=>{p[k]=id;toast('عکس بارگذاری شد؛ «ذخیرهٔ صفحه» را بزنید.')},p[k]))));const fields=(title,list)=>{const c=card(h('h2',title));for(const[k,t,type]of list)c.append(k==='bio'?area('profile'+k,t,p[k]||''):input('profile'+k,t,type||'text',p[k]||''));return c};const save=button('ذخیرهٔ صفحه',()=>act(async()=>{let profile={...p};for(const k of ['bio','manager','address','hours','phone','map','instagram','telegram','website'])profile[k]=$('profile'+k).value;await api(endpoint('admin/profile'),{name:$('salonName').value,profile});toast('صفحهٔ سالن ذخیره شد.');await refreshAdmin()}),'primary');root.append(el('div',{class:'formgrid'},[ident,fields('معرفی',[['bio','معرفی کوتاه سالن'],['manager','نام و معرفی مدیر یا آرایشگر']]),fields('نشانی و تماس',[['address','آدرس'],['hours','ساعات کاری'],['phone','شماره تماس','tel'],['map','لینک موقعیت روی نقشه','url']]),fields('شبکه‌ها',[['instagram','اینستاگرام','url'],['telegram','تلگرام','url'],['website','وب‌سایت','url']])]),el('div',{class:'savebar'},[h('span','تغییرات بعد از ذخیره روی صفحهٔ مشتری دیده می‌شود.','muted'),save]))}
-function servicesForm(root){const A=adminData;const f=card(el('div',{class:'card__head'},[h('h2','خدمات'),button('افزودن خدمت',()=>{if(!A.staff.length){toast('اول یک آرایشگر اضافه کنید.');$('staffName').focus();return}serviceEditor()},'primary')]));const list=el('div',{class:'list'});for(const s of A.services){const staff=A.staff.find(x=>x.id===s.staff_id);list.append(el('div',{class:'list__row'},[el('div',{class:'grow'},[h('strong',s.name),h('small',fa(s.duration)+' دقیقه'+(staff?'، '+staff.name:'')+(s.active===0?'، پنهان از مشتری':''))]),button('ویرایش',()=>serviceEditor(s),'ghost')]))}if(!A.services.length)list.append(h('p','هنوز خدمتی ثبت نشده. مشتری فقط خدمت‌های فعال را در فرم درخواست می‌بیند.','muted'));f.append(list);const staffCard=card(h('h2','آرایشگرها'));const sl=el('div',{class:'list'});for(const s of A.staff)sl.append(el('div',{class:'list__row'},[el('span',{class:'avatar-dot',text:(s.name||'؟').trim().charAt(0)}),h('span',s.name,'grow')]));if(!A.staff.length)sl.append(h('p','هنوز آرایشگری ثبت نشده. هر خدمت باید یک مسئول داشته باشد.','muted'));staffCard.append(sl,el('div',{class:'inline-add'},[input('staffName','نام آرایشگر'),button('افزودن',()=>act(async()=>{await api(endpoint('admin/staff'),{name:$('staffName').value});await refreshAdmin();toast('آرایشگر اضافه شد.')}),'primary')]));root.append(f,staffCard)}
-function serviceEditor(s={}){modal(h('h2','تنظیم خدمت'),input('serviceName','نام خدمت','text',s.name||''),input('serviceDuration','مدت تقریبی اجرا (دقیقه)','number',s.duration||60),select('serviceStaff','مسئول انجام خدمت',adminData.staff.map(x=>[x.id,x.name]),s.staff_id),check('serviceActive','نمایش خدمت به مشتری',s.active!==0),button('ذخیره',()=>act(async()=>{await api(endpoint('admin/services'),{id:s.id,name:$('serviceName').value,duration:+$('serviceDuration').value,staff_id:$('serviceStaff').value,active:$('serviceActive').checked});$('modal').close();await refreshAdmin()}),'primary'))}
-function customersForm(root){const form=card(h('h2','ثبت دستی مشتری'),row(input('manualName','نام'),input('manualPhone','موبایل','tel')),select('manualMode','اقدام پس از ثبت',[['record','فقط ثبت مشتری'],['invite','ثبت و آماده‌سازی دعوت صفحه سالن'],['continue','ثبت و ادامه درخواست موجود']]),select('manualRequest','درخواست موجود (برای ادامه)',[['','انتخاب درخواست'],...adminData.requests.map(r=>[r.id,r.name+' · '+r.service])]),check('manualConsent','رضایت مشتری برای دریافت پیام ثبت شده است.'),check('manualFollowup','یک پیگیری غیرضروری مجاز است.'));
- const read=()=>({name:$('manualName').value,phone:$('manualPhone').value,mode:$('manualMode').value,request_id:$('manualRequest').value,consent:$('manualConsent').checked,followup:$('manualFollowup').checked});form.append(button('پیش‌نمایش گیرنده و ثبت',()=>act(async()=>{const b=read();if(b.mode==='record'){await api(endpoint('admin/customers'),b);await refreshAdmin();toast('مشتری ثبت شد.');return}const p=await api(endpoint('admin/customers/preview'),b);modal(h('h2','پیش‌نمایش پیام'),h('p','گیرنده: '+p.phone),h('div',p.body,'messagebody'),h('p',adminData.provider.sms?'پیام پس از ثبت وارد صف ارسال می‌شود.':'ارسال واقعی متصل نیست؛ پیام فقط در صف نگه داشته می‌شود.','alert'),button('تأیید ثبت و آماده‌سازی پیام',()=>act(async()=>{await api(endpoint('admin/customers'),{...b,previewConfirmed:true});$('modal').close();await refreshAdmin();toast('ثبت و آماده‌سازی پیام انجام شد؛ وضعیت ارسال در سابقه پیام‌هاست.')}),'primary'))}),'primary'));root.append(form);for(const c of adminData.customers){const related=adminData.requests.filter(r=>r.customer_id===c.id);root.append(card(h('h3',c.name),el('a',{href:'tel:'+c.phone,text:c.phone}),h('p',fa(related.length)+' درخواست مرتبط'),button('مشاهده درخواست‌های مرتبط',()=>modal(h('h2','درخواست‌های '+c.name),...related.map(r=>requestCard(r,true)))),check('consent'+c.id,'رضایت پیام',c.consent),check('follow'+c.id,'پیگیری غیرضروری',c.followup),button('ذخیره ترجیح',()=>act(async()=>{await api(endpoint('admin/customers/preferences'),{id:c.id,consent:$('consent'+c.id).checked,followup:$('follow'+c.id).checked});await refreshAdmin()}))))}}
-function portfolioForm(root){const P=adminData.portfolio;root.append(el('div',{class:'toolbar'},[h('p',fa(P.filter(p=>p.published).length)+' کار منتشرشده از '+fa(P.length),'muted'),button('افزودن نمونه‌کار',()=>portfolioEditor(),'primary')]));const g=el('div',{class:'portgrid'});for(const p of P){const ims=parse(p.images);g.append(el('article',{class:'card portcard'},[el('div',{class:'portcard__img'},ims[0]?[img(ims[0],p.title)]:[]),el('div',{class:'portcard__body'},[el('div',{class:'row between'},[h('h3',p.title),badge(p.published?'منتشرشده':'پیش‌نویس',p.published?'ok':'')]),h('small',(p.category||'')+(ims.length>1?'، '+fa(ims.length)+' عکس':'')+(p.try_on?'، قابل امتحان':'')),row(button('ویرایش',()=>portfolioEditor(p),'secondary'),button('حذف',()=>act(async()=>{if(!confirm('نمونه‌کار از گالری حذف شود؟'))return;await api(endpoint('admin/portfolio/delete'),{id:p.id});await refreshAdmin()}),'danger'))])]))}if(!P.length)g.append(empty('هنوز نمونه‌کاری اضافه نکرده‌اید. کارهای واقعی سالن، با اجازهٔ مشتری، بهترین دلیل برای اعتماد است.',button('افزودن اولین نمونه‌کار',()=>portfolioEditor(),'primary')));root.append(g)}
-function portfolioEditor(p={}){let images=p.images?parse(p.images):[];const list=el('div',{class:'photos'},images.map(id=>photoLink(id,'عکس واقعی')));modal(h('h2','نمونه‌کار واقعی'),input('portTitle','عنوان','text',p.title||''),select('portCategory','دسته خدمت',[['کوتاهی','کوتاهی'],['رنگ','رنگ'],['بالیاژ','بالیاژ'],['شینیون','شینیون']],p.category),area('portDesc','توضیح کوتاه',p.description||''),input('portStylist','نام آرایشگر (اختیاری)','text',p.stylist||''),list,uploadBox('portUpload','افزودن عکس واقعی (تا ۸ عکس)','portfolio',id=>{images.push(id);list.append(photoLink(id,'عکس واقعی'))}),check('portPermission','اجازه مستقل انتشار تمام عکس‌های واقعی را دارم.',p.permission),check('portPublished','انتشار در صفحه سالن',p.published),check('portTry','نمایش دکمه امتحان روی عکس مشتری (تولید منوط به تأیید آزمون سرویس است)',p.try_on),button('ذخیره نمونه‌کار',()=>act(async()=>{await api(endpoint('admin/portfolio'),{id:p.id,title:$('portTitle').value,category:$('portCategory').value,description:$('portDesc').value,stylist:$('portStylist').value,images,permission:$('portPermission').checked,published:$('portPublished').checked,try_on:$('portTry').checked});$('modal').close();await refreshAdmin()}),'primary'))}
-const smsStates={queued:'در صف؛ ارسال نشده',sending:'در حال ارسال',submitted:'پذیرفته‌شده توسط سرویس؛ تحویل تأیید نشده',retry:'در انتظار تلاش مجدد',unknown:'نتیجه نامشخص؛ بدون تکرار خودکار',failed:'ناموفق',cancelled:'متوقف‌شده'};
-function membersForm(root){const f=card(h('h2','مدیران مجاز سالن'),h('p','مدیر پس از ورود به آینه، شناسه حساب خود را از صفحه نخست می‌گیرد. فقط مالک سالن دسترسی را اضافه یا حذف می‌کند.'),input('memberId','شناسه حساب مدیر'),button('افزودن مدیر',()=>act(async()=>{await api(endpoint('admin/members'),{user_id:$('memberId').value});await refreshAdmin()})));for(const m of adminData.members)f.append(row(h('span',m.user_id),button('حذف دسترسی',()=>act(async()=>{await api(endpoint('admin/members'),{user_id:m.user_id,remove:true});await refreshAdmin()}))));root.append(f)}
-function messagesForm(root){const cfg=adminData.salon.settings,P=adminData.provider;const st=(ok,on,off)=>el('li',{class:ok?'on':'off'},[h('span',ok?'✓':'–','dot'),h('span',ok?on:off)]);root.append(card(h('h2','وضعیت اتصال'),el('ul',{class:'status'},[st(P.image,'سرویس تصویر متصل است.','کلید سرویس تصویر تنظیم نشده؛ شبیه‌سازی ساخته نمی‌شود.'),st(P.sms,'خط پیامک فعال است.','پیامک واقعی متصل و تأیید نشده؛ پیام‌ها فقط در صف می‌مانند و «ارسال‌شده» نشان داده نمی‌شوند.'),st(P.scheduler,'زمان‌بند فعال است.','زمان‌بند غیرفعال است؛ یادآوری‌ها بدون باز بودن پنل ارسال نمی‌شوند.'),st(P.job_token,'توکن صف تنظیم شده است.','توکن صف تنظیم نشده.'),st(P.app_origin,'دامنهٔ عمومی تنظیم شده است.','دامنهٔ عمومی تنظیم نشده.')]),h('p','کلیدهای KIE_API_KEY و KAVENEGAR_API_KEY و خط KAVENEGAR_SENDER فقط در تنظیمات امن میزبانی قرار می‌گیرند. SMS_LIVE_ENABLED پس از تست واقعی با شمارهٔ مجاز فعال می‌شود.','legal')));root.append(card(h('h2','تنظیمات این سالن'),check('smsEnabled','ارسال پیامک برای این سالن',cfg.sms_enabled),check('reminders','یادآوری نوبت قطعی',cfg.reminders),input('reminderHours','چند ساعت پیش از نوبت؟','number',cfg.reminder_hours||24),check('followups','یک پیگیری برای پیشنهاد بی‌پاسخ یا درخواست نیمه‌تمام',cfg.followups),input('followupHours','پس از چند ساعت بی‌پاسخی؟','number',cfg.followup_hours||24),check('generationEnabled','ساخت شبیه‌سازی تصویری (نیازمند کلید KIE)',cfg.generation_enabled),check('referenceVerified','انتقال از عکس مرجع با عکس‌های مجاز آزمایش شده و کیفیتش تأیید شده است.',cfg.reference_verified),button('ذخیرهٔ تنظیمات',()=>act(async()=>{await api(endpoint('admin/settings'),{sms_enabled:$('smsEnabled').checked,reminders:$('reminders').checked,followups:$('followups').checked,reminder_hours:+$('reminderHours').value,followup_hours:+$('followupHours').value,generation_enabled:$('generationEnabled').checked,reference_verified:$('referenceVerified').checked});await refreshAdmin();toast('تنظیمات ذخیره شد.')}),'primary')));root.append(el('div',{class:'toolbar'},[h('h2','سابقهٔ پیام‌ها'),button('پردازش صف',()=>act(async()=>{const d=await api(endpoint('admin/process'),{});toast(d.ready?'صف بررسی شد.':'ارسال واقعی فعال نیست؛ رویدادها فقط در صف ثبت شدند.');await refreshAdmin()}),'secondary')]));for(const m of adminData.messages)root.append(el('article',{class:'card msg'},[el('div',{class:'row between'},[h('h3',m.name),badge(smsStates[m.status]||m.status,smsTone[m.status])]),h('small',phoneText(m.phone)+'، '+fmt(m.created_at)+'، '+fa(m.attempts)+' تلاش'),h('div',m.body,'messagebody'),...(m.last_error?[h('p',m.last_error,'alert error')]:[])]));if(!adminData.messages.length)root.append(empty('هنوز پیامی در صف نیست.'))}
-(async()=>{try{const path=location.pathname.split('/').filter(Boolean);if(path[0]==='s'&&path[1]){slug=path[1];await salonPage();const pending=sessionStorage.getItem('ayneh-job-'+slug);if(pending&&pub.generation){await ensureSession();busy=true;try{await poll(pending,false)}finally{busy=false}}}else if(path[0]==='admin'&&path[1]){slug=path[1];await refreshAdmin()}else await home()}catch(e){const guest=location.pathname.startsWith('/s/');$('app').replaceChildren(card(h('h2',guest?'این لینک باز نشد':'ادامه نیاز به دسترسی دارد'),h('p',e.message),guest?h('p','لینک اختصاصی سالن هفت روز اعتبار دارد. برای ادامه، لینک تازه را از سالن بگیرید.','legal'):h('p','مدیران با حساب مجاز وارد می‌شوند.','legal'),el('a',{href:'/',target:'_self',class:'primary',text:guest?'صفحهٔ اصلی آینه':'صفحهٔ ورود'})))}})();
-</script></body></html>`.replace('__CSS__',()=>baseCSS+adminCSS).replace('__MARKHTML__',()=>markSVG).replace('__MARK__',()=>JSON.stringify(markSVG)).replace('__STYLES__',()=>JSON.stringify(styles));
+
+const clientJS=String.raw`
+var MARK=__MARK__;
+var $=function(s,r){return (r||document).querySelector(s)};
+function el(tag,attrs,children){var e=document.createElement(tag);attrs=attrs||{};Object.keys(attrs).forEach(function(k){var v=attrs[k];if(v===undefined||v===null||v===false)return;if(k==='text')e.textContent=v;else if(k==='html')e.innerHTML=v;else if(k==='class')e.className=v;else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),v);else e.setAttribute(k,v===true?'':v)});(children||[]).forEach(function(c){if(c!==null&&c!==undefined&&c!==false)e.append(c)});return e}
+function h(tag,text,cls){return el(tag,{text:text,class:cls||''})}
+function fa(n){return new Intl.NumberFormat('fa-IR').format(n)}
+function fmt(ms){try{return new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Tehran',dateStyle:'medium',timeStyle:'short'}).format(ms)}catch(e){return ''}}
+function toast(msg,err){var t=$('#toast');t.textContent=msg;t.className='toast is-on'+(err?' is-error':'');clearTimeout(window.__t);window.__t=setTimeout(function(){t.className='toast'},6000)}
+function api(path,body,raw){var init={};if(body!==undefined){init.method='POST';init.headers=raw?{}:{'Content-Type':'application/json'};init.body=raw?body:JSON.stringify(body)}return fetch(path,init).then(function(r){return r.json().catch(function(){return {}}).then(function(d){if(!r.ok)throw new Error(d.error||'خطای ارتباط');return d})})}
+function act(fn){return function(){var b=this;if(b&&b.disabled!==undefined)b.disabled=true;Promise.resolve().then(fn).catch(function(e){toast(e.message,true)}).then(function(){if(b&&b.disabled!==undefined)b.disabled=false})}}
+function field(id,label,value,type,hint){var input=type==='area'?el('textarea',{id:id}):el('input',{id:id,type:type||'text',value:value||''});if(type==='area')input.value=value||'';return el('label',{class:'field'},[el('span',{class:'lbl',text:label}),input,hint?el('span',{class:'hint',text:hint}):null])}
+function check(id,label,on){var i=el('input',{type:'checkbox',id:id});i.checked=!!on;return el('label',{class:'check'},[i,el('span',{text:label})])}
+function badge(t,tone){return el('span',{class:'badge'+(tone?' badge--'+tone:''),text:t})}
+var path=location.pathname.split('/').filter(Boolean),slug=path[0]==='admin'?path[1]||'':'';
+var TG='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.4 4.2 2.9 11.3c-1.2.5-1.2 1.2-.2 1.5l4.7 1.5 1.8 5.6c.2.6.1.9.8.9.5 0 .7-.2 1-.5l2.3-2.2 4.7 3.5c.9.5 1.5.2 1.7-.8l3.1-14.6c.3-1.3-.5-1.9-1.4-1.5zM9.2 14.6l8.6-5.4c.4-.2.8-.1.5.2l-7.3 6.6-.3 3z"/></svg>';
+
+(function boot(){api('/api/me').then(function(me){
+ if(!me.owner){return login(me)}
+ $('#logout').hidden=false;
+ return slug?salonPage():home();
+}).catch(function(e){$('#app').replaceChildren(el('div',{class:'loading',text:e.message}))})})();
+
+function login(me){
+ var box=el('section',{class:'card login'},[el('div',{class:'mirror'},[el('div',{class:'mirror__glass'},[el('span',{html:MARK})])]),h('h1','مدیریت آینه'),h('p','اینجا فقط برای مدیر آینه است. سالن‌ها با ربات تلگرام کار می‌کنند و مشتری‌ها از لینک اختصاصی سالن وارد می‌شوند.')]);
+ if(me.passwordLogin){var f=field('pw','رمز مدیر','', 'password');var go=el('button',{class:'btn btn--primary btn--block',type:'button',text:'ورود',onclick:act(function(){return api('/api/login',{password:$('#pw').value}).then(function(){location.reload()})})});f.querySelector('input').addEventListener('keydown',function(e){if(e.key==='Enter')go.click()});box.append(f,go)}
+ else box.append(el('p',{class:'notice notice--warn',text:'ورود با رمز روی این میزبان تنظیم نشده است (OWNER_PASSWORD و SESSION_SECRET).'}));
+ $('#app').replaceChildren(box);
+}
+
+function botCard(bot){
+ var st=function(ok,on,off){return el('li',{class:ok?'on':'off'},[h('span',ok?'✓':'–','dot'),h('span',ok?on:off)])};
+ var c=el('section',{class:'card'},[h('h2','ربات تلگرام'),h('p','همهٔ سالن‌ها از یک ربات استفاده می‌کنند. یک بار تنظیمش کنید.','lead'),el('ul',{class:'status'},[
+  st(bot.token,'توکن ربات تنظیم شده است.','TELEGRAM_BOT_TOKEN تنظیم نشده (از BotFather بگیرید).'),
+  st(bot.secret,'رمز وبهوک تنظیم شده است.','TELEGRAM_WEBHOOK_SECRET تنظیم نشده.'),
+  st(!!bot.username,'نام ربات: @'+bot.username,'TELEGRAM_BOT_USERNAME تنظیم نشده؛ لینک اتصال بدون آن ساخته نمی‌شود.')
+ ])]);
+ if(bot.token&&bot.secret)c.append(el('button',{class:'btn btn--ghost',type:'button',style:'margin-top:12px',text:'اتصال ربات به این سایت',onclick:act(function(){return api('/api/owner/webhook',{}).then(function(d){toast('ربات @'+d.bot+' به سایت وصل شد.')})})}));
+ return c;
+}
+
+function home(){return api('/api/owner').then(function(d){
+ var head=el('div',{class:'page-head'},[el('div',{},[h('h1','سالن‌ها'),h('p','هر سالن یک صفحهٔ مشتری دارد و درخواست‌ها را در تلگرام می‌گیرد.')])]);
+ var list=el('div',{class:'salons'});
+ d.salons.forEach(function(s){list.append(el('div',{class:'salon'},[el('div',{class:'grow'},[h('strong',s.name),h('small','/s/'+s.slug)]),badge(s.telegram?'تلگرام وصل':'تلگرام وصل نیست',s.telegram?'ok':'warn'),h('small',fa(s.portfolio)+' نمونه‌کار، '+fa(s.leads)+' درخواست'),el('a',{class:'btn btn--ghost btn--sm',href:'/s/'+s.slug,target:'_blank',rel:'noopener',text:'صفحهٔ مشتری'}),el('a',{class:'btn btn--primary btn--sm',href:'/admin/'+s.slug,text:'تنظیمات'})]))});
+ if(!d.salons.length)list.append(h('p','هنوز سالنی نساخته‌اید.','empty-note'));
+ var create=el('section',{class:'card'},[h('h2','سالن تازه'),field('name','نام سالن'),field('slug','نشانی انگلیسی صفحه','', 'text','مثل ayneh-saadatabad؛ صفحهٔ مشتری می‌شود /s/ayneh-saadatabad'),el('button',{class:'btn btn--primary',type:'button',text:'ساخت سالن',onclick:act(function(){return api('/api/salons',{name:$('#name').value,slug:$('#slug').value.trim()}).then(function(s){location.href='/admin/'+s.slug})})})]);
+ $('#app').replaceChildren(head,el('div',{class:'grid grid--2'},[el('div',{class:'stack'},[list,create]),el('div',{class:'stack'},[botCard(d.bot),imageCard(d.image)])]));
+})}
+function imageCard(on){return el('section',{class:'card'},[h('h2','شبیه‌سازی تصویر'),el('ul',{class:'status'},[el('li',{class:on?'on':'off'},[h('span',on?'✓':'–','dot'),h('span',on?'کلید KIE تنظیم شده؛ مشتری‌ها می‌توانند مدل را روی عکس خودشان ببینند.':'KIE_API_KEY تنظیم نشده؛ مشتری فقط عکس و مدل را برای سالن می‌فرستد.')])])])}
+
+function uploadBox(id,title,current,onDone){
+ var input=el('input',{type:'file',accept:'image/jpeg,image/png,image/webp',id:id,class:'sr-only'});
+ var img=el('span',{class:'uploadbox__img',html:current?'':'+'});if(current)img.append(el('img',{src:'/api/s/'+slug+'/media/'+current,alt:''}));
+ var hint=h('small',current?'برای تعویض بزنید':'انتخاب عکس');
+ var box=el('label',{class:'uploadbox',for:id},[img,el('span',{class:'uploadbox__txt'},[h('strong',title),hint]),input]);
+ input.addEventListener('change',function(){var f=input.files&&input.files[0];if(!f)return;box.classList.add('is-busy');hint.textContent='در حال بارگذاری…';
+  shrink(f).then(function(b){return api('/api/s/'+slug+'/upload?kind=brand',b,true)}).then(function(d){onDone(d.id);img.replaceChildren(el('img',{src:'/api/s/'+slug+'/media/'+d.id,alt:''}));hint.textContent='بارگذاری شد؛ «ذخیره» را بزنید'}).catch(function(e){toast(e.message,true);hint.textContent='دوباره امتحان کنید'}).then(function(){box.classList.remove('is-busy');input.value=''})});
+ return box;
+}
+function shrink(file){return createImageBitmap(file).then(function(b){var c=document.createElement('canvas'),s=Math.min(1,1600/Math.max(b.width,b.height));c.width=Math.round(b.width*s);c.height=Math.round(b.height*s);c.getContext('2d').drawImage(b,0,0,c.width,c.height);b.close();return new Promise(function(r){c.toBlob(r,'image/jpeg',.85)})})}
+
+function salonPage(){return api('/api/s/'+slug+'/owner').then(function(d){
+ var S=d.salon,p=S.profile||{},images={logo:p.logo,cover:p.cover,portrait:p.portrait};
+ document.title=S.name+' | مدیریت آینه';
+ var head=el('div',{class:'page-head'},[el('div',{},[el('a',{class:'back',href:'/admin',text:'→ همهٔ سالن‌ها'}),h('h1',S.name),h('p','اطلاعاتی که اینجا وارد می‌کنید در بخش «دربارهٔ سالن» صفحهٔ مشتری دیده می‌شود.')]),el('a',{class:'btn btn--ghost',href:'/s/'+S.slug,target:'_blank',rel:'noopener',text:'دیدن صفحهٔ مشتری'})]);
+
+ // Telegram
+ var tg=el('section',{class:'card'},[h('h2','تلگرام سالن')]);
+ tg.append(el('div',{class:'tg-state tg-state--'+(S.telegram?'on':'off')},[el('span',{html:TG}),el('div',{},[h('b',S.telegram?'وصل است':'هنوز وصل نیست'),h('span',S.telegram?'درخواست مشتری‌ها در پی‌وی ربات برای سالن می‌رود و هر عکسی که سالن برای ربات بفرستد نمونه‌کار می‌شود.':'تا وصل نشود، مشتری‌ها نمی‌توانند درخواست آنلاین بفرستند و فقط اطلاعات تماس سالن را می‌بینند.')])]));
+ var linkOut=el('div');
+ if(d.bot.token&&d.bot.username)tg.append(el('button',{class:'btn btn--primary',type:'button',text:S.telegram?'وصل‌کردن یک گفتگوی دیگر':'ساخت لینک اتصال',onclick:act(function(){return api('/api/s/'+slug+'/owner/telegram-link',{}).then(function(r){linkOut.replaceChildren(el('div',{class:'linkbox'},[el('code',{text:r.link}),el('button',{class:'btn btn--soft btn--sm',type:'button',text:'کپی',onclick:function(){navigator.clipboard&&navigator.clipboard.writeText(r.link).then(function(){toast('لینک کپی شد.')})}})]),el('p',{class:'tiny muted',style:'margin-top:8px',text:'این لینک را برای آرایشگاه بفرستید. با باز کردنش در تلگرام و زدن «Start»، گفتگو به این سالن وصل می‌شود. یک‌بار مصرف است و ۷ روز اعتبار دارد.'}))})})}));
+ else tg.append(el('p',{class:'notice notice--warn',text:'اول ربات را در صفحهٔ «همهٔ سالن‌ها» تنظیم کنید.'}));
+ tg.append(linkOut);
+ if(S.telegram)tg.append(el('button',{class:'btn btn--danger btn--sm',type:'button',style:'margin-top:12px',text:'قطع اتصال',onclick:act(function(){if(!confirm('اتصال تلگرام این سالن قطع شود؟'))return;return api('/api/s/'+slug+'/owner/telegram-unlink',{}).then(salonPage)})}));
+
+ // Profile
+ var prof=el('section',{class:'card'},[h('h2','دربارهٔ سالن'),h('p','همهٔ این‌ها اختیاری است جز نام.','lead'),
+  el('div',{class:'uploads'},[uploadBox('up-logo','لوگو',p.logo,function(id){images.logo=id}),uploadBox('up-cover','عکس کاور',p.cover,function(id){images.cover=id}),uploadBox('up-portrait','عکس مدیر',p.portrait,function(id){images.portrait=id})]),
+  field('f-name','نام سالن',S.name),field('f-bio','معرفی کوتاه',p.bio,'area'),
+  el('div',{class:'two'},[field('f-manager','نام مدیر یا آرایشگر',p.manager),field('f-hours','ساعات کاری',p.hours,'text','مثل شنبه تا پنج‌شنبه ۱۰ تا ۲۰'),field('f-phone','شمارهٔ تماس',p.phone?p.phone.replace(/^\+98/,'0'):'','tel'),field('f-address','آدرس',p.address)]),
+  el('div',{class:'two'},[field('f-map','لینک نقشه',p.map,'url'),field('f-instagram','لینک اینستاگرام',p.instagram,'url'),field('f-telegram','لینک کانال یا آیدی تلگرام',p.telegram,'url'),field('f-website','وب‌سایت',p.website,'url')]),
+  el('button',{class:'btn btn--primary',type:'button',text:'ذخیره',onclick:act(function(){var out={};['bio','manager','hours','phone','address','map','instagram','telegram','website'].forEach(function(k){out[k]=$('#f-'+k).value.trim()});if(out.telegram&&!/^https?:/.test(out.telegram))out.telegram='https://t.me/'+out.telegram.replace(/^@/,'');if(out.instagram&&!/^https?:/.test(out.instagram))out.instagram='https://instagram.com/'+out.instagram.replace(/^@/,'');Object.assign(out,images);return api('/api/s/'+slug+'/owner/profile',{name:$('#f-name').value,profile:out}).then(function(){toast('ذخیره شد.')})})})]);
+
+ // Settings
+ var set=el('section',{class:'card'},[h('h2','شبیه‌سازی'),check('s-gen','مشتری بتواند مدل را روی عکس خودش ببیند'+(d.image?'':' (کلید KIE هنوز تنظیم نشده)'),S.settings.generation_enabled),check('s-ref','انتقال از «عکس مدل من» و نمونه‌کارها آزمایش شده و کیفیتش تأیید شده است',S.settings.reference_verified),el('button',{class:'btn btn--ghost',type:'button',text:'ذخیرهٔ تنظیمات',onclick:act(function(){return api('/api/s/'+slug+'/owner/settings',{generation_enabled:$('#s-gen').checked,reference_verified:$('#s-ref').checked}).then(function(){toast('تنظیمات ذخیره شد.')})})})]);
+
+ // Portfolio
+ var ports=el('div',{class:'ports'});
+ d.portfolio.forEach(function(it){var ids=[];try{ids=JSON.parse(it.images)}catch(e){}ports.append(el('div',{class:'port'},[ids[0]?el('img',{src:'/api/s/'+slug+'/media/'+ids[0],alt:'',loading:'lazy'}):null,h('b',it.title),el('button',{class:'btn btn--danger btn--sm',type:'button',text:'حذف',onclick:act(function(){if(!confirm('«'+it.title+'» از صفحهٔ سالن حذف شود؟'))return;return api('/api/s/'+slug+'/owner/portfolio/delete',{id:it.id}).then(salonPage)})})]))});
+ var port=el('section',{class:'card'},[h('h2','نمونه‌کارها'),h('p','سالن عکس را برای ربات تلگرام می‌فرستد و همان لحظه اینجا و روی صفحهٔ مشتری می‌نشیند.','lead'),d.portfolio.length?ports:h('p','هنوز نمونه‌کاری نیامده.','empty-note')]);
+
+ // Delivery log
+ var tone={sent:'ok',queued:'',sending:'accent',retry:'warn',failed:'danger'},label={sent:'به تلگرام رسید',queued:'در صف',sending:'در حال ارسال',retry:'تلاش دوباره',failed:'ناموفق'};
+ var log=el('div',{class:'log'});
+ d.leads.forEach(function(l){log.append(el('div',{class:'log__row'},[el('div',{class:'grow'},[h('b',l.name),el('br'),h('small',(l.look?l.look+'، ':'')+fmt(l.created_at))]),badge(label[l.status]||l.status,tone[l.status]),l.status==='failed'?el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'ارسال دوباره',onclick:act(function(){return api('/api/s/'+slug+'/owner/leads/retry',{id:l.id}).then(salonPage)})}):null]))});
+ var leads=el('section',{class:'card'},[h('h2','درخواست‌های فرستاده‌شده'),h('p','فقط وضعیت ارسال؛ عکس‌ها و شمارهٔ مشتری در تلگرام سالن است. سوابق بعد از ۳۰ روز پاک می‌شوند.','lead'),d.leads.length?log:h('p','هنوز درخواستی نیامده.','empty-note')]);
+
+ $('#app').replaceChildren(head,el('div',{class:'grid grid--2'},[el('div',{class:'stack'},[prof,port]),el('div',{class:'stack'},[tg,set,leads])]));
+})}
+$('#logout').addEventListener('click',function(){api('/api/logout',{}).then(function(){location.href='/'})});
+`;
+
+export const appHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#e8edeb"><meta name="robots" content="noindex"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preload" href="/fonts/vazirmatn-arabic.woff2" as="font" type="font/woff2" crossorigin><title>آینه | مدیریت سالن‌ها</title><style>__CSS__</style></head><body>
+<a class="skip" href="#app">پرش به محتوای اصلی</a>
+<header class="appbar"><a href="/admin" class="appbar__brand">__MARKHTML__<span>آینه</span></a><button class="btn btn--ghost btn--sm" id="logout" type="button" hidden>خروج</button></header>
+<main id="app"><div class="loading">در حال باز کردن…</div></main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<footer class="foot">آینه: شبیه‌سازی پیشنهادی برای مشاورهٔ مو.</footer>
+<script>__JS__</script>
+</body></html>`
+ .replace('__CSS__',()=>baseCSS+css)
+ .replace('__MARKHTML__',()=>markSVG)
+ .replace('__JS__',()=>clientJS.replace('__MARK__',()=>JSON.stringify(markSVG)));

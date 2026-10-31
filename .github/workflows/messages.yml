@@ -1,9 +1,9 @@
 name: Ayneh message queue
-# Unattended reminders, followups and retention cleanup.
+# Optional backup scheduler: retries Telegram deliveries and runs retention cleanup.
+# Cloudflare cron already does this; use this only on hosts without a cron.
 # Inactive until the repository has BOTH:
 #   secret   AYNEH_JOB_TOKEN  (same value as the runtime secret JOB_TOKEN)
 #   variable AYNEH_APP_URL    (public origin, e.g. https://example.com, no trailing slash)
-# Nothing is sent while SMS_LIVE_ENABLED is false: the endpoint only queues and cleans up.
 on:
   schedule:
     - cron: '*/10 * * * *'

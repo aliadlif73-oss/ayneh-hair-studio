@@ -1,13 +1,13 @@
 // Shared design system for every Ayneh page (customer page, salon panel, 404).
 // Concept: آینه = mirror. Photos live inside an arched salon mirror; everything
 // around them stays quiet: cool mirror-glass background, espresso ink, one
-// Persian-turquoise action colour. Reem Kufi is for names and headings only
-// (its digits are Arabic-style), Vazirmatn for everything else.
+// Persian-turquoise action colour. Estedad (a Persian-designed face) for names
+// and headings, Vazirmatn for everything else.
 
 export const fontFaces=String.raw`
 @font-face{font-family:"Vazirmatn";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/vazirmatn-arabic.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200F,U+2010-2011,U+204F,U+FB50-FDFF,U+FE70-FEFC}
 @font-face{font-family:"Vazirmatn";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/vazirmatn-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-200B,U+2012-206F,U+20AC,U+2122,U+2212}
-@font-face{font-family:"Reem Kufi";font-style:normal;font-weight:400 700;font-display:swap;src:url(/fonts/reem-kufi-arabic.woff2) format("woff2");unicode-range:U+0600-065F,U+066A-06EF,U+06FA-06FF,U+200C-200D,U+FB50-FDFF,U+FE70-FEFC}
+@font-face{font-family:"Estedad";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/estedad-arabic.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200F,U+FB50-FDFF,U+FE70-FEFC}
 `;
 
 export const baseCSS=fontFaces+String.raw`
@@ -22,7 +22,7 @@ export const baseCSS=fontFaces+String.raw`
  --lift:0 1px 0 rgba(255,255,255,.7) inset,0 18px 40px -26px rgba(35,23,15,.45);
  --float:0 30px 70px -30px rgba(35,23,15,.55);
  --ease:cubic-bezier(.2,.7,.2,1);--tap:48px;
- --display:"Reem Kufi","Vazirmatn",system-ui,sans-serif;
+ --display:"Estedad","Vazirmatn",system-ui,sans-serif;
  --text:"Vazirmatn",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
  --safe-b:env(safe-area-inset-bottom,0px);
 }
@@ -30,7 +30,7 @@ export const baseCSS=fontFaces+String.raw`
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:88px}
 body{margin:0;background:var(--glass);color:var(--ink);font:400 15px/1.8 var(--text);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;overflow-x:hidden}
 h1,h2,h3,h4{margin:0;line-height:1.3;font-weight:700}
-.display{font-family:var(--display);font-weight:700;letter-spacing:0}
+.display{font-family:var(--display);font-weight:800;letter-spacing:0}
 p{margin:0}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -114,7 +114,7 @@ img{display:block;max-width:100%}
 .sheet__panel::before{content:"";display:block;width:44px;height:5px;border-radius:9px;background:var(--line);margin:-8px auto 14px}
 @media(min-width:700px){.sheet{margin:auto}.sheet__panel{border-radius:var(--r-lg);padding:26px}.sheet__panel::before{display:none}}
 .sheet__head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
-.sheet__head h2{font-family:var(--display);font-size:22px}
+.sheet__head h2{font-family:var(--display);font-weight:800;font-size:22px}
 .sheet__x{width:40px;height:40px;border:0;border-radius:50%;background:var(--glass);font-size:22px;line-height:1;color:var(--ink-2);flex:none}
 .sheet__x:hover{background:var(--glass-2)}
 
