@@ -45,7 +45,7 @@ Booking proposals use compare-and-swap versions and customer links are bound to 
 
 ## External activation
 
-Configure keys only as Sites runtime secrets; see `.env.example` for names.
+Configure keys only as Sites runtime secrets; see `.env.example` for names and `SETUP-KIE.md` for the step-by-step Sites panel walkthrough, the GitHub scheduler setup and the local `.dev.vars` route.
 
 Managers sign in and copy their account ID from `/admin`; the salon owner adds that ID under page settings. Membership can be revoked without altering other salons.
 
