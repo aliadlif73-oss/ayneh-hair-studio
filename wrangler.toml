@@ -16,9 +16,16 @@ database_name = "ayneh"
 database_id = "PASTE_D1_DATABASE_ID"
 migrations_dir = "drizzle"
 
-[[r2_buckets]]
-binding = "BUCKET"
-bucket_name = "ayneh-media"
+# Photo storage. Workers KV is on the free plan and needs no payment method.
+[[kv_namespaces]]
+binding = "KV"
+id = "PASTE_KV_NAMESPACE_ID"
+
+# Optional: R2 needs a payment method on the account. If you enable R2 billing later,
+# uncomment this block, delete the KV block and keep bucket name "ayneh-media".
+# [[r2_buckets]]
+# binding = "BUCKET"
+# bucket_name = "ayneh-media"
 
 # Reminders, followups and retention cleanup run automatically; no GitHub cron needed.
 [triggers]

@@ -70,3 +70,15 @@ test('owner signs in with a password on hosts without a platform identity gatewa
 test('password login stays disabled until a secret is configured',async()=>{const e=fixture();const r=await call(e,'/api/login',{password:'anything'});assert.equal(r.status,503);assert.equal((await call(e,'/api/me')).data.passwordLogin,false);});
 
 test('hosting identity headers are ignored unless the deployment opts in',async()=>{const base=fixture();await salon({...base,TRUST_PLATFORM_IDENTITY:'true'});const untrusted={...base,TRUST_PLATFORM_IDENTITY:'false'};const spoof=await call(untrusted,'/api/s/salon-a/admin',undefined,{user:'owner-a',email:'owner@test'});assert.equal(spoof.status,401);assert.equal((await call(untrusted,'/api/me',undefined,{user:'owner-a'})).data.user,false);});
+
+test('photos fall back to D1 blobs when no object storage is bound',async()=>{const e=fixture();e.DB.sql.exec(readFileSync(new URL('../drizzle/0001_blobs.sql',import.meta.url),'utf8'));delete e.BUCKET;const s=await salon(e),g=await guest(e,s);
+ const up=await call(e,'/api/s/salon-a/upload?kind=original',png(),g);assert.equal(up.status,200,JSON.stringify(up));
+ const got=await app.fetch(new Request(origin+'/api/s/salon-a/media/'+up.data.id,{headers:{cookie:g.cookie}}),e);assert.equal(got.status,200);
+ assert.equal(new Uint8Array(await got.arrayBuffer())[0],137);
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM blobs').get().n,1);
+});
+test('KV adapter round-trips a photo when R2 is unavailable',async()=>{const e=fixture();const store=new Map();e.KV={async put(k,v,o){store.set(k,{v,o})},async getWithMetadata(k){const x=store.get(k);return x?{value:x.v,metadata:x.o?.metadata||null}:{value:null,metadata:null}},async delete(k){store.delete(k)}};delete e.BUCKET;const s=await salon(e),g=await guest(e,s);
+ const up=await call(e,'/api/s/salon-a/upload?kind=original',png(),g);assert.equal(up.status,200,JSON.stringify(up));
+ const got=await app.fetch(new Request(origin+'/api/s/salon-a/media/'+up.data.id,{headers:{cookie:g.cookie}}),e);assert.equal(got.status,200);
+ assert.equal(new Uint8Array(await got.arrayBuffer())[0],137);
+});

@@ -2,7 +2,9 @@
 
 با این مسیر دیگر به حساب ChatGPT و پنل Sites نیازی نیست. کد در GitHub می‌ماند، Cloudflare اجرا می‌کند و کلیدها در **GitHub Secrets** نگه داشته می‌شوند.
 
-> این اپ همان چیزی است که Sites هم زیرش داشت: Worker + D1 + R2 + Cron. تنها تفاوت این است که احراز هویت مدیر حالا با **رمز** انجام می‌شود، چون هدرهای هویتِ ChatGPT روی Cloudflare وجود ندارند.
+> این اپ همان چیزی است که Sites هم زیرش داشت: Worker + D1 + فضای عکس + Cron. تنها تفاوت این است که احراز هویت مدیر حالا با **رمز** انجام می‌شود، چون هدرهای هویتِ ChatGPT روی Cloudflare وجود ندارند.
+
+> **فضای عکس بدون کارت بانکی:** R2 به کارت نیاز دارد. به همین دلیل اپ حالا از **Workers KV** (رایگان، بدون کارت) استفاده می‌کند و اگر KV هم نبود، عکس‌ها داخل خود D1 ذخیره می‌شوند (با سقف ۸۵۰ کیلوبایت برای هر عکس).
 
 ---
 
@@ -20,10 +22,16 @@
 ```sh
 npx wrangler@4 login
 npx wrangler@4 d1 create ayneh
-npx wrangler@4 r2 bucket create ayneh-media
+npx wrangler@4 kv namespace create ayneh-media
 ```
 
-خروجی دستور `d1 create` یک `database_id` می‌دهد؛ آن را در `wrangler.toml` جای `PASTE_D1_DATABASE_ID` بگذار و کامیت کن (این شناسه سرّی نیست).
+خروجی هر دو دستور یک شناسه می‌دهد:
+- `database_id` را در `wrangler.toml` جای `PASTE_D1_DATABASE_ID` بگذار.
+- `id` فضای KV را جای `PASTE_KV_NAMESPACE_ID` بگذار.
+
+هر دو شناسه سرّی نیستند. اگر ترمینال نداری، همین دو را از داشبورد بساز: **Storage & databases → D1 SQL Database → Create database** و **Workers & Pages → KV → Create namespace**؛ شناسه‌ها در صفحهٔ هرکدام نوشته شده‌اند.
+
+R2 لازم نیست. اگر روزی کارت اضافه کردی، بلوک R2 را در `wrangler.toml` از کامنت دربیاور و بلوک KV را حذف کن؛ کد خودش R2 را ترجیح می‌دهد.
 
 جدول‌ها را لازم نیست دستی بسازی؛ ورک‌فلوی انتشار خودش `drizzle/0000_salons.sql` را روی D1 اعمال می‌کند.
 
@@ -49,7 +57,7 @@ npx wrangler@4 r2 bucket create ayneh-media
 
 | نام | اجباری | مقدار |
 |---|---|---|
-| `CLOUDFLARE_API_TOKEN` | ✅ | توکن مرحلهٔ ۲ |
+| `CLOUDFLARE_API_TOKEN` | ✅ | توکن مرحلهٔ ۲ (دسترسی D1 و Workers کافی است؛ R2 لازم نیست) |
 | `CLOUDFLARE_ACCOUNT_ID` | ✅ | Account ID |
 | `SESSION_SECRET` | ✅ | `openssl rand -hex 32` |
 | `OWNER_PASSWORD` | ✅ (یا هش آن) | رمز ورود مدیر |
@@ -96,6 +104,7 @@ npx wrangler@4 r2 bucket create ayneh-media
 
 ## ۷) نکته‌ها
 
+- فضای عکس: اول R2 (اگر بایند شده باشد) → بعد KV → و در آخر خود D1. سقف هر عکس در حالت D1 برابر ۸۵۰ کیلوبایت است؛ کلاینت عکس را خودش تا این حد فشرده می‌کند.
 - **داده‌های قبلی Sites منتقل نمی‌شوند.** D1 و R2 در حساب Sites جدا هستند؛ در Cloudflare از صفر شروع می‌کنی (سالن‌ها دوباره ساخته می‌شوند).
 - ورک‌فلوی `.github/workflows/messages.yml` (زمان‌بند GitHub) دیگر لازم نیست؛ Cron خودِ Cloudflare کار را می‌کند. اگر هر دو فعال باشند هم مشکلی نیست، چون صف idempotent است.
 - منطق امنیتی: کوکی مدیر با `SESSION_SECRET` امضا می‌شود، هفت روز اعتبار دارد، `HttpOnly` است و هر ۲۰ تلاش ناموفق ورود از یک IP محدود می‌شود.

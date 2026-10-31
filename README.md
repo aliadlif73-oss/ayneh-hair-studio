@@ -24,7 +24,7 @@ The development server runs on port 4173, uses a local SQLite database and in-me
 
 Two supported hosts:
 
-- **Cloudflare** (recommended, no ChatGPT/Sites account): `wrangler.toml` + `.github/workflows/deploy.yml`. Push to `main` and GitHub Actions runs the tests, applies D1 migrations, deploys the Worker and writes every runtime secret from GitHub repository secrets. Cron every ten minutes is declared in `wrangler.toml`. Follow `DEPLOY-CLOUDFLARE.md`.
+- **Cloudflare** (recommended, no ChatGPT/Sites account): `wrangler.toml` + `.github/workflows/deploy.yml`. Photos use Workers KV (free plan, no payment method); R2 is preferred automatically when bound, and D1 itself is the last fallback with an 850 KB per-photo limit. Push to `main` and GitHub Actions runs the tests, applies D1 migrations, deploys the Worker and writes every runtime secret from GitHub repository secrets. Cron every ten minutes is declared in `wrangler.toml`. Follow `DEPLOY-CLOUDFLARE.md`.
 - **Sites**: the original target; deploy the saved version from the Sites panel and set `TRUST_PLATFORM_IDENTITY=true`.
 
 ### Secrets
