@@ -125,7 +125,8 @@ const customerCSS=String.raw`
 .meta-list a,.meta-list span{display:flex;gap:9px;align-items:flex-start;color:var(--ink-2);line-height:1.7}
 .meta-list svg{width:17px;height:17px;flex:none;margin-top:2px;color:var(--brand)}
 .rate-line{display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap}
-.foot{text-align:center;font-size:11.5px;color:var(--muted);padding:22px 0 10px;line-height:1.9}
+.foot{text-align:center;font-size:11.5px;color:var(--muted);padding:22px 6px 128px;line-height:1.9}
+@media(max-width:600px){.head__actions{gap:6px}.icon-btn{width:40px;height:40px;border-radius:13px}.head__logo{width:52px;height:52px}}
 .fatal{display:grid;gap:12px;place-items:start;padding:24px;margin:32px auto;max-width:460px}
 .sidecard{padding:16px}
 .sidecard h2{font-size:14.5px;margin-bottom:10px;display:flex;align-items:center;gap:7px}
@@ -255,7 +256,7 @@ function flowHead(title,sub){
  return el('div',{class:'flow__head'},[el('div',{},[h('h2',title,'flow__title'),sub?h('p',sub,'flow__sub'):null])]);
 }
 function stepPhoto(){
- var box=el('div',{class:'card flow',id:'flow'});
+ var box=el('div',{class:'card flow'});
  box.append(flowHead('عکس خودت','یک عکس واضح از چهره، رو به دوربین و با نور یکنواخت.'));
  if(!state.original){
   var input=el('input',{type:'file',accept:'image/jpeg,image/png,image/webp',id:'pick',class:'sr-only'});
@@ -293,7 +294,7 @@ function stepPhoto(){
  return box;
 }
 function stepModel(){
- var box=el('div',{class:'card flow',id:'flow'});
+ var box=el('div',{class:'card flow'});
  box.append(flowHead('مدل مو را انتخاب کن','می‌توانی از مدل‌های آماده، نمونه‌کارهای واقعی سالن یا عکس دلخواه خودت استفاده کنی.'));
  var seg=el('div',{class:'seg',role:'tablist'});
  [['salon','نمونه‌کار سالن'],['catalog','مدل‌های آماده'],['upload','عکس مدل من']].forEach(function(x){
@@ -376,7 +377,7 @@ function missingReason(){
  return 'یک مدل انتخاب کن';
 }
 function stepResult(){
- var box=el('div',{class:'card flow',id:'flow'});
+ var box=el('div',{class:'card flow'});
  box.append(flowHead('پیش‌نمایش','این تصویر یک شبیه‌سازی پیشنهادی است، نه تضمین اجرا. تصمیم نهایی با آرایشگر است.'));
  var model=state.style!==null&&!state.reference?STYLES[state.style][0]:(state.reference?'عکس مرجع انتخاب‌شده':'انتخاب نشده');
  box.append(el('div',{class:'summary'},[
