@@ -1,0 +1,42 @@
+name: Ayneh message queue
+# Unattended reminders, followups and retention cleanup.
+# Inactive until the repository has BOTH:
+#   secret   AYNEH_JOB_TOKEN  (same value as the runtime secret JOB_TOKEN)
+#   variable AYNEH_APP_URL    (public origin, e.g. https://example.com, no trailing slash)
+# Nothing is sent while SMS_LIVE_ENABLED is false: the endpoint only queues and cleans up.
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+concurrency:
+  group: ayneh-tick
+  cancel-in-progress: false
+permissions:
+  contents: read
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check configuration
+        id: config
+        run: |
+          if [ -z "${{ vars.AYNEH_APP_URL }}" ] || [ -z "${{ secrets.AYNEH_JOB_TOKEN }}" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "AYNEH_APP_URL or AYNEH_JOB_TOKEN is not configured; skipping."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Process queue
+        if: steps.config.outputs.ready == 'true'
+        run: |
+          status=$(curl -sS -o /tmp/tick.json -w '%{http_code}' \
+            -X POST "${{ vars.AYNEH_APP_URL }}/api/internal/tick" \
+            -H "Authorization: Bearer ${{ secrets.AYNEH_JOB_TOKEN }}" \
+            -H 'Content-Type: application/json' \
+            --max-time 60)
+          cat /tmp/tick.json || true
+          echo
+          if [ "$status" != "200" ]; then
+            echo "Tick failed with HTTP $status"
+            exit 1
+          fi

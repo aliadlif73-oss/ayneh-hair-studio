@@ -1,0 +1,32 @@
+# Cloudflare Workers deployment — no ChatGPT account or Sites panel needed.
+# One-time setup: create the D1 database and the KV namespace (see DEPLOY-CLOUDFLARE.md)
+# and paste both ids below. Every secret is pushed as a Worker secret by
+# .github/workflows/deploy.yml from GitHub repository secrets, so nothing secret
+# ever lives in this file.
+name = "ayneh-hair-studio"
+main = "worker/index.js"
+compatibility_date = "2026-10-01"
+
+[observability]
+enabled = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ayneh"
+database_id = "d1f05be3-2420-4f72-b541-60ac5f5853c4"
+migrations_dir = "drizzle"
+
+# Photo storage. Workers KV is on the free plan and needs no payment method.
+[[kv_namespaces]]
+binding = "KV"
+id = "ded9d8ee91da4d3ebb2a5f220ef90df2"
+
+# Optional: R2 needs a payment method on the account. If you enable R2 billing later,
+# uncomment this block, delete the KV block and keep bucket name "ayneh-media".
+# [[r2_buckets]]
+# binding = "BUCKET"
+# bucket_name = "ayneh-media"
+
+# Reminders, followups and retention cleanup run automatically; no GitHub cron needed.
+[triggers]
+crons = ["*/10 * * * *"]
