@@ -1,5 +1,6 @@
 import legacy from './legacy.js';
 import {appHTML} from './ui.js';
+import {customerHTML} from './customer.js';
 import {api,errorResponse,tick} from './server.js';
 import {must} from './domain.js';
 import {identity} from './auth.js';
@@ -14,6 +15,7 @@ export default {
   if(u.pathname.startsWith('/api/'))return await api(request,env);
   if(u.pathname==='/favicon.ico')return new Response(null,{status:204,headers:{'Cache-Control':'public,max-age=86400'}});
   if(!pages.some(r=>r.test(u.pathname)))return new Response(notFound,{status:404,headers:htmlHeaders});
+  if(/^\/s\/[a-z0-9-]{1,64}(\/access)?\/?$/.test(u.pathname))return new Response(customerHTML,{headers:htmlHeaders});
   return new Response(appHTML,{headers:htmlHeaders});
  }catch(e){return errorResponse(e)}},
  async scheduled(event,env,ctx){if(env.APP_ORIGIN)ctx.waitUntil(tick(env,env.APP_ORIGIN))}

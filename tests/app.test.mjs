@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {database,memoryBucket} from '../scripts/local-adapter.mjs';import app from '../worker/index.js';import {phone,appointment,transferPrompt,token} from '../worker/domain.js';import {appHTML} from '../worker/ui.js';import {tick} from '../worker/server.js';
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {database,memoryBucket} from '../scripts/local-adapter.mjs';import app from '../worker/index.js';import {phone,appointment,transferPrompt,token} from '../worker/domain.js';import {appHTML} from '../worker/ui.js';import {customerHTML} from '../worker/customer.js';import {tick} from '../worker/server.js';
 const origin='https://test.example';
 function fixture(){const DB=database();DB.sql.exec(readFileSync(new URL('../drizzle/0000_salons.sql',import.meta.url),'utf8'));return {DB,BUCKET:memoryBucket(),OWNER_EMAIL:'owner@test',JOB_TOKEN:'job-test',TRUST_PLATFORM_IDENTITY:'true'};}
 async function call(env,path,body,{cookie='',user='',email=''}={}){const headers={origin,'oai-authenticated-user-id':user,'oai-authenticated-user-email':email,cookie};let payload;if(body!==undefined){if(body instanceof Uint8Array){payload=body}else{headers['content-type']='application/json';payload=JSON.stringify(body)}}const res=await app.fetch(new Request(origin+path,{method:body===undefined?'GET':'POST',headers,body:payload}),env);let d;try{d=await res.json()}catch{d=null}return {status:res.status,data:d,cookie:res.headers.get('set-cookie')?.split(';')[0]};}
@@ -54,6 +54,15 @@ test('retention cleanup erases expired sessions, rate limits and old private med
 });
 test('page has no external font dependency and keeps framing denied',async()=>{let e=fixture();assert(!appHTML.includes('fonts.googleapis.com'));
  const r=await app.fetch(new Request(origin+'/'),e);const csp=r.headers.get('content-security-policy');assert.match(csp,/frame-ancestors 'none'/);assert(!/googleapis|gstatic/.test(csp));
+});
+test('customer page is a self-contained script served for salon links only',async()=>{
+ let e=fixture(),s=await salon(e);
+ const scriptBlock=customerHTML.match(/<script>([\s\S]*?)<\/script>\s*<\/body>/);assert(scriptBlock,'customer script block missing');new Function(scriptBlock[1]);assert(!/__STYLES__|__CSS__|__JS__/.test(customerHTML));
+ assert(!customerHTML.includes('fonts.googleapis.com'));assert(!/\/\/[a-z.]*cdn/i.test(customerHTML));
+ const page=await app.fetch(new Request(origin+'/s/salon-a'),e);assert.equal(page.status,200);const html=await page.text();assert.match(html,/id="flow"/);assert.match(html,/مراحل/);
+ assert.equal((await app.fetch(new Request(origin+'/s/salon-a/access'),e)).status,200);
+ assert.match(await (await app.fetch(new Request(origin+'/admin'),e)).text(),/<title>آینه \| انتخاب مدل/);
+ assert.equal((await app.fetch(new Request(origin+'/s/Bad Slug'),e)).status,404);
 });
 
 test('owner signs in with a password on hosts without a platform identity gateway',async()=>{const e={...fixture(),OWNER_PASSWORD:'correct horse battery',SESSION_SECRET:'session-secret-for-tests',OWNER_EMAIL:'owner@test',OWNER_ID:'owner-1'};
