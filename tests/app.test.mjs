@@ -24,3 +24,34 @@ test('SMS rejection retries are bounded; uncertain network sends never retry (mo
 
 test('mutations reject GET; salon owners can grant and revoke isolated manager access',async()=>{let e=fixture(),s=await salon(e),other=await salon(e,'salon-b','other-owner');assert.equal((await call(e,'/api/s/salon-a/admin/process',undefined,{user:s.owner})).status,405);assert.equal((await call(e,'/api/s/salon-a/admin/members',{user_id:'new-manager'},{user:s.owner})).status,200);assert.equal((await call(e,'/api/s/salon-a/admin',undefined,{user:'new-manager'})).status,200);assert.equal((await call(e,'/api/s/salon-b/admin',undefined,{user:'new-manager'})).status,403);assert.equal((await call(e,'/api/s/salon-a/admin/members',{user_id:'someone'},{user:'new-manager'})).status,403);await call(e,'/api/s/salon-a/admin/members',{user_id:'new-manager',remove:true},{user:s.owner});assert.equal((await call(e,'/api/s/salon-a/admin',undefined,{user:'new-manager'})).status,403);});
 test('server enforces separate processing and salon review consent',async()=>{let e=fixture(),s=await salon(e),g=await guest(e,s);assert.equal((await call(e,'/api/s/salon-a/generate',{idem:crypto.randomUUID()},g)).status,400);assert.equal((await call(e,'/api/s/salon-a/requests',{idem:crypto.randomUUID()},g)).status,400);assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM requests').get().n,0);});
+
+test('unknown pages and unknown APIs return 404; HEAD and favicon are handled',async()=>{let e=fixture();
+ const missing=await app.fetch(new Request(origin+'/whatever'),e);assert.equal(missing.status,404);assert.match(await missing.text(),/پیدا نشد/);
+ assert.equal((await app.fetch(new Request(origin+'/api/nope'),e)).status,404);
+ assert.equal((await app.fetch(new Request(origin+'/',{method:'HEAD'}),e)).status,200);
+ assert.equal((await app.fetch(new Request(origin+'/favicon.ico'),e)).status,204);
+ assert.equal((await app.fetch(new Request(origin+'/s/salon-a'),e)).status,200);
+ assert.equal((await app.fetch(new Request(origin+'/s/salon-a/access'),e)).status,200);
+});
+test('queue endpoint rejects the wrong method before evaluating its token',async()=>{let e=fixture();
+ assert.equal((await app.fetch(new Request(origin+'/api/internal/tick',{headers:{authorization:'Bearer job-test'}}),e)).status,405);
+ assert.equal((await app.fetch(new Request(origin+'/api/internal/tick',{method:'POST'}),e)).status,403);
+ assert.equal((await app.fetch(new Request(origin+'/api/internal/tick',{method:'POST',headers:{authorization:'Bearer job-test'}}),e)).status,200);
+});
+test('tiny uploads get a size-specific error instead of the five megabyte message',async()=>{let e=fixture(),s=await salon(e),g=await guest(e,s);
+ const r=await call(e,'/api/s/salon-a/upload?kind=original',new Uint8Array([1,2,3]),g);assert.equal(r.status,400);assert.match(r.data.error,/کوچک/);
+});
+test('retention cleanup erases expired sessions, rate limits and old private media',async()=>{let e=fixture(),s=await salon(e),old=Date.now()-40*86400000;
+ e.DB.sql.exec("INSERT INTO sessions(id,salon_id,customer_id,token_hash,expires_at,created_at) VALUES('s-exp','"+s.id+"',NULL,'h-exp',"+(Date.now()-1000)+","+old+")");
+ e.DB.sql.exec("INSERT INTO limits(key,count,expires_at) VALUES('k-exp',1,"+(Date.now()-1000)+")");
+ await e.BUCKET.put(s.id+'/m-exp',new Uint8Array([1,2,3]));
+ e.DB.sql.exec("INSERT INTO media(id,salon_id,session_id,kind,object_key,mime,created_at) VALUES('m-exp','"+s.id+"',NULL,'original','"+s.id+"/m-exp','image/jpeg',"+old+")");
+ await tick(e,origin);
+ assert.equal(e.DB.sql.prepare("SELECT count(*) n FROM sessions WHERE id='s-exp'").get().n,0);
+ assert.equal(e.DB.sql.prepare("SELECT count(*) n FROM limits WHERE key='k-exp'").get().n,0);
+ assert.equal(e.DB.sql.prepare("SELECT count(*) n FROM media WHERE id='m-exp'").get().n,0);
+ assert.equal(e.BUCKET.objects.has(s.id+'/m-exp'),false);
+});
+test('page has no external font dependency and keeps framing denied',async()=>{let e=fixture();assert(!appHTML.includes('fonts.googleapis.com'));
+ const r=await app.fetch(new Request(origin+'/'),e);const csp=r.headers.get('content-security-policy');assert.match(csp,/frame-ancestors 'none'/);assert(!/googleapis|gstatic/.test(csp));
+});
