@@ -3,14 +3,14 @@ import {baseCSS,markSVG} from './design.js';
 const adminCSS=String.raw`
 body{font-size:14.5px}
 .appbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;max-width:1280px;margin:0 auto}
-.appbar__brand{display:inline-flex;align-items:center;gap:9px;color:var(--ink);font-family:var(--display);font-weight:700;font-size:22px}
+.appbar__brand{display:inline-flex;align-items:center;gap:9px;color:var(--ink);font-family:var(--display);font-weight:800;font-size:22px}
 .appbar__brand svg{width:22px;height:28px}
 .appbar nav{display:flex;align-items:center;gap:6px}
 .appbar nav a,.appbar nav button{min-height:40px;padding:0 14px;border-radius:12px;border:0;background:transparent;color:var(--ink-2);font-weight:600;font-size:13.5px;display:inline-flex;align-items:center}
 .appbar nav a:hover,.appbar nav button:hover{background:var(--glass-2)}
 main#app{max-width:1280px;margin:0 auto;padding:6px 20px 60px;min-height:70vh}
 h1{font-size:28px}h2{font-size:18px}h3{font-size:16px}
-h1.display,h2.display,.display{font-family:var(--display)}
+h1.display,h2.display,.display{font-family:var(--display);font-weight:800}
 p{line-height:1.9}
 small{color:var(--muted);font-size:12.5px;line-height:1.8}
 .muted{color:var(--muted)}
@@ -45,7 +45,7 @@ label.check input{width:20px;height:20px;margin:3px 0 0;flex:none;accent-color:v
 .row label{flex:1;min-width:150px}
 
 .card{background:var(--surface);border:1px solid var(--line-2);border-radius:22px;padding:22px;margin-bottom:16px;box-shadow:0 1px 2px rgba(35,23,15,.05)}
-.card>h2,.card__head h2{font-family:var(--display);font-size:21px;margin-bottom:14px}
+.card>h2,.card__head h2{font-family:var(--display);font-weight:800;font-size:21px;margin-bottom:14px}
 .card__head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
 .card__head h2{margin-bottom:0}
 .badge{display:inline-flex;align-items:center;gap:6px;padding:3px 11px;border-radius:999px;background:var(--glass-2);color:var(--ink-2);font-size:12px;font-weight:600;white-space:nowrap}
@@ -60,7 +60,7 @@ label.check input{width:20px;height:20px;margin:3px 0 0;flex:none;accent-color:v
 .admin{display:grid;gap:18px}
 .admin__side{display:grid;gap:12px;align-content:start}
 .admin__salon small{display:block;font-size:12px}
-.admin__salon strong{font-family:var(--display);font-size:26px;line-height:1.3}
+.admin__salon strong{font-family:var(--display);font-weight:800;font-size:26px;line-height:1.3}
 .admin__view{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:13.5px}
 .tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0;scrollbar-width:none;position:sticky;top:0;z-index:5;background:var(--glass);margin:0 -20px;padding-inline:20px}
 .tabs::-webkit-scrollbar{display:none}
@@ -139,7 +139,7 @@ label.check input{width:20px;height:20px;margin:3px 0 0;flex:none;accent-color:v
 .inline-add{display:flex;gap:10px;align-items:flex-end;margin-top:12px}
 .inline-add label{flex:1;margin:0}
 .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap}
-.toolbar h2{font-family:var(--display);font-size:21px}
+.toolbar h2{font-family:var(--display);font-weight:800;font-size:21px}
 .portgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 @media(min-width:720px){.portgrid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px}}
 .portcard .row .secondary,.portcard .row .danger{min-height:38px;padding:0 12px;font-size:13px}
@@ -170,7 +170,7 @@ label.check input{width:20px;height:20px;margin:3px 0 0;flex:none;accent-color:v
 .home__mirror .mirror__glass{aspect-ratio:3/4;display:grid;place-items:center}
 .home__mark{display:block;width:38%;position:relative;z-index:1}
 .home__mark svg{width:100%;height:auto}
-.home__title{font-family:var(--display);font-size:clamp(34px,6vw,56px);line-height:1.15}
+.home__title{font-family:var(--display);font-weight:800;font-size:clamp(34px,6vw,56px);line-height:1.15}
 .home__lead{font-size:16px;color:var(--ink-2);max-width:46ch;margin-top:12px;line-height:2}
 .home__acct{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;margin:4px 0 14px}
 .home__acct code{direction:ltr;background:var(--surface);border:1px solid var(--line-2);padding:4px 10px;border-radius:8px;font-size:12.5px;overflow-wrap:anywhere}
@@ -182,7 +182,7 @@ dialog#modal::backdrop{background:rgba(35,23,15,.42);backdrop-filter:blur(4px)}
 dialog#modal[open]{animation:sheetIn .26s var(--ease)}
 .modal__panel{position:relative;background:var(--surface);border-radius:26px 26px 0 0;padding:24px 20px calc(24px + var(--safe-b));max-height:90vh;overflow:auto;box-shadow:var(--float)}
 @media(min-width:700px){dialog#modal{margin:auto}.modal__panel{border-radius:26px;padding:28px}}
-#modalbody>h2:first-child{font-family:var(--display);font-size:23px;margin:0 0 14px;padding-inline-end:48px}
+#modalbody>h2:first-child{font-family:var(--display);font-weight:800;font-size:23px;margin:0 0 14px;padding-inline-end:48px}
 #modalbody>.card{box-shadow:none}
 .close{position:absolute;top:18px;inset-inline-end:18px;width:40px;height:40px;border:0;border-radius:50%;background:var(--glass);font-size:22px;color:var(--ink-2);z-index:2}
 .close:hover{background:var(--glass-2)}
@@ -200,7 +200,7 @@ dialog#modal[open]{animation:sheetIn .26s var(--ease)}
 #toast{position:fixed;bottom:calc(20px + var(--safe-b));inset-inline:16px;max-width:520px;margin:auto;z-index:99;background:var(--ink);color:#fff;box-shadow:var(--float);padding:14px 18px;border-radius:16px;display:none;white-space:pre-line;font-size:14px}
 footer.foot{padding:26px 20px 34px;text-align:center;color:var(--muted);font-size:12px}
 `;
-export const appHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#e8edeb"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preload" href="/fonts/vazirmatn-arabic.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/reem-kufi-arabic.woff2" as="font" type="font/woff2" crossorigin><title>آینه | انتخاب مدل و هماهنگی با سالن</title><style>__CSS__</style></head><body><a class="skip" href="#app">پرش به محتوای اصلی</a><header class="appbar"><a href="/" class="appbar__brand">__MARKHTML__<span>آینه</span></a><nav aria-label="پیوندها"><a href="/admin">سالن‌ها</a><button id="help" type="button">راهنما</button></nav></header><main id="app"><div class="empty loading">در حال باز کردن پنل…</div></main><div id="toast" role="status" aria-live="polite"></div><dialog id="modal" aria-label="پنجره"><div class="modal__panel"><button class="close" id="close" type="button" aria-label="بستن">×</button><div id="modalbody"></div></div></dialog><footer class="foot">آینه: شبیه‌سازی پیشنهادی برای مشاورهٔ مو. تصمیم اجرای واقعی با آرایشگر است.</footer><script>
+export const appHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#e8edeb"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preload" href="/fonts/vazirmatn-arabic.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" href="/fonts/estedad-arabic.woff2" as="font" type="font/woff2" crossorigin><title>آینه | انتخاب مدل و هماهنگی با سالن</title><style>__CSS__</style></head><body><a class="skip" href="#app">پرش به محتوای اصلی</a><header class="appbar"><a href="/" class="appbar__brand">__MARKHTML__<span>آینه</span></a><nav aria-label="پیوندها"><a href="/admin">سالن‌ها</a><button id="help" type="button">راهنما</button></nav></header><main id="app"><div class="empty loading">در حال باز کردن پنل…</div></main><div id="toast" role="status" aria-live="polite"></div><dialog id="modal" aria-label="پنجره"><div class="modal__panel"><button class="close" id="close" type="button" aria-label="بستن">×</button><div id="modalbody"></div></div></dialog><footer class="foot">آینه: شبیه‌سازی پیشنهادی برای مشاورهٔ مو. تصمیم اجرای واقعی با آرایشگر است.</footer><script>
 const STYLES=__STYLES__;function uuid(){const b=crypto.getRandomValues(new Uint8Array(16));b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;const h=Array.from(b,x=>x.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);}const $=id=>document.getElementById(id),el=(tag,attrs={},children=[])=>{const e=document.createElement(tag);for(const [k,v]of Object.entries(attrs)){if(k==='text')e.textContent=v;else if(k.startsWith('on'))e.addEventListener(k.slice(2),v);else if(k==='class')e.className=v;else if(k==='checked')e.checked=!!v;else e.setAttribute(k,v)}for(const child of children)e.append(child);return e};const h=(tag,text,cls)=>el(tag,{text,class:cls||''});const button=(text,fn,cls='secondary')=>el('button',{text,class:cls,onclick:fn,type:'button'});const input=(id,label,type='text',value='')=>el('label',{text:label},[el('input',{id,type,value})]);const check=(id,label,checked=false)=>el('label',{class:'check'},[el('input',{id,type:'checkbox',checked}),h('span',label)]);const select=(id,label,options,value)=>{const s=el('select',{id});for(const [v,t]of options)s.append(el('option',{value:v,text:t}));if(value!==undefined)s.value=value;return el('label',{text:label},[s])};const area=(id,label,value='')=>el('label',{text:label},[el('textarea',{id,text:value})]);const fa=n=>new Intl.NumberFormat('fa-IR').format(n);const fmt=ms=>ms?new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Tehran',dateStyle:'medium',timeStyle:'short'}).format(ms):'زمانی پیشنهاد نشده';const parse=s=>{try{return JSON.parse(s||'{}')}catch{return {}}};const MARK=__MARK__;const TABS=[['requests','درخواست‌ها','عکس و مدل انتخابی مشتری را ببینید و بگویید قابل اجراست یا نه. بررسی مدل و تعیین زمان دو کار جدا هستند.'],['appointments','نوبت‌ها','زمان‌های پیشنهادی و قطعی، به ترتیب تاریخ.'],['customers','مشتریان','مشتری را دستی ثبت کنید یا ترجیح پیام‌هایش را تغییر دهید.'],['portfolio','نمونه‌کارها','کارهای واقعی سالن که مشتری در صفحه می‌بیند و می‌تواند روی عکس خودش امتحان کند.'],['profile','صفحهٔ سالن','نام، عکس‌ها و اطلاعات تماسی که مشتری می‌بیند.'],['services','خدمات و آرایشگرها','هر خدمت یک مسئول و یک مدت تقریبی دارد.'],['messages','پیام‌ها','پیامک‌ها، یادآوری‌ها و وضعیت ارسال.']];const reviewTone={pending:'warn',possible:'ok',in_person:'accent',changes:'accent',unavailable:'danger'};const statusTone={awaiting_salon:'warn',awaiting_customer:'accent',confirmed:'ok',rejected:'danger',cancelled:'danger',done:''};const smsTone={submitted:'ok',failed:'danger',unknown:'warn',retry:'warn',sending:'accent'};const badge=(t,tone)=>h('span',t,'badge'+(tone?' badge--'+tone:''));const phoneText=p=>String(p||'').replace(/^\+98/,'0').replace(/^(\d{4})(\d{3})(\d{4})$/,'$1 $2 $3').replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);function timePick(id,value){const opts=[];for(let m=8*60;m<=22*60;m+=30){const hh=String(Math.floor(m/60)).padStart(2,'0'),mm=m%60?'30':'00';opts.push([hh+':'+mm,fa(+hh)+':'+(m%60?'۳۰':'۰۰')])}if(value&&!opts.some(o=>o[0]===value))opts.unshift([value,value.replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d])]);return select(id,'ساعت (به وقت تهران)',opts,value||'10:00')}function thumb(id,label){return id?el('a',{href:media(id),target:'_blank',rel:'noopener',class:'thumb'},[img(id,label),h('small',label)]):null}function empty(text,action){const e=el('div',{class:'emptystate'},[el('span',{class:'emptystate__mirror'}),h('p',text)]);if(action)e.append(action);return e}function toast(t){$('toast').textContent=t;$('toast').style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>$('toast').style.display='none',9000)}const row=(...xs)=>el('div',{class:'row'},xs);const card=(...xs)=>el('section',{class:'card'},xs);function modal(...xs){$('modalbody').replaceChildren(...xs);$('modal').showModal()}$('close').onclick=()=>$('modal').close();$('modal').addEventListener('click',e=>{if(e.target===$('modal'))$('modal').close()});$('help').onclick=()=>modal(h('h2','انتخاب، مشاوره و هماهنگی'),h('p','عکس خودت و عکس مدل دلخواه دو ورودی جدا هستند. عکس دوم فقط مرجع مو است. خروجی، شبیه‌سازی پیشنهادی است و حفظ دقیق شباهت یا اجرای رنگ را تضمین نمی‌کند.'),h('p','تأیید امکان اجرا از تأیید زمان جداست. نوبت تنها پس از توافق دو طرف قطعی می‌شود. هیچ قیمت یا پرداختی در این جریان وجود ندارد.'),h('p','عکس‌ها حداکثر ۳۰ روز در این سامانه قابل مشاهده‌اند. فایل ورودی و خروجی برای تولید به KIE فرستاده می‌شود؛ حذف جلسه به معنی حذف فوری نسخه تأمین‌کننده نیست. اجازه انتشار نمونه‌کار مستقل است.'));
 async function api(path,body,raw=false){const r=await fetch(path,body===undefined?{}:{method:'POST',headers:raw?{}:{'Content-Type':'application/json'},body:raw?body:JSON.stringify(body)});const d=await r.json();if(!r.ok)throw Error(d.error||'خطای ارتباط');return d}let slug='',pub=null,adminData=null,adminTab='requests',busy=false,sessionReady=false,original=null,reference=null,result=null,currentGeneration=null,history=[],selectedStyle=0,filter='همه',referenceMode='both',generationKey=null,requestKey=uuid();let selectedDay=null;
 const endpoint=route=>'/api/s/'+slug+'/'+route;const media=id=>endpoint('media/'+id);const img=(id,alt)=>el('img',{src:media(id),alt,loading:'lazy'});async function act(fn){try{await fn()}catch(e){toast(e.message)}}

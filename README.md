@@ -41,7 +41,7 @@ Provider keys belong in the hosting provider's runtime secret store (GitHub secr
 - `worker/domain.js`: input validation, state transitions and distinct reference-transfer prompts.
 - `worker/server.js`: D1/R2 operations, authorization, KIE, durable message outbox and bounded sending.
 - `worker/design.js`: shared design system (mirror-glass palette, arched photo frame, buttons, fields, sheets) used by the customer page, salon panel and 404.
-- `worker/fonts.js`: self-hosted Vazirmatn and Reem Kufi (SIL OFL 1.1) served from `/fonts/*` on our own origin, so the CSP keeps `font-src 'self'`.
+- `worker/fonts.js`: self-hosted Vazirmatn and Estedad (SIL OFL 1.1) served from `/fonts/*` on our own origin, so the CSP keeps `font-src 'self'`.
 - `worker/customer.js`: customer page (salon hero, three-step photo → style → result flow, requests sheet).
 - `worker/ui.js`: salon panel and sign-in page with Persian calendar and Tehran time.
 - `drizzle/0000_salons.sql`: initial tenant schema and database-level overlap triggers. Once deployed, append migrations; do not edit it.

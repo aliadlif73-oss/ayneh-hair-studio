@@ -92,7 +92,7 @@ test('KV adapter round-trips a photo when R2 is unavailable',async()=>{const e=f
  assert.equal(new Uint8Array(await got.arrayBuffer())[0],137);
 });
 test('brand fonts and favicon are served from our own origin; customer page has no Gregorian date pickers',async()=>{let e=fixture();
- for(const f of ['vazirmatn-arabic.woff2','vazirmatn-latin.woff2','reem-kufi-arabic.woff2']){const r=await app.fetch(new Request(origin+'/fonts/'+f),e);assert.equal(r.status,200,f);assert.equal(r.headers.get('content-type'),'font/woff2');assert.match(r.headers.get('cache-control'),/immutable/);const b=new Uint8Array(await r.arrayBuffer());assert.equal(String.fromCharCode(...b.slice(0,4)),'wOF2');}
+ for(const f of ['vazirmatn-arabic.woff2','vazirmatn-latin.woff2','estedad-arabic.woff2']){const r=await app.fetch(new Request(origin+'/fonts/'+f),e);assert.equal(r.status,200,f);assert.equal(r.headers.get('content-type'),'font/woff2');assert.match(r.headers.get('cache-control'),/immutable/);const b=new Uint8Array(await r.arrayBuffer());assert.equal(String.fromCharCode(...b.slice(0,4)),'wOF2');}
  assert.equal((await app.fetch(new Request(origin+'/fonts/nope.woff2'),e)).status,404);
  const ico=await app.fetch(new Request(origin+'/favicon.svg'),e);assert.equal(ico.status,200);assert.match(await ico.text(),/<svg/);
  for(const html of [customerHTML,appHTML]){assert.match(html,/\/fonts\/vazirmatn-arabic\.woff2/);assert(!/type:'date'|type:'time'|datetime-local/.test(html));}

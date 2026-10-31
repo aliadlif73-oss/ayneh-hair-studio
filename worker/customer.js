@@ -17,7 +17,7 @@ const customerCSS=String.raw`
 .hero__mirror .mirror__glass--empty img{width:46%;height:auto;aspect-ratio:1;border-radius:50%;object-fit:cover}
 .hero__logo{position:absolute;inset-inline-start:50%;bottom:-14px;transform:translateX(50%);width:52px;height:52px;border-radius:50%;object-fit:cover;border:3px solid var(--surface);background:var(--surface);box-shadow:var(--lift)}
 .hero__text{padding-bottom:6px;min-width:0}
-.hero__name{font-family:var(--display);font-weight:700;font-size:clamp(32px,9.5vw,68px);line-height:1.12;color:var(--ink);overflow-wrap:anywhere}
+.hero__name{font-family:var(--display);font-weight:800;font-size:clamp(32px,9.5vw,68px);line-height:1.12;color:var(--ink);overflow-wrap:anywhere}
 .hero__meta{display:grid;gap:6px;margin-top:12px;font-size:13px;color:var(--ink-2)}
 .hero__meta span{display:flex;gap:7px;align-items:flex-start;line-height:1.7}
 .hero__meta svg{width:16px;height:16px;flex:none;margin-top:3px;color:var(--accent)}
@@ -55,7 +55,7 @@ const customerCSS=String.raw`
 .flow{padding:22px 18px 24px;scroll-margin-top:84px}
 @media(min-width:600px){.flow{padding:28px 30px 30px}}
 .flow__head{margin-bottom:18px}
-.flow__title{font-family:var(--display);font-size:26px;font-weight:700}
+.flow__title{font-family:var(--display);font-weight:800;font-size:26px}
 .flow__sub{font-size:13.5px;color:var(--muted);margin-top:4px;max-width:58ch;line-height:1.85}
 .flow__nav{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
 .flow__nav .btn--primary{flex:1;min-width:180px}
@@ -100,7 +100,7 @@ const customerCSS=String.raw`
 .style-card{display:grid;gap:2px;align-content:start;min-height:84px;padding:14px 14px 12px;border:1.5px solid var(--line-2);background:var(--surface-2);border-radius:var(--r);text-align:start;transition:border-color .14s var(--ease),background-color .14s var(--ease)}
 .style-card:hover{border-color:var(--line)}
 .style-card.is-on{border-color:var(--ink);background:#fff;box-shadow:0 0 0 3px rgba(35,23,15,.08)}
-.style-card__name{font-family:var(--display);font-size:19px;font-weight:700;color:var(--ink);line-height:1.35}
+.style-card__name{font-family:var(--display);font-weight:800;font-size:19px;color:var(--ink);line-height:1.35}
 .style-card__en{font-size:11.5px;color:var(--muted);direction:ltr;text-align:end}
 .style-card__tag{font-size:12px;color:var(--accent-ink);font-weight:600;margin-top:4px}
 .rail{display:grid;grid-auto-flow:column;grid-auto-columns:138px;gap:12px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x mandatory;scrollbar-width:thin}
@@ -146,7 +146,7 @@ const customerCSS=String.raw`
 
 /* ---------- side: portfolio, contact, requests ---------- */
 .sidecard{padding:20px}
-.sidecard h2{font-family:var(--display);font-size:21px;margin-bottom:14px}
+.sidecard h2{font-family:var(--display);font-weight:800;font-size:21px;margin-bottom:14px}
 .gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px}
 @media(min-width:560px) and (max-width:959px){.gallery{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .pcard{border:0;padding:0;background:transparent;text-align:start}
@@ -195,7 +195,7 @@ const customerCSS=String.raw`
 .when-pick .field{margin-bottom:12px}
 .views-wrap{position:relative;border-radius:var(--r);overflow:hidden;aspect-ratio:3/2;background:var(--glass-2);background-size:400% 200%;background-position:0% 0%;transition:background-position .25s var(--ease)}
 .fatal{display:grid;gap:14px;justify-items:start;padding:28px;margin:40px auto;max-width:460px}
-.fatal h1{font-family:var(--display);font-size:26px}
+.fatal h1{font-family:var(--display);font-weight:800;font-size:26px}
 `;
 
 const clientJS=String.raw`
@@ -983,7 +983,7 @@ export const customerHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><h
 <meta property="og:type" content="website">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preload" href="/fonts/vazirmatn-arabic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/fonts/reem-kufi-arabic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/estedad-arabic.woff2" as="font" type="font/woff2" crossorigin>
 <title>آینه | مشاورهٔ مو</title>
 <style>__CSS__</style>
 </head><body>
