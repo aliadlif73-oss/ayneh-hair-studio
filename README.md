@@ -1,40 +1,66 @@
 # آینه | Ayneh Hair Studio
 
-Private Persian hair consultation app, independently rebuilt from the project proposal.
+Persian, mobile-first hair consultation and salon coordination application. This is the independently rebuilt project, with a tenant-isolated salon layer added to the original private studio.
 
-## Source
+Source repository: https://github.com/aliadlif73-oss/ayneh-hair-studio
+Hosted app: https://ayneh-hair-studio.roya-mh96.chatgpt.site
 
-- `worker/index.js`: Cloudflare-compatible Worker, embedded RTL interface and server-side KIE integration.
-- `dev.mjs`: local preview server.
-- `scripts/build.sh`: packages the Worker and hosting manifest into `dist/`.
-- `scripts/validate-artifact.mjs`: validates the packaged ESM entrypoint.
-- `.openai/hosting.json`: existing Sites project identity; preserve when deploying updates.
+## Run and verify
 
-## Run and validate
-
-Requires Node.js 22 or newer and Bash. No npm dependencies.
+Node.js 24+ and Bash; no npm dependencies.
 
 ```sh
 npm run dev
-bash scripts/build.sh
+npm test
+npm run build
 node scripts/validate-artifact.mjs
 ```
 
-The preview runs on port 4173 unless PORT or --port is specified.
+The development server runs on port 4173, uses a local SQLite database and in-memory photo bucket, and injects a **development-only** identity. Development data is not production data. Restarting the development server clears its photo bucket. Production deploys only `dist/server/` and the hosting manifest, never `dev.mjs` or the development identity.
 
-## Production configuration
+## Routes and source
 
-Set `KIE_API_KEY` as a production runtime secret through Sites. Never put it in source or GitHub. Local preview intentionally has no provider key.
+- `/admin`: authorized salon list and owner-controlled creation.
+- `/admin/<slug>`: salon requests, appointments, customers, portfolio, profile, staff/services and message settings/logs.
+- `/s/<slug>`: branded customer page and consultation.
+- `/s/<slug>/access#<random-token>`: seven-day customer access; token exchanged for an HttpOnly cookie and removed from the address bar.
+- `/legacy`: original studio, restricted to the project owner.
+- `worker/domain.js`: input validation, state transitions and distinct reference-transfer prompts.
+- `worker/server.js`: D1/R2 operations, authorization, KIE, durable message outbox and bounded sending.
+- `worker/ui.js`: embedded RTL salon/customer UI with Persian calendar and Tehran time.
+- `drizzle/0000_salons.sql`: initial tenant schema and database-level overlap triggers. Once deployed, append migrations; do not edit it.
 
-Production: https://ayneh-hair-studio.roya-mh96.chatgpt.site
+## Identity and privacy
 
-GitHub is the source and validation destination. Production remains hosted on Sites; pushing to GitHub alone does not deploy it. For each change, validate, synchronize GitHub, then publish the corresponding source through Sites.
+Sites dispatch supplies authenticated identity headers. The project owner email is an environment value used only to restrict new salon creation and the legacy studio. Salon authorization uses stable user IDs; owner/member records are checked on the server. Do not trust raw identity headers on an independently hosted deployment without a trusted gateway stripping and setting them.
 
-## Current scope and limits
+All private images are served after session or salon-member checks. Gallery images become public only when the salon publishes a portfolio item with independent publication permission. Original, reference and simulation media have different server-owned types; simulations cannot be published as real portfolio images. Private photo access expires after 30 days; customer capability tokens expire after seven days. Provider retention is separate. Deleting a gallery item unpublishes it; it does not erase an image already attached to an authorized request.
 
-- Persian interface, 20 selectable styles, free-text color, photo upload, session history, original/result comparison and optional estimated eight-view rendering.
-- KIE server routes implemented; live paid generation is unverified until a key is configured and an authorized test is run.
-- Catalog illustrations are schematic, not verified photographic references.
-- Owner-private single-studio release. Do not expose publicly: multi-salon roles, persistent billing, server-side rate limits and durable idempotency are not implemented.
-- Session history is held in page memory; pending task recovery uses sessionStorage. Original photo must be uploaded again after reload.
-- Photos are sent to KIE only when the user initiates generation with consent. Clearing the local session does not delete provider-held files.
+Booking proposals use compare-and-swap versions and customer links are bound to the request/proposal version. A stale proposal cannot confirm a newer one. Database triggers reject overlapping confirmed appointments for the same stylist, including concurrent confirmations. Technical review and appointment status are independent. All timestamps are UTC milliseconds, displayed through `Asia/Tehran`; customer date selection is Persian.
+
+## External activation
+
+Configure keys only as Sites runtime secrets; see `.env.example` for names.
+
+Managers sign in and copy their account ID from `/admin`; the salon owner adds that ID under page settings. Membership can be revoked without altering other salons.
+
+1. `OWNER_EMAIL`: owner account authorized to create salons. Sign in through ChatGPT and create a salon, staff and services in `/admin`.
+2. `KIE_API_KEY`: real image provider. Generation is separately enabled for each salon. Reference transfer is disabled until an actual quality test has been performed and acknowledged in salon settings. Multiple reference modes and eight-view job paths are implemented but **visual quality has not been tested live**.
+3. `KAVENEGAR_API_KEY`, `KAVENEGAR_SENDER`: SMS credentials and authorized sender. Account/line eligibility, blacklists and delivery must be verified with the provider. No real number was used during development.
+4. `SMS_LIVE_ENABLED=true`: set only after an authorized real-send test succeeds; enable each salon's consent-aware SMS setting separately. Without it messages remain queued, never labelled sent. `submitted` means accepted by provider, not delivered.
+5. `JOB_TOKEN`: strong runtime secret protecting the unattended queue endpoint. Configure the same value as GitHub repository secret `AYNEH_JOB_TOKEN` to activate `.github/workflows/messages.yml`. Set `SCHEDULER_ENABLED=true` only after an actual scheduled endpoint test succeeds. The workflow is present but **inactive without that secret**. It needs the public customer site accessible.
+
+Unambiguous provider rejections retry up to three attempts. Ambiguous network failures and interrupted in-flight sends enter `unknown` and never auto-resend; reconcile in the provider console before any manual recovery. Unique event/version keys prevent duplicate messages. Followups require individual opt-in and occur at most once per relevant proposal; cancellation, rejection and opt-out stop pending followups. Queue bodies contain protected links, not images. Staff can preview the recipient and message before preparing a manual invitation.
+
+## Delivery and GitHub
+
+GitHub stores source and runs tests/build validation. Production is hosted by Sites; pushing to GitHub alone does not publish the app. Keep both destinations synchronized for every user-requested change. Do not commit credentials, customer data, the local database or deployment archives.
+
+See `TEST_REPORT.md` for evidence and limitations. This scope includes no salon service prices, invoices, payment, deposits, loyalty, product sales, accounting or automatic diagnosis/color formula.
+
+## Provider documentation checked
+
+- https://docs.kie.ai/market/google/nanobanana2
+- https://docs.kie.ai/file-upload-api/upload-file-base-64
+- https://docs.kie.ai/market/common/get-task-detail
+- https://kavenegar.com/rest.html
