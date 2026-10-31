@@ -1,82 +1,59 @@
 # آینه | Ayneh Hair Studio
 
-Persian, mobile-first hair consultation and salon coordination application. This is the independently rebuilt project, with a tenant-isolated salon layer added to the original private studio.
+Persian, mobile-first hair consultation for salons. A customer opens the salon's page, adds a selfie, picks a look (the salon's own work, one of 20 ready-made styles, or a photo of their own) and a colour, optionally sees an AI simulation on their own face, and sends it all to the salon. **The salon works only in Telegram**: submissions arrive in the salon's private chat with the bot, and any photo the salon sends to the bot is published on its page as portfolio. There is no salon panel and no booking; the salon calls or messages the customer itself.
 
 Source repository: https://github.com/aliadlif73-oss/ayneh-hair-studio
-Hosted app (Sites): https://ayneh-hair-studio.roya-mh96.chatgpt.site
-Cloudflare deployment: see `DEPLOY-CLOUDFLARE.md` (GitHub Actions → Worker + D1 + R2 + Cron, no ChatGPT account needed).
+Cloudflare deployment: `DEPLOY-CLOUDFLARE.md`. Telegram bot setup: `SETUP-TELEGRAM.md`.
 
 ## Run and verify
 
-Node.js 22.13+ (the tests use `node:sqlite`) and Bash; no npm dependencies. CI runs the same commands on Node 24.
+Node.js 22.13+ (tests use `node:sqlite`) and Bash; no npm dependencies.
 
 ```sh
-npm run dev
+npm run dev      # port 4173, local SQLite, in-memory photos, development-only owner identity
 npm test
-npm run build
-node scripts/validate-artifact.mjs
-npm run check:kie   # only checks whether the configured provider key is accepted
+npm run build && node scripts/validate-artifact.mjs
+npm run check:kie
 ```
 
-The development server runs on port 4173, uses a local SQLite database and in-memory photo bucket, and injects a **development-only** identity. Development data is not production data. Restarting the development server clears its photo bucket. Production deploys only `dist/server/` and the hosting manifest, never `dev.mjs` or the development identity.
+For a local end-to-end run without a real bot, put `TELEGRAM_BOT_TOKEN=dev-mock`, `TELEGRAM_WEBHOOK_SECRET=…` and `TELEGRAM_BOT_USERNAME=…` in the git-ignored `.dev.vars`: the dev server answers Telegram calls itself and prints what would be sent.
 
-### Deployment
+## Routes
 
-Two supported hosts:
+- `/s/<slug>`: customer page. Hero with the salon in an arched mirror, "about the salon" sheet (bio, address, hours, phone, map, links), three steps: photo → look and colour → result and send.
+- `/admin`, `/admin/<slug>`: owner console (project owner only). Create salons, fill in their details and images, turn simulation on/off, create the salon's one-time Telegram link, remove portfolio items, see delivery status of submissions.
+- `/api/telegram/webhook`: Telegram updates, accepted only with `TELEGRAM_WEBHOOK_SECRET` in the `X-Telegram-Bot-Api-Secret-Token` header.
+- `/catalog/NN.webp`: photos for the 20 ready-made styles, served as static assets (`public/`).
+- `/legacy`: the original studio, owner only.
 
-- **Cloudflare** (recommended, no ChatGPT/Sites account): `wrangler.toml` + `.github/workflows/deploy.yml`. Photos use Workers KV (free plan, no payment method); R2 is preferred automatically when bound, and D1 itself is the last fallback with an 850 KB per-photo limit. Push to `main` and GitHub Actions runs the tests, applies D1 migrations, deploys the Worker and writes every runtime secret from GitHub repository secrets. Cron every ten minutes is declared in `wrangler.toml`. Follow `DEPLOY-CLOUDFLARE.md`.
-- **Sites**: the original target; deploy the saved version from the Sites panel and set `TRUST_PLATFORM_IDENTITY=true`.
+## Source
 
-### Secrets
+- `worker/customer.js`: customer page (style catalog with photos, colour box with suggestions in all three modes, 360° viewer, Telegram send form).
+- `worker/ui.js`: owner console.
+- `worker/telegram.js`: bot: `/start <code>` linking, portfolio from photos (caption = title), `/list` and delete buttons, delivery of submissions as a photo album with name, mobile and optional Telegram handle.
+- `worker/server.js`: API, sessions, private media, KIE generation, submissions, retention.
+- `worker/design.js`, `worker/fonts.js`: shared design system and self-hosted Vazirmatn / Estedad (SIL OFL 1.1) served from `/fonts/*`.
+- `drizzle/`: migrations. `0002_telegram.sql` adds the Telegram link and the `leads` table. Older booking/SMS tables are kept, unused, so no data is destroyed. Append new migrations; never edit applied ones.
+- `scripts/generate-catalog.mjs` + `.github/workflows/catalog.yml`: generates the 20 catalog photos with the project's `KIE_API_KEY` and commits them. Runs when the script changes or from the Actions tab; only missing photos are generated.
 
-Provider keys belong in the hosting provider's runtime secret store (GitHub secrets pushed to Cloudflare, or Sites settings) and, for local runs only, in git-ignored `.dev.vars` or `.env`. The development server and `npm run check:kie` read those files and never print or commit a value. Never paste a key into chat, an issue, a commit or a screenshot. `npm run check:kie` reports only whether KIE accepted the key, using a bogus task id, so no image is generated and no credit is spent.
+## Privacy and delivery
 
-## Routes and source
+- Selfies, reference photos and simulations are private to the customer's session (and the owner) and erased after 30 days. Submissions (`leads`: name, mobile, optional handle) are also erased after 30 days; the salon keeps its copy in Telegram.
+- Published portfolio and brand images are public. Sending a photo to the bot is the salon's confirmation that it may be published; it can be removed from Telegram (`/list`) or the owner console.
+- A submission is sent to Telegram immediately. If Telegram does not accept it, the scheduler (Cloudflare cron every 10 minutes, or `/api/internal/tick`) retries up to three attempts in total; the owner console can retry a failed one. A duplicate Telegram message is harmless, so an interrupted send is retried.
+- Requests are idempotent per session (`idem`), rate-limited per session and per IP, and must use the session's own photos or published try-on portfolio.
 
-- `/admin`: authorized salon list and owner-controlled creation.
-- `/admin/<slug>`: salon requests, appointments, customers, portfolio, profile, staff/services and message settings/logs.
-- `/s/<slug>`: branded customer page and consultation.
-- `/s/<slug>/access#<random-token>`: seven-day customer access; token exchanged for an HttpOnly cookie and removed from the address bar.
-- `/legacy`: original studio, restricted to the project owner.
-- `worker/domain.js`: input validation, state transitions and distinct reference-transfer prompts.
-- `worker/server.js`: D1/R2 operations, authorization, KIE, durable message outbox and bounded sending.
-- `worker/design.js`: shared design system (mirror-glass palette, arched photo frame, buttons, fields, sheets) used by the customer page, salon panel and 404.
-- `worker/fonts.js`: self-hosted Vazirmatn and Estedad (SIL OFL 1.1) served from `/fonts/*` on our own origin, so the CSP keeps `font-src 'self'`.
-- `worker/customer.js`: customer page (salon hero, three-step photo → style → result flow, requests sheet).
-- `worker/ui.js`: salon panel and sign-in page with Persian calendar and Tehran time.
-- `drizzle/0000_salons.sql`: initial tenant schema and database-level overlap triggers. Once deployed, append migrations; do not edit it.
+## Secrets
 
-## Identity and privacy
+Runtime secrets only (Cloudflare via GitHub secrets, or `.dev.vars` locally), never in the repo:
 
-Managers sign in either with the owner password (any host) or through platform identity headers (Sites only). Platform headers are ignored unless `TRUST_PLATFORM_IDENTITY=true`, so a Cloudflare deployment cannot be impersonated by sending a header. The password path needs `SESSION_SECRET` plus `OWNER_PASSWORD` or `OWNER_PASSWORD_HASH`; it issues an HMAC-signed, HttpOnly, seven-day cookie and limits failed attempts per IP. Salon authorization uses stable user IDs; owner/member records are checked on the server. `OWNER_EMAIL` still restricts salon creation and the legacy studio on Sites.
+`OWNER_PASSWORD` or `OWNER_PASSWORD_HASH`, `SESSION_SECRET`, `OWNER_EMAIL`, `OWNER_ID`, `KIE_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_BOT_USERNAME`, `APP_ORIGIN`, `JOB_TOKEN`. Platform identity headers are ignored unless `TRUST_PLATFORM_IDENTITY=true`.
 
-All private images are served after session or salon-member checks. Gallery images become public only when the salon publishes a portfolio item with independent publication permission. Original, reference and simulation media have different server-owned types; simulations cannot be published as real portfolio images. Private photo access expires after 30 days; customer capability tokens expire after seven days. Provider retention is separate. Deleting a gallery item unpublishes it; it does not erase an image already attached to an authorized request. Each queue tick also erases private media older than 30 days (with the stored object), expired customer sessions and expired rate-limit rows; brand and published portfolio media are kept. Records that still reference an erased file keep their history but the file itself is gone.
+Simulation quality (catalog and reference transfer) and the 360° view depend on the image provider and have not been verified with real customer photos; the viewer plays 8 estimated angles, it is not a 3D scan.
 
-Booking proposals use compare-and-swap versions and customer links are bound to the request/proposal version. A stale proposal cannot confirm a newer one. Database triggers reject overlapping confirmed appointments for the same stylist, including concurrent confirmations. Technical review and appointment status are independent. All timestamps are UTC milliseconds, displayed through `Asia/Tehran`; customer date selection is Persian.
-
-## External activation
-
-Configure keys only as Sites runtime secrets; see `.env.example` for names and `SETUP-KIE.md` for the step-by-step Sites panel walkthrough, the GitHub scheduler setup and the local `.dev.vars` route.
-
-Managers sign in and copy their account ID from `/admin`; the salon owner adds that ID under page settings. Membership can be revoked without altering other salons.
-
-1. `OWNER_EMAIL`: owner account authorized to create salons. Sign in through ChatGPT and create a salon, staff and services in `/admin`.
-2. `KIE_API_KEY`: real image provider. Generation is separately enabled for each salon. Reference transfer is disabled until an actual quality test has been performed and acknowledged in salon settings. Multiple reference modes and eight-view job paths are implemented but **visual quality has not been tested live**.
-3. `KAVENEGAR_API_KEY`, `KAVENEGAR_SENDER`: SMS credentials and authorized sender. Account/line eligibility, blacklists and delivery must be verified with the provider. No real number was used during development.
-4. `SMS_LIVE_ENABLED=true`: set only after an authorized real-send test succeeds; enable each salon's consent-aware SMS setting separately. Without it messages remain queued, never labelled sent. `submitted` means accepted by provider, not delivered.
-5. `JOB_TOKEN`: strong runtime secret protecting the unattended queue endpoint. Configure the same value as GitHub repository secret `AYNEH_JOB_TOKEN` **and** the public origin as repository variable `AYNEH_APP_URL` to activate `.github/workflows/messages.yml`, which calls `/api/internal/tick` every ten minutes (and on manual dispatch). Without either value the workflow exits successfully and does nothing. The workflow also runs the retention cleanup. Prefer a hosting-native cron if the platform offers one; the endpoint is idempotent, so both may run.
-
-Unambiguous provider rejections retry up to three attempts. Ambiguous network failures and interrupted in-flight sends enter `unknown` and never auto-resend; reconcile in the provider console before any manual recovery. Unique event/version keys prevent duplicate messages. Followups require individual opt-in and occur at most once per relevant proposal; cancellation, rejection and opt-out stop pending followups. Queue bodies contain protected links, not images. Staff can preview the recipient and message before preparing a manual invitation.
-
-## Delivery and GitHub
-
-GitHub stores source and runs tests/build validation. Production is hosted by Sites; pushing to GitHub alone does not publish the app. Keep both destinations synchronized for every user-requested change. Do not commit credentials, customer data, the local database or deployment archives.
-
-See `TEST_REPORT.md` for evidence and limitations. This scope includes no salon service prices, invoices, payment, deposits, loyalty, product sales, accounting or automatic diagnosis/color formula.
-
-## Provider documentation checked
+## Provider documentation
 
 - https://docs.kie.ai/market/google/nanobanana2
 - https://docs.kie.ai/file-upload-api/upload-file-base-64
 - https://docs.kie.ai/market/common/get-task-detail
-- https://kavenegar.com/rest.html
+- https://core.telegram.org/bots/api

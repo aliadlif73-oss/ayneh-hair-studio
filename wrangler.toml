@@ -27,6 +27,10 @@ id = "ded9d8ee91da4d3ebb2a5f220ef90df2"
 # binding = "BUCKET"
 # bucket_name = "ayneh-media"
 
-# Reminders, followups and retention cleanup run automatically; no GitHub cron needed.
+# Telegram delivery retries and retention cleanup run automatically; no GitHub cron needed.
 [triggers]
 crons = ["*/10 * * * *"]
+
+# Catalog style photos (public/catalog/NN.webp) are served as static files before the worker.
+[assets]
+directory = "./public"

@@ -15,3 +15,8 @@ function d1Bucket(db){return {
  async get(key){const row=await db.prepare('SELECT mime,bytes FROM blobs WHERE key=?').bind(key).first();if(!row)return null;const bytes=row.bytes instanceof Uint8Array?row.bytes:new Uint8Array(row.bytes);return {httpMetadata:{contentType:row.mime||DEFAULT_MIME},arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),body:bytes}},
  async delete(key){await db.prepare('DELETE FROM blobs WHERE key=?').bind(key).run()}
 }}
+
+// Shared by the customer API and the Telegram bot.
+import {Problem,must,uid} from './domain.js';
+export function imageType(bytes){if(bytes[0]===255&&bytes[1]===216&&bytes[2]===255)return 'image/jpeg';if(bytes[0]===137&&bytes[1]===80&&bytes[2]===78&&bytes[3]===71)return 'image/png';if(String.fromCharCode(...bytes.slice(0,4))==='RIFF'&&String.fromCharCode(...bytes.slice(8,12))==='WEBP')return 'image/webp';throw new Problem(400,'فقط تصویر JPG، PNG یا WebP معتبر پذیرفته می‌شود');}
+export async function putImage(env,salon,s,bytes,kind){must(bytes.length>100,'فایل عکس خالی یا خیلی کوچک است');const limit=maxUpload(env);must(bytes.length<=limit,'حجم عکس بیش از حد مجاز است ('+Math.round(limit/1024)+' کیلوبایت)');const mime=imageType(bytes),id=uid(),key=salon.id+'/'+id;await bucketFor(env).put(key,bytes,{httpMetadata:{contentType:mime}});try{await env.DB.prepare('INSERT INTO media VALUES(?,?,?,?,?,?,?)').bind(id,salon.id,s?.id||null,kind,key,mime,Date.now()).run();}catch(e){await bucketFor(env).delete(key);throw e}return id;}
