@@ -3,7 +3,8 @@
 Persian, mobile-first hair consultation and salon coordination application. This is the independently rebuilt project, with a tenant-isolated salon layer added to the original private studio.
 
 Source repository: https://github.com/aliadlif73-oss/ayneh-hair-studio
-Hosted app: https://ayneh-hair-studio.roya-mh96.chatgpt.site
+Hosted app (Sites): https://ayneh-hair-studio.roya-mh96.chatgpt.site
+Cloudflare deployment: see `DEPLOY-CLOUDFLARE.md` (GitHub Actions → Worker + D1 + R2 + Cron, no ChatGPT account needed).
 
 ## Run and verify
 
@@ -19,9 +20,16 @@ npm run check:kie   # only checks whether the configured provider key is accepte
 
 The development server runs on port 4173, uses a local SQLite database and in-memory photo bucket, and injects a **development-only** identity. Development data is not production data. Restarting the development server clears its photo bucket. Production deploys only `dist/server/` and the hosting manifest, never `dev.mjs` or the development identity.
 
+### Deployment
+
+Two supported hosts:
+
+- **Cloudflare** (recommended, no ChatGPT/Sites account): `wrangler.toml` + `.github/workflows/deploy.yml`. Push to `main` and GitHub Actions runs the tests, applies D1 migrations, deploys the Worker and writes every runtime secret from GitHub repository secrets. Cron every ten minutes is declared in `wrangler.toml`. Follow `DEPLOY-CLOUDFLARE.md`.
+- **Sites**: the original target; deploy the saved version from the Sites panel and set `TRUST_PLATFORM_IDENTITY=true`.
+
 ### Secrets
 
-Provider keys belong in the hosting provider's runtime secret store (Sites/Cloudflare bindings) and, for local runs only, in git-ignored `.dev.vars` or `.env`. The development server and `npm run check:kie` read those files and never print or commit a value. Never paste a key into chat, an issue, a commit or a screenshot. `npm run check:kie` reports only whether KIE accepted the key, using a bogus task id, so no image is generated and no credit is spent.
+Provider keys belong in the hosting provider's runtime secret store (GitHub secrets pushed to Cloudflare, or Sites settings) and, for local runs only, in git-ignored `.dev.vars` or `.env`. The development server and `npm run check:kie` read those files and never print or commit a value. Never paste a key into chat, an issue, a commit or a screenshot. `npm run check:kie` reports only whether KIE accepted the key, using a bogus task id, so no image is generated and no credit is spent.
 
 ## Routes and source
 
@@ -37,7 +45,7 @@ Provider keys belong in the hosting provider's runtime secret store (Sites/Cloud
 
 ## Identity and privacy
 
-Sites dispatch supplies authenticated identity headers. The project owner email is an environment value used only to restrict new salon creation and the legacy studio. Salon authorization uses stable user IDs; owner/member records are checked on the server. Do not trust raw identity headers on an independently hosted deployment without a trusted gateway stripping and setting them.
+Managers sign in either with the owner password (any host) or through platform identity headers (Sites only). Platform headers are ignored unless `TRUST_PLATFORM_IDENTITY=true`, so a Cloudflare deployment cannot be impersonated by sending a header. The password path needs `SESSION_SECRET` plus `OWNER_PASSWORD` or `OWNER_PASSWORD_HASH`; it issues an HMAC-signed, HttpOnly, seven-day cookie and limits failed attempts per IP. Salon authorization uses stable user IDs; owner/member records are checked on the server. `OWNER_EMAIL` still restricts salon creation and the legacy studio on Sites.
 
 All private images are served after session or salon-member checks. Gallery images become public only when the salon publishes a portfolio item with independent publication permission. Original, reference and simulation media have different server-owned types; simulations cannot be published as real portfolio images. Private photo access expires after 30 days; customer capability tokens expire after seven days. Provider retention is separate. Deleting a gallery item unpublishes it; it does not erase an image already attached to an authorized request. Each queue tick also erases private media older than 30 days (with the stored object), expired customer sessions and expired rate-limit rows; brand and published portfolio media are kept. Records that still reference an erased file keep their history but the file itself is gone.
 

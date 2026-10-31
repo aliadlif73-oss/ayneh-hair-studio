@@ -2,7 +2,7 @@
 
 ## Automated integration tests
 
-Latest local result: **21 tests passed, 0 failed**. Run `npm test`; CI runs the same command on Node 24. Tests exercise the real Worker router against SQLite with foreign keys and the actual schema/triggers, plus a test-only object bucket. They do not use paid providers. The list below summarises the behaviours covered; one test may assert more than one, and unit-level assertions (digit normalisation, client script syntax) are included in the first test.
+Latest local result: **24 tests passed, 0 failed**. Run `npm test`; CI runs the same command on Node 24. Tests exercise the real Worker router against SQLite with foreign keys and the actual schema/triggers, plus a test-only object bucket. They do not use paid providers. The list below summarises the behaviours covered; one test may assert more than one, and unit-level assertions (digit normalisation, client script syntax) are included in the first test.
 
 1. Persian/Arabic mobile digits normalize to Iranian E.164; invalid numbers rejected.
 2. Customer sessions cannot read another session's photos or a different salon's records.
@@ -25,6 +25,8 @@ Latest local result: **21 tests passed, 0 failed**. Run `npm test`; CI runs the 
 19. The queue endpoint answers `405` for a wrong method before it evaluates the job token.
 20. A tiny upload reports a size-specific error instead of the five-megabyte message.
 21. Retention cleanup erases private media older than 30 days (database row and stored object), expired sessions and expired rate-limit rows. The page loads no external font and the production CSP keeps `frame-ancestors 'none'`.
+22. On a host without a platform identity gateway the owner signs in with a password, receives a signed cookie, creates a salon, and a tampered cookie or a signed-out request is rejected. Password login stays disabled (`503`) until a secret is configured. **Verified end to end in `wrangler dev` against local D1 and R2.**
+23. Platform identity headers are ignored unless `TRUST_PLATFORM_IDENTITY=true`, so a Cloudflare deployment cannot be impersonated with a header.
 
 ## Pending real-service acceptance
 

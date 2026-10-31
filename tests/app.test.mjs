@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import {database,memoryBucket} from '../scripts/local-adapter.mjs';import app from '../worker/index.js';import {phone,appointment,transferPrompt,token} from '../worker/domain.js';import {appHTML} from '../worker/ui.js';import {tick} from '../worker/server.js';
 const origin='https://test.example';
-function fixture(){const DB=database();DB.sql.exec(readFileSync(new URL('../drizzle/0000_salons.sql',import.meta.url),'utf8'));return {DB,BUCKET:memoryBucket(),OWNER_EMAIL:'owner@test',JOB_TOKEN:'job-test'};}
+function fixture(){const DB=database();DB.sql.exec(readFileSync(new URL('../drizzle/0000_salons.sql',import.meta.url),'utf8'));return {DB,BUCKET:memoryBucket(),OWNER_EMAIL:'owner@test',JOB_TOKEN:'job-test',TRUST_PLATFORM_IDENTITY:'true'};}
 async function call(env,path,body,{cookie='',user='',email=''}={}){const headers={origin,'oai-authenticated-user-id':user,'oai-authenticated-user-email':email,cookie};let payload;if(body!==undefined){if(body instanceof Uint8Array){payload=body}else{headers['content-type']='application/json';payload=JSON.stringify(body)}}const res=await app.fetch(new Request(origin+path,{method:body===undefined?'GET':'POST',headers,body:payload}),env);let d;try{d=await res.json()}catch{d=null}return {status:res.status,data:d,cookie:res.headers.get('set-cookie')?.split(';')[0]};}
 async function salon(env,slug='salon-a',owner='owner-a'){let r=await call(env,'/api/salons',{slug,name:slug},{user:owner,email:'owner@test'});assert.equal(r.status,200,JSON.stringify(r));let id=r.data.id;let staff=await call(env,'/api/s/'+slug+'/admin/staff',{name:'آرایشگر'},{user:owner});let svc=await call(env,'/api/s/'+slug+'/admin/services',{name:'رنگ',staff_id:staff.data.id,duration:60},{user:owner});return {id,slug,owner,staff:staff.data.id,service:svc.data.id};}
 async function guest(env,s){let r=await call(env,'/api/s/'+s.slug+'/session',{});assert.equal(r.status,200);return {cookie:r.cookie};}
@@ -55,3 +55,18 @@ test('retention cleanup erases expired sessions, rate limits and old private med
 test('page has no external font dependency and keeps framing denied',async()=>{let e=fixture();assert(!appHTML.includes('fonts.googleapis.com'));
  const r=await app.fetch(new Request(origin+'/'),e);const csp=r.headers.get('content-security-policy');assert.match(csp,/frame-ancestors 'none'/);assert(!/googleapis|gstatic/.test(csp));
 });
+
+test('owner signs in with a password on hosts without a platform identity gateway',async()=>{const e={...fixture(),OWNER_PASSWORD:'correct horse battery',SESSION_SECRET:'session-secret-for-tests',OWNER_EMAIL:'owner@test',OWNER_ID:'owner-1'};
+ const anon=await call(e,'/api/me');assert.equal(anon.data.user,false);assert.equal(anon.data.passwordLogin,true);
+ assert.equal((await call(e,'/api/login',{password:'wrong'})).status,401);
+ const ok=await call(e,'/api/login',{password:'correct horse battery'});assert.equal(ok.status,200,JSON.stringify(ok));assert.match(ok.cookie,/^ayneh_admin=/);
+ const me=await call(e,'/api/me',undefined,{cookie:ok.cookie});assert.equal(me.data.user,true);assert.equal(me.data.userId,'owner-1');assert.equal(me.data.canCreate,true);
+ assert.equal((await call(e,'/api/salons',{slug:'salon-p',name:'سالن رمز'},{cookie:ok.cookie})).status,200);
+ assert.equal((await call(e,'/api/s/salon-p/admin',undefined,{cookie:ok.cookie})).status,200);
+ assert.equal((await call(e,'/api/s/salon-p/admin')).status,401);
+ const forged=ok.cookie.replace(/.$/,'0');assert.equal((await call(e,'/api/me',undefined,{cookie:forged})).data.user,false);
+ const out=await call(e,'/api/logout',{},{cookie:ok.cookie});assert.equal(out.status,200);assert.equal(out.cookie,'ayneh_admin=');
+});
+test('password login stays disabled until a secret is configured',async()=>{const e=fixture();const r=await call(e,'/api/login',{password:'anything'});assert.equal(r.status,503);assert.equal((await call(e,'/api/me')).data.passwordLogin,false);});
+
+test('hosting identity headers are ignored unless the deployment opts in',async()=>{const base=fixture();await salon({...base,TRUST_PLATFORM_IDENTITY:'true'});const untrusted={...base,TRUST_PLATFORM_IDENTITY:'false'};const spoof=await call(untrusted,'/api/s/salon-a/admin',undefined,{user:'owner-a',email:'owner@test'});assert.equal(spoof.status,401);assert.equal((await call(untrusted,'/api/me',undefined,{user:'owner-a'})).data.user,false);});

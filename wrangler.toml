@@ -1,0 +1,25 @@
+# Cloudflare Workers deployment — no ChatGPT account or Sites panel needed.
+# One-time setup: create the D1 database and R2 bucket (see DEPLOY-CLOUDFLARE.md),
+# then paste the real D1 id below. Every secret is pushed as a Worker secret by
+# .github/workflows/deploy.yml from GitHub repository secrets, so nothing secret
+# ever lives in this file.
+name = "ayneh-hair-studio"
+main = "worker/index.js"
+compatibility_date = "2026-10-01"
+
+[observability]
+enabled = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "ayneh"
+database_id = "PASTE_D1_DATABASE_ID"
+migrations_dir = "drizzle"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "ayneh-media"
+
+# Reminders, followups and retention cleanup run automatically; no GitHub cron needed.
+[triggers]
+crons = ["*/10 * * * *"]
