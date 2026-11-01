@@ -31,7 +31,8 @@ For a local end-to-end run without a real bot, put `TELEGRAM_BOT_TOKEN=dev-mock`
 - `worker/customer.js`: customer page (style catalog with photos, colour box with suggestions in all three modes, 360° viewer, Telegram send form).
 - `worker/ui.js`: owner console.
 - `worker/telegram.js`: bot: `/start <code>` linking, portfolio from photos (caption = title), `/list` and delete buttons, delivery of submissions as a photo album with name, mobile and optional Telegram handle.
-- `worker/server.js`: API, sessions, private media, KIE generation, submissions, retention.
+- `worker/server.js`: API, sessions, mobile verification (OTP), private media, KIE generation, submissions, retention.
+- `worker/sms.js`: Melipayamak shared-line pattern SMS (console token or classic REST).
 - `worker/design.js`, `worker/fonts.js`: shared design system and self-hosted Vazirmatn / Estedad (SIL OFL 1.1) served from `/fonts/*`.
 - `drizzle/`: migrations. `0002_telegram.sql` adds the Telegram link and the `leads` table. Older booking/SMS tables are kept, unused, so no data is destroyed. Append new migrations; never edit applied ones.
 - `scripts/generate-catalog.mjs` + `.github/workflows/catalog.yml`: generates the 20 catalog photos with the project's `KIE_API_KEY` and commits them. Runs when the script changes or from the Actions tab; only missing photos are generated.
@@ -41,13 +42,15 @@ For a local end-to-end run without a real bot, put `TELEGRAM_BOT_TOKEN=dev-mock`
 - Selfies, reference photos and simulations are private to the customer's session (and the owner) and erased after 30 days. Submissions (`leads`: name, mobile, optional handle) are also erased after 30 days; the salon keeps its copy in Telegram.
 - Published portfolio and brand images are public. Sending a photo to the bot is the salon's confirmation that it may be published; it can be removed from Telegram (`/list`) or the owner console.
 - A submission is sent to Telegram immediately. If Telegram does not accept it, the scheduler (Cloudflare cron every 10 minutes, or `/api/internal/tick`) retries up to three attempts in total; the owner console can retry a failed one. A duplicate Telegram message is harmless, so an interrupted send is retried.
+- When Melipayamak is configured, image generation needs a verified mobile: a 5-digit code (hashed, 2 minutes, 5 tries, 2-minute resend gap, daily caps per session, number, IP and salon). The verified name and mobile are then used for the submission.
+- A linked salon can send a customer's mobile (typed or as a shared contact) to the bot; the customer gets the salon page link by SMS. One invite per number per salon per day, 40 per salon per day. SMS attempts are logged in `sms_log` for 30 days.
 - Requests are idempotent per session (`idem`), rate-limited per session and per IP, and must use the session's own photos or published try-on portfolio.
 
 ## Secrets
 
 Runtime secrets only (Cloudflare via GitHub secrets, or `.dev.vars` locally), never in the repo:
 
-`OWNER_PASSWORD` or `OWNER_PASSWORD_HASH`, `SESSION_SECRET`, `OWNER_EMAIL`, `OWNER_ID`, `KIE_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_BOT_USERNAME`, `APP_ORIGIN`, `JOB_TOKEN`. Platform identity headers are ignored unless `TRUST_PLATFORM_IDENTITY=true`.
+`OWNER_PASSWORD` or `OWNER_PASSWORD_HASH`, `SESSION_SECRET`, `OWNER_EMAIL`, `OWNER_ID`, `KIE_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_BOT_USERNAME`, `APP_ORIGIN`, `JOB_TOKEN`, and for SMS `MELIPAYAMAK_TOKEN` (or `MELIPAYAMAK_USERNAME` + `MELIPAYAMAK_PASSWORD`), `MELIPAYAMAK_OTP_BODY_ID`, `MELIPAYAMAK_INVITE_BODY_ID` (see `SETUP-SMS.md`). Platform identity headers are ignored unless `TRUST_PLATFORM_IDENTITY=true`.
 
 Simulations use Nano Banana Pro at 2K by default (per-salon switch to Nano Banana 2.1 in /admin; a rejected model falls back to nano-banana-2). Prompts lock identity and headscarves and describe each catalog style and Persian colour name in English. Simulation quality (catalog and reference transfer) and the 360° view depend on the image provider and have not been verified with real customer photos; the viewer plays 8 estimated angles, it is not a 3D scan.
 

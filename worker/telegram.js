@@ -4,8 +4,10 @@
 // - Every customer submission is delivered to that chat as an album (selfie, reference,
 //   simulation) with the customer's name, mobile and optional Telegram handle.
 // - Any photo the salon sends to the bot is published as a portfolio item on the salon page.
+// - A mobile number (typed, or a shared contact) sends that customer the salon page link by SMS.
 // Secrets: TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET; TELEGRAM_BOT_USERNAME builds links.
-import {Problem,must,uid,hash,text} from './domain.js';
+import {Problem,must,uid,hash,text,phone} from './domain.js';
+import {inviteEnabled,sendPattern,logSms} from './sms.js';
 import {bucketFor,putImage} from './storage.js';
 
 const one=(db,sql,...a)=>db.prepare(sql).bind(...a).first();
@@ -37,6 +39,7 @@ const help=name=>'<b>ربات آینه'+(name?' — '+esc(name):'')+'</b>\n\n'+
  '📥 هر مشتری که عکس و مدلش را از صفحهٔ سالن بفرستد، همین‌جا با اسم و شماره‌اش می‌آید. خودتان تماس بگیرید یا در تلگرام پیام بدهید.\n\n'+
  '🖼 برای اضافه‌کردن نمونه‌کار، عکس را همین‌جا بفرستید. متن زیر عکس (کپشن) اسم کار می‌شود، مثلاً «بالیاژ عسلی». عکس بلافاصله روی صفحهٔ سالن می‌نشیند و مشتری می‌تواند روی عکس خودش امتحانش کند.\n'+
  'با فرستادن عکس تأیید می‌کنید اجازهٔ انتشار آن را دارید.\n\n'+
+ '📲 برای فرستادن لینک صفحهٔ سالن به مشتری، شمارهٔ موبایلش را همین‌جا بنویسید (مثلاً ۰۹۱۲۱۲۳۴۵۶۷) یا مخاطبش را بفرستید. لینک برایش پیامک می‌شود.\n\n'+
  '/list فهرست نمونه‌کارها و حذف\n/help همین راهنما';
 
 async function salonByChat(db,chat){return one(db,'SELECT * FROM salons WHERE telegram_chat_id=?',String(chat))}
@@ -68,6 +71,9 @@ export async function webhook(req,env){
   if(!salon){await tg(env,'sendMessage',{chat_id:chat,text:'این گفتگو به هیچ سالنی وصل نیست. لینک اتصال را از مدیر آینه بگیرید.'});return J({ok:true});}
   if(textIn==='/help'){await tg(env,'sendMessage',{chat_id:chat,parse_mode:'HTML',text:help(salon.name)});return J({ok:true});}
   if(textIn==='/list'){await sendList(env,db,salon,chat);return J({ok:true});}
+  const asked=m.contact?.phone_number||(textIn.startsWith('/invite')?textIn.slice(7).trim():textIn);
+  if(m.contact||(asked&&/^[\s+()\-0-9۰-۹٠-٩]{10,20}$/.test(asked))){await invite(env,db,salon,chat,asked);return J({ok:true});}
+  if(textIn==='/invite'){await tg(env,'sendMessage',{chat_id:chat,text:'شمارهٔ موبایل مشتری را بنویسید، مثلاً ۰۹۱۲۱۲۳۴۵۶۷. لینک صفحهٔ سالن برایش پیامک می‌شود.'});return J({ok:true});}
   const photo=m.photo?.length?m.photo[m.photo.length-1]:(m.document&&/^image\/(jpeg|png|webp)$/.test(m.document.mime_type||'')?m.document:null);
   if(photo){await addPortfolio(env,db,salon,chat,photo,m.caption||'');return J({ok:true});}
   await tg(env,'sendMessage',{chat_id:chat,text:'برای اضافه‌کردن نمونه‌کار، عکس بفرستید. /help راهنما را نشان می‌دهد.'});
@@ -76,6 +82,25 @@ export async function webhook(req,env){
   // Always 200 to Telegram so a bad update is not redelivered forever; the error is logged.
   console.error('telegram webhook',e?.message);return J({ok:false});
  }
+}
+
+// Salon -> customer invitation by SMS. Limits keep the bot from being used for bulk texting:
+// one invite per number per salon per day, and a daily cap per salon.
+const INVITES_PER_DAY=40;
+async function invite(env,db,salon,chat,raw){
+ const say=t=>tg(env,'sendMessage',{chat_id:chat,parse_mode:'HTML',text:t});
+ if(!inviteEnabled(env))return say('ارسال پیامک دعوت هنوز فعال نشده است. به مدیر آینه خبر بدهید.');
+ let number;try{number=phone(raw)}catch{return say('این شمارهٔ موبایل درست نیست. مثل ۰۹۱۲۱۲۳۴۵۶۷ بنویسید.')}
+ const shown=number.replace(/^\+98/,'0').replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]),day=Date.now()-86400000;
+ if(await one(db,"SELECT 1 FROM sms_log WHERE kind='invite' AND salon_id=? AND phone=? AND status='sent' AND created_at>?",salon.id,number,day))return say('لینک امروز یک بار برای '+shown+' فرستاده شده است. فردا دوباره می‌شود فرستاد.');
+ const n=(await one(db,"SELECT count(*) AS n FROM sms_log WHERE kind='invite' AND salon_id=? AND status<>'failed' AND created_at>?",salon.id,day))?.n||0;
+ if(n>=INVITES_PER_DAY)return say('سقف '+INVITES_PER_DAY.toLocaleString('fa-IR')+' پیامک دعوت در روز پر شده است.');
+ const r=await sendPattern(env,number,env.MELIPAYAMAK_INVITE_BODY_ID,[String(salon.name).slice(0,40),salon.slug]);
+ await logSms(db,{salon_id:salon.id,kind:'invite',phone:number,...r});
+ if(r.ok)return say('✅ لینک صفحهٔ «'+esc(salon.name)+'» برای '+shown+' پیامک شد.');
+ if(r.uncertain)return say('⚠️ معلوم نشد پیامک برای '+shown+' رفت یا نه. چند دقیقه صبر کنید و اگر نرسید دوباره بفرستید.');
+ console.error('invite sms rejected',r.error);
+ return say('❌ پیامک برای '+shown+' فرستاده نشد. اگر تکرار شد به مدیر آینه خبر بدهید.');
 }
 
 async function addPortfolio(env,db,salon,chat,photo,caption){
