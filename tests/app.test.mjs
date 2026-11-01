@@ -424,6 +424,9 @@ test('tracking accepts only known events; stats count visitors, funnel, looks, c
  assert.equal(st.response.total,1);assert.equal(st.response.called,1);assert.equal(st.response.handled,1);
  assert.equal(st.daily.length,7);assert.equal(st.daily.at(-1).visitors,2);
  assert.equal(st.salons[0].slug,'salon-a');
+ const v3='3'.repeat(32);await tr('share_open',v1);await tr('share',v1,'telegram');await tr('share',v1,'whatsapp');await tr('share',v2,'telegram');await tr('view',v3,'share');
+ const sh=(await call(e,'/api/owner/stats?days=7',undefined,OWNER)).data.share;
+ assert.deepEqual([sh.opened,sh.sent,sh.visitors],[1,3,1]);assert.deepEqual(sh.byApp[0],{label:'telegram',count:2});
  assert.equal((await call(e,'/api/owner/stats?days=7&salon=salon-a',undefined,OWNER)).data.salons.length,0);
  assert.equal((await call(e,'/api/owner/stats')).status,401);
 }finally{tg.restore()}});
