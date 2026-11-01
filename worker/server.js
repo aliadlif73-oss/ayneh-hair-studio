@@ -1,8 +1,9 @@
-import {Problem,must,phone,text,safeLink,transferPrompt,uid,token,hash,digits} from './domain.js';
+import {Problem,must,phone,text,safeLink,transferPrompt,uid,token,hash,digits,limited} from './domain.js';
 import {styles} from './legacy.js';
 import {identity,issueCookie,clearCookie,same,passwordLoginEnabled} from './auth.js';
 import {bucketFor,putImage} from './storage.js';
 import {botReady,deliverLead,deliverPending,newLinkCode,setWebhook} from './telegram.js';
+import {smsReady,inviteReady,sendOtp} from './sms.js';
 export {putImage};
 
 const J=(v,s=200,h={})=>new Response(JSON.stringify(v),{status:s,headers:{'Content-Type':'application/json;charset=utf-8','Cache-Control':'no-store',...h}});
@@ -19,7 +20,6 @@ export async function owner(req,env){const who=await identity(req,env);must(who,
 export async function session(req,db,salon){const t=(req.headers.get('cookie')||'').match(/(?:^|; )ayneh=([a-f0-9]{64})(?:;|$)/)?.[1];must(t,'جلسه پیدا نشد؛ صفحه را تازه کنید',401);const s=await one(db,'SELECT * FROM sessions WHERE token_hash=? AND salon_id=? AND expires_at>?',await hash(t),salon.id,Date.now());must(s,'جلسه منقضی شده؛ صفحه را تازه کنید',401);return s;}
 async function newSession(db,salon){const raw=token(),s={id:uid(),salon_id:salon.id,customer_id:null,token_hash:await hash(raw),expires_at:Date.now()+7*86400000,created_at:Date.now()};await run(db,'INSERT INTO sessions(id,salon_id,customer_id,token_hash,expires_at,created_at) VALUES(?,?,?,?,?,?)',...Object.values(s));return {s,raw};}
 const clientIp=req=>req.headers.get('cf-connecting-ip')||(req.headers.get('x-forwarded-for')||'').split(',')[0].trim()||req.headers.get('x-real-ip')||'unknown';
-async function limited(db,key,max){const n=Date.now(),k=await hash(key);await run(db,'INSERT INTO limits(key,count,expires_at) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN expires_at<? THEN 1 ELSE count+1 END,expires_at=CASE WHEN expires_at<? THEN excluded.expires_at ELSE expires_at END',k,n+86400000,n,n);const row=await one(db,'SELECT count FROM limits WHERE key=?',k);must(row.count<=max,'سقف استفادهٔ روزانه پر شده است',429);}
 // A customer may only use their own uploads, or published portfolio items the salon marked for try-on.
 async function ownMedia(db,s,id){const m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,s.salon_id);must(m,'عکس یافت نشد');if(m.session_id!==s.id)must(await one(db,"SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND try_on=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)",s.salon_id,id),'عکس متعلق به این جلسه نیست',403);return m;}
 
@@ -31,6 +31,9 @@ async function cleanup(env){const now=Date.now(),cut=now-30*86400000;
  const leads=await run(env.DB,'DELETE FROM leads WHERE created_at<?',cut);
  await run(env.DB,'DELETE FROM sessions WHERE expires_at<? AND id NOT IN(SELECT session_id FROM requests) AND id NOT IN(SELECT session_id FROM leads) AND id NOT IN(SELECT session_id FROM generations) AND id NOT IN(SELECT session_id FROM media WHERE session_id IS NOT NULL)',now);
  await run(env.DB,'DELETE FROM limits WHERE expires_at<?',now);
+ await run(env.DB,'DELETE FROM otps WHERE expires_at<?',now);
+ await run(env.DB,'DELETE FROM invites WHERE created_at<?',cut);
+ await run(env.DB,'UPDATE sessions SET verified_phone=NULL,verified_name=NULL WHERE verified_phone IS NOT NULL AND created_at<?',cut);
  return {media:stale.length,leads:Number(leads.meta.changes||0)};
 }
 export async function tick(env,origin){if(!env.DB)return {ready:false};const delivered=await deliverPending(env);const cleaned=await cleanup(env);return {ready:true,delivered,...cleaned};}
@@ -49,13 +52,13 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(path==='/api/me'){const who=await identity(req,env);const isOwner=!!who&&(who.via==='password'||(!!env.OWNER_EMAIL&&who.email===env.OWNER_EMAIL));return J({user:!!who,owner:isOwner,email:who?.email||'',passwordLogin:passwordLoginEnabled(env)});}
  if(path==='/api/login'&&req.method==='POST'){must(passwordLoginEnabled(env),'ورود با رمز روی این میزبان فعال نیست',503);await limited(db,'login:'+clientIp(req),20);const b=await req.json();const given=await hash(String(b?.password||''));const expected=env.OWNER_PASSWORD_HASH?String(env.OWNER_PASSWORD_HASH).toLowerCase():await hash(String(env.OWNER_PASSWORD));must(same(given,expected),'رمز عبور نادرست است',401);return J({ok:true},200,{'Set-Cookie':await issueCookie(env,env.OWNER_ID||'owner',env.OWNER_EMAIL||'',u.protocol==='https:')});}
  if(path==='/api/logout'&&req.method==='POST')return J({ok:true},200,{'Set-Cookie':clearCookie(u.protocol==='https:')});
- if(path==='/api/owner'&&req.method==='GET'){await owner(req,env);return J({salons:await all(db,'SELECT id,slug,name,telegram_chat_id IS NOT NULL AS telegram,(SELECT count(*) FROM portfolio p WHERE p.salon_id=salons.id AND p.published=1) AS portfolio,(SELECT count(*) FROM leads l WHERE l.salon_id=salons.id) AS leads FROM salons ORDER BY created_at DESC'),bot:{token:botReady(env),secret:!!env.TELEGRAM_WEBHOOK_SECRET,username:(env.TELEGRAM_BOT_USERNAME||'').replace(/^@/,'')},image:!!env.KIE_API_KEY});}
+ if(path==='/api/owner'&&req.method==='GET'){await owner(req,env);return J({salons:await all(db,'SELECT id,slug,name,telegram_chat_id IS NOT NULL AS telegram,(SELECT count(*) FROM portfolio p WHERE p.salon_id=salons.id AND p.published=1) AS portfolio,(SELECT count(*) FROM leads l WHERE l.salon_id=salons.id) AS leads FROM salons ORDER BY created_at DESC'),bot:{token:botReady(env),secret:!!env.TELEGRAM_WEBHOOK_SECRET,username:(env.TELEGRAM_BOT_USERNAME||'').replace(/^@/,'')},image:!!env.KIE_API_KEY,sms:{otp:smsReady(env),invite:inviteReady(env)}});}
  if(path==='/api/owner/webhook'&&req.method==='POST'){await owner(req,env);return J(await setWebhook(env,env.APP_ORIGIN||u.origin));}
  if(path==='/api/salons'&&req.method==='POST'){const who=await owner(req,env);const b=await req.json(),id=uid();must(/^[a-z][a-z0-9-]{2,45}$/.test(b.slug),'نشانی سالن باید انگلیسی و حداقل سه حرف باشد');must(text(b.name||'',100).length>=2,'نام سالن را بنویسید');await run(db,'INSERT INTO salons(id,slug,owner_id,name,created_at,settings) VALUES(?,?,?,?,?,?)',id,b.slug,who.user||'owner',text(b.name,100),Date.now(),JSON.stringify({generation_enabled:true}));return J({id,slug:b.slug});}
  const match=path.match(/^\/api\/s\/([a-z0-9-]+)(?:\/(.*))?$/);must(match,'مسیر پیدا نشد',404);const salon=await one(db,'SELECT * FROM salons WHERE slug=?',match[1]);must(salon,'سالن پیدا نشد',404);const route=match[2]||'',cfg=parse(salon.settings);
  const readOnly=route==='public'||route==='owner'||route.startsWith('media/')||route.startsWith('generation/');
  must(route==='session'?['GET','POST'].includes(req.method):req.method===(readOnly?'GET':'POST'),'متد مجاز نیست',405);
- if(route==='public')return J({salon:publicSalon(salon),portfolio:await all(db,'SELECT id,title,category,description,stylist,images,try_on,1 AS published FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 ORDER BY created_at DESC',salon.id),generation:!!env.KIE_API_KEY&&!!cfg.generation_enabled,reference:!!cfg.reference_verified,telegram:!!salon.telegram_chat_id&&botReady(env),notice:'خروجی شبیه‌سازی پیشنهادی است و تضمین اجرا نیست.'});
+ if(route==='public')return J({salon:publicSalon(salon),portfolio:await all(db,'SELECT id,title,category,description,stylist,images,try_on,1 AS published FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 ORDER BY created_at DESC',salon.id),generation:!!env.KIE_API_KEY&&!!cfg.generation_enabled,reference:!!cfg.reference_verified,telegram:!!salon.telegram_chat_id&&botReady(env),otp:smsReady(env),notice:'خروجی شبیه‌سازی پیشنهادی است و تضمین اجرا نیست.'});
  if(route==='session'&&req.method==='POST'){await limited(db,'session:'+salon.id+':'+clientIp(req),30);const {raw}=await newSession(db,salon);return J({ok:true},200,{'Set-Cookie':cookie(raw)});}
  if(route.startsWith('owner')){
   await owner(req,env);const r=route.slice(6),b=req.method==='GET'?{}:await req.json();
@@ -71,12 +74,44 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(route==='upload'&&req.method==='POST'){const kind=u.searchParams.get('kind')||'original';let s=null;if(kind==='brand')await owner(req,env);else{must(['original','reference'].includes(kind));s=await session(req,db,salon);await limited(db,'upload:'+s.id,30);}const bytes=new Uint8Array(await req.arrayBuffer());return J({id:await putImage(env,salon,s,bytes,kind)});}
  if(route.startsWith('media/')){const id=route.slice(6),m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,salon.id);must(m,'عکس یافت نشد',404);const profile=parse(salon.profile);let visible=m.kind==='brand'&&PROFILE_IMAGES.some(k=>profile[k]===id);if(!visible)visible=!!await one(db,'SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)',salon.id,id);if(!visible){let isOwner=false;try{await owner(req,env);isOwner=true}catch{}if(!isOwner){const s=await session(req,db,salon);await ownMedia(db,s,id);}must(m.kind==='brand'||m.kind==='portfolio'||m.created_at>Date.now()-30*86400000,'مهلت نگهداری عکس تمام شده است',410);}const object=await bucketFor(env).get(m.object_key);must(object,'عکس در دسترس نیست',410);return new Response(object.body,{headers:{'Content-Type':m.mime,'Cache-Control':visible?'public,max-age=300':'private,no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"}});}
  const s=await session(req,db,salon);
- if(route==='session')return J({ok:true});
+ if(route==='session')return J({ok:true,verified:!!s.verified_phone,name:s.verified_name||'',phone:s.verified_phone||''});
+ // Mobile verification: a one-time code texted by Melipayamak. Only the hash of the code is stored.
+ if(route==='otp/send'){
+  must(smsReady(env),'تأیید شماره هنوز فعال نشده است',503);
+  const b=await req.json(),first=text(String(b.first_name||''),40),last=text(String(b.last_name||''),60);
+  must(first.length>=2&&last.length>=2,'نام و نام خانوادگی را کامل بنویس');
+  const number=phone(b.phone),now=Date.now();
+  const prev=await one(db,'SELECT created_at FROM otps WHERE session_id=? ORDER BY created_at DESC LIMIT 1',s.id);
+  must(!prev||now-prev.created_at>=60000,'برای گرفتن دوبارهٔ کد یک دقیقه صبر کن',429);
+  await limited(db,'otp-session:'+s.id,5,'چند بار کد گرفتی؛ فردا دوباره امتحان کن');
+  await limited(db,'otp-phone:'+number,5,'برای این شماره امروز چند بار کد فرستاده شده؛ فردا دوباره امتحان کن');
+  await limited(db,'otp-ip:'+clientIp(req),20,'سقف درخواست کد برای امروز پر شده است');
+  await limited(db,'otp-salon:'+salon.id,300,'سقف ارسال کد برای امروز پر شده است');
+  const code=await sendOtp(env,number),id=uid();
+  await run(db,'DELETE FROM otps WHERE session_id=?',s.id);
+  await run(db,'INSERT INTO otps(id,session_id,phone,first_name,last_name,code_hash,expires_at,created_at) VALUES(?,?,?,?,?,?,?,?)',id,s.id,number,first,last,await hash(id+':'+code),now+10*60000,now);
+  return J({ok:true,expires_in:600,resend_in:60});
+ }
+ if(route==='otp/verify'){
+  const b=await req.json(),given=digits(String(b.code||'')).replace(/\s/g,'');
+  must(/^\d{3,12}$/.test(given),'کد را درست وارد کن');
+  const o=await one(db,'SELECT * FROM otps WHERE session_id=? ORDER BY created_at DESC LIMIT 1',s.id);
+  must(o,'اول کد تأیید بگیر');
+  must(o.expires_at>Date.now(),'کد منقضی شده؛ کد تازه بگیر',410);
+  const spent=await run(db,'UPDATE otps SET attempts=attempts+1 WHERE id=? AND attempts<5',o.id);
+  must(spent.meta.changes,'تعداد تلاش‌ها تمام شد؛ کد تازه بگیر',429);
+  must(same(await hash(o.id+':'+given),o.code_hash),'کد درست نیست');
+  const name=o.first_name+' '+o.last_name;
+  await run(db,'UPDATE sessions SET verified_phone=?,verified_name=? WHERE id=?',o.phone,name,s.id);
+  await run(db,'DELETE FROM otps WHERE session_id=?',s.id);
+  return J({ok:true,name,phone:o.phone});
+ }
  if(route==='leads'&&req.method==='POST'){
   const b=await req.json();must(b.data_consent===true,'رضایت ارسال عکس برای سالن لازم است');must(/^[a-f0-9-]{36}$/.test(b.idem),'شناسه درخواست معتبر نیست');
+  must(!smsReady(env)||s.verified_phone,'اول شمارهٔ موبایلت را تأیید کن',403);
   const old=await one(db,'SELECT id,status FROM leads WHERE session_id=? AND idem=?',s.id,b.idem);if(old)return J({id:old.id,delivered:old.status==='sent'});
   must(salon.telegram_chat_id&&botReady(env),'این سالن هنوز ارسال آنلاین را فعال نکرده؛ مستقیم با سالن تماس بگیرید',503);
-  const name=text(b.name||'',100);must(name.length>=2,'نام را وارد کنید');const number=phone(b.phone);
+  const name=s.verified_name||text(b.name||'',100);must(name.length>=2,'نام را وارد کنید');const number=s.verified_phone||phone(b.phone);
   let handle=text(String(b.telegram||''),40).replace(/^@/,'').replace(/^https?:\/\/t\.me\//,'');if(handle)must(/^[A-Za-z][A-Za-z0-9_]{4,31}$/.test(handle),'آیدی تلگرام معتبر نیست');
   const original=await ownMedia(db,s,b.original_id);must(original.kind==='original','عکس خودتان لازم است');
   if(b.reference_id)await ownMedia(db,s,b.reference_id);
@@ -91,7 +126,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   const b=await req.json();must(env.KIE_API_KEY&&cfg.generation_enabled,'تولید فعال نیست',503);must(/^[a-f0-9-]{36}$/.test(b.idem));const existing=await one(db,'SELECT id,state FROM generations WHERE session_id=? AND idem=?',s.id,b.idem);if(existing)return J(existing);const base=await one(db,"SELECT * FROM generations WHERE id=? AND session_id=? AND salon_id=? AND state='success'",b.parent,s.id,salon.id);must(base?.result_id,'عکس پایه معتبر نیست');const m=await ownMedia(db,s,base.result_id),id=uid(),now=Date.now();await limited(db,'views:'+salon.id,20);await run(db,"INSERT INTO generations(id,salon_id,session_id,idem,kind,state,original_id,created_at,updated_at) VALUES(?,?,?,?,'views','creating',?,?,?)",id,salon.id,s.id,b.idem,base.original_id,now,now);
   try{const img=await uploadProvider(env,m);const task=await createImageTask(env,cfg,{prompt:'Turntable sheet for a 360-degree hair viewer. Exact 4 columns by 2 rows grid of 8 equal tiles of this same adult woman with identical hair color and hairstyle, head and shoulders, camera orbiting her at eye level in row-major order: 0 (front), 45, 90 (her left profile), 135, 180 (back of head), 225, 270 (her right profile), 315 degrees. Same framing, scale, lighting and plain background in every tile so the tiles play as a smooth rotation. No labels, borders, gaps or text. Identity must stay the same. Unseen views are estimates.',image_input:[img],aspect_ratio:'3:2',resolution:'2K',output_format:'jpg'});await run(db,"UPDATE generations SET state='waiting',task_id=? WHERE id=?",task.taskId,id);return J({id,state:'waiting'});}catch{await run(db,"UPDATE generations SET state='unknown' WHERE id=?",id);throw new Problem(502,'ارسال نامشخص؛ بدون بازتولید خودکار');}
  }
- if(route==='generate'&&req.method==='POST'){const b=await req.json();must(b.image_consent===true,'رضایت ارسال عکس برای پردازش لازم است');must(cfg.generation_enabled&&env.KIE_API_KEY,'تولید واقعی این سالن هنوز فعال نشده است',503);must(/^[a-f0-9-]{36}$/.test(b.idem));const old=await one(db,'SELECT * FROM generations WHERE session_id=? AND idem=?',s.id,b.idem);if(old)return J({id:old.id,state:old.state});const original=await ownMedia(db,s,b.original_id);must(original.kind==='original','عکس چهره لازم است');let reference=null;if(b.reference_id){must(cfg.reference_verified,'انتقال عکس مرجع هنوز آزمون واقعی و فعال‌سازی نشده است',503);reference=await ownMedia(db,s,b.reference_id);must(['style','color','both'].includes(b.transfer));}else must(Number.isInteger(b.style)&&styles[b.style],'مدل معتبر انتخاب کنید');const color=text(b.color||'',120);await limited(db,'generation:'+salon.id+':'+new Date().toISOString().slice(0,10),50);const id=uid(),now=Date.now();await run(db,'INSERT INTO generations(id,salon_id,session_id,idem,state,original_id,reference_id,style,transfer,color,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',id,salon.id,s.id,b.idem,'creating',b.original_id,b.reference_id||null,b.style??null,b.transfer||'catalog',color,now,now);
+ if(route==='generate'&&req.method==='POST'){const b=await req.json();must(!smsReady(env)||s.verified_phone,'اول شمارهٔ موبایلت را تأیید کن',403);must(b.image_consent===true,'رضایت ارسال عکس برای پردازش لازم است');must(cfg.generation_enabled&&env.KIE_API_KEY,'تولید واقعی این سالن هنوز فعال نشده است',503);must(/^[a-f0-9-]{36}$/.test(b.idem));const old=await one(db,'SELECT * FROM generations WHERE session_id=? AND idem=?',s.id,b.idem);if(old)return J({id:old.id,state:old.state});const original=await ownMedia(db,s,b.original_id);must(original.kind==='original','عکس چهره لازم است');let reference=null;if(b.reference_id){must(cfg.reference_verified,'انتقال عکس مرجع هنوز آزمون واقعی و فعال‌سازی نشده است',503);reference=await ownMedia(db,s,b.reference_id);must(['style','color','both'].includes(b.transfer));}else must(Number.isInteger(b.style)&&styles[b.style],'مدل معتبر انتخاب کنید');const color=text(b.color||'',120);await limited(db,'generation:'+salon.id+':'+new Date().toISOString().slice(0,10),50);const id=uid(),now=Date.now();await run(db,'INSERT INTO generations(id,salon_id,session_id,idem,state,original_id,reference_id,style,transfer,color,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',id,salon.id,s.id,b.idem,'creating',b.original_id,b.reference_id||null,b.style??null,b.transfer||'catalog',color,now,now);
   try{const images=[await uploadProvider(env,original)];if(reference)images.push(await uploadProvider(env,reference));const job=await createImageTask(env,cfg,{prompt:transferPrompt(reference?b.transfer:'catalog',styles[b.style]?.[1]||'',color),image_input:images,aspect_ratio:'3:4',resolution:'2K',output_format:'jpg'});await run(db,"UPDATE generations SET state='waiting',task_id=? WHERE id=?",job.taskId,id);return J({id,state:'waiting'});}catch{await run(db,"UPDATE generations SET state='unknown' WHERE id=?",id);throw new Problem(502,'وضعیت ارسال نامشخص است؛ برای جلوگیری از هزینه تکراری، درخواست تازه خودکار ساخته نمی‌شود');}
  }
  if(route.startsWith('generation/')){const id=route.slice(11),g=await one(db,'SELECT * FROM generations WHERE id=? AND salon_id=? AND session_id=?',id,salon.id,s.id);must(g,'درخواست تولید یافت نشد',404);if(g.result_id)return J({state:'success',result_id:g.result_id});if(!g.task_id)return J({state:g.state});const d=await provider(env,'/api/v1/jobs/recordInfo?taskId='+encodeURIComponent(g.task_id));if(d.state==='success'){const link=parse(d.resultJson).resultUrls?.[0];must(link&&new URL(link).protocol==='https:','خروجی سرویس معتبر نیست',502);const res=await fetch(link,{signal:AbortSignal.timeout(20000)});must(res.ok,'دریافت خروجی ممکن نشد',502);must(Number(res.headers.get('content-length')||0)<=12*1024*1024,'خروجی بیش از حد بزرگ است',502);const bytes=new Uint8Array(await res.arrayBuffer());const media=await putImage(env,salon,s,bytes,'simulation');const win=await run(db,"UPDATE generations SET state='success',result_id=?,updated_at=? WHERE id=? AND result_id IS NULL",media,Date.now(),g.id);if(!win.meta.changes){await bucketFor(env).delete(salon.id+'/'+media);await run(db,'DELETE FROM media WHERE id=?',media);}const done=await one(db,'SELECT result_id FROM generations WHERE id=?',g.id);return J({state:'success',result_id:done.result_id});}await run(db,'UPDATE generations SET state=?,updated_at=? WHERE id=?',d.state,Date.now(),g.id);return J({state:d.state});}

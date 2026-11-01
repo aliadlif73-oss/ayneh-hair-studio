@@ -115,8 +115,15 @@ function home(){return api('/api/owner').then(function(d){
  d.salons.forEach(function(s){list.append(el('div',{class:'salon'},[el('div',{class:'grow'},[h('strong',s.name),h('small','/s/'+s.slug)]),badge(s.telegram?'تلگرام وصل':'تلگرام وصل نیست',s.telegram?'ok':'warn'),h('small',fa(s.portfolio)+' نمونه‌کار، '+fa(s.leads)+' درخواست'),el('a',{class:'btn btn--ghost btn--sm',href:'/s/'+s.slug,target:'_blank',rel:'noopener',text:'صفحهٔ مشتری'}),el('a',{class:'btn btn--primary btn--sm',href:'/admin/'+s.slug,text:'تنظیمات'})]))});
  if(!d.salons.length)list.append(h('p','هنوز سالنی نساخته‌اید.','empty-note'));
  var create=el('section',{class:'card'},[h('h2','سالن تازه'),field('name','نام سالن'),field('slug','نشانی انگلیسی صفحه','', 'text','مثل ayneh-saadatabad؛ صفحهٔ مشتری می‌شود /s/ayneh-saadatabad'),el('button',{class:'btn btn--primary',type:'button',text:'ساخت سالن',onclick:act(function(){return api('/api/salons',{name:$('#name').value,slug:$('#slug').value.trim()}).then(function(s){location.href='/admin/'+s.slug})})})]);
- $('#app').replaceChildren(head,el('div',{class:'grid grid--2'},[el('div',{class:'stack'},[list,create]),el('div',{class:'stack'},[botCard(d.bot),imageCard(d.image)])]));
+ $('#app').replaceChildren(head,el('div',{class:'grid grid--2'},[el('div',{class:'stack'},[list,create]),el('div',{class:'stack'},[botCard(d.bot),smsCard(d.sms||{}),imageCard(d.image)])]));
 })}
+function smsCard(sms){
+ var st=function(ok,on,off){return el('li',{class:ok?'on':'off'},[h('span',ok?'✓':'–','dot'),h('span',ok?on:off)])};
+ return el('section',{class:'card'},[h('h2','پیامک (ملی پیامک)'),h('p','کد تأیید موبایل مشتری، و لینک سالن که آرایشگر از ربات برای مشتری می‌فرستد.','lead'),el('ul',{class:'status'},[
+  st(sms.otp,'کد تأیید فعال است؛ مشتری قبل از ساخت شبیه‌سازی شمارهٔ خودش را تأیید می‌کند.','MELIPAYAMAK_TOKEN تنظیم نشده؛ تأیید شمارهٔ مشتری خاموش است.'),
+  st(sms.invite,'پیامک لینک سالن از ربات فعال است.','MELIPAYAMAK_BODY_ID تنظیم نشده (شمارهٔ متن پیش‌فرض تأییدشده)؛ آرایشگر هنوز نمی‌تواند لینک را پیامک کند.')
+ ])]);
+}
 function imageCard(on){return el('section',{class:'card'},[h('h2','شبیه‌سازی تصویر'),el('ul',{class:'status'},[el('li',{class:on?'on':'off'},[h('span',on?'✓':'–','dot'),h('span',on?'کلید KIE تنظیم شده؛ مشتری‌ها می‌توانند مدل را روی عکس خودشان ببینند.':'KIE_API_KEY تنظیم نشده؛ مشتری فقط عکس و مدل را برای سالن می‌فرستد.')])])])}
 
 function uploadBox(id,title,current,onDone){

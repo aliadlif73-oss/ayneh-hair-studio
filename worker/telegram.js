@@ -4,8 +4,10 @@
 // - Every customer submission is delivered to that chat as an album (selfie, reference,
 //   simulation) with the customer's name, mobile and optional Telegram handle.
 // - Any photo the salon sends to the bot is published as a portfolio item on the salon page.
+// - A mobile number typed to the bot is texted the salon's page link (Melipayamak, sms.js).
 // Secrets: TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET; TELEGRAM_BOT_USERNAME builds links.
-import {Problem,must,uid,hash,text} from './domain.js';
+import {Problem,must,uid,hash,text,phone,limited} from './domain.js';
+import {inviteReady,sendInvite} from './sms.js';
 import {bucketFor,putImage} from './storage.js';
 
 const one=(db,sql,...a)=>db.prepare(sql).bind(...a).first();
@@ -33,10 +35,11 @@ export async function newLinkCode(db,salon,env){
 }
 
 const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-const help=name=>'<b>ربات آینه'+(name?' — '+esc(name):'')+'</b>\n\n'+
+const help=(name,sms)=>'<b>ربات آینه'+(name?' — '+esc(name):'')+'</b>\n\n'+
  '📥 هر مشتری که عکس و مدلش را از صفحهٔ سالن بفرستد، همین‌جا با اسم و شماره‌اش می‌آید. خودتان تماس بگیرید یا در تلگرام پیام بدهید.\n\n'+
  '🖼 برای اضافه‌کردن نمونه‌کار، عکس را همین‌جا بفرستید. متن زیر عکس (کپشن) اسم کار می‌شود، مثلاً «بالیاژ عسلی». عکس بلافاصله روی صفحهٔ سالن می‌نشیند و مشتری می‌تواند روی عکس خودش امتحانش کند.\n'+
  'با فرستادن عکس تأیید می‌کنید اجازهٔ انتشار آن را دارید.\n\n'+
+ (sms?'📲 برای فرستادن لینک سالن به یک مشتری، شمارهٔ موبایلش را همین‌جا بنویسید (مثلاً ۰۹۱۲۱۲۳۴۵۶۷). یک پیامک با لینک صفحهٔ سالن برایش می‌رود. می‌توانید تا ۵ شماره را با فاصله یا خط جدا بفرستید.\n\n':'')+
  '/list فهرست نمونه‌کارها و حذف\n/help همین راهنما';
 
 async function salonByChat(db,chat){return one(db,'SELECT * FROM salons WHERE telegram_chat_id=?',String(chat))}
@@ -57,25 +60,64 @@ export async function webhook(req,env){
     // A chat serves one salon; linking moves it.
     await run(db,'UPDATE salons SET telegram_chat_id=NULL WHERE telegram_chat_id=? AND id<>?',chat,salon.id);
     await run(db,'UPDATE salons SET telegram_chat_id=?,telegram_code_hash=NULL,telegram_code_expires=NULL WHERE id=?',chat,salon.id);
-    await tg(env,'sendMessage',{chat_id:chat,parse_mode:'HTML',text:'✅ این گفتگو به «'+esc(salon.name)+'» وصل شد.\n\n'+help()});
+    await tg(env,'sendMessage',{chat_id:chat,parse_mode:'HTML',text:'✅ این گفتگو به «'+esc(salon.name)+'» وصل شد.\n\n'+help('',inviteReady(env))});
     return J({ok:true});
    }
    const s=await salonByChat(db,chat);
-   await tg(env,'sendMessage',{chat_id:chat,parse_mode:'HTML',text:s?help(s.name):'سلام! این ربات مخصوص سالن‌های عضو آینه است. برای اتصال، لینک اختصاصی را از مدیر آینه بگیرید و باز کنید.'});
+   await tg(env,'sendMessage',{chat_id:chat,parse_mode:'HTML',text:s?help(s.name,inviteReady(env)):'سلام! این ربات مخصوص سالن‌های عضو آینه است. برای اتصال، لینک اختصاصی را از مدیر آینه بگیرید و باز کنید.'});
    return J({ok:true});
   }
   const salon=await salonByChat(db,chat);
   if(!salon){await tg(env,'sendMessage',{chat_id:chat,text:'این گفتگو به هیچ سالنی وصل نیست. لینک اتصال را از مدیر آینه بگیرید.'});return J({ok:true});}
-  if(textIn==='/help'){await tg(env,'sendMessage',{chat_id:chat,parse_mode:'HTML',text:help(salon.name)});return J({ok:true});}
+  if(textIn==='/help'){await tg(env,'sendMessage',{chat_id:chat,parse_mode:'HTML',text:help(salon.name,inviteReady(env))});return J({ok:true});}
   if(textIn==='/list'){await sendList(env,db,salon,chat);return J({ok:true});}
+  const numbers=mobilesIn(textIn);
+  if(numbers.length){await sendInvites(env,db,salon,chat,numbers);return J({ok:true});}
   const photo=m.photo?.length?m.photo[m.photo.length-1]:(m.document&&/^image\/(jpeg|png|webp)$/.test(m.document.mime_type||'')?m.document:null);
   if(photo){await addPortfolio(env,db,salon,chat,photo,m.caption||'');return J({ok:true});}
-  await tg(env,'sendMessage',{chat_id:chat,text:'برای اضافه‌کردن نمونه‌کار، عکس بفرستید. /help راهنما را نشان می‌دهد.'});
+  await tg(env,'sendMessage',{chat_id:chat,text:'برای اضافه‌کردن نمونه‌کار، عکس بفرستید'+(inviteReady(env)?' و برای فرستادن لینک سالن به مشتری، شمارهٔ موبایلش را بنویسید':'')+'. /help راهنما را نشان می‌دهد.'});
   return J({ok:true});
  }catch(e){
   // Always 200 to Telegram so a bad update is not redelivered forever; the error is logged.
   console.error('telegram webhook',e?.message);return J({ok:false});
  }
+}
+
+// A message made only of Iranian mobile numbers (max 5, split by spaces, commas or new lines)
+// means "text this customer my page link". Anything else is not a number message.
+export function mobilesIn(textIn){
+ const parts=String(textIn||'').split(/[\s,،;؛]+/).filter(Boolean);
+ if(!parts.length||parts.length>5)return [];
+ const out=[];
+ for(const p of parts){let n;try{n=phone(p)}catch{return []}if(!out.includes(n))out.push(n)}
+ return out;
+}
+
+// Texts the salon's page link to each number. Limits keep a mistyped or abusive chat from burning
+// SMS credit: 30 texts a day per salon, 3 a day per number across all salons, and the same salon
+// cannot text the same number again within an hour.
+async function sendInvites(env,db,salon,chat,numbers){
+ const say=t=>tg(env,'sendMessage',{chat_id:chat,text:t});
+ if(!inviteReady(env)){await say('ارسال پیامک برای مشتری هنوز فعال نشده است. از مدیر آینه بخواهید فعالش کند.');return}
+ const origin=(env.APP_ORIGIN||'').replace(/\/+$/,'');
+ if(!origin){await say('نشانی سایت آینه تنظیم نشده و لینک سالن ساخته نمی‌شود. به مدیر آینه خبر بدهید.');return}
+ const link=origin+'/s/'+salon.slug,lines=[];
+ for(const n of numbers){
+  const local=n.replace(/^\+98/,'0');
+  try{
+   if(await one(db,"SELECT 1 FROM invites WHERE salon_id=? AND phone=? AND status='sent' AND created_at>?",salon.id,n,Date.now()-3600000)){lines.push('↩️ '+local+' — همین الان برایش پیامک رفته بود');continue}
+   await limited(db,'invite:'+salon.id,30,'سقف ۳۰ پیامک در روز برای این سالن پر شده است');
+   await limited(db,'invite-phone:'+n,3,'برای این شماره امروز چند پیامک رفته است');
+   const r=await sendInvite(env,n,[salon.name,link]);
+   await run(db,'INSERT INTO invites(id,salon_id,phone,rec_id,status,created_at) VALUES(?,?,?,?,?,?)',uid(),salon.id,n,r.recId,'sent',Date.now());
+   lines.push('✅ '+local);
+  }catch(e){
+   const why=e instanceof Problem?e.message:'ارسال نشد';
+   await run(db,'INSERT INTO invites(id,salon_id,phone,status,error,created_at) VALUES(?,?,?,?,?,?)',uid(),salon.id,n,'failed',String(why).slice(0,200),Date.now()).catch(()=>{});
+   lines.push('❌ '+local+' — '+why);
+  }
+ }
+ await say((lines.some(l=>l.startsWith('✅'))?'📲 لینک «'+salon.name+'» برای مشتری پیامک شد:\n':'پیامک فرستاده نشد:\n')+lines.join('\n'));
 }
 
 async function addPortfolio(env,db,salon,chat,photo,caption){

@@ -33,7 +33,7 @@ For a local end-to-end run without a real bot, put `TELEGRAM_BOT_TOKEN=dev-mock`
 - `worker/telegram.js`: bot: `/start <code>` linking, portfolio from photos (caption = title), `/list` and delete buttons, delivery of submissions as a photo album with name, mobile and optional Telegram handle.
 - `worker/server.js`: API, sessions, private media, KIE generation, submissions, retention.
 - `worker/design.js`, `worker/fonts.js`: shared design system and self-hosted Vazirmatn / Estedad (SIL OFL 1.1) served from `/fonts/*`.
-- `drizzle/`: migrations. `0002_telegram.sql` adds the Telegram link and the `leads` table. Older booking/SMS tables are kept, unused, so no data is destroyed. Append new migrations; never edit applied ones.
+- `drizzle/`: migrations. `0002_telegram.sql` adds the Telegram link and the `leads` table; `0003_sms.sql` adds mobile verification (`otps`) and salon link texts (`invites`, see SETUP-SMS.md). Older booking tables are kept, unused, so no data is destroyed. Append new migrations; never edit applied ones.
 - `scripts/generate-catalog.mjs` + `.github/workflows/catalog.yml`: generates the 20 catalog photos with the project's `KIE_API_KEY` and commits them. Runs when the script changes or from the Actions tab; only missing photos are generated.
 
 ## Privacy and delivery

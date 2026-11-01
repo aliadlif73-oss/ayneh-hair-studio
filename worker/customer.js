@@ -295,7 +295,7 @@ var ICO={
  gallery:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m20.5 15-4.6-4.4L7 19.5"/></svg>',
  orbit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="9" ry="3.6"/><path d="M12 3.5c2 1.6 3.2 4.7 3.2 8.5s-1.2 6.9-3.2 8.5"/><path d="m18.6 13.8 2 1.6-2.3 1"/></svg>',
  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H4M10 6l-6 6 6 6"/></svg>',};
-var state={pub:null,step:1,original:null,reference:null,refTitle:'',style:null,tab:'salon',transfer:'both',color:'',result:null,gen:null,genState:null,busy:false,error:'',session:false,idem:null,rating:0,me:null};
+var state={pub:null,step:1,original:null,reference:null,refTitle:'',style:null,tab:'salon',transfer:'both',color:'',result:null,gen:null,genState:null,busy:false,error:'',session:false,verified:false,idem:null,rating:0,me:null};
 try{state.me=JSON.parse(localStorage.getItem('ayneh-me')||'null')}catch(e){}
 var $=function(s,r){return (r||document).querySelector(s)};
 var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
@@ -798,6 +798,13 @@ function generate(){
  var box=$('#flow');
  var consent=box?box.querySelector('#consent'):null;
  if(consent&&!consent.checked){consent.closest('.check').style.color='var(--danger)';toast('رضایت ارسال عکس را تأیید کن');return}
+ if(state.pub.otp&&!state.verified){
+  ensureSession().then(function(){
+   if(state.verified){generate();return}
+   openOtp(generate);
+  }).catch(function(e){toast(e.message,'error')});
+  return;
+ }
  state.busy=true;state.error='';state.result=null;renderFlow();renderDock();
  ensureSession().then(function(){
   state.idem=state.idem||uuid();
@@ -808,8 +815,10 @@ function generate(){
   renderFlow();renderDock();
   return poll(job.id);
  }).catch(function(e){
+  state.busy=false;
+  if(needsVerify(e.message)){state.verified=false;state.error='';renderFlow();renderDock();openOtp(generate);return}
   state.error=friendly(e.message);
-  state.busy=false;renderFlow();renderDock();
+  renderFlow();renderDock();
  });
 }
 function friendly(msg){
@@ -962,9 +971,81 @@ function startTour(){
 /* ---------- session ---------- */
 function ensureSession(){
  if(state.session)return Promise.resolve();
- return api('session').then(function(){state.session=true}).catch(function(){
+ return api('session').then(function(d){state.session=true;applyVerified(d)}).catch(function(){
+  state.verified=false;
   return api('session',{}).then(function(){state.session=true});
  });
+}
+
+/* ---------- phone verification (SMS code) ---------- */
+function applyVerified(d){
+ if(!d||!d.verified)return;
+ state.verified=true;
+ state.me=Object.assign({},state.me||{},{name:d.name||'',phone:d.phone?'0'+String(d.phone).replace(/^\+98/,''):''});
+}
+function needsVerify(msg){return /را تأیید کن/.test(String(msg||''))}
+function openOtp(next){
+ var timer=null;
+ function shut(){clearInterval(timer);closeSheet()}
+ var panel=el('div',{class:'sheet__panel'});
+ var head=el('div',{class:'sheet__head'},[h('h2','تأیید شمارهٔ موبایل'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:shut})]);
+ var me=state.me||{},bits=String(me.name||'').trim().split(/\s+/);
+ var firstWrap=wrapField('otpFirst','نام','text',bits[0]||'','',{autocomplete:'given-name'});
+ var lastWrap=wrapField('otpLast','نام خانوادگی','text',bits.slice(1).join(' '),'',{autocomplete:'family-name'});
+ var phoneWrap=wrapField('otpPhone','شمارهٔ موبایل','tel',me.phone||'','۰۹۱۲۱۲۳۴۵۶۷',{inputmode:'tel',autocomplete:'tel'});
+ var sendBtn=el('button',{class:'btn btn--primary btn--block',type:'submit',text:'ارسال کد تأیید'});
+ var form=el('form',{novalidate:'true'},[firstWrap,lastWrap,phoneWrap,sendBtn]);
+ var last=null;
+ panel.append(head,h('p','برای ساخت شبیه‌سازی، اول شمارهٔ موبایلت را تأیید می‌کنیم. یک کد پیامکی برایت می‌فرستیم. نام و شمارهات فقط برای همین سالن و پیگیری درخواستت استفاده می‌شود و بعد از ۳۰ روز از آینه پاک می‌شود.','muted'),form);
+ function codeStep(){
+  var codeWrap=wrapField('otpCode','کد پیامک‌شده','text','','',{autocomplete:'one-time-code',inputmode:'numeric'});
+  codeWrap.querySelector('input').setAttribute('dir','ltr');
+  var verify=el('button',{class:'btn btn--primary btn--block',type:'submit',text:'تأیید'});
+  var again=el('button',{class:'btn btn--ghost btn--block',type:'button',disabled:true,text:''});
+  var f2=el('form',{novalidate:'true'},[codeWrap,verify,again]);
+  panel.replaceChildren(head,h('p','کد به '+last.shown+' پیامک شد. تا چند لحظهٔ دیگر می‌رسد.','muted'),f2);
+  var left=60;
+  function tickDown(){
+   if(!panel.isConnected){clearInterval(timer);return}
+   again.disabled=left>0;again.textContent=left>0?'ارسال دوبارهٔ کد تا '+fa(left)+' ثانیه دیگر':'ارسال دوبارهٔ کد';
+   if(left>0)left--;
+  }
+  clearInterval(timer);tickDown();timer=setInterval(tickDown,1000);
+  setTimeout(function(){var i=codeWrap.querySelector('input');if(i)i.focus()},50);
+  again.addEventListener('click',function(){
+   again.disabled=true;
+   api('otp/send',last.body).then(function(){left=60;toast('کد تازه فرستاده شد')}).catch(function(err){toast(err.message,'error')});
+  });
+  f2.addEventListener('submit',function(e){
+   e.preventDefault();
+   var code=codeWrap.querySelector('input').value.trim();
+   var ok=validate(codeWrap,function(){return /^[0-9۰-۹٠-٩]{3,12}$/.test(code)},'کد را همان‌طور که پیامک شده بنویس');
+   if(!ok)return;
+   verify.disabled=true;verify.textContent='در حال بررسی…';
+   api('otp/verify',{code:code}).then(function(d){
+    state.verified=true;
+    state.me=Object.assign({},state.me||{},{name:d.name,phone:'0'+String(d.phone).replace(/^\+98/,'')});
+    try{localStorage.setItem('ayneh-me',JSON.stringify(state.me))}catch(err){}
+    shut();toast('شمارهات تأیید شد');
+    if(next)next();
+   }).catch(function(err){verify.disabled=false;verify.textContent='تأیید';toast(err.message,'error')});
+  });
+ }
+ form.addEventListener('submit',function(e){
+  e.preventDefault();
+  var first=firstWrap.querySelector('input').value.trim(),lastName=lastWrap.querySelector('input').value.trim();
+  var okFirst=validate(firstWrap,function(){return first.length>=2},'نام را بنویس');
+  var okLast=validate(lastWrap,function(){return lastName.length>=2},'نام خانوادگی را بنویس');
+  var num=normalizePhone(phoneWrap.querySelector('input').value);
+  var okPhone=validate(phoneWrap,function(){return /^\+989\d{9}$/.test(num)},'شمارهٔ موبایل درست نیست؛ مثل ۰۹۱۲۱۲۳۴۵۶۷');
+  if(!okFirst||!okLast||!okPhone)return;
+  sendBtn.disabled=true;sendBtn.textContent='در حال فرستادن…';
+  ensureSession().then(function(){
+   var body={first_name:first,last_name:lastName,phone:num};
+   return api('otp/send',body).then(function(){last={body:body,shown:'0'+num.slice(3)};codeStep()});
+  }).catch(function(err){sendBtn.disabled=false;sendBtn.textContent='ارسال کد تأیید';toast(err.message,'error')});
+ });
+ openSheet(panel);
 }
 
 /* ---------- send to the salon (Telegram) ---------- */
@@ -1002,6 +1083,7 @@ function openRequest(){
  var phoneWrap=wrapField('phone','شمارهٔ موبایل','tel',state.me&&state.me.phone||'','۰۹۱۲۱۲۳۴۵۶۷',{inputmode:'tel',autocomplete:'tel'});
  var tgWrap=wrapField('tgid','آیدی تلگرام (اختیاری)','text',state.me&&state.me.telegram||'','@username',{autocomplete:'off'});
  tgWrap.querySelector('input').setAttribute('dir','ltr');
+ if(state.verified){nameWrap.querySelector('input').readOnly=true;phoneWrap.querySelector('input').readOnly=true}
  var note=el('textarea',{id:'rnote',placeholder:'مثلاً سابقهٔ رنگ یا حنا، حساسیت پوستی، یا هر چیزی که آرایشگر باید بداند'});
  var consent=el('input',{type:'checkbox',id:'dataConsent'});
  var submit=el('button',{class:'btn btn--primary btn--block',type:'submit',html:ICO.send+'<span>فرستادن</span>'});
@@ -1030,7 +1112,7 @@ function openRequest(){
     h('p',d.delivered?'«'+s.name+'» عکس و مدلت را در تلگرام دریافت کرد. منتظر تماس سالن'+(tg?' یا پیامش در تلگرام':'')+' باش.':'تلگرام الان جواب نداد؛ درخواستت ذخیره شد و چند دقیقهٔ دیگر خودکار برای سالن فرستاده می‌شود.'),
     el('button',{class:'btn btn--primary btn--block',type:'button',onclick:closeSheet,text:'باشه'})
    ]));
-  }).catch(function(err){submit.disabled=false;submit.innerHTML=ICO.send+'<span>فرستادن</span>';toast(err.message,'error')});
+  }).catch(function(err){submit.disabled=false;submit.innerHTML=ICO.send+'<span>فرستادن</span>';if(needsVerify(err.message)){state.verified=false;openOtp(openRequest);return}toast(err.message,'error')});
  });
  panel.append(form);
  openSheet(panel);

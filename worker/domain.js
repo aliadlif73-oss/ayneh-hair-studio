@@ -72,3 +72,5 @@ export const uid=()=>crypto.randomUUID();
 export const token=()=>{let a=crypto.getRandomValues(new Uint8Array(32));return Array.from(a,x=>x.toString(16).padStart(2,'0')).join('');};
 export const hash=async s=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))),x=>x.toString(16).padStart(2,'0')).join('');
 export const formatTime=ms=>new Intl.DateTimeFormat('fa-IR',{dateStyle:'medium',timeStyle:'short',timeZone:'Asia/Tehran'}).format(ms);
+// Rolling 24-hour counter kept in D1 `limits`; throws 429 once `key` has been hit more than `max` times.
+export async function limited(db,key,max,message='سقف استفادهٔ روزانه پر شده است'){const n=Date.now(),k=await hash(key);await db.prepare('INSERT INTO limits(key,count,expires_at) VALUES(?,1,?) ON CONFLICT(key) DO UPDATE SET count=CASE WHEN expires_at<? THEN 1 ELSE count+1 END,expires_at=CASE WHEN expires_at<? THEN excluded.expires_at ELSE expires_at END').bind(k,n+86400000,n,n).run();const row=await db.prepare('SELECT count FROM limits WHERE key=?').bind(k).first();must(row.count<=max,message,429);}
