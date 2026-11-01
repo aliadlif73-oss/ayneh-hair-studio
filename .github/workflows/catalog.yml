@@ -1,5 +1,5 @@
 name: Generate catalog photos
-# Makes the 20 ready-made style photos with the project's KIE key and commits them.
+# Makes the ready-made style photos (hair, nails, lashes) with the project's KIE key and commits them.
 # Runs when the prompt script changes, or by hand from the Actions tab.
 # Only missing photos are generated, so reruns do not pay twice.
 on:
@@ -9,11 +9,11 @@ on:
   workflow_dispatch:
     inputs:
       force:
-        description: 'Regenerate every photo (costs KIE credits for all 22)'
+        description: 'Regenerate every photo (costs KIE credits for all of them)'
         type: boolean
         default: false
       only:
-        description: 'Only these numbers and/or demo, e.g. 3,7,demo (empty = all missing)'
+        description: 'Only these: hair numbers, demo, nails, n3, lashes, l2, demo-nails, demo-lashes (empty = all missing)'
         type: string
         default: ''
 permissions:

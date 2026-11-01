@@ -1,11 +1,14 @@
-// Generates one lookbook photo per ready-made style (worker/legacy.js `styles`) with the
-// project's own KIE key and writes public/catalog/NN.webp (NN = style index + 1), plus a
-// before/after demo pair (demo-before.webp, demo-after.webp) for the customer page.
+// Generates one lookbook photo per ready-made style with the project's own KIE key:
+//  - hair (worker/legacy.js `styles`) → public/catalog/NN.webp, plus demo-before/after.webp;
+//  - nails and lashes (worker/lines.js) → public/catalog/nails/NN.webp, public/catalog/lashes/NN.webp,
+//    each with its own demo-before/after.webp.
+// ONLY limits a run: hair numbers (3,7), 'demo', 'nails' / 'n3', 'lashes' / 'l2', 'demo-nails', 'demo-lashes'.
 // Run by .github/workflows/catalog.yml; existing files are skipped unless FORCE=1, so a rerun
 // only pays for what is missing. Needs KIE_API_KEY in the environment and `sharp` installed.
 import {existsSync,mkdirSync,writeFileSync} from 'node:fs';
 import {styles} from '../worker/legacy.js';
 import {STYLE_DETAILS} from '../worker/domain.js';
+import {NAIL_STYLES,LASH_STYLES,LINE_OPTIONS,linePrompt} from '../worker/lines.js';
 
 const key=process.env.KIE_API_KEY;
 if(!key){console.log('KIE_API_KEY is not set; nothing generated.');process.exit(0)}
@@ -57,6 +60,33 @@ if((!existsSync(before)||!existsSync(after)||force)&&(!only.length||only.include
   const a=await generate({prompt:'Professional hair-salon consultation preview. Photo 1 is the client. Edit ONLY her hair. Keep her exact face, skin, expression, clothing, background, framing and lighting unchanged. HAIR: give her a butterfly haircut: long hair with short face-framing layers from the chin and long layers below, big bouncy blow-out volume, reaching past the shoulders. HAIR COLOR: hand-painted honey balayage on a darker brown base, soft blended root. Real strand detail, natural hairline, light matching the photo. One photorealistic photo, same composition. No text.',image_input:[b],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
   await save(b,before,450,600);await save(a,after,450,600);console.log('demo ✓');made+=2;
  }catch(e){console.log('demo failed:',e.message);failed++}
+}
+// Nails and lashes: close-ups of Iranian women's hands and eyes.
+const hands=['light-olive','fair','warm beige','medium olive','light-brown'];
+const nailShot=(d,i)=>'Photorealistic beauty close-up photograph of the hand of an Iranian woman with '+hands[i%hands.length]+' skin, back of the hand toward the camera, fingers relaxed and slightly apart, resting on a soft pale grey-green fabric, showing these nails: '+d+'. Medium-length almond-shaped nails unless the design calls for another shape. Soft even studio light, sharp focus on the nails, natural skin texture, no rings. No text, no logo, no watermark.';
+const lashShot=(d,i)=>'Photorealistic beauty close-up portrait of '+people[i%people.length]+', framed from the forehead to the lips with the eyes in the upper third, looking straight at the camera with a soft expression, light natural makeup and groomed natural brows, showing these eyelashes: '+d+'. Both eyes sharp, soft even studio light, natural skin texture, seamless pale grey-green background. No text, no logo, no watermark.';
+const want=(tag,i)=>!only.length||only.includes(tag)||only.includes(tag[0]+String(i+1));
+for(const [line,list,shot] of [['nails',NAIL_STYLES,nailShot],['lashes',LASH_STYLES,lashShot]]){
+ const dir=out+'/'+line;mkdirSync(dir,{recursive:true});
+ for(const [i,s] of list.entries()){
+  const n=String(i+1).padStart(2,'0'),file=dir+'/'+n+'.webp';
+  if(!want(line,i))continue;
+  if(existsSync(file)&&!force){console.log(line,n,'exists, skipped');continue}
+  try{await save(await generate({prompt:shot(s[3],i),image_input:[],aspect_ratio:'4:5',resolution:'1K',output_format:'jpg'}),file,480,600);console.log(line,n,s[0],'✓');made++}
+  catch(e){console.log(line,n,s[0],'failed:',e.message);failed++}
+ }
+ // Demo pair, edited by the same prompt customers get.
+ const b1=dir+'/demo-before.webp',a1=dir+'/demo-after.webp';
+ if((!existsSync(b1)||!existsSync(a1)||force)&&(!only.length||only.includes('demo-'+line))){
+  try{
+   const before=line==='nails'
+    ?await generate({prompt:'Photorealistic casual smartphone photo of the hand of an Iranian woman with light-olive skin, back of the hand toward the camera, fingers slightly apart, resting on a wooden table at home in soft daylight. Short natural bare nails, clean, no polish, no rings. No text.',image_input:[],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'})
+    :await generate({prompt:'Photorealistic casual close-up selfie of an Iranian woman in her late twenties with olive skin, framed from the forehead to the lips, looking at the camera, soft daylight from a window, natural short lashes with no mascara and no extensions, light natural makeup. No filter, no text.',image_input:[],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
+   const prompt=line==='nails'?linePrompt('nails','catalog',NAIL_STYLES[1][3],{shape:4,length:1},''):linePrompt('lashes','catalog',LASH_STYLES[2][3],{map:1,length:1},'');
+   const after=await generate({prompt,image_input:[before],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
+   await save(before,b1,450,600);await save(after,a1,450,600);console.log(line,'demo ✓');made+=2;
+  }catch(e){console.log(line,'demo failed:',e.message);failed++}
+ }
 }
 console.log('done: '+made+' made, '+failed+' failed');
 if(failed&&!made)process.exit(1);
