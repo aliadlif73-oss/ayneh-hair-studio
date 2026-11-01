@@ -3,7 +3,8 @@
 //     texts the code and hands it back, so we can check it ourselves. We keep only its hash.
 //  2. Invitation: POST /api/send/shared/<token> {bodyId,to,args} from the shared service line,
 //     using the approved ready-made text MELIPAYAMAK_BODY_ID. args fill its variables in order:
-//     [salon name, link to the salon page].
+//     [salon name, salon slug]. The text itself ends with the fixed site address, e.g.
+//     «… ayneh-salon.site/s/{1}», so the link is the site plus /s/<slug>.
 // Secrets: MELIPAYAMAK_TOKEN is the random segment at the end of the API address shown in the
 // Melipayamak console (it is a credential: never commit it); MELIPAYAMAK_BODY_ID is the number of
 // the approved text. MELIPAYAMAK_TOKEN=dev-mock answers locally with code 12345 and sends nothing.
