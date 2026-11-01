@@ -13,7 +13,7 @@ const png=()=>{const b=new Uint8Array(150);b.set([137,80,78,71,13,10,26,10]);ret
 async function upload(env,s,g,kind='original'){const r=await call(env,'/api/s/'+s.slug+'/upload?kind='+kind,png(),g);assert.equal(r.status,200,JSON.stringify(r));return r.data.id;}
 const lead=(original,extra={})=>({data_consent:true,idem:crypto.randomUUID(),name:'سارا محمدی',phone:'۰۹۱۲۱۲۳۴۵۶۷',original_id:original,look:'باب کوتاه',color:'بالیاژ عسلی',...extra});
 // Telegram stand-in: records every call, never reaches the network.
-function mockTelegram({fail=false}={}){const calls=[];const previous=globalThis.fetch;globalThis.fetch=async(url,init)=>{const u=String(url);if(u.startsWith('https://api.telegram.org/file/'))return new Response(png());if(!u.startsWith('https://api.telegram.org/'))return previous(url,init);const method=u.split('/').pop();let body=init?.body;if(body instanceof FormData){const o={};for(const [k,v] of body.entries())o[k]=typeof v==='string'?v:'<file>';body=o}else body=JSON.parse(body||'{}');calls.push({method,body});if(fail)return Response.json({ok:false,description:'Bad Gateway'},{status:502});if(method==='getFile')return Response.json({ok:true,result:{file_path:'photos/x.jpg'}});if(method==='getMe')return Response.json({ok:true,result:{username:'ayneh_bot'}});return Response.json({ok:true,result:{message_id:1}})};return {calls,restore(){globalThis.fetch=previous}};}
+function mockTelegram({fail=false}={}){const calls=[];const previous=globalThis.fetch;globalThis.fetch=async(url,init)=>{const u=String(url);if(u.startsWith('https://api.telegram.org/file/'))return new Response(png());if(!u.startsWith('https://api.telegram.org/'))return previous(url,init);const method=u.split('/').pop();let body=init?.body;if(body instanceof FormData){const o={};for(const [k,v] of body.entries())o[k]=typeof v==='string'?v:'<file>';body=o}else body=JSON.parse(body||'{}');calls.push({method,body});if(fail)return Response.json({ok:false,description:'Bad Gateway'},{status:502});if(method==='getFile')return Response.json({ok:true,result:{file_path:'photos/x.jpg'}});if(method==='getMe')return Response.json({ok:true,result:{username:'ayneh_bot'}});if(method==='sendMediaGroup')return Response.json({ok:true,result:[{message_id:1},{message_id:2}]});return Response.json({ok:true,result:{message_id:1}})};return {calls,restore(){globalThis.fetch=previous}};}
 const tgEnv=e=>Object.assign(e,{TELEGRAM_BOT_TOKEN:'123:abc',TELEGRAM_WEBHOOK_SECRET:'hook-secret',TELEGRAM_BOT_USERNAME:'ayneh_bot'});
 const hook=(env,update,secret='hook-secret')=>app.fetch(new Request(origin+'/api/telegram/webhook',{method:'POST',headers:{'content-type':'application/json','x-telegram-bot-api-secret-token':secret},body:JSON.stringify(update)}),env);
 async function linkSalon(env,s,chat=777){const r=await call(env,'/api/s/'+s.slug+'/owner/telegram-link',{},OWNER);assert.equal(r.status,200,JSON.stringify(r));assert.match(r.data.link,/^https:\/\/t\.me\/ayneh_bot\?start=[a-f0-9]{24}$/);await hook(env,{message:{chat:{id:chat,type:'private'},text:'/start '+r.data.code}});return r.data.code;}
@@ -21,9 +21,11 @@ async function linkSalon(env,s,chat=777){const r=await call(env,'/api/s/'+s.slug
 test('pages parse; typed colour overrides the reference colour in every mode; Iranian mobiles normalise',()=>{
  new Function(appHTML.split('<script>')[1].split('</script>')[0]);
  new Function(customerHTML.match(/<script>([\s\S]*?)<\/script>\s*<\/body>/)[1]);
- assert.match(transferPrompt('style','',''),/Preserve original hair color/);assert.match(transferPrompt('color','',''),/Preserve exact haircut/);assert.match(transferPrompt('both','',''),/NEVER an identity reference/);
- for(const m of ['style','color','both'])assert.match(transferPrompt(m,'','مسی'),/Hair color must be: مسی/);
- assert.match(transferPrompt('catalog','Short bob','عسلی'),/Short bob.*Hair color: عسلی/);
+ assert.match(transferPrompt('style','',''),/Keep her original hair color/);assert.match(transferPrompt('color','',''),/Keep her exact haircut/);assert.match(transferPrompt('both','',''),/Never take the face from photo 2/);
+ for(const m of ['style','color','both'])assert.match(transferPrompt(m,'','مسی'),/HAIR COLOR: copper .*overrides any hair color in photo 2/);
+ assert.match(transferPrompt('catalog','Short bob','عسلی'),/chin-length bob[\s\S]*HAIR COLOR: honey brown/);
+ assert.match(transferPrompt('catalog','Wolf cut','رنگی که نمی‌شناسم'),/a Persian hair-color name/);
+ for(const m of ['style','color','both','catalog'])assert.match(transferPrompt(m,'Short bob',''),/IDENTITY LOCK[\s\S]*headscarf/);
  assert.equal(phone('۰۹۱۲۱۲۳۴۵۶۷'),'+989121234567');
  assert(!/appointment|services|staff|kavenegar/i.test(customerHTML.match(/<script>([\s\S]*?)<\/script>/)[1]),'customer page no longer books or texts');
 });
@@ -67,7 +69,10 @@ test('submissions need a linked salon; once linked they reach the salon chat wit
   const body=lead(original,{reference_id:reference,telegram:'@sara_m',note:'حنا دارم'});
   const r=await call(e,'/api/s/salon-a/leads',body,g);assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.data.delivered,true);
   const sent=tg.calls.find(c=>c.method==='sendMediaGroup');assert(sent,'album sent');assert.equal(sent.body.chat_id,'777');
-  const media=JSON.parse(sent.body.media);assert.equal(media.length,2);assert.match(media[0].caption,/سارا محمدی/);assert.match(media[0].caption,/09121234567/);assert.match(media[0].caption,/@sara_m/);assert.match(media[0].caption,/بالیاژ عسلی/);assert.match(media[0].caption,/حنا دارم/);
+  const media=JSON.parse(sent.body.media);assert.equal(media.length,2);assert(media.every(m=>!m.caption),'no per-photo captions (Telegram hides captions when several exist)');
+  const msg=tg.calls.find(c=>c.method==='sendMessage'&&c.body.chat_id==='777'&&/درخواست تازه/.test(c.body.text));assert(msg,'details message sent');const text=msg.body.text;
+  for(const part of [/سارا محمدی/,/09121234567/,/\+989121234567/,/@sara_m/,/باب کوتاه/,/بالیاژ عسلی/,/حنا دارم/,/قبل: عکس خود مشتری/,/عکس مدلی که مشتری انتخاب کرده/,/شبیه‌سازی تصویری برای این درخواست ساخته نشده/])assert.match(text,part);
+  assert.equal(msg.body.reply_parameters.message_id,1,'details reply to the album');assert.equal(msg.body.reply_markup.inline_keyboard[0][0].url,'https://t.me/sara_m');
   const again=await call(e,'/api/s/salon-a/leads',body,g);assert.equal(again.data.id,r.data.id,'same idem is not sent twice');
   assert.equal(tg.calls.filter(c=>c.method==='sendMediaGroup').length,1);
   assert.equal((await call(e,'/api/s/salon-a/leads',{...lead(original),data_consent:false},g)).status,400);
@@ -121,7 +126,7 @@ test('Telegram webhook: secret required, link codes are one-time, photos become 
 test('generation uses two distinct images for references, passes the typed colour and deduplicates paid tasks (mock provider)',async()=>{const e=fixture(),s=await salon(e),g=await guest(e,s);e.KIE_API_KEY='mock';await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true,reference_verified:true},OWNER);
  const original=await upload(e,s,g),reference=await upload(e,s,g,'reference');let previous=globalThis.fetch,taskCalls=0,captured=[];
  globalThis.fetch=async(url,opts)=>{if(String(url).includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(String(url).includes('createTask')){taskCalls++;captured.push(JSON.parse(opts.body));return Response.json({code:200,data:{taskId:'task'+taskCalls}})}if(String(url).includes('recordInfo'))return Response.json({code:200,data:{state:'success',resultJson:JSON.stringify({resultUrls:['https://provider.example/output.png']})}});return new Response(png())};
- try{for(const mode of ['style','color','both']){const body={image_consent:true,idem:crypto.randomUUID(),original_id:original,reference_id:reference,transfer:mode,color:'شرابی'};const a=await call(e,'/api/s/salon-a/generate',body,g);assert.equal(a.status,200,JSON.stringify(a));const again=await call(e,'/api/s/salon-a/generate',body,g);assert.equal(again.data.id,a.data.id);const input=captured.at(-1).input;assert.equal(input.image_input.length,2);assert.notEqual(input.image_input[0],input.image_input[1]);assert.match(input.prompt,/Hair color must be: شرابی/);const result=await call(e,'/api/s/salon-a/generation/'+a.data.id,undefined,g);assert.equal(result.data.state,'success');assert.equal((await call(e,'/api/s/salon-a/media/'+result.data.result_id,undefined,g)).status,200);
+ try{for(const mode of ['style','color','both']){const body={image_consent:true,idem:crypto.randomUUID(),original_id:original,reference_id:reference,transfer:mode,color:'شرابی'};const a=await call(e,'/api/s/salon-a/generate',body,g);assert.equal(a.status,200,JSON.stringify(a));const again=await call(e,'/api/s/salon-a/generate',body,g);assert.equal(again.data.id,a.data.id);const input=captured.at(-1).input;assert.equal(input.image_input.length,2);assert.notEqual(input.image_input[0],input.image_input[1]);assert.match(input.prompt,/HAIR COLOR: burgundy wine red/);assert.equal(captured.at(-1).model,'nano-banana-pro');assert.equal(input.resolution,'2K');assert.equal(input.output_format,'jpg');const result=await call(e,'/api/s/salon-a/generation/'+a.data.id,undefined,g);assert.equal(result.data.state,'success');assert.equal((await call(e,'/api/s/salon-a/media/'+result.data.result_id,undefined,g)).status,200);
    if(mode==='both'){const v=await call(e,'/api/s/salon-a/views',{idem:crypto.randomUUID(),parent:a.data.id},g);assert.equal(v.status,200,JSON.stringify(v));assert.match(captured.at(-1).input.prompt,/360-degree/);}}
   assert.equal(taskCalls,4);
   const cat=await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:0,color:'عسلی'},g);assert.equal(cat.status,200);assert.match(captured.at(-1).input.prompt,new RegExp(styles[0][1]));
@@ -215,3 +220,15 @@ test('catalog generator covers every ready-made style and the catalog folder is 
  assert.match(readFileSync(new URL('../wrangler.toml',import.meta.url),'utf8'),/\[assets\]\s*directory = "\.\/public"/);
  assert.equal(styles.length,20);
 });
+
+test('salon can pick the faster model; a rejected model falls back once, network errors never retry a paid task',async()=>{const e=fixture(),s=await salon(e),g=await guest(e,s);e.KIE_API_KEY='mock';
+ const original=await upload(e,s,g);let previous=globalThis.fetch,models=[],mode='ok';
+ globalThis.fetch=async(url,opts)=>{const u=String(url);if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/x.jpg'}});if(u.includes('createTask')){const m=JSON.parse(opts.body).model;models.push(m);if(mode==='network')throw new Error('reset');if(mode==='reject'&&m!=='nano-banana-2')return Response.json({code:422,msg:'model not available'});return Response.json({code:200,data:{taskId:'t'+models.length}})}return new Response(png())};
+ try{
+  await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true,image_model:'fast'},OWNER);
+  assert.equal((await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:1},g)).status,200);assert.equal(models.at(-1),'nano-banana-2-1');
+  await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true,image_model:'pro'},OWNER);mode='reject';models=[];
+  assert.equal((await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:1},g)).status,200);assert.deepEqual(models,['nano-banana-pro','nano-banana-2']);
+  mode='network';models=[];
+  assert.equal((await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:1},g)).status,502);assert.deepEqual(models,['nano-banana-pro'],'no second paid attempt after an ambiguous failure');
+ }finally{globalThis.fetch=previous}});

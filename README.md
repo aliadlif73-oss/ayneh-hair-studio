@@ -49,7 +49,7 @@ Runtime secrets only (Cloudflare via GitHub secrets, or `.dev.vars` locally), ne
 
 `OWNER_PASSWORD` or `OWNER_PASSWORD_HASH`, `SESSION_SECRET`, `OWNER_EMAIL`, `OWNER_ID`, `KIE_API_KEY`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_BOT_USERNAME`, `APP_ORIGIN`, `JOB_TOKEN`. Platform identity headers are ignored unless `TRUST_PLATFORM_IDENTITY=true`.
 
-Simulation quality (catalog and reference transfer) and the 360° view depend on the image provider and have not been verified with real customer photos; the viewer plays 8 estimated angles, it is not a 3D scan.
+Simulations use Nano Banana Pro at 2K by default (per-salon switch to Nano Banana 2.1 in /admin; a rejected model falls back to nano-banana-2). Prompts lock identity and headscarves and describe each catalog style and Persian colour name in English. Simulation quality (catalog and reference transfer) and the 360° view depend on the image provider and have not been verified with real customer photos; the viewer plays 8 estimated angles, it is not a 3D scan.
 
 ## Provider documentation
 

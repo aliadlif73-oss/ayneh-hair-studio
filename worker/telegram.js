@@ -109,22 +109,37 @@ async function onCallback(env,db,q){
 }
 
 // Deliver one customer submission. Returns true when Telegram accepted it.
+// Deliver one customer submission: a clean photo album in a fixed order (before, after,
+// reference), then one text message that replies to it with every detail. Albums get no
+// per-photo captions on purpose: when several photos carry captions, Telegram hides them all.
+export function leadText(lead,salon,photos){
+ const local=lead.phone.replace(/^\+98/,'0'),when=new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Tehran',dateStyle:'medium',timeStyle:'short'}).format(lead.created_at||Date.now());
+ const names={original:'قبل: عکس خود مشتری',preview:'بعد: شبیه‌سازی آینه',reference:'عکس مدلی که مشتری انتخاب کرده'};
+ const lines=['💇‍♀️ <b>درخواست تازه برای '+esc(salon.name)+'</b>','',
+  '👤 <b>نام:</b> '+esc(lead.name),
+  '📞 <b>موبایل:</b> '+esc(local)+' ('+esc(lead.phone)+')',
+  '✈️ <b>تلگرام:</b> '+(lead.telegram?'@'+esc(lead.telegram):'ثبت نکرده'),'',
+  '✂️ <b>مدل انتخابی:</b> '+(lead.look?esc(lead.look):'مشخص نکرده'),
+  '🎨 <b>رنگ:</b> '+(lead.color?esc(lead.color):'همان رنگ فعلی'),
+  '📝 <b>توضیح مشتری:</b> '+(lead.note?esc(lead.note):'ندارد'),''];
+ if(photos.length)lines.push('🖼 <b>عکس‌های بالا به ترتیب:</b>',...photos.map((p,i)=>'  '+(i+1).toLocaleString('fa-IR')+'. '+names[p]));
+ if(!photos.includes('preview'))lines.push('  (شبیه‌سازی تصویری برای این درخواست ساخته نشده)');
+ lines.push('','🕒 '+esc(when),'','لطفاً خودتان با مشتری تماس بگیرید'+(lead.telegram?' یا در تلگرام پیام بدهید':'')+'.');
+ return lines.join('\n');
+}
 export async function deliverLead(env,lead){
  const db=env.DB,salon=await one(db,'SELECT * FROM salons WHERE id=?',lead.salon_id);
  if(!salon?.telegram_chat_id||!botReady(env))return false;
  const lock=await run(db,"UPDATE leads SET status='sending',attempts=attempts+1 WHERE id=? AND status IN('queued','retry')",lead.id);
  if(!lock.meta.changes)return false;
  try{
-  const photos=[[lead.original_id,'عکس مشتری'],[lead.preview_id,'شبیه‌سازی آینه'],[lead.reference_id,'عکس مدل دلخواه']].filter(x=>x[0]);
-  const form=new FormData();form.append('chat_id',salon.telegram_chat_id);
-  const media=[];
-  for(const [id,label] of photos){const m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,salon.id);if(!m)continue;const o=await bucketFor(env).get(m.object_key);if(!o)continue;const name='p'+media.length;form.append(name,new Blob([await o.arrayBuffer()],{type:m.mime}),name+'.jpg');media.push({type:'photo',media:'attach://'+name,caption:label});}
-  const caption='💇‍♀️ <b>درخواست تازه از صفحهٔ سالن</b>\n\n'+
-   '<b>'+esc(lead.name)+'</b>\n📞 '+esc(lead.phone.replace(/^\+98/,'0'))+(lead.telegram?'\n✈️ @'+esc(lead.telegram):'')+
-   (lead.look?'\n\n✂️ مدل: '+esc(lead.look):'')+(lead.color?'\n🎨 رنگ: '+esc(lead.color):'')+(lead.note?'\n📝 '+esc(lead.note):'')+
-   '\n\nبرای جواب، تماس بگیرید'+(lead.telegram?' یا در تلگرام پیام بدهید':'')+'.';
-  if(media.length){media[0].caption=caption;media[0].parse_mode='HTML';form.append('media',JSON.stringify(media));await tg(env,media.length>1?'sendMediaGroup':'sendPhoto',media.length>1?form:photoForm(form,media[0]));}
-  else await tg(env,'sendMessage',{chat_id:salon.telegram_chat_id,parse_mode:'HTML',text:caption});
+  const chat=salon.telegram_chat_id,form=new FormData(),media=[],kinds=[];form.append('chat_id',chat);
+  for(const [id,kind] of [[lead.original_id,'original'],[lead.preview_id,'preview'],[lead.reference_id,'reference']]){if(!id)continue;const m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,salon.id);if(!m)continue;const o=await bucketFor(env).get(m.object_key);if(!o)continue;const name='p'+media.length;form.append(name,new Blob([await o.arrayBuffer()],{type:m.mime}),name+'.jpg');media.push({type:'photo',media:'attach://'+name});kinds.push(kind);}
+  let replyTo=null;
+  if(media.length>1){form.append('media',JSON.stringify(media));const sent=await tg(env,'sendMediaGroup',form);replyTo=sent?.[0]?.message_id||null;}
+  else if(media.length===1){const f=new FormData();f.append('chat_id',chat);f.append('photo',form.get('p0'));const sent=await tg(env,'sendPhoto',f);replyTo=sent?.message_id||null;}
+  const buttons=lead.telegram?[[{text:'💬 پیام به '+lead.name+' در تلگرام',url:'https://t.me/'+lead.telegram}]]:[];
+  await tg(env,'sendMessage',{chat_id:chat,parse_mode:'HTML',text:leadText(lead,salon,kinds),...(replyTo?{reply_parameters:{message_id:replyTo,allow_sending_without_reply:true}}:{}),...(buttons.length?{reply_markup:{inline_keyboard:buttons}}:{})});
   await run(db,"UPDATE leads SET status='sent',last_error=NULL WHERE id=?",lead.id);
   return true;
  }catch(e){
@@ -132,7 +147,6 @@ export async function deliverLead(env,lead){
   return false;
  }
 }
-function photoForm(form,item){const f=new FormData();f.append('chat_id',form.get('chat_id'));f.append('photo',form.get('p0'));f.append('caption',item.caption);f.append('parse_mode','HTML');return f}
 
 export async function deliverPending(env){
  if(!botReady(env)||!env.DB)return 0;let n=0;
