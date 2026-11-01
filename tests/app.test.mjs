@@ -309,6 +309,8 @@ test('a salon texts its page link to a customer by typing the mobile number in t
   e.DB.sql.exec("DELETE FROM limits");for(let i=0;i<30;i++)await say('09'+String(100000000+i).slice(-9));
   const before=sms.calls.length;await say('09391112233');assert.equal(sms.calls.length,before,'31st text of the day is refused');assert.match(last(),/سقف/);
  }finally{sms.restore();tg.restore()}
+ // without APP_ORIGIN the link is built from the address Telegram called
+ const e3=smsEnv(tgEnv(fixture()));delete e3.APP_ORIGIN;const s3=await salon(e3,'salon-c');const tg3=mockTelegram(),sms3=mockSms();try{await linkSalon(e3,s3,444);await hook(e3,{message:{chat:{id:444,type:'private'},text:'09121234567'}});assert.equal(sms3.calls.at(-1).body.args[1],origin+'/s/salon-c')}finally{sms3.restore();tg3.restore()}
  // not configured: the bot says so instead of silently ignoring the number
  const e2=tgEnv(fixture()),s2=await salon(e2,'salon-b');const tg2=mockTelegram();try{await linkSalon(e2,s2,555);await hook(e2,{message:{chat:{id:555,type:'private'},text:'09121234567'}});assert.match(tg2.calls.filter(c=>c.method==='sendMessage').at(-1).body.text,/فعال نشده/)}finally{tg2.restore()}
 });

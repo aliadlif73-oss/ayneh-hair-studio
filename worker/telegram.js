@@ -72,7 +72,7 @@ export async function webhook(req,env){
   if(textIn==='/help'){await tg(env,'sendMessage',{chat_id:chat,parse_mode:'HTML',text:help(salon.name,inviteReady(env))});return J({ok:true});}
   if(textIn==='/list'){await sendList(env,db,salon,chat);return J({ok:true});}
   const numbers=mobilesIn(textIn);
-  if(numbers.length){await sendInvites(env,db,salon,chat,numbers);return J({ok:true});}
+  if(numbers.length){await sendInvites(env,db,salon,chat,numbers,env.APP_ORIGIN||new URL(req.url).origin);return J({ok:true});}
   const photo=m.photo?.length?m.photo[m.photo.length-1]:(m.document&&/^image\/(jpeg|png|webp)$/.test(m.document.mime_type||'')?m.document:null);
   if(photo){await addPortfolio(env,db,salon,chat,photo,m.caption||'');return J({ok:true});}
   await tg(env,'sendMessage',{chat_id:chat,text:'برای اضافه‌کردن نمونه‌کار، عکس بفرستید'+(inviteReady(env)?' و برای فرستادن لینک سالن به مشتری، شمارهٔ موبایلش را بنویسید':'')+'. /help راهنما را نشان می‌دهد.'});
@@ -96,11 +96,11 @@ export function mobilesIn(textIn){
 // Texts the salon's page link to each number. Limits keep a mistyped or abusive chat from burning
 // SMS credit: 30 texts a day per salon, 3 a day per number across all salons, and the same salon
 // cannot text the same number again within an hour.
-async function sendInvites(env,db,salon,chat,numbers){
+async function sendInvites(env,db,salon,chat,numbers,site){
  const say=t=>tg(env,'sendMessage',{chat_id:chat,text:t});
  if(!inviteReady(env)){await say('ارسال پیامک برای مشتری هنوز فعال نشده است. از مدیر آینه بخواهید فعالش کند.');return}
- const origin=(env.APP_ORIGIN||'').replace(/\/+$/,'');
- if(!origin){await say('نشانی سایت آینه تنظیم نشده و لینک سالن ساخته نمی‌شود. به مدیر آینه خبر بدهید.');return}
+ // The site address comes from APP_ORIGIN when set, otherwise from the address Telegram called.
+ const origin=String(site||'').replace(/\/+$/,'');
  const link=origin+'/s/'+salon.slug,lines=[];
  for(const n of numbers){
   const local=n.replace(/^\+98/,'0');
