@@ -90,6 +90,28 @@ const customerCSS=String.raw`
 .selfie img{width:40px;height:52px;object-fit:cover;border-radius:20px 20px 6px 6px;flex:none}
 .selfie div{display:grid;gap:2px}.selfie b{display:flex;align-items:center;gap:5px;font-size:13.5px}.selfie b svg{width:16px;height:16px;color:var(--ok)}.selfie span{font-size:12px;color:var(--muted)}
 .selfie .btn{margin-inline-start:auto}
+#invite{margin:22px 0 0}
+.invite{position:relative;overflow:hidden;display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;width:100%;padding:20px;border:0;border-radius:var(--r-lg);background:radial-gradient(120% 140% at 100% 0,#16716f 0,#0c4f50 55%,#083a3b 100%);color:#fff;text-align:start;font:inherit;cursor:pointer;box-shadow:0 22px 40px -24px rgba(7,60,60,.9);transition:transform .2s var(--ease)}
+.invite:hover{transform:translateY(-2px)}.invite:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
+.invite::after{content:"";position:absolute;inset:auto -40px -60px auto;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(214,166,92,.35),transparent 70%);pointer-events:none}
+.invite__pics{position:relative;width:112px;height:92px;flex:none}
+.invite__pics img,.invite__pics span{position:absolute;bottom:0;width:52px;height:68px;object-fit:cover;border-radius:26px 26px 8px 8px;border:3px solid rgba(255,255,255,.9);background:#cfdcd8;box-shadow:0 8px 16px -8px rgba(0,0,0,.5)}
+.invite__pics :nth-child(1){right:6px;transform:rotate(8deg)}.invite__pics :nth-child(2){right:30px;bottom:14px;z-index:1;width:56px;height:74px}.invite__pics :nth-child(3){right:56px;transform:rotate(-8deg)}
+.invite__txt{display:grid;gap:6px;position:relative;z-index:1}
+.invite__txt b{font-family:var(--display);font-weight:800;font-size:19px;line-height:1.5}
+.invite__txt span{font-size:13.5px;line-height:1.9;color:rgba(255,255,255,.85)}
+.invite__cta{justify-self:start;display:inline-flex;align-items:center;gap:8px;margin-top:6px;padding:10px 16px;border-radius:999px;background:var(--honey);color:#2a1a08;font-weight:800;font-size:14px}
+.invite__cta svg{width:18px;height:18px}
+@media (max-width:420px){.invite{grid-template-columns:1fr;justify-items:start}.invite__pics{height:84px}}
+.share__prev{display:flex;gap:12px;align-items:center;padding:12px;border-radius:16px;background:var(--glass);margin:4px 0 16px}
+.share__prev img,.share__prev .share__logo{width:46px;height:46px;border-radius:12px;object-fit:cover;flex:none;background:var(--accent);display:grid;place-items:center;color:#fff;font-weight:800}
+.share__prev div{display:grid;gap:2px;min-width:0}.share__prev b{font-size:14.5px}.share__prev span{font-size:12px;color:var(--muted);direction:ltr;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.share__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.share__opt{display:grid;justify-items:center;gap:8px;padding:14px 6px;border:1px solid var(--line,#dfe6e3);border-radius:16px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;transition:background .15s var(--ease),transform .15s var(--ease)}
+.share__opt:hover{background:var(--surface-2,#f1f5f4);transform:translateY(-1px)}
+.share__ic{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff}.share__ic svg{width:24px;height:24px}
+.share__note{margin-top:14px;font-size:12.5px;color:var(--muted);line-height:1.9;text-align:center}
+@media (prefers-reduced-motion:reduce){.invite,.share__opt{transition:none}.invite:hover,.share__opt:hover{transform:none}}
 @media (prefers-reduced-motion:reduce){.upl__scan,.upl__bar i,.photo__badge{animation:none}.photo__auto i{animation:none;width:100%}}
 
 .collapse{border-top:1px solid var(--line-2);padding-top:12px;font-size:13px;color:var(--muted)}
@@ -393,7 +415,8 @@ function track(kind,meta,once){if(once){if(tracked[kind+meta])return;tracked[kin
  renderHead();renderSteps();renderFlow();renderSide();renderDock();
  var pending=sessionStorage.getItem('ayneh-job-'+SLUG);
  if(pending){state.gen=pending;state.step=3;state.busy=true;renderFlow();renderDock();poll(pending,true)}
- track('view','',true);
+ track('view',/[?&]r=share\b/.test(location.search)?'share':'',true);
+ renderInvite();
  maybeTour();
  loadMine();
 })();
@@ -1303,6 +1326,59 @@ function normalizePhone(v){
  return s;
 }
 
+/* ---------- invite friends: banner at the bottom + share sheet ---------- */
+// Shares the salon page itself (with ?r=share, so the dashboard can count visits that came from it).
+var SHARE_IC={
+ share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 10.8 7.4-4.4M8.3 13.2l7.4 4.4"/></svg>',
+ plane:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.4 3.6 2.9 10.8c-.9.4-.9 1.6.1 1.9l4.6 1.5 1.8 5.6c.3.8 1.3 1 1.9.4l2.6-2.5 4.7 3.5c.7.5 1.6.1 1.8-.7l3-15.2c.2-1-.8-1.8-1.9-1.4zM9.6 14.2l8.2-7.3-6.5 8.4-.3 3.1z"/></svg>',
+ chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1.3-3.9A8 8 0 1 1 8 19z"/><path d="M9.2 9.3c.3 2.4 2.2 4.3 4.6 4.8l1-1.1 1.7.8-.4 1.6c-3.6.3-7.2-3.3-6.9-6.9l1.6-.4.8 1.7z" fill="currentColor" stroke="none"/></svg>',
+ sms:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/><path d="M8 10.5h.01M12 10.5h.01M16 10.5h.01"/></svg>',
+ cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.3 6.7h.01"/></svg>',
+ link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>',
+ more:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>'
+};
+function shareUrl(){return location.origin+'/s/'+SLUG+'?r=share'}
+function shareText(){return 'این رو ببین! توی صفحهٔ «'+state.pub.salon.name+'» می‌تونی مدل و رنگ موی جدید رو روی عکس خودت امتحان کنی؛ رایگان و بدون نصب 👇'}
+function renderInvite(){
+ var box=$('#invite');if(!box||!state.pub)return;
+ var pics=el('span',{class:'invite__pics','aria-hidden':'true'});
+ ['03','09','15'].forEach(function(n){var i=el('img',{src:'/catalog/'+n+'.webp',alt:'',loading:'lazy'});i.addEventListener('error',function(){i.replaceWith(el('span'))});pics.append(i)});
+ var b=el('button',{class:'invite',type:'button',onclick:function(){track('share_open');openShare()}},[
+  pics,
+  el('span',{class:'invite__txt'},[
+   h('b','دوستات هم مدل موی بعدی‌شان را ببینند'),
+   h('span','لینک صفحهٔ «'+state.pub.salon.name+'» را برایشان بفرست؛ رایگان و بدون نصب، روی عکس خودشان امتحان می‌کنند.'),
+   el('span',{class:'invite__cta',html:SHARE_IC.share+'<span>فرستادن برای دوستان</span>'})
+  ])
+ ]);
+ box.replaceChildren(b);box.hidden=false;
+}
+function copyText(t){
+ if(navigator.clipboard&&window.isSecureContext)return navigator.clipboard.writeText(t);
+ return new Promise(function(ok,no){var ta=el('textarea',{style:'position:fixed;opacity:0'});ta.value=t;document.body.append(ta);ta.select();try{document.execCommand('copy')?ok():no()}catch(e){no(e)}ta.remove()});
+}
+function openShare(){
+ var url=shareUrl(),text=shareText(),both=text+'\n'+url,s=state.pub.salon,logo=state.pub.salon.profile&&state.pub.salon.profile.logo;
+ var panel=el('div',{class:'sheet__panel'});
+ panel.append(el('div',{class:'sheet__head'},[h('h2','برای کی بفرستیم؟'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:closeSheet})]));
+ panel.append(el('div',{class:'share__prev'},[logo?el('img',{src:media(logo),alt:''}):el('span',{class:'share__logo',text:String(s.name||'آ').trim().charAt(0)}),el('div',{},[h('b',s.name),h('span',url.replace(/^https?:\/\//,''))])]));
+ function done(kind,msg){track('share',kind);if(msg)toast(msg)}
+ function opt(kind,label,ic,bg,href,onclick){
+  var a=href?el('a',{class:'share__opt',href:href,target:'_blank',rel:'noopener',onclick:function(){done(kind)}}):el('button',{class:'share__opt',type:'button',onclick:onclick});
+  a.append(el('span',{class:'share__ic',style:'background:'+bg,html:ic}),el('span',{text:label}));return a;
+ }
+ var grid=el('div',{class:'share__grid'},[
+  opt('telegram','تلگرام',SHARE_IC.plane,'#2a9fd8','https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(text)),
+  opt('whatsapp','واتساپ',SHARE_IC.chat,'#25a85a','https://wa.me/?text='+encodeURIComponent(both)),
+  opt('sms','پیامک',SHARE_IC.sms,'#6a7a75','sms:?&body='+encodeURIComponent(both)),
+  opt('instagram','اینستاگرام',SHARE_IC.cam,'linear-gradient(45deg,#f2a93b,#d6286f 55%,#7b3bc4)',null,function(){copyText(url).then(function(){done('instagram','لینک کپی شد؛ در دایرکت یا استوری اینستاگرام بگذار')},function(){toast(url)})}),
+  opt('copy','کپی لینک',SHARE_IC.link,'var(--accent)',null,function(){copyText(both).then(function(){done('copy','متن و لینک کپی شد')},function(){toast(url)})}),
+  navigator.share?opt('native','بله، ایتا و…',SHARE_IC.more,'#2f3b38',null,function(){navigator.share({title:s.name,text:text,url:url}).then(function(){done('native')},function(){})}):null
+ ]);
+ panel.append(grid,h('p','دوستت لینک را باز می‌کند و مدل و رنگ مو را روی عکس خودش امتحان می‌کند. عکس‌ها خصوصی‌اند و برای کسی نمایش داده نمی‌شوند.','share__note'));
+ openSheet(panel);
+}
+
 /* ---------- sheet ---------- */
 function openSheet(node){
  var d=$('#sheet');
@@ -1340,6 +1416,7 @@ export const customerHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><h
   <section id="flow" aria-live="polite"><div class="panel flow"><div class="skel" style="height:26px;width:46%"></div><div class="skel" style="width:min(100%,280px);aspect-ratio:3/4;margin:20px auto 0;border-radius:999px 999px 18px 18px"></div></div></section></div>
   <aside class="side" id="side" aria-label="دربارهٔ سالن"></aside>
  </div>
+ <section id="invite" aria-label="معرفی به دوستان" hidden></section>
  <footer class="foot" id="foot" style="padding-bottom:130px">شبیه‌سازی پیشنهادی است و اجرای دقیق را تضمین نمی‌کند. عکس‌ها فقط برای همین سالن استفاده می‌شوند و حداکثر ۳۰ روز نگه داشته می‌شوند.</footer>
 </main>
 <div class="dock" id="dock" hidden></div>

@@ -7,6 +7,7 @@ const one=(db,sql,...a)=>db.prepare(sql).bind(...a).first();
 const dayOf=ms=>new Date(ms+TEHRAN_SHIFT*1000).toISOString().slice(0,10);
 
 export async function stats(db,{days=30,salonId=null,styles=[],now=Date.now()}={}){
+ now+=1; // the window ends after this millisecond, so an event logged just now is counted
  const from=now-days*DAY,prevFrom=from-days*DAY;
  const w=(alias='')=>(alias?alias+'.':'')+'created_at>=? AND '+(alias?alias+'.':'')+'created_at<?'+(salonId?' AND '+(alias?alias+'.':'')+'salon_id=?':'');
  const args=(a,b)=>salonId?[a,b,salonId]:[a,b];
@@ -44,6 +45,7 @@ export async function stats(db,{days=30,salonId=null,styles=[],now=Date.now()}={
  const response={total:leads.length,handled:durations.length,called:st('called'),booked:st('booked'),declined:st('declined'),waiting:st('new'),overdue:leads.filter(l=>l.salon_status==='new'&&l.created_at<now-DAY).length,medianMinutes:durations.length?durations[Math.floor(durations.length/2)]:null,windowDays:Math.round((now-respFrom)/DAY)};
 
  const extra={tourStart:await count('tour_start',from,now),tourDone:await count('tour_done',from,now),tourSkip:await count('tour_skip',from,now),view360:await count('view360',from,now),about:await count('about',from,now),follow:await count('follow',from,now),demo:await count('demo',from,now)};
+ const share={opened:await count('share_open',from,now),sent:await count('share',from,now),visitors:Number((await one(db,"SELECT COUNT(DISTINCT visitor) n FROM events_log WHERE kind='view' AND meta='share' AND "+w(),...args(from,now)))?.n||0),byApp:(await all(db,"SELECT meta label,COUNT(*) n FROM events_log WHERE kind='share' AND "+w()+" GROUP BY meta ORDER BY n DESC",...args(from,now))).map(r=>({label:r.label,count:Number(r.n)}))};
 
  let salons=[];
  if(!salonId){
@@ -56,5 +58,5 @@ export async function stats(db,{days=30,salonId=null,styles=[],now=Date.now()}={
   }
   salons.sort((a,b)=>b.visitors-a.visitors||b.sent-a.sent);
  }
- return {days,kpi:cur,prev,funnel:funnel.map(([key,label,count])=>({key,label,count})),daily,looks,colors,rating,generation,response,extra,salons};
+ return {days,kpi:cur,prev,funnel:funnel.map(([key,label,count])=>({key,label,count})),daily,looks,colors,rating,generation,response,extra,share,salons};
 }

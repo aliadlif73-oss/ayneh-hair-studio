@@ -18,7 +18,7 @@ const botInfo=env=>({token:botReady(env),secret:!!env.TELEGRAM_WEBHOOK_SECRET,us
 // The salon's own work is tryable on customers by default; an owner may switch it off.
 const refOn=cfg=>cfg.reference_verified!==false;
 // Anonymous usage events for the dashboard. The visitor id is random and made by the browser.
-export const TRACK_KINDS=['view','tour_start','tour_done','tour_skip','about','photo','look','color','generate','result','gen_fail','view360','send_open','sent','follow','rating','demo'];
+export const TRACK_KINDS=['view','tour_start','tour_done','tour_skip','about','photo','look','color','generate','result','gen_fail','view360','send_open','sent','follow','rating','demo','share_open','share'];
 export async function logEvent(db,salonId,kind,visitor='',meta=''){await run(db,'INSERT INTO events_log(id,salon_id,visitor,kind,meta,created_at) VALUES(?,?,?,?,?,?)',uid(),salonId,/^[a-f0-9]{16,32}$/.test(visitor)?visitor:'',kind,String(meta||'').slice(0,80),Date.now())}
 function publicSalon(s){return {id:s.id,slug:s.slug,name:s.name,profile:parse(s.profile)};}
 
