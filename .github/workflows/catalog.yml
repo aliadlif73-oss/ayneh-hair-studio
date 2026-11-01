@@ -9,11 +9,11 @@ on:
   workflow_dispatch:
     inputs:
       force:
-        description: 'Regenerate every photo (costs KIE credits for all 20)'
+        description: 'Regenerate every photo (costs KIE credits for all 22)'
         type: boolean
         default: false
       only:
-        description: 'Only these numbers, e.g. 3,7,12 (empty = all missing)'
+        description: 'Only these numbers and/or demo, e.g. 3,7,demo (empty = all missing)'
         type: string
         default: ''
 permissions:

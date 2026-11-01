@@ -16,7 +16,7 @@ const lead=(original,extra={})=>({data_consent:true,idem:crypto.randomUUID(),nam
 function mockTelegram({fail=false}={}){const calls=[];const previous=globalThis.fetch;globalThis.fetch=async(url,init)=>{const u=String(url);if(u.startsWith('https://api.telegram.org/file/'))return new Response(png());if(!u.startsWith('https://api.telegram.org/'))return previous(url,init);const method=u.split('/').pop();let body=init?.body;if(body instanceof FormData){const o={};for(const [k,v] of body.entries())o[k]=typeof v==='string'?v:'<file>';body=o}else body=JSON.parse(body||'{}');calls.push({method,body});if(fail)return Response.json({ok:false,description:'Bad Gateway'},{status:502});if(method==='getFile')return Response.json({ok:true,result:{file_path:'photos/x.jpg'}});if(method==='getMe')return Response.json({ok:true,result:{username:'ayneh_bot'}});if(method==='sendMediaGroup')return Response.json({ok:true,result:[{message_id:1},{message_id:2}]});return Response.json({ok:true,result:{message_id:1}})};return {calls,restore(){globalThis.fetch=previous}};}
 const tgEnv=e=>Object.assign(e,{TELEGRAM_BOT_TOKEN:'123:abc',TELEGRAM_WEBHOOK_SECRET:'hook-secret',TELEGRAM_BOT_USERNAME:'ayneh_bot'});
 const hook=(env,update,secret='hook-secret')=>app.fetch(new Request(origin+'/api/telegram/webhook',{method:'POST',headers:{'content-type':'application/json','x-telegram-bot-api-secret-token':secret},body:JSON.stringify(update)}),env);
-async function linkSalon(env,s,chat=777){const r=await call(env,'/api/s/'+s.slug+'/owner/telegram-link',{},OWNER);assert.equal(r.status,200,JSON.stringify(r));assert.match(r.data.link,/^https:\/\/t\.me\/ayneh_bot\?start=[a-f0-9]{24}$/);await hook(env,{message:{chat:{id:chat,type:'private'},text:'/start '+r.data.code}});return r.data.code;}
+async function linkSalon(env,s,chat=777,wizard=false){const r=await call(env,'/api/s/'+s.slug+'/owner/telegram-link',{},OWNER);assert.equal(r.status,200,JSON.stringify(r));assert.match(r.data.link,/^https:\/\/t\.me\/ayneh_bot\?start=[a-f0-9]{24}$/);await hook(env,{message:{chat:{id:chat,type:'private'},text:'/start '+r.data.code}});if(wizard===false)await hook(env,{message:{chat:{id:chat,type:'private'},text:'/stop'}});return r.data.code;}
 
 test('pages parse; typed colour overrides the reference colour in every mode; Iranian mobiles normalise',()=>{
  new Function(appHTML.split('<script>')[1].split('</script>')[0]);
@@ -72,7 +72,7 @@ test('submissions need a linked salon; once linked they reach the salon chat wit
   const media=JSON.parse(sent.body.media);assert.equal(media.length,2);assert(media.every(m=>!m.caption),'no per-photo captions (Telegram hides captions when several exist)');
   const msg=tg.calls.find(c=>c.method==='sendMessage'&&c.body.chat_id==='777'&&/درخواست تازه/.test(c.body.text));assert(msg,'details message sent');const text=msg.body.text;
   for(const part of [/سارا محمدی/,/09121234567/,/\+989121234567/,/@sara_m/,/باب کوتاه/,/بالیاژ عسلی/,/حنا دارم/,/قبل: عکس خود مشتری/,/عکس مدلی که مشتری انتخاب کرده/,/شبیه‌سازی تصویری برای این درخواست ساخته نشده/])assert.match(text,part);
-  assert.equal(msg.body.reply_parameters.message_id,1,'details reply to the album');assert.equal(msg.body.reply_markup.inline_keyboard[0][0].url,'https://t.me/sara_m');
+  assert.equal(msg.body.reply_parameters.message_id,1,'details reply to the album');const kb=msg.body.reply_markup.inline_keyboard.flat();assert.equal(kb.find(b=>b.url).url,'https://t.me/sara_m');assert.deepEqual(kb.filter(b=>b.callback_data).map(b=>b.callback_data.split(':')[1]),['called','booked','declined']);assert.match(r.data.follow.telegram,/^https:\/\/t\.me\/ayneh_bot\?start=f_[a-f0-9]{24}$/);
   const again=await call(e,'/api/s/salon-a/leads',body,g);assert.equal(again.data.id,r.data.id,'same idem is not sent twice');
   assert.equal(tg.calls.filter(c=>c.method==='sendMediaGroup').length,1);
   assert.equal((await call(e,'/api/s/salon-a/leads',{...lead(original),data_consent:false},g)).status,400);
@@ -332,4 +332,109 @@ test('with an approved code text the code is generated here and sent from the sh
   assert.equal((await call(e,'/api/s/salon-a/otp/verify',{code:'000000'},g)).status,400);
   assert.equal((await call(e,'/api/s/salon-a/otp/verify',{code:c.body.args[0]},g)).status,200,'the code we generated verifies');
  }finally{sms.restore()}
+});
+
+// ---------- follow-up, wizard, Bale, tracking, stats, link previews ----------
+const baleHook=(env,update,secret='hook-secret')=>app.fetch(new Request(origin+'/api/bale/webhook/'+secret,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(update)}),env);
+async function sendLead(e,s,g,extra={}){const original=await upload(e,s,g);const r=await call(e,'/api/s/'+s.slug+'/leads',lead(original,{v:'a'.repeat(32),...extra}),g);assert.equal(r.status,200,JSON.stringify(r));return r.data;}
+
+test('salon taps a status button: the lead updates, the keyboard marks it, a following customer is told',async()=>{const e=tgEnv(fixture()),s=await salon(e),g=await guest(e,s);const tg=mockTelegram();try{
+ await linkSalon(e,s,777);const d=await sendLead(e,s,g);
+ const token=d.follow.telegram.split('start=f_')[1];
+ await hook(e,{message:{chat:{id:5150,type:'private'},text:'/start f_'+token}});
+ assert.equal(e.DB.sql.prepare('SELECT follow_chat c FROM leads').get().c,'5150');
+ assert.match(tg.calls.filter(c=>c.method==='sendMessage'&&c.body.chat_id==='5150').at(-1).body.text,/هر وقت/);
+ await hook(e,{callback_query:{id:'q1',data:'ls:called:'+d.id,message:{chat:{id:888},message_id:9}}});
+ assert.equal(e.DB.sql.prepare('SELECT salon_status s FROM leads').get().s,'new','another chat cannot change it');
+ await hook(e,{callback_query:{id:'q2',data:'ls:booked:'+d.id,message:{chat:{id:777},message_id:9}}});
+ const row=e.DB.sql.prepare('SELECT salon_status s,handled_at h FROM leads').get();assert.equal(row.s,'booked');assert(row.h>0);
+ const edit=tg.calls.find(c=>c.method==='editMessageReplyMarkup');assert(edit.body.reply_markup.inline_keyboard.flat().some(b=>b.text.startsWith('✔︎ ')&&b.callback_data.startsWith('ls:booked')));
+ assert.match(tg.calls.filter(c=>c.method==='sendMessage'&&c.body.chat_id==='5150').at(-1).body.text,/نوبت شما را هماهنگ کرد/);
+ const mine=await call(e,'/api/s/salon-a/requests',undefined,g);assert.equal(mine.data.requests[0].salon_status,'booked');assert.equal(mine.data.requests[0].followed,1);
+ const other=await guest(e,s);assert.equal((await call(e,'/api/s/salon-a/requests',undefined,other)).data.requests.length,0,'a customer sees only her own requests');
+ await hook(e,{message:{chat:{id:6000,type:'private'},text:'/start f_'+'0'.repeat(24)}});assert.match(tg.calls.at(-1).body.text,/منقضی/);
+}finally{tg.restore()}});
+
+test('untouched submissions are reminded at 2h and 24h during Tehran working hours, then the customer is told',async()=>{const e=tgEnv(fixture()),s=await salon(e),g=await guest(e,s);const tg=mockTelegram();try{
+ await linkSalon(e,s,777);const d=await sendLead(e,s,g);e.DB.sql.exec("UPDATE leads SET follow_chat='5150',follow_platform='telegram'");
+ const {remind}=await import('../worker/telegram.js');
+ const noon=Date.parse('2026-11-03T08:30:00Z'),night=Date.parse('2026-11-03T20:00:00Z'); // 12:00 and 23:30 Tehran
+ e.DB.sql.exec('UPDATE leads SET created_at='+(noon-3*3600000));
+ assert.equal(await remind(e,origin,night),0,'quiet at night');
+ assert.equal(await remind(e,origin,noon),1);assert.equal(await remind(e,origin,noon),0,'not twice');
+ assert.match(tg.calls.filter(c=>c.body.chat_id==='777').at(-1).body.text,/یادآوری/);
+ e.DB.sql.exec('UPDATE leads SET created_at='+(noon-25*3600000));
+ assert.equal(await remind(e,origin,noon),1);
+ assert.match(tg.calls.filter(c=>c.body.chat_id==='5150').at(-1).body.text,/هنوز درخواستت را جواب نداده/);
+ assert.equal(await remind(e,origin,noon),0,'two reminders at most');
+ await hook(e,{callback_query:{id:'q',data:'ls:called:'+d.id,message:{chat:{id:777},message_id:1}}});
+}finally{tg.restore()}});
+
+test('linking starts a setup wizard that fills the salon page one answer at a time',async()=>{const e=tgEnv(fixture()),s=await salon(e);const tg=mockTelegram();try{
+ const say=m=>hook(e,{message:{chat:{id:777,type:'private'},...m}});const tap=d=>hook(e,{callback_query:{id:'q',data:d,message:{chat:{id:777},message_id:3}}});
+ await linkSalon(e,s,777,true);
+ assert.match(tg.calls.filter(c=>c.method==='sendMessage').at(-1).body.text,/۱ از ۱۱/);
+ await say({text:'سالن زیبایی ساناز'});
+ await say({photo:[{file_id:'logo',file_size:100}]});
+ await tap('wz:skip');
+ await say({text:'تخصص ما رنگ است.'});
+ await say({text:'تهران، ونک'});
+ await say({location:{latitude:35.7575,longitude:51.4101}});
+ await say({text:'۱۰ تا ۲۰'});
+ await say({text:'abc'});assert.match(tg.calls.at(-1).body.text,/شماره درست نیست/);
+ await say({text:'۰۲۱-۲۲۳۳۴۴۵۵'});
+ await say({text:'@sanaz.salon'});
+ await say({text:'ساناز احمدی'});
+ await tap('wz:skip');
+ const pub=(await call(e,'/api/s/salon-a/public')).data.salon;
+ assert.equal(pub.name,'سالن زیبایی ساناز');assert.equal(pub.profile.bio,'تخصص ما رنگ است.');assert.equal(pub.profile.phone,'02122334455');assert.equal(pub.profile.instagram,'https://instagram.com/sanaz.salon');assert.equal(pub.profile.map,'https://www.google.com/maps?q=35.757500,51.410100');assert.equal(pub.profile.manager,'ساناز احمدی');assert(pub.profile.logo);assert(!pub.profile.cover);
+ assert.match(tg.calls.filter(c=>c.method==='sendMessage').at(-1).body.text,/آماده است[\s\S]*\/s\/salon-a/);
+ assert.equal(e.DB.sql.prepare('SELECT bot_state b FROM salons').get().b,'');
+ await say({photo:[{file_id:'work',file_size:100}],caption:'بالیاژ'});assert.equal((await call(e,'/api/s/salon-a/public')).data.portfolio.length,1,'after the wizard photos are portfolio again');
+ await say({text:'/setup'});await tap('wz:keep');assert.match(tg.calls.filter(c=>c.method==='sendMessage').at(-1).body.text,/۲ از ۱۱/);
+}finally{tg.restore()}});
+
+test('Bale: path secret required, same link code works, submissions reach both inboxes, plain text only',async()=>{const e=tgEnv(fixture());e.BALE_BOT_TOKEN='777:bale';e.BALE_BOT_USERNAME='ayneh_bale_bot';const s=await salon(e),g=await guest(e,s);
+ const calls=[];const previous=globalThis.fetch;globalThis.fetch=async(url,init)=>{const u=String(url);if(!/api\.telegram\.org|tapi\.bale\.ai/.test(u))return previous(url,init);const host=u.includes('bale')?'bale':'tg',method=u.split('/').pop();let body=init?.body;if(body instanceof FormData){const o={};for(const [k,v] of body.entries())o[k]=typeof v==='string'?v:'<file>';body=o}else body=JSON.parse(body||'{}');calls.push({host,method,body});if(host==='bale'&&method==='sendMediaGroup')return Response.json({ok:false,description:'not supported'},{status:400});if(method==='sendMediaGroup')return Response.json({ok:true,result:[{message_id:1}]});return Response.json({ok:true,result:{message_id:2,username:host==='bale'?'ayneh_bale_bot':'ayneh_bot'}})};
+ try{
+  assert.equal((await baleHook(e,{message:{chat:{id:1,type:'private'},text:'/start'}},'wrong')).status,403);
+  const link=await call(e,'/api/s/salon-a/owner/telegram-link',{},OWNER);assert.match(link.data.links.bale,/^https:\/\/ble\.ir\/ayneh_bale_bot\?start=[a-f0-9]{24}$/);assert.match(link.data.links.telegram,/t\.me/);
+  await baleHook(e,{message:{chat:{id:9001,type:'private'},text:'/start '+link.data.code}});await baleHook(e,{message:{chat:{id:9001,type:'private'},text:'/stop'}});
+  assert.equal(e.DB.sql.prepare('SELECT bale_chat_id b FROM salons').get().b,'9001');
+  assert.equal((await call(e,'/api/s/salon-a/public')).data.telegram,true,'a Bale-only salon can receive submissions');
+  const d=await sendLead(e,s,g);assert.equal(d.delivered,true);assert(d.follow.bale.startsWith('https://ble.ir/ayneh_bale_bot?start=f_'));
+  const details=calls.find(c=>c.host==='bale'&&c.method==='sendMessage'&&/درخواست تازه/.test(c.body.text||''));assert(details,'details sent to Bale');assert(!details.body.parse_mode&&!/<b>/.test(details.body.text),'Bale gets plain text');assert.equal(details.body.reply_to_message_id,2);
+  assert(calls.filter(c=>c.host==='bale'&&c.method==='sendPhoto').length>=1,'album falls back to single photos on Bale');
+  const hook2=await call(e,'/api/owner/webhook',{},OWNER);assert.equal(hook2.status,200);assert.equal(calls.find(c=>c.host==='bale'&&c.method==='setWebhook').body.url,origin+'/api/bale/webhook/hook-secret');
+ }finally{globalThis.fetch=previous}});
+
+test('tracking accepts only known events; stats count visitors, funnel, looks, colours, ratings and salon response',async()=>{const e=tgEnv(fixture()),s=await salon(e),g=await guest(e,s);const tg=mockTelegram();try{
+ const v1='1'.repeat(32),v2='2'.repeat(32),tr=(kind,v,meta)=>call(e,'/api/s/salon-a/track',{kind,v,meta});
+ assert.equal((await tr('hack',v1)).status,400);assert.equal((await tr('sent',v1)).status,400,'sent is logged by the server only');
+ for(const v of [v1,v2])await tr('view',v);await tr('view',v1);
+ await tr('photo',v1);await tr('look',v1,'c:0');await tr('look',v2,'c:0');await tr('look',v1,'s:بالیاژ');await tr('color',v1,'بالیاژ عسلی');await tr('result',v1);await tr('rating',v1,'4');await tr('rating',v2,'2');
+ await linkSalon(e,s,777);const d=await sendLead(e,s,g,{v:v1});
+ await hook(e,{callback_query:{id:'q',data:'ls:called:'+d.id,message:{chat:{id:777},message_id:1}}});
+ const st=(await call(e,'/api/owner/stats?days=7',undefined,OWNER)).data;
+ assert.equal(st.kpi.visitors,2);assert.equal(st.kpi.sent,1);assert.equal(st.kpi.conversion,0.5);
+ assert.deepEqual(st.funnel.map(f=>f.count),[2,1,2,1,1]);
+ assert.equal(st.looks[0].label,styles[0][0]);assert.equal(st.looks[0].count,2);assert(st.looks.some(l=>l.label==='کار سالن: بالیاژ'));
+ assert.deepEqual(st.colors[0],{label:'بالیاژ عسلی',count:1});
+ assert.equal(st.rating.avg,3);assert.deepEqual(st.rating.dist,[0,1,0,1,0]);
+ assert.equal(st.response.total,1);assert.equal(st.response.called,1);assert.equal(st.response.handled,1);
+ assert.equal(st.daily.length,7);assert.equal(st.daily.at(-1).visitors,2);
+ assert.equal(st.salons[0].slug,'salon-a');
+ assert.equal((await call(e,'/api/owner/stats?days=7&salon=salon-a',undefined,OWNER)).data.salons.length,0);
+ assert.equal((await call(e,'/api/owner/stats')).status,401);
+}finally{tg.restore()}});
+
+test('salon pages carry their own link preview; salon work is tryable by default',async()=>{const e=fixture(),s=await salon(e);
+ const brand=await call(e,'/api/s/salon-a/upload?kind=brand',png(),OWNER);
+ await call(e,'/api/s/salon-a/owner/profile',{name:'سالن "ساناز" & دوستان',profile:{bio:'تخصص ما رنگ است.',cover:brand.data.id}},OWNER);
+ const html=await (await app.fetch(new Request(origin+'/s/salon-a'),e)).text();
+ assert.match(html,/<title>سالن &quot;ساناز&quot; &amp; دوستان \| /);assert.match(html,/og:image" content="https:\/\/test\.example\/api\/s\/salon-a\/media\//);assert.match(html,/og:description" content="تخصص ما رنگ است\./);
+ assert.equal((html.match(/property="og:title"/g)||[]).length,1,'no duplicate tags');
+ assert.match(await (await app.fetch(new Request(origin+'/s/unknown-salon'),e)).text(),/og:title" content="آینه/);
+ assert.equal((await call(e,'/api/s/salon-a/public')).data.reference,true);
+ await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true,reference_verified:false},OWNER);assert.equal((await call(e,'/api/s/salon-a/public')).data.reference,false);
 });

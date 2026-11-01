@@ -7,26 +7,26 @@ export function safeLink(s){if(!s)return '';try{const u=new URL(s);must(['https:
 // What each ready-made style actually looks like, so the image model is not guessing from a
 // two-word name. Keys are the English names in legacy.js `styles`.
 export const STYLE_DETAILS={
- 'Short bob':'a short chin-length bob, blunt even ends at jaw level, sleek and smooth, slight inward bend at the ends',
- 'Long bob':'a lob: collarbone-length bob, ends just above the shoulders, soft subtle layers, gentle movement',
- 'Pixie cut':'a pixie cut: very short on the back and sides, slightly longer textured top, soft side-swept fringe',
- 'Long layers':'long hair well past the shoulders with long cascading layers, face-framing pieces starting at the cheekbones, bouncy blow-dried finish',
- 'Curtain bangs':'curtain bangs parted in the middle, sweeping to both sides and framing the face at cheekbone level, with medium-long hair',
- 'Wolf cut':'a wolf cut: shaggy, choppy layers concentrated at the crown, wispy face-framing pieces, mullet-like shape, tousled texture, shoulder length',
- 'Beach waves':'long loose beachy waves, effortless tousled S-shaped waves from mid-length to ends, soft volume',
- 'Long straight hair':'long sleek straight hair, glossy and smooth, one length, falling well below the shoulders',
- 'Natural curly hair':'natural defined curls, voluminous rounded shape, springy ringlets, shoulder length to below',
- 'Low bun updo':'an elegant low bun at the nape, smooth sides, a few soft face-framing tendrils',
- 'Bixie cut':'a bixie: hybrid of bob and pixie, ear-to-chin length, piecey layers and volume at the crown, textured ends',
- 'Asymmetric bob':'an asymmetric bob, noticeably longer on one side than the other, sharp clean lines, angled front',
- 'French bob':'a French bob: jaw-length bob with short blunt bangs at the brows, slightly undone soft texture',
+ 'Long layered haircut':'long hair well past the shoulders with long cascading layers and soft face-framing pieces from the cheekbones, bouncy blow-dried finish',
  'Butterfly haircut':'a butterfly haircut: long hair with short face-framing layers starting at the chin and long layers below, big bouncy blow-out volume',
+ 'Wolf cut':'a wolf cut: shaggy, choppy layers concentrated at the crown, wispy face-framing pieces, mullet-like shape, tousled texture, shoulder length',
  'Hush cut':'a hush cut: soft feathery layers throughout, wispy ends, airy light movement, shoulder length, with see-through bangs',
+ 'Long bob':'a lob: collarbone-length bob, ends just above the shoulders, soft subtle layers, gentle movement',
+ 'Short bob':'a short chin-length bob, blunt even ends at jaw level, sleek and smooth, slight inward bend at the ends',
+ 'A-line bob, longer in front':'an A-line bob: short at the nape and gradually longer toward the face, front pieces reaching the collarbone, sleek angled line',
+ 'Pixie cut':'a pixie cut: very short on the back and sides, slightly longer textured top, soft side-swept fringe',
+ 'Curtain bangs':'curtain bangs parted in the middle, sweeping to both sides and framing the face at cheekbone level, with medium-long hair',
+ 'Butterfly bangs':'butterfly bangs: long, layered, voluminous bangs that sweep outward from a center part like wings and blend into face-framing layers',
+ 'Side-swept bangs':'long side-swept bangs falling diagonally across the forehead from a side part, blending into long layered hair',
  'Long hair with blunt bangs':'long straight hair with thick blunt bangs cut straight across at eyebrow level',
- 'High ponytail':'a sleek high ponytail at the crown, smooth pulled-back sides, long flowing tail',
- 'Half up half down':'half-up half-down style: top section gathered at the back of the head, the rest loose with soft waves',
- 'Side braid':'a loose side braid over one shoulder, slightly pancaked for volume, a few soft strands framing the face',
- 'Hollywood waves':'glamorous Hollywood waves: deep side part, smooth polished uniform waves, high shine, shoulder length or longer'
+ 'Voluminous blowout':'a voluminous salon blowout (براشینگ): big round-brush volume at the roots, smooth glossy lengths and bouncy curled-under ends',
+ 'Sleek straight keratin-smoothed hair':'long sleek straight hair after a keratin treatment: frizz-free, glass-like shine, perfectly smooth from root to tip',
+ 'Big soft waves':'big soft loose waves from mid-length to ends, glossy and full, polished but natural',
+ 'Natural curly hair':'natural defined curls, voluminous rounded shape, springy ringlets, shoulder length to below',
+ 'Big spiral curls':'big defined spiral curls (bouncy corkscrew ringlets) from the roots to the ends, lots of volume',
+ 'Messy top bun':'a messy top bun (مدل گوجه‌ای) high on the crown, loose and voluminous, with a few soft strands framing the face',
+ 'Low bun updo':'an elegant low bun at the nape, smooth sides, a few soft face-framing tendrils',
+ 'High ponytail':'a sleek high ponytail at the crown, smooth pulled-back sides, long flowing tail'
 };
 // Persian colour names from the colour box, described precisely for the model.
 export const COLOR_EN={
@@ -46,7 +46,7 @@ export const COLOR_EN={
  'بالیاژ شامپاینی':'champagne-blonde balayage on a brown base, soft root','بالیاژ سرد':'cool ash balayage on a dark base, soft root','بالیاژ مسی':'copper balayage on a brown base',
  'آمبره قهوه‌ای به بلوند':'ombre from brown roots to blonde ends','آمبره شرابی':'ombre from dark roots to burgundy ends','آمبره دودی':'ombre from dark roots to smoky ash ends',
  'سامبره':'subtle sombre, gentle brown-to-honey fade','هایلایت طلایی':'fine golden highlights through brown hair','هایلایت نقره‌ای':'fine silver highlights',
- 'لایت عسلی':'honey babylights','لایت دودی':'smoky ash babylights','بیبی لایت':'very fine natural babylights'
+ 'لایت عسلی':'honey babylights','دودی زیتونی':'smoky olive brown (muted ash-olive brown)','زیتونی':'olive brown','شکلاتی دودی':'smoky ash-chocolate brown','نسکافه‌ای دودی':'smoky coffee-with-milk brown','مش دودی':'smoky ash highlights on a brown base','مش عسلی':'honey highlights on a brown base','بالیاژ دودی':'smoky ash balayage on a dark base, soft root','لایت دودی':'smoky ash babylights','بیبی لایت':'very fine natural babylights'
 };
 const norm=s=>String(s||'').replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[‌\s]/g,'');
 export function colorText(color){

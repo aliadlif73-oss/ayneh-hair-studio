@@ -56,6 +56,8 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
           TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
+          BALE_BOT_TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          BALE_BOT_USERNAME: ${{ secrets.BALE_BOT_USERNAME }}
           MELIPAYAMAK_TOKEN: ${{ secrets.MELIPAYAMAK_TOKEN }}
           MELIPAYAMAK_BODY_ID: ${{ secrets.MELIPAYAMAK_BODY_ID }}
           MELIPAYAMAK_OTP_BODY_ID: ${{ secrets.MELIPAYAMAK_OTP_BODY_ID }}
@@ -64,7 +66,7 @@ jobs:
           npm install --no-save wrangler@4 >/dev/null 2>&1
           for name in KIE_API_KEY OWNER_EMAIL OWNER_ID OWNER_PASSWORD OWNER_PASSWORD_HASH \
                       SESSION_SECRET JOB_TOKEN APP_ORIGIN TELEGRAM_BOT_TOKEN TELEGRAM_WEBHOOK_SECRET \
-                      TELEGRAM_BOT_USERNAME MELIPAYAMAK_TOKEN MELIPAYAMAK_BODY_ID MELIPAYAMAK_OTP_BODY_ID; do
+                      TELEGRAM_BOT_USERNAME MELIPAYAMAK_TOKEN MELIPAYAMAK_BODY_ID MELIPAYAMAK_OTP_BODY_ID BALE_BOT_TOKEN BALE_BOT_USERNAME; do
             value="${!name:-}"
             if [ -n "$value" ]; then
               printf '%s' "$value" | npx wrangler secret put "$name" >/dev/null
@@ -82,6 +84,15 @@ jobs:
           curl -sS -o /dev/null -w "setWebhook HTTP %{http_code}\n" "https://api.telegram.org/bot$TOKEN/setWebhook" \
             --data-urlencode "url=$ORIGIN/api/telegram/webhook" --data-urlencode "secret_token=$SECRET" \
             --data-urlencode 'allowed_updates=["message","callback_query"]'
+      - name: Point the Bale bot at this deployment
+        if: steps.config.outputs.ready == 'true'
+        env:
+          TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
+          SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+          ORIGIN: ${{ secrets.APP_ORIGIN }}
+        run: |
+          if [ -z "$TOKEN" ] || [ -z "$SECRET" ] || [ -z "$ORIGIN" ]; then echo "Bale or APP_ORIGIN not configured; skipping."; exit 0; fi
+          curl -sS -o /dev/null -w "Bale setWebhook HTTP %{http_code}\n" "https://tapi.bale.ai/bot$TOKEN/setWebhook" --data-urlencode "url=$ORIGIN/api/bale/webhook/$SECRET"
       - name: Summary
         if: steps.config.outputs.ready == 'true'
         run: echo "Deployed https://ayneh-hair-studio.<your-subdomain>.workers.dev" >> "$GITHUB_STEP_SUMMARY"
