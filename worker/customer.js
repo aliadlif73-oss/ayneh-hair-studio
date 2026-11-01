@@ -120,16 +120,21 @@ const customerCSS=String.raw`
 .stage .mirror__glass{aspect-ratio:3/4;display:grid;place-items:center}
 .stage__empty{position:relative;z-index:1;color:var(--muted);font-size:13px;text-align:center;padding:24px;max-width:22ch;line-height:1.9}
 .compare-wrap{width:min(100%,400px);margin:18px auto 0}
-.compare{position:relative;aspect-ratio:3/4;overflow:hidden;border-radius:999px 999px calc(var(--r) - 5px) calc(var(--r) - 5px);background:var(--glass-2)}
-.compare img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.compare__after{position:absolute;inset:0;clip-path:inset(0 0 0 var(--cut,50%))}
-.compare__handle{position:absolute;top:0;bottom:0;width:2px;background:#fff;inset-inline-start:var(--cut,50%);transform:translateX(50%);box-shadow:0 0 0 1px rgba(0,0,0,.08)}
-.compare__grip{position:absolute;top:58%;inset-inline-start:var(--cut,50%);transform:translate(50%,-50%);width:44px;height:44px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:var(--lift);color:var(--ink);pointer-events:none}
-.compare__grip svg{width:20px;height:20px}
-.compare input[type=range]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0;z-index:3}
-.compare__tag{position:absolute;bottom:12px;z-index:2;background:rgba(250,251,250,.94);padding:3px 12px;border-radius:999px;font-size:12px;font-weight:700;color:var(--ink-2)}
-.compare__tag--before{inset-inline-end:12px}
-.compare__tag--after{inset-inline-start:12px}
+.compare{position:relative;aspect-ratio:3/4;overflow:hidden;border-radius:999px 999px calc(var(--r) - 5px) calc(var(--r) - 5px);background:var(--glass-2);touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:ew-resize;direction:ltr}
+.compare img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;-webkit-user-drag:none}
+.compare__after{position:absolute;inset:0;clip-path:inset(0 calc(100% - var(--x,50%)) 0 0)}
+.compare__handle{position:absolute;top:0;bottom:0;left:var(--x,50%);width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.1),0 0 12px rgba(0,0,0,.25);pointer-events:none}
+.compare__grip{position:absolute;top:58%;left:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:var(--lift);color:var(--ink);transition:transform .15s var(--ease)}
+.compare.is-dragging .compare__grip{transform:scale(1.12)}
+.compare.is-animating .compare__after{transition:clip-path .28s var(--ease)}
+.compare.is-animating .compare__handle{transition:left .28s var(--ease)}
+.compare__grip svg{width:22px;height:22px}
+.compare__range{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;bottom:0;left:0}
+.compare:has(.compare__range:focus-visible){outline:3px solid var(--accent-ring);outline-offset:3px}
+.compare__tag{position:absolute;bottom:12px;z-index:2;background:rgba(250,251,250,.94);padding:3px 12px;border-radius:999px;font-size:12px;font-weight:700;color:var(--ink-2);pointer-events:none}
+.compare__tag--before{right:12px}
+.compare__tag--after{left:12px}
+.compare__hint{text-align:center;font-size:12.5px;color:var(--muted);margin-top:10px}
 .progress{display:grid;gap:10px;margin-top:18px}
 .progress__bar{height:6px;border-radius:999px;background:var(--glass-2);overflow:hidden}
 .progress__fill{height:100%;width:8%;border-radius:999px;background:var(--accent);transition:width .6s var(--ease)}
@@ -172,6 +177,45 @@ const customerCSS=String.raw`
 @media(min-width:960px){.dock{display:none}}
 
 
+
+.hero__tools{display:flex;gap:8px;align-items:center}
+.help-btn{width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);font-weight:700;font-size:17px;display:grid;place-items:center}
+.help-btn:hover{border-color:#b3c0bb}
+/* tour */
+.tour{position:fixed;inset:0;z-index:100;animation:tourIn .25s var(--ease)}
+.tour.is-leaving{opacity:0;transition:opacity .2s var(--ease)}
+@keyframes tourIn{from{opacity:0}to{opacity:1}}
+.tour__spot{position:fixed;left:0;top:0;width:0;height:0;border-radius:20px;box-shadow:0 0 0 200vmax rgba(24,16,10,.66),0 0 0 3px rgba(255,255,255,.9) inset;pointer-events:none;transition:transform .38s var(--ease),width .38s var(--ease),height .38s var(--ease)}
+.tour--welcome .tour__spot{transform:translate(50vw,50vh);box-shadow:0 0 0 200vmax rgba(24,16,10,.72)}
+.tour__card{position:fixed;left:0;top:0;width:min(360px,calc(100vw - 24px));background:var(--surface);border-radius:22px;padding:18px 18px 16px;box-shadow:var(--float);outline:none;transition:transform .38s var(--ease)}
+.tour--welcome .tour__card{left:50%;top:50%;transform:translate(-50%,-50%);width:min(400px,calc(100vw - 32px));padding:26px 22px 20px;text-align:center;transition:none}
+.tour__mirror{position:relative;width:96px;aspect-ratio:3/4;margin:0 auto 16px;border-radius:999px 999px 14px 14px;background:linear-gradient(170deg,#f4f7f6,#d6dfdb);box-shadow:0 0 0 6px var(--surface),0 0 0 7px var(--line),var(--lift);overflow:hidden;display:grid;place-items:center}
+.tour__mark{width:42%;position:relative;z-index:1}
+.tour__mark svg{width:100%;height:auto;display:block}
+.tour__shine{position:absolute;inset:-20% -60%;background:linear-gradient(115deg,transparent 40%,rgba(255,255,255,.85) 50%,transparent 60%);transform:translateX(-60%);animation:shine 1.6s .3s var(--ease) both}
+@keyframes shine{to{transform:translateX(60%)}}
+.tour__title{font-family:var(--display);font-weight:800;font-size:21px;line-height:1.4}
+.tour--welcome .tour__title{font-size:26px}
+.tour__text{font-size:14px;line-height:1.95;color:var(--ink-2);margin-top:6px}
+.tour__path{list-style:none;margin:18px 0 20px;padding:0;display:grid;grid-template-columns:repeat(3,1fr);position:relative}
+.tour__path::before{content:"";position:absolute;top:21px;inset-inline:16%;height:2px;background:var(--line)}
+.tour__path li{display:grid;justify-items:center;gap:7px;position:relative;font-size:12.5px}
+.tour__path span{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--accent);color:#fff;box-shadow:0 0 0 5px var(--surface)}
+.tour__path li:nth-child(2) span{background:var(--ink)}
+.tour__path li:nth-child(3) span{background:var(--honey)}
+.tour__path svg{width:20px;height:20px}
+.tour__actions{display:grid;gap:8px}
+.tour__skip{border-color:transparent}
+.tour__top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.tour__dots{display:flex;gap:5px}
+.tour__dots span{width:7px;height:7px;border-radius:9px;background:var(--line);transition:width .25s var(--ease),background-color .25s}
+.tour__dots .is-on{width:20px;background:var(--accent)}
+.tour__dots .is-done{background:var(--accent-soft)}
+.tour__x{width:34px;height:34px;border:0;border-radius:50%;background:var(--glass);color:var(--ink-2);font-size:19px;line-height:1}
+.tour__nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px}
+.tour__count{font-size:12px;color:var(--muted)}
+.tour--still,.tour--still *{animation:none!important;transition:none!important}
+body.is-touring{overflow:hidden}
 .layout--solo{grid-template-columns:minmax(0,1fr)!important;max-width:760px;margin:0 auto}
 .about-btn{display:inline-flex;align-items:center;gap:7px;min-height:42px;padding:0 15px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;font-size:13.5px}
 .about-btn:hover{border-color:#b3c0bb}
@@ -282,6 +326,7 @@ function svg(name){return el('span',{html:ICO[name]||'',class:'ico'})}
  renderHead();renderSteps();renderFlow();renderSide();renderDock();
  var pending=sessionStorage.getItem('ayneh-job-'+SLUG);
  if(pending){state.gen=pending;state.step=3;state.busy=true;renderFlow();renderDock();poll(pending,true)}
+ maybeTour();
 })();
 
 function showFatal(msg){
@@ -293,7 +338,7 @@ function showFatal(msg){
 /* ---------- header ---------- */
 function renderHead(){
  var s=state.pub.salon,p=s.profile||{},head=$('#head');
- var bar=el('div',{class:'hero__bar'},[el('span',{class:'brand',html:MARK+'<span>آینه</span>'}),el('button',{class:'about-btn',type:'button',onclick:openAbout,html:ICO.info+'<span>دربارهٔ سالن</span>'})]);
+ var bar=el('div',{class:'hero__bar'},[el('span',{class:'brand',html:MARK+'<span>آینه</span>'}),el('div',{class:'hero__tools'},[el('button',{class:'help-btn',type:'button','aria-label':'راهنمای استفاده',onclick:startTour,text:'؟'}),el('button',{class:'about-btn',type:'button',onclick:openAbout,html:ICO.info+'<span>دربارهٔ سالن</span>'})])]);
  var glass=el('div',{class:'mirror__glass'+(p.cover?'':' mirror__glass--empty')});
  if(p.cover)glass.append(el('img',{src:media(p.cover),alt:'',fetchpriority:'high'}));
  else if(p.logo)glass.append(el('img',{src:media(p.logo),alt:''}));
@@ -550,20 +595,28 @@ function missingReason(){
  if(state.reference&&!state.pub.reference)return 'انتقال عکس مرجع هنوز فعال نشده است';
  return 'یک مدل انتخاب کن';
 }
+// Before/after: the line sits exactly under the finger. Positions are physical (left→right)
+// so RTL page direction never flips the drag. Drag moves 1:1, a tap moves the line there,
+// and the hidden range keeps keyboard and screen-reader control.
 function compareBlock(){
  var wrap=el('div',{class:'compare'});
- wrap.append(el('img',{src:media(state.original),alt:'قبل'}));
- var after=el('div',{class:'compare__after'},[el('img',{src:media(state.result),alt:'بعد'})]);
- wrap.append(after);
- wrap.append(el('div',{class:'compare__handle'}));
- wrap.append(el('div',{class:'compare__grip',html:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 9 4.5 12 8 15M16 9l3.5 3-3.5 3"/></svg>'}));
+ wrap.append(el('img',{src:media(state.original),alt:'قبل',draggable:'false'}));
+ wrap.append(el('div',{class:'compare__after'},[el('img',{src:media(state.result),alt:'بعد',draggable:'false'})]));
+ wrap.append(el('div',{class:'compare__handle'},[el('span',{class:'compare__grip',html:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8 5 12l4 4M15 8l4 4-4 4"/></svg>'})]));
  wrap.append(el('span',{class:'compare__tag compare__tag--before',text:'قبل'}));
  wrap.append(el('span',{class:'compare__tag compare__tag--after',text:'بعد'}));
- var range=el('input',{type:'range',min:'0',max:'100',value:'50','aria-label':'مقایسهٔ قبل و بعد'});
- range.addEventListener('input',function(){wrap.style.setProperty('--cut',range.value+'%')});
- range.value='50';wrap.style.setProperty('--cut','50%');
+ var range=el('input',{type:'range',min:'0',max:'100',value:'50',dir:'ltr',class:'compare__range','aria-label':'مقایسهٔ قبل و بعد؛ با کلیدهای جهت خط را جابه‌جا کن'});
  wrap.append(range);
- return el('div',{class:'mirror compare-wrap'},[wrap]);
+ var x=50;
+ function set(v,animate){x=Math.max(0,Math.min(100,v));wrap.classList.toggle('is-animating',!!animate);wrap.style.setProperty('--x',x+'%');range.value=String(Math.round(x))}
+ set(50);
+ var start=null;
+ wrap.addEventListener('pointerdown',function(e){if(e.button>0)return;var r=wrap.getBoundingClientRect();start={px:e.clientX,x:x,w:r.width,left:r.left,moved:false,id:e.pointerId};wrap.classList.add('is-dragging')});
+ wrap.addEventListener('pointermove',function(e){if(!start||e.pointerId!==start.id)return;var dx=e.clientX-start.px;if(!start.moved&&Math.abs(dx)<4)return;if(!start.moved){start.moved=true;try{wrap.setPointerCapture(e.pointerId)}catch(err){}}e.preventDefault();set(start.x+dx/start.w*100,false)});
+ function end(e){if(!start)return;if(!start.moved&&e.type==='pointerup')set((e.clientX-start.left)/start.w*100,true);start=null;wrap.classList.remove('is-dragging')}
+ wrap.addEventListener('pointerup',end);wrap.addEventListener('pointercancel',end);
+ range.addEventListener('input',function(){set(Number(range.value),false)});
+ return el('div',{},[el('div',{class:'mirror compare-wrap'},[wrap]),el('p',{class:'compare__hint',text:'خط را با انگشت بکش یا روی هر جای عکس بزن'})]);
 }
 function ratingBlock(){
  var wrap=el('div',{class:'rate-line'});
@@ -832,6 +885,80 @@ function openViews(){
  }).catch(function(e){status.replaceChildren(el('span',{text:e.message}))});
 }
 
+/* ---------- first-visit tour: welcome card, then a spotlight that glides between parts ---------- */
+var TOUR_KEY='ayneh-tour-v1';
+function tourSteps(){
+ var gallery=$('#side .gallery'),dockBtn=$('#dock:not([hidden]) .btn--primary');
+ var mobile=window.matchMedia('(max-width:959px)').matches;
+ return [
+  {el:'#steps',title:'سه قدم تا مدل جدید',text:'اینجا همیشه می‌بینی کجای کاری: عکس خودت، انتخاب مدل و رنگ، و دیدن نتیجه. هر وقت خواستی روی هر قدم بزن و برگرد.'},
+  {el:state.original?'#flow .photo':'#flow .upload',title:'اول، عکس خودت',text:'یک عکس روبه‌رو با نور خوب بگذار. مدل انتخابی روی همین عکس امتحان می‌شود و عکست فقط برای همین سالن است.'},
+  gallery?{el:'#side .gallery',title:'کارهای واقعی سالن',text:'روی هر کار بزن تا همان مدل و رنگ را روی عکس خودت ببینی.'}:null,
+  {el:'.about-btn',title:'همه‌چیز دربارهٔ سالن',text:'آدرس، شماره، ساعت کاری و صفحه‌های سالن اینجاست.'},
+  {el:mobile&&dockBtn?'#dock .dock__inner':'.hero__cta .btn',title:'آماده‌ای؟',text:'بعد از دیدن نتیجه، با یک دکمه عکس و مدلت در تلگرام برای آرایشگر فرستاده می‌شود و خود سالن با تو تماس می‌گیرد.',last:true}
+ ].filter(function(s){return s&&$(s.el)});
+}
+function maybeTour(){try{if(localStorage.getItem(TOUR_KEY))return}catch(e){return}if(state.busy)return;setTimeout(startTour,700)}
+function startTour(){
+ if($('.tour'))return;
+ var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ var root=el('div',{class:'tour'+(reduce?' tour--still':''),role:'dialog','aria-modal':'true','aria-labelledby':'tour-title'});
+ var spot=el('div',{class:'tour__spot','aria-hidden':'true'});
+ var card=el('div',{class:'tour__card',tabindex:'-1'});
+ root.append(spot,card);document.body.append(root);document.body.classList.add('is-touring');
+ var steps=[],i=-1,lastFocus=document.activeElement;
+ function done(){try{localStorage.setItem(TOUR_KEY,'1')}catch(e){}window.removeEventListener('resize',place);window.removeEventListener('keydown',keys);root.classList.add('is-leaving');setTimeout(function(){root.remove();document.body.classList.remove('is-touring')},reduce?0:220);if(lastFocus&&lastFocus.focus)lastFocus.focus()}
+ function keys(e){if(e.key==='Escape')done();else if(i>=0&&(e.key==='ArrowLeft'))go(i+1);else if(i>0&&e.key==='ArrowRight')go(i-1)}
+ window.addEventListener('keydown',keys);
+ function welcome(){
+  root.classList.add('tour--welcome');
+  card.replaceChildren(
+   el('div',{class:'tour__mirror','aria-hidden':'true'},[el('span',{class:'tour__shine'}),el('span',{class:'tour__mark',html:MARK})]),
+   el('h2',{id:'tour-title',class:'tour__title',text:'به آینه خوش آمدی'}),
+   el('p',{class:'tour__text',text:'قبل از اینکه روی صندلی «'+state.pub.salon.name+'» بنشینی، مدل و رنگ موی بعدی‌ات را روی عکس خودت ببین.'}),
+   el('ol',{class:'tour__path'},[
+    el('li',{},[el('span',{html:ICO.camera}),el('b',{text:'عکس تو'})]),
+    el('li',{},[el('span',{html:ICO.scissors}),el('b',{text:'مدل و رنگ'})]),
+    el('li',{},[el('span',{html:ICO.send}),el('b',{text:'ببین و بفرست'})])
+   ]),
+   el('div',{class:'tour__actions'},[
+    el('button',{class:'btn btn--primary btn--block',type:'button',text:'نشانم بده',onclick:function(){root.classList.remove('tour--welcome');steps=tourSteps();go(0)}}),
+    el('button',{class:'btn btn--ghost btn--block tour__skip',type:'button',text:'بلدم، شروع کنیم',onclick:done})
+   ])
+  );
+  card.focus();
+ }
+ function go(n){
+  if(n>=steps.length){done();return}
+  i=n;var s=steps[i],target=$(s.el);if(!target){go(i+1);return}
+  target.scrollIntoView({block:'center',behavior:reduce?'auto':'smooth'});
+  var dots=el('div',{class:'tour__dots','aria-label':'قدم '+fa(i+1)+' از '+fa(steps.length)},steps.map(function(_,k){return el('span',{class:k===i?'is-on':k<i?'is-done':''})}));
+  card.replaceChildren(
+   el('div',{class:'tour__top'},[dots,el('button',{class:'tour__x',type:'button','aria-label':'بستن راهنما',text:'×',onclick:done})]),
+   el('h2',{id:'tour-title',class:'tour__title',text:s.title}),
+   el('p',{class:'tour__text',text:s.text}),
+   el('div',{class:'tour__nav'},[
+    i>0?el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'قبلی',onclick:function(){go(i-1)}}):el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'رد شو',onclick:done}),
+    el('span',{class:'tour__count',text:fa(i+1)+' از '+fa(steps.length)}),
+    el('button',{class:'btn btn--primary btn--sm',type:'button',text:s.last?'شروع کنیم':'بعدی',onclick:function(){if(s.last){done();var p=$('#pick');if(p&&!state.original)setTimeout(function(){var u=$('#flow .upload');if(u)u.scrollIntoView({block:'center',behavior:'smooth'})},250)}else go(i+1)}})
+   ])
+  );
+  setTimeout(place,reduce?0:320);place();card.focus({preventScroll:true});
+ }
+ function place(){
+  if(i<0)return;var t=$(steps[i].el);if(!t)return;var r=t.getBoundingClientRect(),pad=8,vw=window.innerWidth,vh=window.innerHeight;
+  var x=Math.max(6,r.left-pad),y=Math.max(6,r.top-pad),w=Math.min(vw-12,r.width+pad*2),hgt=Math.min(vh-12,r.height+pad*2);
+  spot.style.transform='translate('+x+'px,'+y+'px)';spot.style.width=w+'px';spot.style.height=hgt+'px';
+  var cw=Math.min(360,vw-24),ch=card.offsetHeight||200,below=y+hgt+12,above=y-12-ch;
+  var top=below+ch<vh-8?below:(above>8?above:Math.max(8,vh-ch-8));
+  var left=Math.min(Math.max(12,x+w/2-cw/2),vw-cw-12);
+  card.style.width=cw+'px';card.style.transform='translate('+left+'px,'+top+'px)';
+ }
+ window.addEventListener('resize',place);
+ window.addEventListener('scroll',function(){if(document.body.contains(root))place()},{passive:true});
+ welcome();
+}
+
 /* ---------- session ---------- */
 function ensureSession(){
  if(state.session)return Promise.resolve();
@@ -863,7 +990,7 @@ function openRequest(){
  ]);
  panel.append(el('div',{class:'outbox'},[thumbs,el('div',{},[
   h('b','در تلگرام برای «'+s.name+'» فرستاده می‌شود'),
-  h('p',[state.result?'عکس خودت و نتیجهٔ شبیه‌سازی':'عکس خودت',lookName()?'مدل: '+lookName():'',state.color?'رنگ: '+state.color:''].filter(Boolean).join('، ')+'، به همراه اسم و شماره‌ات.')
+  h('p',[state.result?'عکس خودت و نتیجهٔ شبیه‌سازی':'عکس خودت',lookName()?'مدل: '+lookName():'',state.color?'رنگ: '+state.color:''].filter(Boolean).join('، ')+'، به همراه نام، شماره و توضیحت.')
  ])]));
  panel.append(el('ol',{class:'how'},[
   el('li',{text:'پیام همین الان در تلگرام به دست سالن می‌رسد.'}),
@@ -871,7 +998,7 @@ function openRequest(){
   el('li',{text:'خود سالن به شماره‌ات زنگ می‌زند'+' یا اگر آیدی تلگرام بدهی، همان‌جا پیام می‌دهد.'})
  ]));
  var form=el('form',{novalidate:'true'});
- var nameWrap=wrapField('name','اسم','text',state.me&&state.me.name||'','',{autocomplete:'name'});
+ var nameWrap=wrapField('name','نام و نام خانوادگی','text',state.me&&state.me.name||'','',{autocomplete:'name'});
  var phoneWrap=wrapField('phone','شمارهٔ موبایل','tel',state.me&&state.me.phone||'','۰۹۱۲۱۲۳۴۵۶۷',{inputmode:'tel',autocomplete:'tel'});
  var tgWrap=wrapField('tgid','آیدی تلگرام (اختیاری)','text',state.me&&state.me.telegram||'','@username',{autocomplete:'off'});
  tgWrap.querySelector('input').setAttribute('dir','ltr');
@@ -882,7 +1009,7 @@ function openRequest(){
   el('label',{class:'check'},[consent,el('span',{text:'موافقم عکس‌ها، اسم و شماره‌ام برای این سالن فرستاده شود. سابقهٔ آن در آینه بعد از ۳۰ روز پاک می‌شود.'})]),submit);
  form.addEventListener('submit',function(e){
   e.preventDefault();
-  var okName=validate(nameWrap,function(){return nameWrap.querySelector('input').value.trim().length>=2},'اسمت را بنویس');
+  var okName=validate(nameWrap,function(){return nameWrap.querySelector('input').value.trim().length>=3},'نام و نام خانوادگی‌ات را بنویس');
   var phoneVal=normalizePhone(phoneWrap.querySelector('input').value);
   var okPhone=validate(phoneWrap,function(){return /^\+989\d{9}$/.test(phoneVal)},'شمارهٔ موبایل درست نیست؛ مثل ۰۹۱۲۱۲۳۴۵۶۷');
   var tg=tgWrap.querySelector('input').value.trim().replace(/^@/,'').replace(/^https?:\/\/t\.me\//,'');
