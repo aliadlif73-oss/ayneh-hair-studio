@@ -77,6 +77,20 @@ const customerCSS=String.raw`
 .photo__bar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:12px;font-size:13.5px;font-weight:600;color:var(--ink-2)}
 .photo__bar span{display:inline-flex;align-items:center;gap:6px}
 .photo__bar span svg{width:18px;height:18px;color:var(--accent)}
+.upl{position:absolute;inset:0;display:grid;align-content:end;justify-items:center;gap:10px;padding:20px;background:linear-gradient(180deg,transparent 45%,rgba(8,32,32,.62));color:#fff;font-weight:700;font-size:14.5px}
+.upl__scan{position:absolute;inset-inline:0;top:-35%;height:35%;background:linear-gradient(180deg,transparent,rgba(255,255,255,.5),transparent);animation:scan 1.5s ease-in-out infinite}
+.upl__bar{width:70%;height:4px;border-radius:2px;background:rgba(255,255,255,.3);overflow:hidden}.upl__bar i{display:block;width:40%;height:100%;border-radius:2px;background:#fff;animation:slide 1.1s ease-in-out infinite}
+@keyframes scan{to{top:100%}}@keyframes slide{0%{transform:translateX(160%)}100%{transform:translateX(-260%)}}
+.photo__badge{position:absolute;left:50%;top:50%;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;display:grid;place-items:center;background:var(--ok);color:#fff;box-shadow:0 0 0 8px rgba(255,255,255,.55),0 14px 30px -10px rgba(0,0,0,.45);animation:pop .55s var(--ease) both}
+.photo__badge svg{width:38px;height:38px}
+@keyframes pop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.12);opacity:1}100%{transform:scale(1)}}
+.photo__auto{height:4px;border-radius:2px;background:#dfe6e3;overflow:hidden;margin-top:14px}.photo__auto i{display:block;height:100%;width:0;background:var(--accent);animation:fill 1.8s linear forwards}
+@keyframes fill{to{width:100%}}
+.selfie{display:flex;align-items:center;gap:10px;padding:8px 10px;margin:0 0 14px;border-radius:16px;background:var(--glass)}
+.selfie img{width:40px;height:52px;object-fit:cover;border-radius:20px 20px 6px 6px;flex:none}
+.selfie div{display:grid;gap:2px}.selfie b{display:flex;align-items:center;gap:5px;font-size:13.5px}.selfie b svg{width:16px;height:16px;color:var(--ok)}.selfie span{font-size:12px;color:var(--muted)}
+.selfie .btn{margin-inline-start:auto}
+@media (prefers-reduced-motion:reduce){.upl__scan,.upl__bar i,.photo__badge{animation:none}.photo__auto i{animation:none;width:100%}}
 
 .collapse{border-top:1px solid var(--line-2);padding-top:12px;font-size:13px;color:var(--muted)}
 .collapse summary{cursor:pointer;font-weight:600;color:var(--ink-2);list-style:none;display:flex;align-items:center;gap:7px}
@@ -216,7 +230,7 @@ const customerCSS=String.raw`
 .tour__count{font-size:12px;color:var(--muted)}
 .tour--still,.tour--still *{animation:none!important;transition:none!important}
 body.is-touring{overflow:hidden}
-.flowcol{display:grid;gap:16px;min-width:0;align-content:start}
+.flowcol{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0;align-content:start}.flowcol>section{min-width:0}
 /* demo before/after */
 .compare--demo{cursor:default;pointer-events:none}
 .demo{flex:none}
@@ -448,6 +462,7 @@ function renderSteps(){
 }
 function go(n){
  if(n===2&&!state.original){toast('اول عکس خودت را اضافه کن');return}
+ if(n!==1)state.justUploaded=false;clearTimeout(state.advT);
  state.step=n;renderSteps();renderFlow();renderDock();
  var f=$('#flow');if(f&&f.scrollIntoView)f.scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -466,7 +481,10 @@ function flowHead(title,sub){
 function openCamera(){var cam=el('input',{type:'file',accept:'image/*',capture:'user'});cam.style.display='none';cam.addEventListener('change',function(){handleFile(cam.files&&cam.files[0],'original');cam.remove()});document.body.append(cam);cam.click()}
 function stepPhoto(){
  var box=el('div',{class:'panel flow'});
- if(!state.original){
+ if(!state.original&&state.preview){
+  box.append(flowHead('دارم عکست را بارگذاری می‌کنم','چند ثانیه صبر کن؛ همین که آماده شد خبرت می‌کنم.'));
+  box.append(el('div',{class:'photo'},[el('div',{class:'mirror'},[el('div',{class:'mirror__glass'},[el('img',{src:state.preview,alt:'عکس انتخابی شما'}),el('div',{class:'upl',role:'status'},[el('span',{class:'upl__scan'}),el('span',{text:'در حال بارگذاری…'}),el('span',{class:'upl__bar'},[el('i')])])])])]));
+ }else if(!state.original){
   box.append(flowHead('اول، عکس خودت','یک عکس روبه‌رو با صورت کامل. مدل انتخابی روی همین عکس امتحان می‌شود.'));
   var input=el('input',{type:'file',accept:'image/jpeg,image/png,image/webp',id:'pick',class:'sr-only'});
   var drop=el('label',{class:'upload',for:'pick'},[
@@ -495,12 +513,14 @@ function stepPhoto(){
   ]);
   box.append(input,el('div',{class:'demo-row'},[demoCompare('demo--small'),el('div',{class:'demo-row__text'},[h('b','این‌طوری می‌شود'),h('span','یک نمونهٔ قبل و بعد. با عکس خودت، همین را روی صورت خودت می‌بینی و بعد برای آرایشگر می‌فرستی.')])]),el('div',{class:'shoot'},[drop,side]));
  }else{
-  box.append(flowHead('عکست آماده است','اگر صورتت کامل و روشن دیده می‌شود، برو سراغ انتخاب مدل.'));
+  var fresh=state.justUploaded;
+  box.append(flowHead(fresh?'عکست بارگذاری شد':'عکست آماده است',fresh?'الان می‌رویم سراغ انتخاب مدل…':'اگر صورتت کامل و روشن دیده می‌شود، برو سراغ انتخاب مدل.'));
   box.append(el('div',{class:'photo'},[
-   el('div',{class:'mirror'},[el('div',{class:'mirror__glass'},[el('img',{src:media(state.original),alt:'عکس انتخابی شما'})])]),
+   el('div',{class:'mirror'},[el('div',{class:'mirror__glass'},[el('img',{src:state.preview||media(state.original),alt:'عکس انتخابی شما'}),fresh?el('span',{class:'photo__badge','aria-hidden':'true',html:ICO.check}):null])]),
+   fresh?el('div',{class:'photo__auto','aria-hidden':'true'},[el('i')]):null,
    el('div',{class:'photo__bar'},[
     el('span',{html:ICO.check+'<span>عکس انتخاب شد</span>'}),
-    el('button',{class:'btn btn--ghost btn--sm',type:'button',onclick:function(){state.original=null;state.result=null;renderFlow();renderDock()},text:'تغییر عکس'})
+    el('button',{class:'btn btn--ghost btn--sm',type:'button',onclick:changePhoto,text:'تغییر عکس'})
    ])
   ]));
   box.append(el('div',{class:'flow__nav'},[
@@ -514,6 +534,7 @@ function pickedBar(text,onRemove){
 }
 function stepModel(){
  var box=el('div',{class:'panel flow'});
+ if(state.original)box.append(el('div',{class:'selfie'},[el('img',{src:state.preview||media(state.original),alt:''}),el('div',{},[el('b',{html:ICO.check+'<span>عکست بارگذاری شد</span>'}),el('span',{text:'مدل انتخابی روی همین عکس امتحان می‌شود.'})]),el('button',{class:'btn btn--ghost btn--sm',type:'button',onclick:function(){changePhoto();go(1)},text:'تغییر'})]));
  box.append(flowHead('مدل و رنگ را انتخاب کن','از کارهای همین سالن، مدل‌های آماده یا عکس مدلی که خودت پیدا کرده‌ای. رنگ را هم می‌توانی جدا بنویسی.'));
  var seg=el('div',{class:'seg',role:'tablist'});
  [['salon','کارهای سالن'],['catalog','مدل‌های آماده'],['upload','عکس مدل من']].forEach(function(x){
@@ -793,7 +814,8 @@ function renderDock(){
  var hint='',primary=null;
  if(state.step===1){
   hint=state.original?'عکس آماده است':'برای شروع، عکس چهره‌ات را اضافه کن';
-  primary=el('button',{class:'btn btn--primary',type:'button',onclick:function(){(state.original?go(2):pickNow())},html:(state.original?ICO.check:ICO.camera)+'<span>'+(state.original?'ادامه':'افزودن عکس')+'</span>'});
+  if(state.busy&&!state.original){hint='در حال بارگذاری عکس…';primary=el('button',{class:'btn btn--primary',type:'button',disabled:true,text:'در حال بارگذاری…'})}
+  else primary=el('button',{class:'btn btn--primary',type:'button',onclick:function(){(state.original?go(2):pickNow())},html:(state.original?ICO.check:ICO.camera)+'<span>'+(state.original?'ادامه':'افزودن عکس')+'</span>'});
  }else if(state.step===2){
   var ready=hasChoice();
   hint=ready?'آماده':'یک مدل انتخاب کن';
@@ -812,14 +834,17 @@ function handleFile(file,kind){
  if(!file){toast('عکسی انتخاب نشد');return}
  if(['image/jpeg','image/png','image/webp'].indexOf(file.type)<0){toast('فقط JPG، PNG یا WebP','error');return}
  state.busy=true;renderDock();
+ if(kind==='original'){try{if(state.preview)URL.revokeObjectURL(state.preview);state.preview=URL.createObjectURL(file)}catch(e){state.preview=null}state.original=null;state.justUploaded=false;clearTimeout(state.advT);if(state.step!==1){state.step=1;renderSteps()}renderFlow()}
  Promise.all([compress(file),ensureSession()]).then(function(r){
   return api('upload?kind='+kind,r[0],true);
  }).then(function(d){
-  if(kind==='original'){track('photo');state.original=d.id;state.result=null;state.error='';state.idem=null;state.step=2}
+  if(kind==='original'){track('photo');state.original=d.id;state.result=null;state.error='';state.idem=null;state.justUploaded=true;
+   state.advT=setTimeout(function(){if(state.step===1&&state.justUploaded){go(2);toast('عکست ثبت شد؛ حالا مدل و رنگ را انتخاب کن')}},1800)}
   else{track('look','u');state.reference=d.id;state.refTitle='';state.style=null;state.result=null;state.error=''}
   renderFlow();renderSteps();renderDock();
- }).catch(function(e){toast(e.message,'error')}).then(function(){state.busy=false;renderDock()});
+ }).catch(function(e){if(kind==='original'&&!state.original){state.preview=null;renderFlow()}toast(e.message,'error')}).then(function(){state.busy=false;renderDock()});
 }
+function changePhoto(){clearTimeout(state.advT);state.justUploaded=false;state.original=null;state.preview=null;state.result=null;renderFlow();renderSteps();renderDock()}
 function compress(file){
  return createImageBitmap(file).then(function(bitmap){
   if(bitmap.width<300||bitmap.height<300){bitmap.close();throw new Error('عکس خیلی کوچک است؛ حداقل ۳۰۰×۳۰۰ پیکسل')}
