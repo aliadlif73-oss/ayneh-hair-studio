@@ -216,6 +216,62 @@ const customerCSS=String.raw`
 .tour__count{font-size:12px;color:var(--muted)}
 .tour--still,.tour--still *{animation:none!important;transition:none!important}
 body.is-touring{overflow:hidden}
+.flowcol{display:grid;gap:16px;min-width:0;align-content:start}
+/* demo before/after */
+.compare--demo{cursor:default;pointer-events:none}
+.demo{flex:none}
+.demo--small{width:118px;padding:4px}
+.demo .compare__tag{font-size:10.5px;padding:1px 8px;bottom:8px}
+.demo .compare__tag--before{right:8px}.demo .compare__tag--after{left:8px}
+.demo-row{display:flex;gap:14px;align-items:center;margin:0 0 18px;padding:10px 14px 10px 10px;border-radius:20px;background:var(--glass)}
+.demo-row__text{display:grid;gap:3px;font-size:13px;line-height:1.85;color:var(--ink-2)}
+.demo-row__text b{font-family:var(--display);font-weight:800;font-size:17px;color:var(--ink)}
+.tour__demo{width:150px;margin:0 auto 16px}
+/* after sending */
+.sent__follow{display:grid;gap:8px;width:100%;margin-top:4px;padding:14px;border-radius:18px;background:var(--glass)}
+.sent__hint{font-size:13px;color:var(--ink-2);line-height:1.85}
+/* your request card */
+.mine{padding:16px 18px;box-shadow:inset 0 3px 0 var(--accent),var(--lift)}
+.mine--booked{box-shadow:inset 0 3px 0 var(--ok),var(--lift)}.mine--declined{box-shadow:inset 0 3px 0 var(--honey),var(--lift)}
+.mine__head{display:flex;gap:12px;align-items:center}
+.mine__icon{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--glass);font-size:20px;flex:none}
+.mine__head b{display:block;font-size:15px}
+.mine__meta{font-size:12.5px;color:var(--muted)}
+.mine__steps{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,1fr);position:relative}
+.mine__steps::before{content:"";position:absolute;top:6px;inset-inline:16%;height:2px;background:var(--line)}
+.mine__steps li{display:grid;justify-items:center;gap:6px;position:relative;font-size:12px;color:var(--muted)}
+.mine__steps li span{width:14px;height:14px;border-radius:50%;background:var(--line);box-shadow:0 0 0 4px var(--surface)}
+.mine__steps li.is-on{color:var(--ink)}.mine__steps li.is-on span{background:var(--accent)}
+.mine__note{font-size:13px;color:var(--ink-2);margin-top:12px;line-height:1.85}
+.mine__actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+/* 360 viewer */
+.spin-wrap{width:min(100%,330px);margin:4px auto 0;padding:6px}
+.spin{position:relative;aspect-ratio:3/4;border-radius:999px 999px 13px 13px;overflow:hidden;background:linear-gradient(170deg,#f4f7f6,#d6dfdb);touch-action:pan-y;user-select:none;-webkit-user-select:none;outline:none}
+.spin:focus-visible{box-shadow:0 0 0 3px var(--accent-ring)}
+.spin.is-ready{cursor:grab}.spin.is-ready:active{cursor:grabbing}
+.spin__layer{position:absolute;inset:0;background-repeat:no-repeat;background-size:400% 200%;opacity:0;transition:opacity .14s linear}
+.spin__layer.is-on{opacity:1}
+.spin__loading{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:14px;padding:20px;text-align:center;transition:opacity .35s var(--ease);perspective:700px}
+.spin.is-ready .spin__loading{opacity:0}
+.spin__orbit{width:58%;aspect-ratio:3/4;border-radius:999px 999px 12px 12px;overflow:hidden;box-shadow:var(--float);animation:sway 3.2s ease-in-out infinite;transform-style:preserve-3d}
+.spin__orbit img{width:100%;height:100%;object-fit:cover}
+@keyframes sway{0%,100%{transform:rotateY(-24deg)}50%{transform:rotateY(24deg)}}
+.spin__ring{position:absolute;left:50%;top:44%;width:84%;aspect-ratio:1;transform:translate(-50%,-50%) rotateX(74deg);border-radius:50%;border:2px dashed rgba(12,107,107,.35);animation:orbit 6s linear infinite;pointer-events:none}
+@keyframes orbit{to{transform:translate(-50%,-50%) rotateX(74deg) rotate(360deg)}}
+.spin__tip{font-size:13px;color:var(--ink-2);min-height:1.8em}
+.spin__track{width:62%;height:4px;border-radius:9px;background:rgba(35,23,15,.1);overflow:hidden}
+.spin__bar{display:block;height:100%;width:2%;background:var(--accent);border-radius:9px;transition:width .4s linear}
+.spin__controls{margin-top:12px;display:grid;gap:12px}.spin__controls[hidden]{display:none}
+.spin__row{display:flex;align-items:center;gap:12px;justify-content:center}
+.spin__dial{position:relative;width:34px;height:34px;border-radius:50%;border:2px solid var(--line);--r:0deg}
+.spin__dial::before{content:"";position:absolute;left:50%;top:-6px;width:2px;height:6px;margin-left:-1px;background:var(--muted);border-radius:2px}
+.spin__dot{position:absolute;inset:0;transform:rotate(var(--r));transition:transform .2s var(--ease)}
+.spin__dot::after{content:"";position:absolute;left:50%;top:2px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--accent)}
+.spin__angle{min-width:58px;font-weight:700;font-size:14px;text-align:center}
+.spin__thumbs{display:grid;grid-template-columns:repeat(8,1fr);gap:5px;max-width:330px;margin:0 auto;width:100%}
+.spin__thumb{aspect-ratio:3/4;border-radius:999px 999px 6px 6px;border:2px solid transparent;background-size:400% 200%;background-repeat:no-repeat;padding:0;opacity:.6;transition:opacity .15s,border-color .15s}
+.spin__thumb.is-on{border-color:var(--accent);opacity:1}
+.spin__note{text-align:center;margin-top:10px}
 .layout--solo{grid-template-columns:minmax(0,1fr)!important;max-width:760px;margin:0 auto}
 .about-btn{display:inline-flex;align-items:center;gap:7px;min-height:42px;padding:0 15px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600;font-size:13.5px}
 .about-btn:hover{border-color:#b3c0bb}
@@ -259,14 +315,6 @@ body.is-touring{overflow:hidden}
 .sent__mark svg{width:32px;height:32px}
 .sent h2{font-family:var(--display);font-weight:800;font-size:24px}
 .sent p{color:var(--ink-2);line-height:1.95;max-width:40ch}
-.spin-wrap{width:min(100%,340px);margin:6px auto 0;padding:6px}
-.spin{position:relative;aspect-ratio:3/4;border-radius:999px 999px 13px 13px;background:linear-gradient(170deg,#f4f7f6,#d6dfdb) no-repeat;background-size:400% 200%;touch-action:pan-y;cursor:grab;user-select:none;display:grid;place-items:center;overflow:hidden}
-.spin.is-ready{cursor:grab}
-.spin:active{cursor:grabbing}
-.spin__wait{display:grid;justify-items:center;gap:12px;color:var(--muted);font-size:13px;text-align:center;padding:20px;line-height:1.8}
-.spin__ring{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--accent);animation:ring 1s linear infinite}
-@keyframes ring{to{transform:rotate(360deg)}}
-.spin__hint{text-align:center;font-size:13px;color:var(--ink-2);margin:12px 0 4px}
 .fatal{display:grid;gap:14px;justify-items:start;padding:28px;margin:40px auto;max-width:460px}
 .fatal h1{font-family:var(--display);font-weight:800;font-size:26px}
 `;
@@ -319,6 +367,11 @@ function toast(msg,kind){
 }
 function svg(name){return el('span',{html:ICO[name]||'',class:'ico'})}
 
+/* ---------- anonymous usage events (no name, phone or photo) ---------- */
+var VISITOR=(function(){var v='';try{v=localStorage.getItem('ayneh-v')||''}catch(e){}if(!/^[a-f0-9]{32}$/.test(v)){v=Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)),function(b){return b.toString(16).padStart(2,'0')}).join('');try{localStorage.setItem('ayneh-v',v)}catch(e){}}return v})();
+var tracked={};
+function track(kind,meta,once){if(once){if(tracked[kind+meta])return;tracked[kind+meta]=1}try{fetch('/api/s/'+SLUG+'/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:kind,v:VISITOR,meta:meta==null?'':String(meta)}),keepalive:true}).catch(function(){})}catch(e){}}
+
 /* ---------- boot ---------- */
 (async function boot(){
  try{state.pub=await api('public')}catch(e){showFatal(e.message);return}
@@ -326,7 +379,9 @@ function svg(name){return el('span',{html:ICO[name]||'',class:'ico'})}
  renderHead();renderSteps();renderFlow();renderSide();renderDock();
  var pending=sessionStorage.getItem('ayneh-job-'+SLUG);
  if(pending){state.gen=pending;state.step=3;state.busy=true;renderFlow();renderDock();poll(pending,true)}
+ track('view','',true);
  maybeTour();
+ loadMine();
 })();
 
 function showFatal(msg){
@@ -352,6 +407,7 @@ function renderHead(){
 
 /* ---------- about the salon: every detail lives here ---------- */
 function openAbout(){
+ track('about');
  var s=state.pub.salon,p=s.profile||{};
  var panel=el('div',{class:'sheet__panel about'});
  panel.append(el('div',{class:'sheet__head'},[h('h2',s.name),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:closeSheet})]));
@@ -437,7 +493,7 @@ function stepPhoto(){
     h('p','عکس فقط برای همین سالن استفاده می‌شود، دسترسی عمومی ندارد و حداکثر بعد از ۳۰ روز حذف می‌شود. برای شبیه‌سازی، نسخهٔ فشردهٔ عکس به سرویس تصویر ارسال می‌شود.')
    ])
   ]);
-  box.append(input,el('div',{class:'shoot'},[drop,side]));
+  box.append(input,el('div',{class:'demo-row'},[demoCompare('demo--small'),el('div',{class:'demo-row__text'},[h('b','این‌طوری می‌شود'),h('span','یک نمونهٔ قبل و بعد. با عکس خودت، همین را روی صورت خودت می‌بینی و بعد برای آرایشگر می‌فرستی.')])]),el('div',{class:'shoot'},[drop,side]));
  }else{
   box.append(flowHead('عکست آماده است','اگر صورتت کامل و روشن دیده می‌شود، برو سراغ انتخاب مدل.'));
   box.append(el('div',{class:'photo'},[
@@ -479,7 +535,7 @@ function stepModel(){
      el('span',{class:'mirror'},[el('span',{class:'mirror__glass',style:'display:block'},[el('img',{src:media(imgs[0]),alt:p.title,loading:'lazy'})])]),
      el('span',{class:'pc-name',text:p.title})
     ]);
-    card.addEventListener('click',function(){state.reference=imgs[0];state.refTitle=p.title;state.style=null;state.transfer='both';state.result=null;renderFlow();renderDock()});
+    card.addEventListener('click',function(){track('look','s:'+p.title);state.reference=imgs[0];state.refTitle=p.title;state.style=null;state.transfer='both';state.result=null;renderFlow();renderDock()});
     rail.append(card);
    });
    box.append(rail);
@@ -506,7 +562,7 @@ function stepModel(){
     art,
     el('span',{class:'style-card__body'},[el('span',{class:'style-card__name',text:s[0]}),el('span',{class:'style-card__tag',text:s[2]})])
    ]);
-   card.addEventListener('click',function(){state.style=i;state.reference=null;state.refTitle='';state.result=null;renderFlow();renderDock()});
+   card.addEventListener('click',function(){track('look','c:'+i);state.style=i;state.reference=null;state.refTitle='';state.result=null;renderFlow();renderDock()});
    grid.append(card);
   });
   box.append(grid);
@@ -541,7 +597,7 @@ function stepModel(){
 /* ---------- colour box with suggestions ---------- */
 var COLORS=[
  ['مشکی','#151515'],['مشکی کلاغی','#0f1420'],['مشکی آبی','#141a2c'],['قهوه‌ای تیره','#3b2518'],['قهوه‌ای متوسط','#5e3c25'],['قهوه‌ای روشن','#7a5233'],
- ['شکلاتی','#4b2b1c'],['شکلاتی تلخ','#33201a'],['شکلاتی گرم','#5a321e'],['موکا','#6a4a37'],['نسکافه‌ای','#8d6646'],['فندقی','#8b5a2b'],['قهوه‌ای دودی','#5a4a42'],['قهوه‌ای سرد','#54443c'],
+ ['شکلاتی','#4b2b1c'],['شکلاتی تلخ','#33201a'],['شکلاتی گرم','#5a321e'],['موکا','#6a4a37'],['نسکافه‌ای','#8d6646'],['فندقی','#8b5a2b'],['قهوه‌ای دودی','#5a4a42'],['دودی زیتونی','#6b6450'],['زیتونی','#6b6a3f'],['شکلاتی دودی','#4a3a33'],['نسکافه‌ای دودی','#7d6a5a'],['قهوه‌ای سرد','#54443c'],
  ['کاراملی','#a86c34'],['عسلی','#b8803a'],['عسلی طلایی','#c99a45'],['بلوند عسلی','#c8913f'],['بلوند کاراملی','#b9864f'],['بلوند طلایی','#d8b064'],['بلوند شامپاینی','#e2cfa5'],
  ['بلوند بژ','#d4bc96'],['بلوند روشن','#ddc28c'],['بلوند خیلی روشن','#ecdcb4'],['بلوند تیره','#9e7a4a'],['بلوند دودی','#b6aa96'],['بلوند خاکستری','#c9c2b0'],['بلوند نقره‌ای','#dcd8cc'],
  ['بلوند یخی','#e8e6dd'],['پلاتینه','#ece8dc'],['بلوند توت‌فرنگی','#d79a72'],['بلوند رزگلد','#d9a19a'],
@@ -550,9 +606,9 @@ var COLORS=[
  ['رزگلد','#c98c7a'],['صورتی پاستلی','#e8b4c4'],['آبی دودی','#5a6e86'],['آبی نفتی','#23465c'],['نقره‌ای','#c4c4c2'],['خاکستری','#a9a9a6'],['سفید یخی','#ebebe8'],
  ['بالیاژ عسلی','#3b2518,#c8913f'],['بالیاژ کاراملی','#4b2b1c,#b9864f'],['بالیاژ شامپاینی','#5e3c25,#e2cfa5'],['بالیاژ سرد','#3b3430,#d6d2c6'],['بالیاژ مسی','#4b2b1c,#c87a45'],
  ['آمبره قهوه‌ای به بلوند','#3b2518,#ddc28c'],['آمبره شرابی','#33201a,#7a1f2b'],['آمبره دودی','#2b2622,#b6aa96'],['سامبره','#5e3c25,#b8803a'],
- ['هایلایت طلایی','#5e3c25,#d8b064'],['هایلایت نقره‌ای','#4b4540,#dcd8cc'],['لایت عسلی','#7a5233,#c8913f'],['لایت دودی','#5a4a42,#c9c2b0'],['بیبی لایت','#8b5a2b,#ddc28c']
+ ['هایلایت طلایی','#5e3c25,#d8b064'],['مش دودی','#4b4540,#b6aa96'],['مش عسلی','#5e3c25,#c8913f'],['بالیاژ دودی','#2b2622,#a59a8c'],['هایلایت نقره‌ای','#4b4540,#dcd8cc'],['لایت عسلی','#7a5233,#c8913f'],['لایت دودی','#5a4a42,#c9c2b0'],['بیبی لایت','#8b5a2b,#ddc28c']
 ];
-var POPULAR=['بالیاژ عسلی','بلوند شامپاینی','شکلاتی','کاراملی','قهوه‌ای دودی','مسی','شرابی','پلاتینه'];
+var POPULAR=['دودی زیتونی','نسکافه‌ای','بالیاژ عسلی','شکلاتی','مش دودی','کاراملی','بلوند شامپاینی','شرابی'];
 function normFa(s){return String(s||'').replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[‌\s]/g,'')}
 function swatch(hex){var c=hex.split(',');return el('span',{class:'swatch',style:'background:'+(c.length>1?'linear-gradient(135deg,'+c[0]+' 0 45%,'+c[1]+' 55%)':c[0])})}
 function colorPicker(){
@@ -561,7 +617,7 @@ function colorPicker(){
  var list=el('ul',{class:'color__list',id:'color-list',role:'listbox',hidden:true});
  var clear=el('button',{class:'color__clear',type:'button','aria-label':'پاک کردن رنگ',text:'×',hidden:!state.color});
  var active=-1,shown=[];
- function pick(name){state.color=name;input.value=name;clear.hidden=false;close();state.result=null}
+ function pick(name){track('color',name);state.color=name;input.value=name;clear.hidden=false;close();state.result=null}
  function close(){list.hidden=true;input.setAttribute('aria-expanded','false');active=-1}
  function render(){
   var q=normFa(input.value);
@@ -632,7 +688,7 @@ function ratingBlock(){
  wrap.append(stars);
  return wrap;
 }
-function saveRating(n){try{localStorage.setItem('ayneh-rating-'+state.result,String(n))}catch(e){}}
+function saveRating(n){try{localStorage.setItem('ayneh-rating-'+state.result,String(n))}catch(e){}track('rating',n+':'+(state.gen||''))}
 function notice(kind,text){
  var map={info:ICO.info,warn:ICO.warn,danger:ICO.warn,ok:ICO.check};
  return el('div',{class:'notice notice--'+kind,style:'margin-top:14px'},[el('span',{html:map[kind]||ICO.info}),el('span',{text:text})]);
@@ -759,8 +815,8 @@ function handleFile(file,kind){
  Promise.all([compress(file),ensureSession()]).then(function(r){
   return api('upload?kind='+kind,r[0],true);
  }).then(function(d){
-  if(kind==='original'){state.original=d.id;state.result=null;state.error='';state.idem=null;state.step=2}
-  else{state.reference=d.id;state.refTitle='';state.style=null;state.result=null;state.error=''}
+  if(kind==='original'){track('photo');state.original=d.id;state.result=null;state.error='';state.idem=null;state.step=2}
+  else{track('look','u');state.reference=d.id;state.refTitle='';state.style=null;state.result=null;state.error=''}
   renderFlow();renderSteps();renderDock();
  }).catch(function(e){toast(e.message,'error')}).then(function(){state.busy=false;renderDock()});
 }
@@ -810,6 +866,7 @@ function generate(){
   state.idem=state.idem||uuid();
   return api('generate',{image_consent:true,idem:state.idem,original_id:state.original,reference_id:state.reference||undefined,style:state.reference!==null?undefined:state.style,transfer:state.transfer,color:state.color||undefined});
  }).then(function(job){
+  track('generate',state.reference?(state.refTitle?'salon':'upload'):'catalog');
   state.gen=job.id;state.genState=job.state;state.step=3;
   try{sessionStorage.setItem('ayneh-job-'+SLUG,job.id)}catch(e){}
   renderFlow();renderDock();
@@ -843,6 +900,7 @@ function poll(id,resumed){
   return api('generation/'+id).then(function(d){
    state.genState=d.state;
    if(d.state==='success'){
+    track('result','',true);
     state.result=d.result_id;state.busy=false;state.idem=null;state.pct=100;
     try{sessionStorage.removeItem('ayneh-job-'+SLUG)}catch(e){}
     state.rating=Number(localStorage.getItem('ayneh-rating-'+d.result_id)||0);
@@ -850,6 +908,7 @@ function poll(id,resumed){
     return;
    }
    if(d.state==='fail'||d.state==='unknown'){
+    track('gen_fail',d.state);
     state.busy=false;state.error=d.state==='fail'?'سرویس تصویر نتوانست خروجی بسازد. می‌توانی دوباره تلاش کنی.':friendly('وضعیت نامشخص');
     renderFlow();renderDock();return;
    }
@@ -863,35 +922,109 @@ function poll(id,resumed){
  return tick();
 }
 /* ---------- 360° view: 8 estimated angles played as a drag-to-turn spin ---------- */
+/* ---------- 360° view: 8 estimated angles, played like a turntable ---------- */
+// Drag (with momentum), tap a thumbnail, use the arrow keys, or let it turn on its own.
+// While the angles are being made, the result itself sways in 3D so the wait feels alive.
 function openViews(){
+ track('view360');
  if(!state.gen)return;
- var panel=el('div',{class:'sheet__panel'});
- panel.append(el('div',{class:'sheet__head'},[h('h2','نمای ۳۶۰ درجه'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:closeSheet})]));
- var stage=el('div',{class:'spin',tabindex:'0',role:'img','aria-label':'نمای چرخشی مدل مو؛ برای چرخاندن بکش یا از کلیدهای جهت استفاده کن'});
- var status=el('div',{class:'spin__wait'},[el('span',{class:'spin__ring'}),el('span',{text:'در حال ساخت نماها… حدود یک دقیقه'})]);
- stage.append(status);
- var frame=0,label=h('p','برای چرخاندن، انگشتت را روی تصویر بکش','spin__hint');
- function show(n){frame=(n%8+8)%8;stage.style.backgroundPosition=((frame%4)*100/3)+'% '+(Math.floor(frame/4)*100)+'%';}
- var startX=null,startFrame=0;
- stage.addEventListener('pointerdown',function(e){if(!stage.classList.contains('is-ready'))return;startX=e.clientX;startFrame=frame;stage.setPointerCapture(e.pointerId);stop()});
- stage.addEventListener('pointermove',function(e){if(startX===null)return;show(startFrame+Math.round((startX-e.clientX)/28))});
- stage.addEventListener('pointerup',function(){startX=null});
- stage.addEventListener('pointercancel',function(){startX=null});
- stage.addEventListener('keydown',function(e){if(e.key==='ArrowLeft'){show(frame+1);stop()}if(e.key==='ArrowRight'){show(frame-1);stop()}});
- var timer=null;function stop(){clearInterval(timer)}
- function ready(id){stage.style.backgroundImage='url('+media(id)+')';stage.classList.add('is-ready');status.remove();show(0);var n=0;timer=setInterval(function(){show(frame+1);if(++n>=8)stop()},160)}
- panel.append(el('div',{class:'mirror spin-wrap'},[stage]),label,h('p','زاویه‌هایی که در عکس تو دیده نمی‌شوند تخمینی‌اند؛ این اسکن سه‌بعدی نیست.','tiny muted'));
+ var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ var ANG=['جلو','۴۵°','نیم‌رخ','۱۳۵°','پشت','۲۲۵°','نیم‌رخ','۳۱۵°'];
+ var panel=el('div',{class:'sheet__panel spin-panel'});
+ panel.append(el('div',{class:'sheet__head'},[h('h2','از همهٔ زاویه‌ها'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:closeSheet})]));
+ var a=el('div',{class:'spin__layer'}),b=el('div',{class:'spin__layer'});
+ var stage=el('div',{class:'spin',tabindex:'0',role:'img','aria-label':'نمای چرخشی مدل مو؛ برای چرخاندن بکش یا از کلیدهای جهت استفاده کن'},[a,b]);
+ var tip=el('p',{class:'spin__tip',text:'دارم زاویه‌های دیگر را می‌سازم…'}),bar=el('span',{class:'spin__bar'});
+ var loading=el('div',{class:'spin__loading'},[el('div',{class:'spin__orbit'},[el('img',{src:media(state.result),alt:''})]),el('span',{class:'spin__ring'}),tip,el('span',{class:'spin__track'},[bar])]);
+ stage.append(loading);
+ var angle=el('span',{class:'spin__angle',text:''});
+ var dial=el('div',{class:'spin__dial','aria-hidden':'true'},[el('span',{class:'spin__dot'})]);
+ var thumbs=el('div',{class:'spin__thumbs',role:'group','aria-label':'زاویه‌ها'});
+ var play=el('button',{class:'btn btn--ghost btn--sm spin__play',type:'button',text:'⏸ توقف'});
+ var controls=el('div',{class:'spin__controls',hidden:true},[el('div',{class:'spin__row'},[dial,angle,play]),thumbs]);
+ panel.append(el('div',{class:'mirror spin-wrap'},[stage]),controls,h('p','زاویه‌هایی که در عکس تو دیده نمی‌شوند تخمینی‌اند؛ این اسکن سه‌بعدی نیست.','tiny muted spin__note'));
  openSheet(panel);
+ var frame=0,front=a,timer=null,spinTimer=null,tipTimer=null,progTimer=null,src='';
+ function pos(n){return ((n%4)*100/3)+'% '+(Math.floor(n/4)*100)+'%'}
+ function show(n,instant){
+  frame=(n%8+8)%8;var back=front===a?b:a;back.style.backgroundPosition=pos(frame);
+  if(instant||reduce){front.style.backgroundPosition=pos(frame)}else{back.classList.add('is-on');front.classList.remove('is-on');front=back}
+  angle.textContent=ANG[frame];dial.style.setProperty('--r',(frame*45)+'deg');
+  Array.prototype.forEach.call(thumbs.children,function(t,i){t.classList.toggle('is-on',i===frame);t.setAttribute('aria-pressed',i===frame?'true':'false')});
+ }
+ function auto(on){clearInterval(spinTimer);spinTimer=null;play.textContent=on?'⏸ توقف':'▶ چرخش';if(on&&!reduce)spinTimer=setInterval(function(){if(!panel.isConnected){cleanup();return}show(frame+1)},420)}
+ function cleanup(){clearInterval(spinTimer);clearInterval(tipTimer);clearInterval(progTimer);cancelAnimationFrame(timer)}
+ play.addEventListener('click',function(){auto(!spinTimer)});
+ var drag=null;
+ stage.addEventListener('pointerdown',function(e){if(!src)return;auto(false);cancelAnimationFrame(timer);drag={x:e.clientX,f:frame,t:performance.now(),v:0,lx:e.clientX};try{stage.setPointerCapture(e.pointerId)}catch(err){}});
+ stage.addEventListener('pointermove',function(e){if(!drag)return;var now=performance.now(),dt=Math.max(1,now-drag.t);drag.v=(drag.lx-e.clientX)/dt;drag.lx=e.clientX;drag.t=now;var f=drag.f+Math.round((drag.x-e.clientX)/32);if(f!==frame)show(f,true)});
+ function release(){if(!drag)return;var v=drag.v;drag=null;if(reduce||Math.abs(v)<0.25)return;var acc=0,last=performance.now();
+  (function coast(now){var dt=now-last;last=now;acc+=v*dt/32;v*=Math.pow(0.992,dt);if(Math.abs(acc)>=1){var s=acc>0?1:-1;show(frame+s,true);acc-=s}if(Math.abs(v)>0.05&&panel.isConnected)timer=requestAnimationFrame(coast)})(last)}
+ stage.addEventListener('pointerup',release);stage.addEventListener('pointercancel',release);
+ stage.addEventListener('keydown',function(e){if(!src)return;if(e.key==='ArrowLeft'){auto(false);show(frame+1)}if(e.key==='ArrowRight'){auto(false);show(frame-1)}if(e.key===' '){e.preventDefault();auto(!spinTimer)}});
+ function ready(id){
+  src=media(id);[a,b].forEach(function(l){l.style.backgroundImage='url('+src+')'});
+  thumbs.replaceChildren();for(var i=0;i<8;i++)(function(n){var t=el('button',{class:'spin__thumb',type:'button','aria-label':'زاویهٔ '+ANG[n],style:'background-image:url('+src+');background-position:'+pos(n)});t.addEventListener('click',function(){auto(false);show(n)});thumbs.append(t)})(i);
+  clearInterval(tipTimer);clearInterval(progTimer);bar.style.width='100%';
+  stage.classList.add('is-ready');a.classList.add('is-on');controls.hidden=false;
+  setTimeout(function(){loading.remove()},reduce?0:350);
+  show(0,true);auto(true);
+ }
+ var tips=['دارم پشت سرت را می‌سازم…','نیم‌رخ چپ…','نیم‌رخ راست…','هماهنگ‌کردن نور و رنگ مو…','تقریباً آماده است…'],ti=0,started=Date.now();
+ tipTimer=setInterval(function(){if(!panel.isConnected){cleanup();return}tip.textContent=tips[ti++%tips.length]},2400);
+ progTimer=setInterval(function(){bar.style.width=Math.min(95,(Date.now()-started)/600)+'%'},400);
  if(state.views&&state.views.gen===state.gen){ready(state.views.id);return}
  api('views',{parent:state.gen,idem:state.viewsIdem||(state.viewsIdem=uuid())}).then(function(job){
   var tries=0;
-  function check(){return api('generation/'+job.id).then(function(d){
+  function check(){if(!panel.isConnected)return;return api('generation/'+job.id).then(function(d){
    if(d.state==='success'){state.views={gen:state.gen,id:d.result_id};state.viewsIdem=null;ready(d.result_id);return}
-   if(d.state==='fail'||d.state==='unknown'||++tries>40){status.replaceChildren(el('span',{text:'ساخت نماها ممکن نشد؛ کمی بعد دوباره امتحان کن.'}));state.viewsIdem=null;return}
+   if(d.state==='fail'||d.state==='unknown'||++tries>40){cleanup();tip.textContent='ساخت زاویه‌ها ممکن نشد؛ کمی بعد دوباره امتحان کن.';state.viewsIdem=null;return}
    return sleep(3000).then(check);
   })}
   return check();
- }).catch(function(e){status.replaceChildren(el('span',{text:e.message}))});
+ }).catch(function(e){cleanup();tip.textContent=e.message});
+}
+
+/* ---------- demo before/after, shown before we ask for a photo ---------- */
+// Uses /catalog/demo-before.webp and demo-after.webp (made by the catalog workflow); if they are
+// missing, nothing is shown. The line sweeps by itself; reduced motion keeps it still.
+function demoCompare(cls){
+ var wrap=el('div',{class:'compare compare--demo'},[el('img',{src:'/catalog/demo-before.webp',alt:'نمونه: قبل',draggable:'false'}),el('div',{class:'compare__after'},[el('img',{src:'/catalog/demo-after.webp',alt:'نمونه: بعد',draggable:'false'})]),el('div',{class:'compare__handle'}),el('span',{class:'compare__tag compare__tag--before',text:'قبل'}),el('span',{class:'compare__tag compare__tag--after',text:'بعد'})]);
+ var box=el('div',{class:'mirror demo '+(cls||'')},[wrap]),fails=0;
+ Array.prototype.forEach.call(wrap.querySelectorAll('img'),function(i){i.addEventListener('error',function(){if(++fails===1)box.remove()})});
+ wrap.style.setProperty('--x','62%');
+ if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){var t0=performance.now(),seen=false,raf=0;
+  function tick(now){if(!box.isConnected)return;wrap.style.setProperty('--x',(50+30*Math.sin((now-t0)/1100))+'%');raf=requestAnimationFrame(tick)}
+  var io=window.IntersectionObserver?new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){if(!seen){seen=true;track('demo','',true)}cancelAnimationFrame(raf);raf=requestAnimationFrame(tick)}else cancelAnimationFrame(raf)})}):null;
+  if(io)setTimeout(function(){io.observe(box)},0);else raf=requestAnimationFrame(tick);
+ }
+ return box;
+}
+
+/* ---------- "your request" card: what the salon did with it ---------- */
+var MINE={new:['⏳','فرستاده شد؛ منتظر تماس سالن باش','sent'],called:['📞','سالن گفته با تو تماس گرفته','called'],booked:['🎉','نوبتت هماهنگ شد','booked'],declined:['✋','سالن گفت این مدل در سالن اجرا نمی‌شود','declined']};
+function loadMine(){
+ var flag=null;try{flag=localStorage.getItem('ayneh-sent-'+SLUG)}catch(e){}
+ if(!flag&&!state.sentOnce)return;
+ api('requests').then(function(d){renderMine(d)}).catch(function(){});
+}
+function renderMine(d){
+ var box=$('#mine');if(!box)return;var r=(d.requests||[])[0];if(!r){box.hidden=true;return}
+ var st=MINE[r.salon_status]||MINE.new,late=r.salon_status==='new'&&Date.now()-r.created_at>86400000;
+ var steps=['فرستاده شد','سالن جواب داد','نوبت'],reached=r.salon_status==='booked'?3:(r.salon_status==='new'?1:2);
+ var follow=null;try{follow=JSON.parse(localStorage.getItem('ayneh-follow-'+SLUG)||'null')}catch(e){}
+ var tel=d.phone?String(d.phone).replace(/^\+98/,'0'):'';
+ var actions=el('div',{class:'mine__actions'});
+ if((late||r.salon_status==='called')&&tel)actions.append(el('a',{class:'btn btn--primary btn--sm',href:'tel:'+tel,html:ICO.phone+'<span>تماس با سالن</span>'}));
+ if(r.salon_status==='declined')actions.append(el('button',{class:'btn btn--soft btn--sm',type:'button',onclick:function(){go(state.original?2:1)},text:'امتحان یک مدل دیگر'}));
+ if(!r.followed&&follow&&r.salon_status==='new'){if(follow.telegram)actions.append(el('a',{class:'btn btn--ghost btn--sm',href:follow.telegram,target:'_blank',rel:'noopener',onclick:function(){track('follow','telegram')},text:'خبرم کن در تلگرام'}));if(follow.bale)actions.append(el('a',{class:'btn btn--ghost btn--sm',href:follow.bale,target:'_blank',rel:'noopener',onclick:function(){track('follow','bale')},text:'خبرم کن در بله'}))}
+ box.replaceChildren(el('div',{class:'panel mine mine--'+st[2]},[
+  el('div',{class:'mine__head'},[el('span',{class:'mine__icon','aria-hidden':'true',text:st[0]}),el('div',{},[h('b',late?'سالن هنوز جواب نداده':st[1]),h('span',(r.look?r.look+'، ':'')+fmt(r.created_at),'mine__meta')])]),
+  el('ol',{class:'mine__steps'},steps.map(function(t,i){return el('li',{class:i<reached?'is-on':''},[el('span',{}),el('b',{text:t})])})),
+  late?h('p','معمولاً سالن‌ها در یکی دو روز تماس می‌گیرند. اگر عجله داری، مستقیم زنگ بزن.','mine__note'):null,
+  actions.childNodes.length?actions:null
+ ]));
+ box.hidden=false;
 }
 
 /* ---------- first-visit tour: welcome card, then a spotlight that glides between parts ---------- */
@@ -911,18 +1044,19 @@ function maybeTour(){try{if(localStorage.getItem(TOUR_KEY))return}catch(e){retur
 function startTour(){
  if($('.tour'))return;
  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ track('tour_start');
  var root=el('div',{class:'tour'+(reduce?' tour--still':''),role:'dialog','aria-modal':'true','aria-labelledby':'tour-title'});
  var spot=el('div',{class:'tour__spot','aria-hidden':'true'});
  var card=el('div',{class:'tour__card',tabindex:'-1'});
  root.append(spot,card);document.body.append(root);document.body.classList.add('is-touring');
  var steps=[],i=-1,lastFocus=document.activeElement;
- function done(){try{localStorage.setItem(TOUR_KEY,'1')}catch(e){}window.removeEventListener('resize',place);window.removeEventListener('keydown',keys);root.classList.add('is-leaving');setTimeout(function(){root.remove();document.body.classList.remove('is-touring')},reduce?0:220);if(lastFocus&&lastFocus.focus)lastFocus.focus()}
+ function done(how){track(how==='done'?'tour_done':'tour_skip');try{localStorage.setItem(TOUR_KEY,'1')}catch(e){}window.removeEventListener('resize',place);window.removeEventListener('keydown',keys);root.classList.add('is-leaving');setTimeout(function(){root.remove();document.body.classList.remove('is-touring')},reduce?0:220);if(lastFocus&&lastFocus.focus)lastFocus.focus()}
  function keys(e){if(e.key==='Escape')done();else if(i>=0&&(e.key==='ArrowLeft'))go(i+1);else if(i>0&&e.key==='ArrowRight')go(i-1)}
  window.addEventListener('keydown',keys);
  function welcome(){
   root.classList.add('tour--welcome');
   card.replaceChildren(
-   el('div',{class:'tour__mirror','aria-hidden':'true'},[el('span',{class:'tour__shine'}),el('span',{class:'tour__mark',html:MARK})]),
+   demoCompare('tour__demo')||null,
    el('h2',{id:'tour-title',class:'tour__title',text:'به آینه خوش آمدی'}),
    el('p',{class:'tour__text',text:'قبل از اینکه روی صندلی «'+state.pub.salon.name+'» بنشینی، مدل و رنگ موی بعدی‌ات را روی عکس خودت ببین.'}),
    el('ol',{class:'tour__path'},[
@@ -949,7 +1083,7 @@ function startTour(){
    el('div',{class:'tour__nav'},[
     i>0?el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'قبلی',onclick:function(){go(i-1)}}):el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'رد شو',onclick:done}),
     el('span',{class:'tour__count',text:fa(i+1)+' از '+fa(steps.length)}),
-    el('button',{class:'btn btn--primary btn--sm',type:'button',text:s.last?'شروع کنیم':'بعدی',onclick:function(){if(s.last){done();var p=$('#pick');if(p&&!state.original)setTimeout(function(){var u=$('#flow .upload');if(u)u.scrollIntoView({block:'center',behavior:'smooth'})},250)}else go(i+1)}})
+    el('button',{class:'btn btn--primary btn--sm',type:'button',text:s.last?'شروع کنیم':'بعدی',onclick:function(){if(s.last){done('done');var p=$('#pick');if(p&&!state.original)setTimeout(function(){var u=$('#flow .upload');if(u)u.scrollIntoView({block:'center',behavior:'smooth'})},250)}else go(i+1)}})
    ])
   );
   setTimeout(place,reduce?0:320);place();card.focus({preventScroll:true});
@@ -1050,6 +1184,7 @@ function openOtp(next){
 
 /* ---------- send to the salon (Telegram) ---------- */
 function openRequest(){
+ track('send_open');
  if(!state.original){toast('اول عکس خودت را اضافه کن');go(1);return}
  var s=state.pub.salon,p=s.profile||{};
  var panel=el('div',{class:'sheet__panel'});
@@ -1103,14 +1238,19 @@ function openRequest(){
   try{localStorage.setItem('ayneh-me',JSON.stringify(state.me))}catch(err){}
   ensureSession().then(function(){
    state.sendIdem=state.sendIdem||uuid();
-   return api('leads',{data_consent:true,idem:state.sendIdem,name:state.me.name,phone:phoneVal,telegram:tg,note:note.value,original_id:state.original,reference_id:state.reference||undefined,preview_id:state.result||undefined,look:lookName(),color:state.color||''});
+   return api('leads',{data_consent:true,idem:state.sendIdem,name:state.me.name,phone:phoneVal,telegram:tg,note:note.value,original_id:state.original,reference_id:state.reference||undefined,preview_id:state.result||undefined,look:lookName(),color:state.color||'',v:VISITOR});
   }).then(function(d){
    state.sendIdem=null;
+   var follow=d.follow||{},fl=[];state.sentOnce=true;try{localStorage.setItem('ayneh-sent-'+SLUG,'1');localStorage.setItem('ayneh-follow-'+SLUG,JSON.stringify(follow))}catch(err){}
+   if(follow.telegram)fl.push(el('a',{class:'btn btn--primary btn--block',href:follow.telegram,target:'_blank',rel:'noopener',onclick:function(){track('follow','telegram')},html:ICO.send+'<span>خبرم کن در تلگرام</span>'}));
+   if(follow.bale)fl.push(el('a',{class:'btn btn--soft btn--block',href:follow.bale,target:'_blank',rel:'noopener',onclick:function(){track('follow','bale')},html:ICO.send+'<span>خبرم کن در بله</span>'}));
+   setTimeout(loadMine,600);
    panel.replaceChildren(el('div',{class:'sent'},[
     el('span',{class:'sent__mark',html:ICO.check}),
     h('h2',d.delivered?'برای سالن فرستاده شد':'در صف ارسال است'),
     h('p',d.delivered?'«'+s.name+'» عکس و مدلت را در تلگرام دریافت کرد. منتظر تماس سالن'+(tg?' یا پیامش در تلگرام':'')+' باش.':'تلگرام الان جواب نداد؛ درخواستت ذخیره شد و چند دقیقهٔ دیگر خودکار برای سالن فرستاده می‌شود.'),
-    el('button',{class:'btn btn--primary btn--block',type:'button',onclick:closeSheet,text:'باشه'})
+    fl.length?el('div',{class:'sent__follow'},[h('p','می‌خواهی وقتی سالن جواب داد خبردار شوی؟ یک بار ربات را باز کن و Start بزن.','sent__hint')].concat(fl)):null,
+    el('button',{class:fl.length?'btn btn--ghost btn--block':'btn btn--primary btn--block',type:'button',onclick:closeSheet,text:fl.length?'نه، ممنون':'باشه'})
    ]));
   }).catch(function(err){submit.disabled=false;submit.innerHTML=ICO.send+'<span>فرستادن</span>';if(needsVerify(err.message)){state.verified=false;openOtp(openRequest);return}toast(err.message,'error')});
  });
@@ -1171,7 +1311,8 @@ export const customerHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><h
 <nav class="steps" id="steps" aria-label="مراحل" hidden></nav>
 <main class="wrap" id="main">
  <div class="layout">
-  <section id="flow" aria-live="polite"><div class="panel flow"><div class="skel" style="height:26px;width:46%"></div><div class="skel" style="width:min(100%,280px);aspect-ratio:3/4;margin:20px auto 0;border-radius:999px 999px 18px 18px"></div></div></section>
+  <div class="flowcol"><section id="mine" aria-live="polite" hidden></section>
+  <section id="flow" aria-live="polite"><div class="panel flow"><div class="skel" style="height:26px;width:46%"></div><div class="skel" style="width:min(100%,280px);aspect-ratio:3/4;margin:20px auto 0;border-radius:999px 999px 18px 18px"></div></div></section></div>
   <aside class="side" id="side" aria-label="دربارهٔ سالن"></aside>
  </div>
  <footer class="foot" id="foot" style="padding-bottom:130px">شبیه‌سازی پیشنهادی است و اجرای دقیق را تضمین نمی‌کند. عکس‌ها فقط برای همین سالن استفاده می‌شوند و حداکثر ۳۰ روز نگه داشته می‌شوند.</footer>
