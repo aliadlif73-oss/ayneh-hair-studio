@@ -90,6 +90,7 @@ const customerCSS=String.raw`
 .selfie img{width:40px;height:52px;object-fit:cover;border-radius:20px 20px 6px 6px;flex:none}
 .selfie div{display:grid;gap:2px}.selfie b{display:flex;align-items:center;gap:5px;font-size:13.5px}.selfie b svg{width:16px;height:16px;color:var(--ok)}.selfie span{font-size:12px;color:var(--muted)}
 .selfie .btn{margin-inline-start:auto}
+.pc-by{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
 #invite{margin:22px 0 0}
 .invite{position:relative;overflow:hidden;display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;width:100%;padding:20px;border:0;border-radius:var(--r-lg);background:radial-gradient(120% 140% at 100% 0,#16716f 0,#0c4f50 55%,#083a3b 100%);color:#fff;text-align:start;font:inherit;cursor:pointer;box-shadow:0 22px 40px -24px rgba(7,60,60,.9);transition:transform .2s var(--ease)}
 .invite:hover{transform:translateY(-2px)}.invite:focus-visible{outline:3px solid var(--honey);outline-offset:3px}
@@ -411,11 +412,16 @@ function track(kind,meta,once){if(once){if(tracked[kind+meta])return;tracked[kin
 /* ---------- boot ---------- */
 (async function boot(){
  try{state.pub=await api('public')}catch(e){showFatal(e.message);return}
+ // Referral: who brought this visitor (kept by the server for good) and the tag for her own shares.
+ var refIn=(location.search.match(/[?&]r=([a-z0-9]{1,20})/)||[])[1]||'';
+ try{var rr=await Promise.race([api('ref',{v:VISITOR,r:refIn}),sleep(2500).then(function(){return null})]);if(rr){state.tag=rr.tag;state.mine=rr.mine||null}}catch(e){}
+ if(refIn&&history.replaceState){try{history.replaceState(null,'',location.pathname)}catch(e){}}
+ if(state.mine)state.pub.portfolio=(state.pub.portfolio||[]).slice().sort(function(a,b){return (b.maker===state.mine)-(a.maker===state.mine)});
  document.title=state.pub.salon.name+' | آینه';
  renderHead();renderSteps();renderFlow();renderSide();renderDock();
  var pending=sessionStorage.getItem('ayneh-job-'+SLUG);
  if(pending){state.gen=pending;state.step=3;state.busy=true;renderFlow();renderDock();poll(pending,true)}
- track('view',/[?&]r=share\b/.test(location.search)?'share':'',true);
+ track('view',refIn?'share':'',true);
  renderInvite();
  maybeTour();
  loadMine();
@@ -531,7 +537,7 @@ function stepPhoto(){
    ]),
    el('details',{class:'collapse'},[
     el('summary',{html:ICO.lock+'<span>عکسم کجا نگه‌داری می‌شود؟</span>'}),
-    h('p','عکس فقط برای همین سالن استفاده می‌شود، دسترسی عمومی ندارد و حداکثر بعد از ۳۰ روز حذف می‌شود. برای شبیه‌سازی، نسخهٔ فشردهٔ عکس به سرویس تصویر ارسال می‌شود.')
+    h('p','عکس فقط برای همین سالن استفاده می‌شود و دسترسی عمومی ندارد؛ در سابقهٔ سالن نگه داشته می‌شود تا آرایشگرت بعداً هم آن را ببیند. برای شبیه‌سازی، نسخهٔ فشردهٔ عکس به سرویس تصویر ارسال می‌شود.')
    ])
   ]);
   box.append(input,el('div',{class:'demo-row'},[demoCompare('demo--small'),el('div',{class:'demo-row__text'},[h('b','این‌طوری می‌شود'),h('span','یک نمونهٔ قبل و بعد. با عکس خودت، همین را روی صورت خودت می‌بینی و بعد برای آرایشگر می‌فرستی.')])]),el('div',{class:'shoot'},[drop,side]));
@@ -577,7 +583,8 @@ function stepModel(){
     var on=state.reference===imgs[0];
     var card=el('button',{class:'port-card'+(on?' is-on':''),type:'button','aria-pressed':on?'true':'false'},[
      el('span',{class:'mirror'},[el('span',{class:'mirror__glass',style:'display:block'},[el('img',{src:media(imgs[0]),alt:p.title,loading:'lazy'})])]),
-     el('span',{class:'pc-name',text:p.title})
+     el('span',{class:'pc-name',text:p.title}),
+     p.stylist?el('span',{class:'pc-by',text:'کار '+p.stylist}):null
     ]);
     card.addEventListener('click',function(){track('look','s:'+p.title);state.reference=imgs[0];state.refTitle=p.title;state.style=null;state.transfer='both';state.result=null;renderFlow();renderDock()});
     rail.append(card);
@@ -820,7 +827,7 @@ function renderSide(){
   if(!imgs.length)return;
   var btn=el('button',{class:'pcard',type:'button','aria-label':'امتحان '+item.title+' روی عکس خودم'},[
    el('span',{class:'mirror',style:'display:block'},[el('span',{class:'mirror__glass',style:'display:block'},[el('img',{src:media(imgs[0]),alt:item.title,loading:'lazy'})])]),
-   h('h3',item.title),item.category?el('p',{text:item.category}):null
+   h('h3',item.title),(item.stylist||item.category)?el('p',{text:item.stylist?'کار '+item.stylist:item.category}):null
   ]);
   btn.addEventListener('click',function(){state.reference=imgs[0];state.refTitle=item.title;state.style=null;state.transfer='both';state.tab='salon';state.result=null;if(state.original)go(2);else{go(1);toast('«'+item.title+'» انتخاب شد؛ حالا عکس خودت را اضافه کن')}});
   grid.append(btn);
@@ -1178,7 +1185,7 @@ function openOtp(next){
  var sendBtn=el('button',{class:'btn btn--primary btn--block',type:'submit',text:'ارسال کد تأیید'});
  var form=el('form',{novalidate:'true'},[firstWrap,lastWrap,phoneWrap,sendBtn]);
  var last=null;
- panel.append(head,h('p','برای ساخت شبیه‌سازی، اول شمارهٔ موبایلت را تأیید می‌کنیم. یک کد پیامکی برایت می‌فرستیم. نام و شمارهات فقط برای همین سالن و پیگیری درخواستت استفاده می‌شود و بعد از ۳۰ روز از آینه پاک می‌شود.','muted'),form);
+ panel.append(head,h('p','برای ساخت شبیه‌سازی، اول شمارهٔ موبایلت را تأیید می‌کنیم. یک کد پیامکی برایت می‌فرستیم. نام و شماره‌ات فقط برای همین سالن و پیگیری درخواستت استفاده می‌شود و در سابقهٔ سالن می‌ماند.','muted'),form);
  function codeStep(){
   var codeWrap=wrapField('otpCode','کد پیامک‌شده','text','','',{autocomplete:'one-time-code',inputmode:'numeric'});
   codeWrap.querySelector('input').setAttribute('dir','ltr');
@@ -1271,7 +1278,7 @@ function openRequest(){
  var consent=el('input',{type:'checkbox',id:'dataConsent'});
  var submit=el('button',{class:'btn btn--primary btn--block',type:'submit',html:ICO.send+'<span>فرستادن</span>'});
  form.append(nameWrap,phoneWrap,tgWrap,el('label',{class:'field'},[el('span',{class:'lbl',text:'توضیح برای آرایشگر (اختیاری)'}),note]),
-  el('label',{class:'check'},[consent,el('span',{text:'موافقم عکس‌ها، اسم و شماره‌ام برای این سالن فرستاده شود. سابقهٔ آن در آینه بعد از ۳۰ روز پاک می‌شود.'})]),submit);
+  el('label',{class:'check'},[consent,el('span',{text:'موافقم عکس‌ها، اسم و شماره‌ام برای این سالن فرستاده شود و در سابقهٔ سالن بماند.'})]),submit);
  form.addEventListener('submit',function(e){
   e.preventDefault();
   var okName=validate(nameWrap,function(){return nameWrap.querySelector('input').value.trim().length>=3},'نام و نام خانوادگی‌ات را بنویس');
@@ -1295,8 +1302,8 @@ function openRequest(){
    setTimeout(loadMine,600);
    panel.replaceChildren(el('div',{class:'sent'},[
     el('span',{class:'sent__mark',html:ICO.check}),
-    h('h2',d.delivered?'برای سالن فرستاده شد':'در صف ارسال است'),
-    h('p',d.delivered?'«'+s.name+'» عکس و مدلت را در تلگرام دریافت کرد. منتظر تماس سالن'+(tg?' یا پیامش در تلگرام':'')+' باش.':'تلگرام الان جواب نداد؛ درخواستت ذخیره شد و چند دقیقهٔ دیگر خودکار برای سالن فرستاده می‌شود.'),
+    h('h2',d.delivered?'برای سالن فرستاده شد':d.waiting?'درخواستت ثبت شد':'در صف ارسال است'),
+    h('p',d.delivered?'«'+s.name+'» عکس و مدلت را در تلگرام دریافت کرد. منتظر تماس سالن'+(tg?' یا پیامش در تلگرام':'')+' باش.':(d.waiting?'درخواستت ذخیره شد و به‌زودی به دست آرایشگرت در «'+s.name+'» می‌رسد. منتظر تماسش باش.':'تلگرام الان جواب نداد؛ درخواستت ذخیره شد و چند دقیقهٔ دیگر خودکار برای سالن فرستاده می‌شود.')),
     fl.length?el('div',{class:'sent__follow'},[h('p','می‌خواهی وقتی سالن جواب داد خبردار شوی؟ یک بار ربات را باز کن و Start بزن.','sent__hint')].concat(fl)):null,
     el('button',{class:fl.length?'btn btn--ghost btn--block':'btn btn--primary btn--block',type:'button',onclick:closeSheet,text:fl.length?'نه، ممنون':'باشه'})
    ]));
@@ -1327,7 +1334,8 @@ function normalizePhone(v){
 }
 
 /* ---------- invite friends: banner at the bottom + share sheet ---------- */
-// Shares the salon page itself (with ?r=share, so the dashboard can count visits that came from it).
+// Shares the salon page itself with this visitor's own tag (?r=<tag>), so whoever opens it joins the
+// same referral tree; the dashboard also counts visits that came from a shared link.
 var SHARE_IC={
  share:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="m8.3 10.8 7.4-4.4M8.3 13.2l7.4 4.4"/></svg>',
  plane:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.4 3.6 2.9 10.8c-.9.4-.9 1.6.1 1.9l4.6 1.5 1.8 5.6c.3.8 1.3 1 1.9.4l2.6-2.5 4.7 3.5c.7.5 1.6.1 1.8-.7l3-15.2c.2-1-.8-1.8-1.9-1.4zM9.6 14.2l8.2-7.3-6.5 8.4-.3 3.1z"/></svg>',
@@ -1337,7 +1345,7 @@ var SHARE_IC={
  link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>',
  more:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>'
 };
-function shareUrl(){return location.origin+'/s/'+SLUG+'?r=share'}
+function shareUrl(){return location.origin+'/s/'+SLUG+(state.tag?'?r='+state.tag:'')}
 function shareText(){return 'این رو ببین! توی صفحهٔ «'+state.pub.salon.name+'» می‌تونی مدل و رنگ موی جدید رو روی عکس خودت امتحان کنی؛ رایگان و بدون نصب 👇'}
 function renderInvite(){
  var box=$('#invite');if(!box||!state.pub)return;
@@ -1417,7 +1425,7 @@ export const customerHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><h
   <aside class="side" id="side" aria-label="دربارهٔ سالن"></aside>
  </div>
  <section id="invite" aria-label="معرفی به دوستان" hidden></section>
- <footer class="foot" id="foot" style="padding-bottom:130px">شبیه‌سازی پیشنهادی است و اجرای دقیق را تضمین نمی‌کند. عکس‌ها فقط برای همین سالن استفاده می‌شوند و حداکثر ۳۰ روز نگه داشته می‌شوند.</footer>
+ <footer class="foot" id="foot" style="padding-bottom:130px">شبیه‌سازی پیشنهادی است و اجرای دقیق را تضمین نمی‌کند. عکس‌ها فقط برای همین سالن استفاده می‌شوند و نمایش عمومی ندارند.</footer>
 </main>
 <div class="dock" id="dock" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

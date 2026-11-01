@@ -32,15 +32,23 @@ For a local end-to-end run without a real bot, put `TELEGRAM_BOT_TOKEN=dev-mock`
 - `worker/customer.js`: customer page (style catalog with photos, colour box with suggestions in all three modes, 360° viewer, Telegram send form).
 - `worker/ui.js`: owner console.
 - `worker/telegram.js`: one bot for Telegram and Bale: `/start <code>` linking, step-by-step salon page wizard (`/setup`), portfolio from photos (caption = title), `/list` and delete buttons, delivery of submissions as a photo album plus details with status buttons, reminders to the salon (2 h and 24 h, 9:00–21:00 Tehran), customer follow (`/start f_<token>`).
+- `worker/referral.js`: staff referrals. A member's link (`?r=s…`) or a visitor's own share link (`?r=v…`) places each visitor in a per-salon tree; the first link wins for good and is inherited by everyone that visitor brings. A verified mobile is locked to the same member (keyed hash in `ref_phones`). The manager can hand a salon customer to a member or move a customer; removing a member hands all their customers, links and open requests to whoever the manager picks. `report()` feeds the owner dashboard (per member generations, top referrers, who-brought-whom tree).
 - `worker/stats.js`: dashboard numbers from `events_log` (anonymous visitor id from the browser, no personal data) and `leads`.
 - `worker/server.js`: API, sessions, private media, KIE generation, submissions, retention.
 - `worker/design.js`, `worker/fonts.js`: shared design system and self-hosted Vazirmatn / Estedad (SIL OFL 1.1) served from `/fonts/*`.
-- `drizzle/`: migrations. `0002_telegram.sql` adds the Telegram link and the `leads` table; `0003_sms.sql` adds mobile verification (`otps`) and salon link texts (`invites`, see SETUP-SMS.md); `0004_engagement.sql` adds `events_log`, lead salon status/reminders/follow and the Bale chat and wizard state. Older booking tables are kept, unused, so no data is destroyed. Append new migrations; never edit applied ones.
+- `drizzle/`: migrations. `0002_telegram.sql` adds the Telegram link and the `leads` table; `0003_sms.sql` adds mobile verification (`otps`) and salon link texts (`invites`, see SETUP-SMS.md); `0004_engagement.sql` adds `events_log`, lead salon status/reminders/follow and the Bale chat and wizard state; `0005_team.sql` adds `team`, `ref_visitors`, `ref_phones` and the member on leads and portfolio. Older booking tables are kept, unused, so no data is destroyed. Append new migrations; never edit applied ones.
 - `scripts/generate-catalog.mjs` + `.github/workflows/catalog.yml`: generates the 20 catalog photos (Iranian women, Nano Banana Pro) and the demo pair with the project's `KIE_API_KEY` and commits them. Runs when the script changes or from the Actions tab; only missing photos are generated.
+
+## Team and referrals
+
+- The salon manager adds staff in the bot (`/team`) or the owner adds them on the salon page in /admin (name + specialty). Each member opens their one-time invite in Telegram or Bale and gets a permanent personal link (`/link`).
+- Whoever arrives through a member's link, and everyone they share the page with at any depth, is that member's customer for good. Their requests, reminders and status buttons go only to that member; other members and the manager never see them (the manager sees numbers only, on the owner dashboard). A request from a member who has not linked yet waits and is delivered when they link.
+- Customers who arrive with no member link belong to the salon: their requests go to the manager with one "give to <member>" button per member. If a member's customer later comes through another member's link, the request still goes to the first member and the manager gets a note with a button to move the customer.
+- The customer page only shows the salon; portfolio items carry the member's name, and a member's own work is shown first to their customers.
 
 ## Privacy and delivery
 
-- Selfies, reference photos and simulations are private to the customer's session (and the owner) and erased after 30 days. Submissions (`leads`: name, mobile, optional handle) are also erased after 30 days; the salon keeps its copy in Telegram.
+- Selfies, reference photos and simulations are private to the customer's session (and the owner). They and submissions (`leads`: name, mobile, optional handle) are kept permanently (the owner asked for permanent records; referrals and customer ownership depend on them). Only expired sessions, codes and rate-limit rows are removed.
 - Usage events (`events_log`) hold only an event name, a short detail (e.g. the chosen look) and a random browser id; they are kept 400 days for the dashboard.
 - Published portfolio and brand images are public. Sending a photo to the bot is the salon's confirmation that it may be published; it can be removed from Telegram (`/list`) or the owner console.
 - A submission is sent to every linked bot immediately. If none accepts it, the scheduler (Cloudflare cron every 10 minutes, or `/api/internal/tick`) retries up to three attempts in total; the owner console can retry a failed one. A duplicate Telegram message is harmless, so an interrupted send is retried.
