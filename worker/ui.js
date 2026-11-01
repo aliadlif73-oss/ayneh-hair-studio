@@ -5,13 +5,14 @@ import {baseCSS,markSVG} from './design.js';
 
 const css=String.raw`
 .section-title{font-family:var(--display);font-weight:800;font-size:24px;margin:34px 0 14px}
-.dash{display:grid;gap:16px;margin-bottom:8px}
+.dash{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;margin-bottom:8px}
 .dash__filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .seg-ctl{display:inline-flex;gap:4px;padding:4px;border-radius:14px;background:var(--glass-2)}
 .seg-ctl button{min-height:38px;padding:0 14px;border:0;border-radius:10px;background:transparent;font-weight:600;font-size:13.5px;color:var(--ink-2)}
 .seg-ctl button[aria-pressed=true]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(35,23,15,.12)}
 .dash__filters select{min-height:46px;padding:0 14px;border:1px solid var(--line);border-radius:12px;background:#fff;min-width:180px}
-.dash__body{display:grid;gap:16px;transition:opacity .2s}
+.dash__body{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;transition:opacity .2s}
+.dcard{min-width:0}.dtable{overflow-x:auto}
 .dash__body.is-refreshing{opacity:.5}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
 .kpis--small{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
@@ -27,6 +28,27 @@ const css=String.raw`
 .dcard{display:grid;gap:10px;align-content:start}
 .dcard>.lead{margin-bottom:4px}
 .hbars{display:grid;gap:10px}
+.team{display:grid;gap:10px;margin:12px 0}
+.team__row{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;padding:12px 14px;border-radius:14px;background:var(--surface-2)}
+.team__row b{font-size:14.5px}.team__row small{color:var(--muted);font-size:12px}
+.team__acts{display:flex;gap:6px;flex-wrap:wrap}
+.team__out{grid-column:1/-1}
+.team__add{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-top:6px}
+.team__add .field{margin:0}
+@media (max-width:560px){.team__add{grid-template-columns:1fr}.team__row{grid-template-columns:1fr}}
+.rtree{font-size:13.5px;max-height:520px;overflow:auto;padding:4px 2px}
+.rtree ul{list-style:none;margin:0;padding-inline-start:18px;border-inline-start:1px dashed #c6d1cd}
+.rtree>ul{padding-inline-start:0;border:0}
+.rtree li{margin:4px 0}
+.rtree details>summary{cursor:pointer;list-style:none}
+.rtree details>summary::-webkit-details-marker{display:none}
+.rtree .node{display:inline-flex;gap:6px;align-items:center;padding:3px 10px;border-radius:999px;background:var(--surface-2)}
+.rtree .node--sent{background:#d9ece6;font-weight:700}
+.rtree .node small{color:var(--muted);font-weight:400}
+.rtree details>summary .node::before{content:'▸';font-size:11px;color:var(--muted)}
+.rtree details[open]>summary .node::before{content:'▾'}
+.tree-pick{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.dgrid.dgrid--1{grid-template-columns:minmax(0,1fr)}
 .hbar{display:grid;grid-template-columns:minmax(90px,38%) 1fr auto;gap:10px;align-items:center;font-size:13.5px;border-radius:8px;outline-offset:3px}
 .hbar:hover .hbar__fill,.hbar:focus .hbar__fill{filter:brightness(1.15)}
 .hbar__label{display:flex;align-items:center;gap:7px;color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -171,7 +193,7 @@ function hbars(items,opts){
  items.forEach(function(it){
   var w=it.count/max*100;
   var row=el('div',{class:'hbar'},[el('span',{class:'hbar__label'},[it.swatch?el('span',{class:'hbar__sw',style:'background:'+it.swatch}):null,document.createTextNode(it.label)]),el('span',{class:'hbar__track'},[el('span',{class:'hbar__fill'+(opts.tone?' hbar__fill--'+opts.tone:''),style:'width:'+Math.max(w,it.count?2:0)+'%'})]),el('span',{class:'hbar__val',text:opts.fmt?opts.fmt(it):fa(it.count)})]);
-  list.append(hoverable(row,[opts.fmt?opts.fmt(it):fa(it.count),it.label]));
+  list.append(hoverable(row,[opts.tip?opts.tip(it):opts.fmt?opts.fmt(it):fa(it.count),it.label]));
  });
  if(!items.length)list.append(h('p','هنوز داده‌ای نیست.','empty-note'));
  return list;
@@ -199,7 +221,7 @@ function dashboard(salons){
  function draw(){
   Array.prototype.forEach.call(range.children,function(b,i){b.setAttribute('aria-pressed',[7,30,90][i]===dashState.days?'true':'false')});
   body.classList.add('is-refreshing');
-  api('/api/owner/stats?days='+dashState.days+(dashState.salon?'&salon='+encodeURIComponent(dashState.salon):'')).then(function(d){body.classList.remove('is-refreshing');body.replaceChildren.apply(body,render(d))}).catch(function(e){body.classList.remove('is-refreshing');body.replaceChildren(el('p',{class:'notice notice--warn',text:e.message}))});
+  api('/api/owner/stats?days='+dashState.days+(dashState.salon?'&salon='+encodeURIComponent(dashState.salon):'')).then(function(d){body.classList.remove('is-refreshing');body.replaceChildren.apply(body,render(d));var slot=el('div',{class:'dgrid dgrid--1'},[el('div',{class:'loading',text:'در حال آوردن رفرال‌ها…'})]);body.append(slot);return api('/api/owner/referrals'+(dashState.salon?'?salon='+encodeURIComponent(dashState.salon):'')).then(function(r){slot.replaceChildren.apply(slot,referrals(r))},function(e){slot.replaceChildren(el('p',{class:'notice notice--warn',text:e.message}))})}).catch(function(e){body.classList.remove('is-refreshing');body.replaceChildren(el('p',{class:'notice notice--warn',text:e.message}))});
  }
  function render(d){
   var k=d.kpi,p=d.prev,out=[];
@@ -231,6 +253,33 @@ function dashboard(salons){
  draw();
  return root;
 }
+// Staff referrals: per member totals and generations (table), visitors per member (ranked bars),
+// top referrers (ranked bars) and the who-brought-whom tree (collapsible, capped by the server).
+function referrals(r){
+ var rows=r.staff.concat(r.unowned||[]),out=[];
+ if(!rows.length)return [card('رفرال نیروها','هنوز نیرویی ثبت نشده. از صفحهٔ هر سالن («تیم سالن») یا در ربات با /team نیرو اضافه کنید.',h('p','هر نیرو یک لینک اختصاصی می‌گیرد و اینجا می‌بینید هر لینک چند نفر و چند نسل آورده است.','empty-note'))];
+ var t=r.totals,multi=rows.map(function(x){return x.salon_id}).filter(function(v,i,a){return a.indexOf(v)===i}).length>1;
+ var nm=function(x){return x.name+(multi&&x.salon?' — '+x.salon:'')};
+ out.push(card('رفرال نیروها','هر مشتری برای همیشه مال نیرویی است که لینکش را آورده؛ دوستانی که او دعوت می‌کند هم همین‌طور. «مستقیم» یعنی از لینک خود نیرو، «دوستِ دوست» نسل دوم، و بعد نسل سوم و بیشتر.',
+  el('div',{},[el('div',{class:'kpis kpis--small'},[tile('بازدیدکنندهٔ ثبت‌شده',fa(t.visitors)),tile('آمده با لینک',fa(t.referred),null,t.visitors?pct(t.referred/t.visitors):''),tile('درخواست',fa(t.requests))]),
+   el('div',{style:'margin-top:18px'},[hbars(rows.filter(function(x){return x.visitors}).sort(function(a,b){return b.visitors-a.visitors}).map(function(x){return {label:nm(x),count:x.visitors,x:x}}),{fmt:function(it){return fa(it.count)+' نفر'},tip:function(it){var x=it.x;return fa(x.visitors)+' نفر · مستقیم '+fa(x.id?x.gen1:x.gen0)+'، نسل ۲: '+fa(x.gen2)+'، نسل ۳+: '+fa(x.gen3)+' · '+fa(x.requests)+' درخواست'}})])]),
+  tableOf(['نیرو','تخصص','بازدیدکننده','مستقیم','دوستِ دوست','نسل ۳+','درخواست','نوبت','نرخ تبدیل','ربات'],rows.map(function(x){return [nm(x)+(x.active?'':' (حذف‌شده)'),x.specialty||'—',fa(x.visitors),fa(x.id?x.gen1:x.gen0),fa(x.gen2),fa(x.gen3),fa(x.requests),fa(x.booked),pct(x.conversion),x.id?(x.linked?'وصل':'وصل نیست'):'—']}))));
+ var top=r.top||[];
+ out.push(card('بهترین معرف‌ها','مشتری‌هایی که لینک را برای دیگران فرستادند (فقط اسم کسانی که درخواست داده‌اند).',top.length?hbars(top.map(function(x){return {label:x.name+' ('+x.staff+')',count:x.brought,x:x}}),{tone:'honey',fmt:function(it){return fa(it.x.brought)+' نفر'},tip:function(it){return fa(it.x.brought)+' نفر آورد، '+fa(it.x.sent)+' نفرشان درخواست دادند'}}):h('p','هنوز معرفی ثبت نشده.','empty-note'),top.length?tableOf(['معرف','نیرو','سالن','آورد','درخواست دادند'],top.map(function(x){return [x.name,x.staff,x.salon,fa(x.brought),fa(x.sent)]})):null));
+ var trees=r.trees||[];
+ if(trees.length){
+  var view=el('div',{class:'rtree'}),pick=el('div',{class:'tree-pick',role:'group','aria-label':'درخت کدام نیرو'});
+  var show=function(i){Array.prototype.forEach.call(pick.children,function(b,j){b.setAttribute('aria-pressed',i===j?'true':'false')});var tr=trees[i];
+   var node=function(n){var lab=el('span',{class:'node'+(n.sent?' node--sent':'')},[document.createTextNode(n.label),n.size?h('small','+'+fa(n.size)):null,n.sent?h('small','درخواست داد'):null]);
+    if(!n.kids.length)return el('li',{},[lab]);return el('li',{},[el('details',{open:n.kids.length<=6&&n.gen<=1},[el('summary',{},[lab]),el('ul',{},n.kids.map(node))])])};
+   view.replaceChildren(el('p',{class:'tiny muted',text:tr.owner+(multi?' — '+tr.salon:'')+': '+fa(tr.total)+' نفر'+(tr.shown<tr.total?' (اولین '+fa(tr.shown)+' نفر نشان داده شده)':'')}),el('ul',{},tr.nodes.map(node)))};
+  trees.forEach(function(tr,i){pick.append(el('button',{class:'btn btn--ghost btn--sm',type:'button',text:tr.owner+(multi?' — '+tr.salon:'')+' ('+fa(tr.total)+')',onclick:function(){show(i)}}))});
+  show(0);
+  out.push(card('درخت معرفی','چه کسی چه کسی را آورد. پررنگ‌ها درخواست داده‌اند؛ بقیه فقط صفحه را دیده‌اند و ناشناس‌اند. «+n» یعنی چند نفر زیر این نفر آمده‌اند.',el('div',{},[pick,view])));
+ }
+ return out;
+}
+
 var SW={'مشکی':'#151515','قهوه‌ای':'#5e3c25','شکلات':'#4b2b1c','عسل':'#b8803a','کارامل':'#a86c34','بلوند':'#d8b064','شامپاین':'#e2cfa5','پلاتین':'#ece8dc','مس':'#b5602f','شراب':'#6b1f2e','دودی':'#8a7f75','زیتون':'#6b6a3f','نسکافه':'#8d6646','بنفش':'#5b3a78','صورتی':'#e8b4c4','نقره':'#c4c4c2','خاکستر':'#a9a9a6','حنا':'#a4482a','ماهاگون':'#6e2f25'};
 function swatchOf(name){var k=Object.keys(SW).find(function(k){return String(name).indexOf(k)>=0});return k?SW[k]:'#cdd6d2'}
 
@@ -289,6 +338,29 @@ function salonPage(){return api('/api/s/'+slug+'/owner').then(function(d){
  tg.append(linkOut);
  [['telegram','تلگرام',S.telegram],['bale','بله',S.bale]].forEach(function(x){if(x[2])tg.append(el('button',{class:'btn btn--danger btn--sm',type:'button',style:'margin-top:12px;margin-inline-end:8px',text:'قطع '+x[1],onclick:act(function(){if(!confirm('اتصال '+x[1]+' این سالن قطع شود؟'))return;return api('/api/s/'+slug+'/owner/telegram-unlink',{platform:x[0]}).then(salonPage)})}))});
 
+ // Team: members with their own bot chat and permanent referral link
+ var teamList=el('div',{class:'team'});
+ (d.team||[]).forEach(function(t){
+  var out=el('div',{class:'team__out'});
+  var links=[t.telegram?'تلگرام':'',t.bale?'بله':''].filter(Boolean);
+  var others=(d.team||[]).filter(function(x){return x.id!==t.id});
+  teamList.append(el('div',{class:'team__row'},[
+   el('div',{},[h('b',t.name),el('br'),h('small',(t.specialty?t.specialty+' · ':'')+(links.length?'وصل در '+links.join(' و '):'هنوز ربات را وصل نکرده'))]),
+   el('div',{class:'team__acts'},[
+    el('button',{class:'btn btn--soft btn--sm',type:'button',text:'لینک‌ها',onclick:act(function(){return api('/api/s/'+slug+'/owner/team/link',{id:t.id}).then(function(r){var L=r.links||{};out.replaceChildren.apply(out,[copyRow('لینک اختصاصی (برای مشتری‌ها)',r.ref),L.telegram?copyRow('دعوت در تلگرام',L.telegram):null,L.bale?copyRow('دعوت در بله',L.bale):null,el('p',{class:'tiny muted',text:'لینک دعوت را برای خود '+t.name+' بفرستید (یک‌بار مصرف، ۷ روز). لینک اختصاصی همیشگی است و هر کس با آن بیاید، و هر کس که او برایش بفرستد، مشتری '+t.name+' می‌شود.'})].filter(Boolean))})})}),
+    el('button',{class:'btn btn--danger btn--sm',type:'button',text:'حذف',onclick:function(){
+     var sel=el('select',{},[el('option',{value:'',text:'خود سالن (مدیر)'})].concat(others.map(function(x){return el('option',{value:x.id,text:x.name})})));
+     out.replaceChildren(el('div',{class:'field'},[el('span',{class:'lbl',text:'مشتری‌ها و لینک‌های '+t.name+' به چه کسی برسند؟'}),sel,el('span',{class:'hint',text:'نمونه‌کارهای '+t.name+' از صفحه برداشته می‌شود.'})]),el('button',{class:'btn btn--danger btn--sm',type:'button',text:'حذف '+t.name,onclick:act(function(){return api('/api/s/'+slug+'/owner/team/remove',{id:t.id,to:sel.value||null}).then(function(){toast(t.name+' حذف شد.');return salonPage()})})}));
+    }})
+   ]),out
+  ]));
+ });
+ var nName=el('input',{id:'t-name',type:'text',maxlength:'60',placeholder:'مثلاً مریم محمدی'}),nSpec=el('select',{id:'t-spec'},(d.specialties||[]).map(function(x){return el('option',{value:x,text:x})}));
+ var addOut=el('div');
+ var teamC=el('section',{class:'card'},[h('h2','تیم سالن'),h('p','هر آرایشگر ربات را با گفتگوی خودش وصل می‌کند و یک لینک اختصاصی همیشگی می‌گیرد. هر کس با لینک او بیاید و هر کس که او لینک را برایش بفرستد، مشتری همان آرایشگر می‌شود و درخواستش فقط به خود او می‌رسد. مدیر سالن هم می‌تواند در ربات با /team نیرو اضافه کند.','lead'),
+  (d.team||[]).length?teamList:h('p','هنوز نیرویی اضافه نشده.','empty-note'),
+  el('div',{class:'team__add'},[el('label',{class:'field'},[el('span',{class:'lbl',text:'اسم نیرو'}),nName]),el('label',{class:'field'},[el('span',{class:'lbl',text:'تخصص'}),nSpec]),el('button',{class:'btn btn--primary',type:'button',text:'افزودن',onclick:act(function(){return api('/api/s/'+slug+'/owner/team',{name:nName.value,specialty:nSpec.value}).then(function(r){var L=r.links||{};return salonPage().then(function(){toast(r.member.name+' اضافه شد؛ لینک‌هایش را از «لینک‌ها» بفرستید.')})})})})]),addOut]);
+
  // Profile
  var prof=el('section',{class:'card'},[h('h2','دربارهٔ سالن'),h('p','همهٔ این‌ها اختیاری است جز نام.','lead'),
   el('div',{class:'uploads'},[uploadBox('up-logo','لوگو',p.logo,function(id){images.logo=id}),uploadBox('up-cover','عکس کاور',p.cover,function(id){images.cover=id}),uploadBox('up-portrait','عکس مدیر',p.portrait,function(id){images.portrait=id})]),
@@ -309,10 +381,10 @@ function salonPage(){return api('/api/s/'+slug+'/owner').then(function(d){
  // Delivery log
  var tone={sent:'ok',queued:'',sending:'accent',retry:'warn',failed:'danger'},label={sent:'رسید',queued:'در صف',sending:'در حال ارسال',retry:'تلاش دوباره',failed:'ناموفق'};
  var log=el('div',{class:'log'});
- d.leads.forEach(function(l){log.append(el('div',{class:'log__row'},[el('div',{class:'grow'},[h('b',l.name),el('br'),h('small',(l.look?l.look+'، ':'')+fmt(l.created_at))]),badge(label[l.status]||l.status,tone[l.status]),l.status==='sent'?badge({new:'منتظر تماس',called:'تماس گرفتند',booked:'نوبت دادند',declined:'قابل اجرا نبود'}[l.salon_status]||'منتظر تماس',{called:'accent',booked:'ok',declined:'warn'}[l.salon_status]||''):null,l.status==='failed'?el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'ارسال دوباره',onclick:act(function(){return api('/api/s/'+slug+'/owner/leads/retry',{id:l.id}).then(salonPage)})}):null]))});
- var leads=el('section',{class:'card'},[h('h2','درخواست‌های فرستاده‌شده'),h('p','وضعیت ارسال و کاری که سالن کرد؛ عکس‌ها و شمارهٔ مشتری در ربات سالن است. سوابق بعد از ۳۰ روز پاک می‌شوند.','lead'),d.leads.length?log:h('p','هنوز درخواستی نیامده.','empty-note')]);
+ d.leads.forEach(function(l){log.append(el('div',{class:'log__row'},[el('div',{class:'grow'},[h('b',l.name),el('br'),h('small',(l.staff?'مشتری '+l.staff+' · ':'مشتری سالن · ')+(l.look?l.look+'، ':'')+fmt(l.created_at))]),l.waiting?badge('منتظر وصل شدن '+(l.staff||'نیرو'),'warn'):badge(label[l.status]||l.status,tone[l.status]),l.status==='sent'?badge({new:'منتظر تماس',called:'تماس گرفتند',booked:'نوبت دادند',declined:'قابل اجرا نبود'}[l.salon_status]||'منتظر تماس',{called:'accent',booked:'ok',declined:'warn'}[l.salon_status]||''):null,l.status==='failed'?el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'ارسال دوباره',onclick:act(function(){return api('/api/s/'+slug+'/owner/leads/retry',{id:l.id}).then(salonPage)})}):null]))});
+ var leads=el('section',{class:'card'},[h('h2','درخواست‌های فرستاده‌شده'),h('p','وضعیت ارسال و کاری که سالن کرد؛ عکس‌ها و شمارهٔ مشتری در ربات سالن یا آرایشگر همان مشتری است.','lead'),d.leads.length?log:h('p','هنوز درخواستی نیامده.','empty-note')]);
 
- $('#app').replaceChildren(head,el('div',{class:'grid grid--2'},[el('div',{class:'stack'},[prof,port]),el('div',{class:'stack'},[tg,set,leads])]));
+ $('#app').replaceChildren(head,el('div',{class:'grid grid--2'},[el('div',{class:'stack'},[prof,port]),el('div',{class:'stack'},[tg,teamC,set,leads])]));
 })}
 $('#logout').addEventListener('click',function(){api('/api/logout',{}).then(function(){location.href='/'})});
 `;

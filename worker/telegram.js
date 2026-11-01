@@ -7,11 +7,15 @@
 // - A customer may follow her submission through the bot and is told when the salon acts.
 // - Any photo the salon sends (outside the wizard) is published as portfolio.
 // - A mobile number typed to the bot is texted the salon's page link (Melipayamak, sms.js).
+// - Team: the manager adds staff with /team; each member links their own chat, gets a personal
+//   referral link (/link), receives only their own customers' requests and posts their own work.
+//   Requests from the salon's own customers go to the manager, who hands them to a member.
 // Secrets: TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_USERNAME, TELEGRAM_WEBHOOK_SECRET,
 //          BALE_BOT_TOKEN, BALE_BOT_USERNAME (BALE_WEBHOOK_SECRET defaults to the Telegram one).
 import {Problem,must,uid,hash,text,phone,safeLink,digits,limited} from './domain.js';
 import {inviteReady,sendInvite} from './sms.js';
 import {bucketFor,putImage} from './storage.js';
+import {createStaff,transfer,assign,team as teamOf,SPECIALTIES} from './referral.js';
 
 const one=(db,sql,...a)=>db.prepare(sql).bind(...a).first();
 const run=(db,sql,...a)=>db.prepare(sql).bind(...a).run();
@@ -72,9 +76,30 @@ const help=(name,sms,P)=>'<b>ربات آینه'+(name?' — '+esc(name):'')+'</b
  '🖼 برای اضافه‌کردن نمونه‌کار، عکس را همین‌جا بفرستید. متن زیر عکس (کپشن) اسم کار می‌شود، مثلاً «بالیاژ عسلی». عکس بلافاصله روی صفحهٔ سالن می‌نشیند و مشتری می‌تواند روی عکس خودش امتحانش کند.\n'+
  'با فرستادن عکس تأیید می‌کنید اجازهٔ انتشار آن را دارید.\n\n'+
  (sms?'📲 برای فرستادن لینک سالن به یک مشتری، شمارهٔ موبایلش را همین‌جا بنویسید (مثلاً ۰۹۱۲۱۲۳۴۵۶۷). می‌توانید تا ۵ شماره را با فاصله جدا بفرستید.\n\n':'')+
- '/setup تکمیل یا تغییر اطلاعات صفحهٔ سالن\n/list فهرست نمونه‌کارها و حذف\n/help همین راهنما';
+ '/team تیم سالن: افزودن آرایشگر و لینک اختصاصی هر نفر\n/setup تکمیل یا تغییر اطلاعات صفحهٔ سالن\n/list فهرست نمونه‌کارها و حذف\n/help همین راهنما';
 
 async function salonByChat(db,p,chat){return one(db,'SELECT * FROM salons WHERE '+PLATFORMS[p].col+'=?',String(chat))}
+// Who is writing: the salon's manager chat, or a team member's chat (manager wins if both).
+async function actorByChat(db,p,chat){
+ const salon=await salonByChat(db,p,chat);if(salon)return {salon,role:'manager'};
+ const staff=await one(db,'SELECT * FROM team WHERE '+PLATFORMS[p].col+'=? AND active=1',String(chat));
+ if(!staff)return null;
+ return {salon:await one(db,'SELECT * FROM salons WHERE id=?',staff.salon_id),staff,role:'staff'};
+}
+const refUrl=(origin,salon,t)=>origin+'/s/'+salon.slug+'?r='+t.ref_code;
+const staffHelp=(t,salon,origin)=>'<b>'+esc(t.name)+' — تیم «'+esc(salon.name)+'»</b>\n\n'+
+ '🔗 لینک اختصاصی تو:\n'+refUrl(origin,salon,t)+'\n\n'+
+ 'این لینک را برای مشتری‌ها و دوستانت بفرست. هر کس با این لینک بیاید، و هر کس که او لینک را برایش بفرستد، مشتری تو حساب می‌شود و درخواستش فقط به خودت می‌رسد.\n\n'+
+ '📥 درخواست مشتری‌هایت همین‌جا می‌آید؛ بعد از تماس یکی از دکمه‌ها را بزن.\n'+
+ '🖼 عکس کارهایت را همین‌جا بفرست تا با اسم تو روی صفحهٔ سالن بنشیند (کپشن = اسم کار).\n\n'+
+ '/link لینک اختصاصی من\n/list نمونه‌کارهای من\n/help همین راهنما';
+// One-time invite for a member (same code format as the salon link, kept on the member's row).
+export async function staffInvite(db,env,t){
+ const raw=Array.from(crypto.getRandomValues(new Uint8Array(12)),x=>x.toString(16).padStart(2,'0')).join('');
+ await run(db,'UPDATE team SET invite_hash=?,invite_expires=? WHERE id=?',await hash(raw),Date.now()+7*86400000,t.id);
+ const links={};for(const P of Object.values(PLATFORMS)){const u=P.user(env);if(P.token(env)&&u)links[P.name]=P.link(u,raw)}
+ return links;
+}
 
 export async function webhook(req,env){
  must(req.method==='POST','متد مجاز نیست',405);
@@ -97,13 +122,17 @@ async function handle(req,env,p){
   ctx.chat=String(m.chat.id);ctx.say=(t,extra={})=>call(env,p,'sendMessage',{chat_id:ctx.chat,text:t,...extra});
   const textIn=(m.text||'').trim();
   if(textIn.startsWith('/start')){await onStart(ctx,textIn.split(/\s+/)[1]||'');return J({ok:true})}
-  const salon=await salonByChat(db,p,ctx.chat);ctx.salon=salon;
-  if(!salon){await ctx.say('این گفتگو به هیچ سالنی وصل نیست. لینک اتصال را از مدیر آینه بگیرید.');return J({ok:true})}
+  const actor=await actorByChat(db,p,ctx.chat);
+  if(!actor){await ctx.say('این گفتگو به هیچ سالنی وصل نیست. لینک اتصال را از مدیر آینه بگیرید.');return J({ok:true})}
+  const salon=actor.salon;ctx.salon=salon;ctx.staff=actor.staff||null;
+  if(actor.role==='staff'){await staffMessage(ctx,m,textIn);return J({ok:true})}
+  if(textIn==='/team'){await run(db,"UPDATE salons SET bot_state='' WHERE id=?",salon.id);await sendTeam(ctx);return J({ok:true})}
   if(textIn==='/help'){await ctx.say(help(salon.name,inviteReady(env),PLATFORMS[p]),{parse_mode:'HTML'});return J({ok:true})}
   if(textIn==='/list'){await sendList(ctx);return J({ok:true})}
   if(textIn==='/setup'){await wizardStart(ctx,0);return J({ok:true})}
   const state=parse(salon.bot_state);
   if(state.p===p&&Number.isInteger(state.step)){await wizardAnswer(ctx,state,m);return J({ok:true})}
+  if(state.p===p&&state.team){await teamAnswer(ctx,state,textIn);return J({ok:true})}
   const numbers=mobilesIn(textIn);
   if(numbers.length){await sendInvites(env,db,salon,ctx.chat,numbers,ctx.say);return J({ok:true})}
   const photo=photoOf(m);
@@ -121,6 +150,7 @@ async function onStart(ctx,arg){
  const {env,db,p}=ctx,P=PLATFORMS[p];
  if(/^[a-f0-9]{24}$/.test(arg)){
   const salon=await one(db,'SELECT * FROM salons WHERE telegram_code_hash=? AND telegram_code_expires>?',await hash(arg),Date.now());
+  if(!salon){const t=await one(db,'SELECT * FROM team WHERE invite_hash=? AND invite_expires>? AND active=1',await hash(arg),Date.now());if(t){await linkStaff(ctx,t);return}}
   if(!salon){await ctx.say('این لینک اتصال منقضی یا قبلاً استفاده شده است. لینک تازه را از مدیر آینه بگیرید.');return}
   // A chat serves one salon; linking moves it.
   await run(db,'UPDATE salons SET '+P.col+'=NULL WHERE '+P.col+'=? AND id<>?',ctx.chat,salon.id);
@@ -133,7 +163,9 @@ async function onStart(ctx,arg){
   return;
  }
  if(/^f_[a-f0-9]{24}$/.test(arg)){await follow(ctx,arg.slice(2));return}
- const s=await salonByChat(db,p,ctx.chat);
+ const a=await actorByChat(db,p,ctx.chat);
+ if(a?.role==='staff'){await ctx.say(staffHelp(a.staff,a.salon,ctx.origin),{parse_mode:'HTML'});return}
+ const s=a?.salon;
  await ctx.say(s?help(s.name,inviteReady(env),P):'سلام! این ربات مخصوص سالن‌های عضو آینه است. اگر از صفحهٔ یک سالن آمده‌اید، دکمهٔ «خبرم کن» را همان‌جا بزنید.',{parse_mode:'HTML'});
 }
 
@@ -205,6 +237,114 @@ async function wizardAnswer(ctx,state,m){
  await wizardNext(ctx,state.step);
 }
 
+/* ---------- team: members, invites, referral links ---------- */
+async function linkStaff(ctx,t){
+ const {db,p,env}=ctx,P=PLATFORMS[p];
+ if(await salonByChat(db,p,ctx.chat)){await ctx.say('این گفتگو، گفتگوی مدیر یک سالن است. لینک دعوت نیرو را باید خود آن نیرو از حساب خودش باز کند.');return}
+ await run(db,'UPDATE team SET '+P.col+'=NULL WHERE '+P.col+'=? AND id<>?',ctx.chat,t.id);
+ await run(db,'UPDATE team SET '+P.col+'=?,invite_hash=NULL,invite_expires=NULL WHERE id=?',ctx.chat,t.id);
+ const salon=await one(db,'SELECT * FROM salons WHERE id=?',t.salon_id);
+ await ctx.say('✅ '+esc(t.name)+'، به تیم «'+esc(salon.name)+'» وصل شدی.',{parse_mode:'HTML'});
+ await ctx.say(staffHelp(t,salon,ctx.origin),{parse_mode:'HTML'});
+ // Requests that waited for this member go out now.
+ await run(db,"UPDATE leads SET waiting=0,status='retry',attempts=0 WHERE staff_id=? AND waiting=1",t.id);
+ for(const l of await all(db,"SELECT * FROM leads WHERE staff_id=? AND status='retry' ORDER BY created_at LIMIT 20",t.id))await deliverLead(env,l);
+ for(const q of inboxes(env,salon))await call(env,q,'sendMessage',{chat_id:salon[PLATFORMS[q].col],text:'👥 '+t.name+' ربات را وصل کرد و از این به بعد درخواست مشتری‌های خودش را می‌گیرد.'}).catch(()=>{});
+}
+async function staffMessage(ctx,m,textIn){
+ const t=ctx.staff;
+ if(textIn==='/help'||textIn==='/link'){await ctx.say(staffHelp(t,ctx.salon,ctx.origin),{parse_mode:'HTML'});return}
+ if(textIn==='/list'){await sendList(ctx);return}
+ const photo=photoOf(m);
+ if(photo){await addPortfolio(ctx,photo,m.caption||'');return}
+ await ctx.say('عکس کارهایت را بفرست تا روی صفحهٔ سالن بنشیند. /link لینک اختصاصی‌ات را نشان می‌دهد.');
+}
+const teamLine=(t,i)=>fa(i+1)+'. <b>'+esc(t.name)+'</b>'+(t.specialty?' — '+esc(t.specialty):'')+' · '+(t.telegram_chat_id||t.bale_chat_id?'✅ وصل':'⏳ هنوز وصل نشده');
+async function sendTeam(ctx){
+ const list=await teamOf(ctx.db,ctx.salon.id);
+ const rows=list.map(t=>[{text:'🔗 لینک‌های '+t.name.slice(0,18),callback_data:'tm:l:'+t.id},{text:'🗑 حذف',callback_data:'tm:r:'+t.id}]);
+ rows.push([{text:'➕ افزودن نیرو',callback_data:'tm:add'}]);
+ await ctx.say('<b>👥 تیم «'+esc(ctx.salon.name)+'»</b>\n\n'+(list.length?list.map(teamLine).join('\n'):'هنوز نیرویی اضافه نکرده‌اید.')+'\n\nهر نیرو لینک اختصاصی خودش را می‌گیرد. هر کس با لینک او بیاید (و هر کس که او لینک را برایش بفرستد) مشتری همان نیرو می‌شود و درخواستش فقط به خود او می‌رسد. مشتری‌هایی که بدون لینک نیرو بیایند، اینجا پیش شما می‌آیند و با یک دکمه به یک نیرو می‌دهید.',{parse_mode:'HTML',reply_markup:{inline_keyboard:rows}});
+}
+async function showStaffLinks(ctx,t,fresh){
+ const links=await staffInvite(ctx.db,ctx.env,t);
+ const lines=[(fresh?'✅ «'+t.name+'» به تیم اضافه شد.':'🔗 لینک‌های «'+t.name+'»'),'',
+  '۱) لینک دعوت (یک‌بار مصرف، ۷ روز) — برای خود '+t.name+' بفرستید تا ربات را وصل کند:'];
+ if(links.telegram)lines.push('تلگرام: '+links.telegram);
+ if(links.bale)lines.push('بله: '+links.bale);
+ lines.push('','۲) لینک اختصاصی '+t.name+' برای مشتری‌ها (همیشگی):',refUrl(ctx.origin,ctx.salon,t));
+ await ctx.say(lines.join('\n'));
+}
+async function teamAnswer(ctx,state,t){
+ if(t==='/stop'||t==='/cancel'){await run(ctx.db,"UPDATE salons SET bot_state='' WHERE id=?",ctx.salon.id);await ctx.say('لغو شد.');return}
+ if(state.team==='name'){
+  const n=text(t,60);if(n.length<2){await ctx.say('اسم نیرو را بنویسید، مثلاً «مریم محمدی».');return}
+  await run(ctx.db,'UPDATE salons SET bot_state=? WHERE id=?',JSON.stringify({p:ctx.p,team:'spec',name:n}),ctx.salon.id);
+  await ctx.say('تخصص '+n+' چیست؟ یکی را بزنید یا بنویسید.',{reply_markup:{inline_keyboard:SPECIALTIES.map((x,i)=>[{text:x,callback_data:'tm:s:'+i}])}});
+  return;
+ }
+ if(state.team==='spec'){await finishStaff(ctx,state.name,text(t,40));return}
+}
+async function finishStaff(ctx,name,specialty){
+ await run(ctx.db,"UPDATE salons SET bot_state='' WHERE id=?",ctx.salon.id);
+ const t=await createStaff(ctx.db,ctx.salon,name,specialty);
+ await showStaffLinks(ctx,t,true);
+}
+async function teamCallback(ctx,data,q){
+ const {db}=ctx,salon=ctx.salon;
+ if(data==='tm:n')return 'لغو شد';
+ if(data==='tm:add'){await run(db,'UPDATE salons SET bot_state=? WHERE id=?',JSON.stringify({p:ctx.p,team:'name'}),salon.id);await ctx.say('اسم نیروی تازه را بنویسید (مثلاً «مریم محمدی»). /stop برای لغو.');return 'اسم را بنویسید'}
+ if(data.startsWith('tm:s:')){const st=parse((await one(db,'SELECT bot_state FROM salons WHERE id=?',salon.id))?.bot_state);if(st.team!=='spec')return 'از /team شروع کنید';await finishStaff(ctx,st.name,SPECIALTIES[Number(data.slice(5))]||'');return 'اضافه شد'}
+ const [,op,id,to]=data.split(':');
+ const t=await one(db,'SELECT * FROM team WHERE id=? AND salon_id=? AND active=1',id,salon.id);if(!t)return 'این نیرو دیگر در تیم نیست';
+ if(op==='l'){await showStaffLinks(ctx,t,false);return 'لینک تازه ساخته شد'}
+ if(op==='r'){
+  const others=(await teamOf(db,salon.id)).filter(x=>x.id!==t.id);
+  await ctx.say('مشتری‌ها و لینک‌های «'+t.name+'» بعد از حذف به چه کسی برسند؟ (نمونه‌کارهای او از صفحه برداشته می‌شود.)',{reply_markup:{inline_keyboard:[...others.map(x=>[{text:'به '+x.name,callback_data:'tm:x:'+t.id+':'+x.id}]),[{text:'به خود سالن (مدیر)',callback_data:'tm:x:'+t.id+':0'}],[{text:'انصراف',callback_data:'tm:n'}]]}});
+  return 'انتخاب کنید';
+ }
+ if(op==='x'){
+  const heirId=to&&to!=='0'?to:null;
+  const ids=await transfer(db,salon.id,t.id,heirId);
+  for(const lid of ids){const l=await one(db,'SELECT * FROM leads WHERE id=?',lid);if(l)await deliverLead(ctx.env,l)}
+  const heir=heirId?(await one(db,'SELECT name FROM team WHERE id=?',heirId))?.name:'خود سالن';
+  try{await call(ctx.env,ctx.p,'editMessageText',{chat_id:ctx.chat,message_id:q.message.message_id,text:'«'+t.name+'» از تیم حذف شد. مشتری‌ها و لینک‌هایش از این به بعد مال «'+heir+'» است.'})}catch{}
+  return 'حذف شد';
+ }
+ return 'انجام نشد';
+}
+
+// Manager hands a salon customer's request to a member ("la:<memberId>:<leadId>"), or settles a
+// conflict ("cf:<memberId|0>:<leadId>": the customer belongs to one member but came via another).
+async function handOver(ctx,lead,staffId,q,note){
+ const {db,env}=ctx,salon=ctx.salon;
+ const t=await one(db,'SELECT * FROM team WHERE id=? AND salon_id=? AND active=1',staffId,salon.id);if(!t)return 'این نیرو دیگر در تیم نیست';
+ const prev=lead.staff_id?await one(db,'SELECT * FROM team WHERE id=?',lead.staff_id):null;
+ await assign(db,env,salon,{visitor:lead.visitor,number:lead.phone},t.id);
+ // Tell the previous owner it moved and take the buttons off their copy.
+ if(prev){const msgs=parse(lead.messages);for(const P of Object.values(PLATFORMS)){const chat=prev[P.col];if(!chat||!msgs[P.name]||!P.token(env))continue;try{await call(env,P.name,'editMessageReplyMarkup',{chat_id:chat,message_id:msgs[P.name],reply_markup:{inline_keyboard:[]}})}catch{}try{await call(env,P.name,'sendMessage',{chat_id:chat,text:'↪️ مدیر سالن این درخواست ('+lead.name+') را به '+t.name+' داد.',reply_parameters:{message_id:msgs[P.name],allow_sending_without_reply:true}})}catch{}}}
+ await run(db,"UPDATE leads SET staff_id=?,waiting=0,messages='{}',status='retry',attempts=0,reminders=0 WHERE id=?",t.id,lead.id);
+ await deliverLead(env,await one(db,'SELECT * FROM leads WHERE id=?',lead.id));
+ try{await call(env,ctx.p,'editMessageReplyMarkup',{chat_id:ctx.chat,message_id:q.message.message_id,reply_markup:{inline_keyboard:[[{text:'✔︎ به '+t.name+' داده شد',callback_data:'noop'}]]}})}catch{}
+ return note||('به '+t.name+' داده شد');
+}
+async function assignCallback(ctx,data,q){
+ const [kind,staffId,leadId]=data.split(':');
+ if(!/^[a-f0-9-]{36}$/.test(leadId||''))return 'انجام نشد';
+ const lead=await one(ctx.db,'SELECT * FROM leads WHERE id=? AND salon_id=?',leadId,ctx.salon.id);if(!lead)return 'این درخواست دیگر در سیستم نیست';
+ if(kind==='cf'&&staffId==='0'){try{await call(ctx.env,ctx.p,'editMessageReplyMarkup',{chat_id:ctx.chat,message_id:q.message.message_id,reply_markup:{inline_keyboard:[[{text:'✔︎ ماند',callback_data:'noop'}]]}})}catch{}return 'همان‌جا ماند'}
+ if(kind==='la'&&lead.staff_id)return 'این درخواست قبلاً به یک نیرو داده شده';
+ return handOver(ctx,lead,staffId,q);
+}
+export async function notifyConflict(env,lead,otherId){
+ const db=env.DB,salon=await one(db,'SELECT * FROM salons WHERE id=?',lead.salon_id);
+ const other=await one(db,'SELECT * FROM team WHERE id=?',otherId),own=lead.staff_id?await one(db,'SELECT name FROM team WHERE id=?',lead.staff_id):null;
+ if(!other)return;
+ const first=String(lead.name||'').split(/\s+/)[0]||'یک مشتری';
+ const msg='ℹ️ «'+first+'» مشتری '+(own?own.name:'خود سالن')+' است، ولی این بار با لینک '+other.name+' آمد. درخواستش برای '+(own?own.name:'شما')+' رفت.\nاگر می‌خواهید از این به بعد مشتری '+other.name+' باشد، دکمه را بزنید.';
+ for(const p of inboxes(env,salon))await call(env,p,'sendMessage',{chat_id:salon[PLATFORMS[p].col],text:msg,reply_markup:{inline_keyboard:[[{text:'بده به '+other.name.slice(0,20),callback_data:'cf:'+other.id+':'+lead.id},{text:'بماند',callback_data:'cf:0:'+lead.id}]]}}).catch(e=>console.error('conflict',e?.message));
+}
+
 /* ---------- customer follow: she taps "خبرم کن" on the page and starts the bot ---------- */
 const STATUS={new:'هنوز منتظر تماس سالن',called:'سالن با شما تماس گرفته',booked:'نوبت هماهنگ شد',declined:'سالن گفت این مدل قابل اجرا نیست'};
 async function follow(ctx,token){
@@ -226,34 +366,44 @@ const customerText=(status,salon,origin)=>{const prof=parse(salon.profile),tel=p
 
 /* ---------- salon buttons under each submission ---------- */
 const LABEL={called:'📞 تماس گرفتم',booked:'✅ نوبت دادم',declined:'🚫 قابل اجرا نیست'};
-export function leadKeyboard(lead,p){
+export function leadKeyboard(lead,p,members=[]){
  const mark=k=>(lead.salon_status===k?'✔︎ ':'')+LABEL[k];
  const rows=[[{text:mark('called'),callback_data:'ls:called:'+lead.id},{text:mark('booked'),callback_data:'ls:booked:'+lead.id}],[{text:mark('declined'),callback_data:'ls:declined:'+lead.id}]];
+ // A salon customer (no member yet): the manager can hand the request to a member.
+ if(!lead.staff_id&&members.length)for(let i=0;i<members.length;i+=2)rows.push(members.slice(i,i+2).map(t=>({text:'👤 بده به '+t.name.slice(0,16),callback_data:'la:'+t.id+':'+lead.id})));
  if(lead.telegram&&p==='telegram')rows.push([{text:'💬 پیام به '+lead.name.slice(0,24)+' در تلگرام',url:'https://t.me/'+lead.telegram}]);
  return {inline_keyboard:rows};
 }
 async function onCallback(ctx,q){
- const {env,db,p}=ctx,chat=String(q.message?.chat?.id||''),salon=await salonByChat(db,p,chat);ctx.chat=chat;ctx.salon=salon;
+ const {env,db,p}=ctx,chat=String(q.message?.chat?.id||''),actor=await actorByChat(db,p,chat),salon=actor?.salon||null;ctx.chat=chat;ctx.salon=salon;ctx.staff=actor?.staff||null;
+ const manager=actor?.role==='manager';
  ctx.say=(t,extra={})=>call(env,p,'sendMessage',{chat_id:chat,text:t,...extra});
  const data=String(q.data||'');let note='انجام نشد';
  try{
   if(!salon)note='این گفتگو به سالنی وصل نیست';
-  else if(data.startsWith('del:')){const id=data.slice(4);if(/^[a-f0-9-]{36}$/.test(id)){const r=await run(db,'DELETE FROM portfolio WHERE id=? AND salon_id=?',id,salon.id);note=r.meta.changes?'از صفحهٔ سالن حذف شد':'قبلاً حذف شده بود'}}
+  else if(data==='noop')note='ثبت شده';
+  else if(data.startsWith('del:')){const id=data.slice(4);if(/^[a-f0-9-]{36}$/.test(id)){const r=manager?await run(db,'DELETE FROM portfolio WHERE id=? AND salon_id=?',id,salon.id):await run(db,'DELETE FROM portfolio WHERE id=? AND salon_id=? AND staff_id=?',id,salon.id,ctx.staff.id);note=r.meta.changes?'از صفحهٔ سالن حذف شد':'قبلاً حذف شده بود'}}
+  else if(data.startsWith('tm:')){note=manager?await teamCallback(ctx,data,q):'فقط مدیر سالن'}
+  else if(data.startsWith('la:')||data.startsWith('cf:')){note=manager?await assignCallback(ctx,data,q):'فقط مدیر سالن'}
   else if(data.startsWith('ls:')){
    const [,status,id]=data.split(':');
    if(LABEL[status]&&/^[a-f0-9-]{36}$/.test(id)){
     const lead=await one(db,'SELECT * FROM leads WHERE id=? AND salon_id=?',id,salon.id);
+    // Only the request's owner may act on it: its member, or the manager for salon customers.
+    const mayAct=lead&&(lead.staff_id?(ctx.staff&&ctx.staff.id===lead.staff_id):manager);
     if(!lead)note='این درخواست دیگر در سیستم نیست';
+    else if(!mayAct)note='این درخواست مال نیروی دیگری است';
     else{
      const changed=lead.salon_status!==status;
      await run(db,'UPDATE leads SET salon_status=?,handled_at=COALESCE(handled_at,?) WHERE id=?',status,Date.now(),lead.id);
      const fresh={...lead,salon_status:status};
-     try{await call(env,p,'editMessageReplyMarkup',{chat_id:chat,message_id:q.message.message_id,reply_markup:leadKeyboard(fresh,p)})}catch{}
+     try{await call(env,p,'editMessageReplyMarkup',{chat_id:chat,message_id:q.message.message_id,reply_markup:leadKeyboard(fresh,p,fresh.staff_id?[]:await teamOf(db,salon.id))})}catch{}
      if(changed)await notifyCustomer(env,fresh,salon,customerText(status,salon,ctx.origin));
      note=lead.follow_chat?'ثبت شد و به مشتری خبر دادیم':'ثبت شد';
     }
    }
   }
+  else if(data.startsWith('wz:')&&!manager)note='فقط مدیر سالن';
   else if(data==='wz:start')await wizardStart(ctx,0,true);
   else if(data.startsWith('wz:')){
    const state=parse(salon.bot_state);
@@ -301,18 +451,19 @@ async function sendInvites(env,db,salon,chat,numbers,say){
 
 
 async function addPortfolio(ctx,photo,caption){
+ const t=ctx.staff||null;
  must((photo.file_size||0)<=5*1024*1024,'عکس بزرگ‌تر از ۵ مگابایت است');
  const media=await putImage(ctx.env,ctx.salon,null,await fileBytes(ctx.env,ctx.p,photo.file_id),'portfolio');
  const lines=String(caption).trim().split('\n').map(x=>x.trim()).filter(Boolean);
  const title=(lines[0]||'نمونه‌کار').slice(0,150);
  const category=CATEGORIES.find(c=>caption.includes(c))||'';
  const id=uid();
- await run(ctx.db,'INSERT INTO portfolio(id,salon_id,title,category,description,stylist,images,published,try_on,permission,created_at) VALUES(?,?,?,?,?,?,?,1,1,1,?)',id,ctx.salon.id,title,category,lines.slice(1).join(' ').slice(0,500),'',JSON.stringify([media]),Date.now());
- await ctx.say('✅ «'+esc(title)+'» روی صفحهٔ سالن نشست.'+(lines.length?'':'\nنکته: دفعهٔ بعد زیر عکس اسم کار را بنویسید (مثلاً «بالیاژ عسلی») تا مشتری بهتر بفهمد.'),{parse_mode:'HTML',reply_markup:{inline_keyboard:[[{text:'🗑 حذف از صفحه',callback_data:'del:'+id}]]}});
+ await run(ctx.db,'INSERT INTO portfolio(id,salon_id,title,category,description,stylist,images,published,try_on,permission,created_at,staff_id) VALUES(?,?,?,?,?,?,?,1,1,1,?,?)',id,ctx.salon.id,title,category,lines.slice(1).join(' ').slice(0,500),t?t.name:'',JSON.stringify([media]),Date.now(),t?t.id:null);
+ await ctx.say('✅ «'+esc(title)+'» '+(t?'با اسم تو ':'')+'روی صفحهٔ سالن نشست.'+(lines.length?'':'\nنکته: دفعهٔ بعد زیر عکس اسم کار را بنویسید (مثلاً «بالیاژ عسلی») تا مشتری بهتر بفهمد.'),{parse_mode:'HTML',reply_markup:{inline_keyboard:[[{text:'🗑 حذف از صفحه',callback_data:'del:'+id}]]}});
 }
 
 async function sendList(ctx){
- const items=await all(ctx.db,'SELECT id,title FROM portfolio WHERE salon_id=? AND published=1 ORDER BY created_at DESC LIMIT 20',ctx.salon.id);
+ const items=ctx.staff?await all(ctx.db,'SELECT id,title FROM portfolio WHERE salon_id=? AND staff_id=? AND published=1 ORDER BY created_at DESC LIMIT 20',ctx.salon.id,ctx.staff.id):await all(ctx.db,'SELECT id,title FROM portfolio WHERE salon_id=? AND published=1 ORDER BY created_at DESC LIMIT 20',ctx.salon.id);
  if(!items.length){await ctx.say('هنوز نمونه‌کاری ندارید. یک عکس بفرستید تا اضافه شود.');return}
  await ctx.say('نمونه‌کارهای روی صفحه ('+fa(items.length)+'). برای حذف روی هر کدام بزنید:',{reply_markup:{inline_keyboard:items.map(x=>[{text:'🗑 '+x.title,callback_data:'del:'+x.id}])}});
 }
@@ -321,10 +472,10 @@ async function sendList(ctx){
 // A clean photo album in a fixed order (before, after, reference), then one details message
 // replying to it with the three status buttons. Albums get no per-photo captions on purpose:
 // when several photos carry captions, Telegram hides them all.
-export function leadText(lead,salon,photos){
+export function leadText(lead,salon,photos,member=null){
  const when=new Intl.DateTimeFormat('fa-IR',{timeZone:'Asia/Tehran',dateStyle:'medium',timeStyle:'short'}).format(lead.created_at||Date.now());
  const names={original:'قبل: عکس خود مشتری',preview:'بعد: شبیه‌سازی آینه',reference:'عکس مدلی که مشتری انتخاب کرده'};
- const lines=['💇‍♀️ <b>درخواست تازه برای '+esc(salon.name)+'</b>','',
+ const lines=[member?'💇‍♀️ <b>درخواست تازه برای تو — مشتری «'+esc(salon.name)+'»</b>':'💇‍♀️ <b>درخواست تازه برای '+esc(salon.name)+'</b>'+(lead.staff_id?'':'\n(مشتری خود سالن؛ می‌توانید با دکمه‌های پایین به یک نیرو بدهید)'),'',
   '👤 <b>نام:</b> '+esc(lead.name),
   '📞 <b>موبایل:</b> '+esc(local(lead.phone))+' ('+esc(lead.phone)+')',
   '✈️ <b>تلگرام:</b> '+(lead.telegram?'@'+esc(lead.telegram):'ثبت نکرده'),'',
@@ -336,26 +487,36 @@ export function leadText(lead,salon,photos){
  lines.push('','🕒 '+esc(when),'','بعد از تماس، یکی از دکمه‌های زیر را بزنید'+(lead.follow_chat?' تا مشتری هم خبردار شود':'')+'.');
  return lines.join('\n');
 }
-async function sendTo(env,p,salon,lead,files){
- const chat=salon[PLATFORMS[p].col],kinds=files.map(f=>f.kind);let album=null;
+async function sendTo(env,p,salon,lead,files,target,member,members){
+ const chat=target[PLATFORMS[p].col],kinds=files.map(f=>f.kind);let album=null;
  if(files.length>1){
   const form=new FormData();form.append('chat_id',chat);files.forEach((f,i)=>form.append('p'+i,new Blob([f.bytes],{type:f.mime}),'p'+i+'.jpg'));
   form.append('media',JSON.stringify(files.map((f,i)=>({type:'photo',media:'attach://p'+i}))));
   try{const r=await call(env,p,'sendMediaGroup',form);album=r?.[0]?.message_id||null}
   catch(e){if(p==='telegram')throw e;for(const f of files){const g=new FormData();g.append('chat_id',chat);g.append('photo',new Blob([f.bytes],{type:f.mime}),'p.jpg');const r=await call(env,p,'sendPhoto',g);album=album||r?.message_id||null}}
  }else if(files.length===1){const g=new FormData();g.append('chat_id',chat);g.append('photo',new Blob([files[0].bytes],{type:files[0].mime}),'p.jpg');const r=await call(env,p,'sendPhoto',g);album=r?.message_id||null}
- const d=await call(env,p,'sendMessage',{chat_id:chat,parse_mode:'HTML',text:leadText(lead,salon,kinds),reply_markup:leadKeyboard(lead,p),...(album?{reply_parameters:{message_id:album,allow_sending_without_reply:true}}:{})});
+ const d=await call(env,p,'sendMessage',{chat_id:chat,parse_mode:'HTML',text:leadText(lead,salon,kinds,member),reply_markup:leadKeyboard(lead,p,members),...(album?{reply_parameters:{message_id:album,allow_sending_without_reply:true}}:{})});
  return d?.message_id||album;
 }
+// A member's request goes only to that member; if they have not linked the bot yet it waits
+// (the manager only hears that it is waiting). A salon customer's request goes to the manager.
 export async function deliverLead(env,lead){
  const db=env.DB,salon=await one(db,'SELECT * FROM salons WHERE id=?',lead.salon_id);
- const targets=inboxes(env,salon);if(!targets.length)return false;
+ const member=lead.staff_id?await one(db,'SELECT * FROM team WHERE id=?',lead.staff_id):null;
+ const target=member||salon,members=member?[]:await teamOf(db,salon.id);
+ const targets=inboxes(env,target);
+ if(member&&!targets.length){
+  const mark=await run(db,'UPDATE leads SET waiting=1 WHERE id=? AND waiting=0',lead.id);
+  if(mark.meta.changes)for(const q of inboxes(env,salon))await call(env,q,'sendMessage',{chat_id:salon[PLATFORMS[q].col],text:'⏳ یک مشتری '+member.name+' درخواست فرستاد، ولی '+member.name+' هنوز ربات را وصل نکرده. درخواست منتظر می‌ماند و به محض وصل شدن برایش می‌رود. لینک دعوتش: /team'}).catch(()=>{});
+  return false;
+ }
+ if(!targets.length)return false;
  const lock=await run(db,"UPDATE leads SET status='sending',attempts=attempts+1 WHERE id=? AND status IN('queued','retry')",lead.id);
  if(!lock.meta.changes)return false;
  const files=[];
  for(const [id,kind] of [[lead.original_id,'original'],[lead.preview_id,'preview'],[lead.reference_id,'reference']]){if(!id)continue;const m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,salon.id);if(!m)continue;const o=await bucketFor(env).get(m.object_key);if(!o)continue;files.push({kind,mime:m.mime,bytes:await o.arrayBuffer()})}
  const messages=parse(lead.messages),errors=[];
- for(const p of targets){if(messages[p])continue;try{messages[p]=await sendTo(env,p,salon,lead,files)}catch(e){errors.push(String(e?.message||e))}}
+ for(const p of targets){if(messages[p])continue;try{messages[p]=await sendTo(env,p,salon,lead,files,target,member,members)}catch(e){errors.push(String(e?.message||e))}}
  const ok=Object.keys(messages).length>0;
  await run(db,"UPDATE leads SET status=?,messages=?,last_error=? WHERE id=?",ok?'sent':(lead.attempts+1>=3?'failed':'retry'),JSON.stringify(messages),errors.join(' | ').slice(0,300)||null,lead.id);
  return ok;
@@ -367,7 +528,7 @@ export async function deliverLead(env,lead){
 const tehranHour=t=>Number(new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Tehran',hour:'2-digit',hour12:false}).format(t))%24;
 export async function deliverPending(env,origin=''){
  if(!botReady(env)||!env.DB)return 0;let n=0;
- for(const l of await all(env.DB,"SELECT * FROM leads WHERE status IN('queued','retry') AND attempts<3 ORDER BY created_at LIMIT 20"))if(await deliverLead(env,l))n++;
+ for(const l of await all(env.DB,"SELECT * FROM leads WHERE status IN('queued','retry') AND attempts<3 AND waiting=0 ORDER BY created_at LIMIT 20"))if(await deliverLead(env,l))n++;
  await run(env.DB,"UPDATE leads SET status='retry' WHERE status='sending' AND created_at<?",Date.now()-5*60000);
  await remind(env,origin);
  return n;
@@ -377,9 +538,11 @@ export async function remind(env,origin,now=Date.now()){
  const due=await all(env.DB,"SELECT * FROM leads WHERE status='sent' AND salon_status='new' AND ((reminders=0 AND created_at<?) OR (reminders=1 AND created_at<?)) ORDER BY created_at LIMIT 20",now-2*3600000,now-24*3600000);
  for(const lead of due){
   const salon=await one(env.DB,'SELECT * FROM salons WHERE id=?',lead.salon_id);if(!salon)continue;
+  const member=lead.staff_id?await one(env.DB,'SELECT * FROM team WHERE id=?',lead.staff_id):null,target=member||salon;
   const claim=await run(env.DB,'UPDATE leads SET reminders=reminders+1 WHERE id=? AND reminders=?',lead.id,lead.reminders);if(!claim.meta.changes)continue;
   const messages=parse(lead.messages);
-  for(const p of inboxes(env,salon)){try{await call(env,p,'sendMessage',{chat_id:salon[PLATFORMS[p].col],parse_mode:'HTML',text:'⏰ <b>یادآوری'+(lead.reminders?' دوم':'')+':</b> '+esc(lead.name)+' هنوز منتظر تماس شماست.\n📞 '+esc(local(lead.phone))+(lead.look?'\n✂️ '+esc(lead.look):'')+'\n\nبعد از تماس یکی از دکمه‌ها را بزنید.',reply_markup:leadKeyboard(lead,p),...(messages[p]?{reply_parameters:{message_id:messages[p],allow_sending_without_reply:true}}:{})})}catch(e){console.error('remind',e?.message)}}
+  const members=member?[]:await teamOf(env.DB,salon.id);
+  for(const p of inboxes(env,target)){try{await call(env,p,'sendMessage',{chat_id:target[PLATFORMS[p].col],parse_mode:'HTML',text:'⏰ <b>یادآوری'+(lead.reminders?' دوم':'')+':</b> '+esc(lead.name)+' هنوز منتظر تماس شماست.\n📞 '+esc(local(lead.phone))+(lead.look?'\n✂️ '+esc(lead.look):'')+'\n\nبعد از تماس یکی از دکمه‌ها را بزنید.',reply_markup:leadKeyboard(lead,p,members),...(messages[p]?{reply_parameters:{message_id:messages[p],allow_sending_without_reply:true}}:{})})}catch(e){console.error('remind',e?.message)}}
   if(lead.reminders===1)await notifyCustomer(env,lead,salon,customerText('new',salon,origin));
   n++;
  }

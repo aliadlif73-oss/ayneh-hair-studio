@@ -2,7 +2,8 @@ import {Problem,must,phone,text,safeLink,transferPrompt,uid,token,hash,digits,li
 import {styles} from './legacy.js';
 import {identity,issueCookie,clearCookie,same,passwordLoginEnabled} from './auth.js';
 import {bucketFor,putImage} from './storage.js';
-import {botReady,deliverLead,deliverPending,newLinkCode,setWebhook,inboxes,followLinks,PLATFORMS,platformReady,baleSecret} from './telegram.js';
+import {botReady,deliverLead,deliverPending,newLinkCode,setWebhook,inboxes,followLinks,PLATFORMS,platformReady,baleSecret,staffInvite,notifyConflict} from './telegram.js';
+import {attribute,ownerFor,createStaff,transfer,report,team as teamOf,liveStaff,SPECIALTIES} from './referral.js';
 import {stats} from './stats.js';
 import {smsReady,inviteReady,sendOtp} from './sms.js';
 export {putImage};
@@ -17,6 +18,8 @@ const PROFILE_TEXT=['bio','address','hours','manager'],PROFILE_LINKS=['map','ins
 const botInfo=env=>({token:botReady(env),secret:!!env.TELEGRAM_WEBHOOK_SECRET,username:PLATFORMS.telegram.user(env),telegram:{ready:platformReady(env,'telegram'),username:PLATFORMS.telegram.user(env)},bale:{ready:platformReady(env,'bale'),username:PLATFORMS.bale.user(env),secret:!!baleSecret(env)}});
 // The salon's own work is tryable on customers by default; an owner may switch it off.
 const refOn=cfg=>cfg.reference_verified!==false;
+const refLink=(env,origin,salon,t)=>(env.APP_ORIGIN||origin)+'/s/'+salon.slug+'?r='+t.ref_code;
+async function teamView(db,env,salon,origin){return (await teamOf(db,salon.id)).map(t=>({id:t.id,name:t.name,specialty:t.specialty,telegram:!!t.telegram_chat_id,bale:!!t.bale_chat_id,invite_pending:!!t.invite_hash&&t.invite_expires>Date.now(),ref:refLink(env,origin,salon,t)}))}
 // Anonymous usage events for the dashboard. The visitor id is random and made by the browser.
 export const TRACK_KINDS=['view','tour_start','tour_done','tour_skip','about','photo','look','color','generate','result','gen_fail','view360','send_open','sent','follow','rating','demo','share_open','share'];
 export async function logEvent(db,salonId,kind,visitor='',meta=''){await run(db,'INSERT INTO events_log(id,salon_id,visitor,kind,meta,created_at) VALUES(?,?,?,?,?,?)',uid(),salonId,/^[a-f0-9]{16,32}$/.test(visitor)?visitor:'',kind,String(meta||'').slice(0,80),Date.now())}
@@ -30,19 +33,14 @@ const clientIp=req=>req.headers.get('cf-connecting-ip')||(req.headers.get('x-for
 // A customer may only use their own uploads, or published portfolio items the salon marked for try-on.
 async function ownMedia(db,s,id){const m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,s.salon_id);must(m,'عکس یافت نشد');if(m.session_id!==s.id)must(await one(db,"SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND try_on=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)",s.salon_id,id),'عکس متعلق به این جلسه نیست',403);return m;}
 
-// Retention: private media is erased after 30 days, and so are customer submissions (the salon
-// already has them in Telegram). Brand and published portfolio media are kept.
-async function cleanup(env){const now=Date.now(),cut=now-30*86400000;
- const stale=await all(env.DB,"SELECT id,object_key FROM media WHERE kind IN ('original','reference','simulation') AND created_at<? LIMIT 50",cut);
- for(const m of stale){await bucketFor(env).delete(m.object_key);await run(env.DB,'DELETE FROM media WHERE id=?',m.id)}
- const leads=await run(env.DB,'DELETE FROM leads WHERE created_at<?',cut);
+// Retention: customer photos, simulations and submissions are kept (the owner asked for permanent
+// records: referrals and customer ownership depend on them). Only expired technical rows go.
+async function cleanup(env){const now=Date.now();
  await run(env.DB,'DELETE FROM sessions WHERE expires_at<? AND id NOT IN(SELECT session_id FROM requests) AND id NOT IN(SELECT session_id FROM leads) AND id NOT IN(SELECT session_id FROM generations) AND id NOT IN(SELECT session_id FROM media WHERE session_id IS NOT NULL)',now);
  await run(env.DB,'DELETE FROM limits WHERE expires_at<?',now);
  await run(env.DB,'DELETE FROM otps WHERE expires_at<?',now);
- await run(env.DB,'DELETE FROM invites WHERE created_at<?',cut);
  await run(env.DB,'DELETE FROM events_log WHERE created_at<?',now-400*86400000);
- await run(env.DB,'UPDATE sessions SET verified_phone=NULL,verified_name=NULL WHERE verified_phone IS NOT NULL AND created_at<?',cut);
- return {media:stale.length,leads:Number(leads.meta.changes||0)};
+ return {media:0,leads:0};
 }
 export async function tick(env,origin){if(!env.DB)return {ready:false};const delivered=await deliverPending(env,origin);const cleaned=await cleanup(env);return {ready:true,delivered,...cleaned};}
 
@@ -62,26 +60,31 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(path==='/api/logout'&&req.method==='POST')return J({ok:true},200,{'Set-Cookie':clearCookie(u.protocol==='https:')});
  if(path==='/api/owner'&&req.method==='GET'){await owner(req,env);return J({salons:await all(db,'SELECT id,slug,name,telegram_chat_id IS NOT NULL AS telegram,bale_chat_id IS NOT NULL AS bale,(SELECT count(*) FROM portfolio p WHERE p.salon_id=salons.id AND p.published=1) AS portfolio,(SELECT count(*) FROM leads l WHERE l.salon_id=salons.id) AS leads FROM salons ORDER BY created_at DESC'),bot:botInfo(env),image:!!env.KIE_API_KEY,sms:{otp:smsReady(env),invite:inviteReady(env)}});}
  if(path==='/api/owner/stats'&&req.method==='GET'){await owner(req,env);const days=[7,30,90].includes(Number(u.searchParams.get('days')))?Number(u.searchParams.get('days')):30;const slug=u.searchParams.get('salon')||'';let sid=null;if(slug){const x=await one(db,'SELECT id FROM salons WHERE slug=?',slug);must(x,'سالن پیدا نشد',404);sid=x.id}return J(await stats(db,{days,salonId:sid,styles}));}
+ if(path==='/api/owner/referrals'&&req.method==='GET'){await owner(req,env);const slug=u.searchParams.get('salon')||'';let sid=null;if(slug){const x=await one(db,'SELECT id FROM salons WHERE slug=?',slug);must(x,'سالن پیدا نشد',404);sid=x.id}return J(await report(db,{salonId:sid}));}
  if(path==='/api/owner/webhook'&&req.method==='POST'){await owner(req,env);return J(await setWebhook(env,env.APP_ORIGIN||u.origin));}
  if(path==='/api/salons'&&req.method==='POST'){const who=await owner(req,env);const b=await req.json(),id=uid();must(/^[a-z][a-z0-9-]{2,45}$/.test(b.slug),'نشانی سالن باید انگلیسی و حداقل سه حرف باشد');must(text(b.name||'',100).length>=2,'نام سالن را بنویسید');await run(db,'INSERT INTO salons(id,slug,owner_id,name,created_at,settings) VALUES(?,?,?,?,?,?)',id,b.slug,who.user||'owner',text(b.name,100),Date.now(),JSON.stringify({generation_enabled:true,reference_verified:true}));return J({id,slug:b.slug});}
  const match=path.match(/^\/api\/s\/([a-z0-9-]+)(?:\/(.*))?$/);must(match,'مسیر پیدا نشد',404);const salon=await one(db,'SELECT * FROM salons WHERE slug=?',match[1]);must(salon,'سالن پیدا نشد',404);const route=match[2]||'',cfg=parse(salon.settings);
  const readOnly=route==='public'||route==='owner'||route==='requests'||route.startsWith('media/')||route.startsWith('generation/');
  must(route==='session'?['GET','POST'].includes(req.method):req.method===(readOnly?'GET':'POST'),'متد مجاز نیست',405);
- if(route==='public')return J({salon:publicSalon(salon),portfolio:await all(db,'SELECT id,title,category,description,stylist,images,try_on,1 AS published FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 ORDER BY created_at DESC',salon.id),generation:!!env.KIE_API_KEY&&!!cfg.generation_enabled,reference:refOn(cfg),telegram:inboxes(env,salon).length>0,follow:Object.keys(followLinks(env,'x')),otp:smsReady(env),notice:'خروجی شبیه‌سازی پیشنهادی است و تضمین اجرا نیست.'});
+ if(route==='public')return J({salon:publicSalon(salon),portfolio:await all(db,'SELECT id,title,category,description,stylist,staff_id AS maker,images,try_on,1 AS published FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 ORDER BY created_at DESC',salon.id),generation:!!env.KIE_API_KEY&&!!cfg.generation_enabled,reference:refOn(cfg),telegram:inboxes(env,salon).length>0,follow:Object.keys(followLinks(env,'x')),otp:smsReady(env),notice:'خروجی شبیه‌سازی پیشنهادی است و تضمین اجرا نیست.'});
  if(route==='session'&&req.method==='POST'){await limited(db,'session:'+salon.id+':'+clientIp(req),30);const {raw}=await newSession(db,salon);return J({ok:true},200,{'Set-Cookie':cookie(raw)});}
  if(route.startsWith('owner')){
   await owner(req,env);const r=route.slice(6),b=req.method==='GET'?{}:await req.json();
-  if(!r&&req.method==='GET')return J({salon:{...publicSalon(salon),settings:{...cfg,reference_verified:refOn(cfg)},telegram:!!salon.telegram_chat_id,bale:!!salon.bale_chat_id,link_pending:!!salon.telegram_code_hash&&salon.telegram_code_expires>Date.now()},portfolio:await all(db,'SELECT id,title,category,images,created_at FROM portfolio WHERE salon_id=? AND published=1 ORDER BY created_at DESC',salon.id),leads:await all(db,'SELECT id,name,look,status,salon_status,attempts,last_error,created_at FROM leads WHERE salon_id=? ORDER BY created_at DESC LIMIT 50',salon.id),bot:botInfo(env),image:!!env.KIE_API_KEY});
+  if(!r&&req.method==='GET')return J({salon:{...publicSalon(salon),settings:{...cfg,reference_verified:refOn(cfg)},telegram:!!salon.telegram_chat_id,bale:!!salon.bale_chat_id,link_pending:!!salon.telegram_code_hash&&salon.telegram_code_expires>Date.now()},portfolio:await all(db,'SELECT id,title,category,images,created_at FROM portfolio WHERE salon_id=? AND published=1 ORDER BY created_at DESC',salon.id),leads:await all(db,'SELECT l.id,l.name,l.look,l.status,l.salon_status,l.attempts,l.last_error,l.created_at,l.waiting,t.name AS staff FROM leads l LEFT JOIN team t ON t.id=l.staff_id WHERE l.salon_id=? ORDER BY l.created_at DESC LIMIT 50',salon.id),team:await teamView(db,env,salon,u.origin),specialties:SPECIALTIES,bot:botInfo(env),image:!!env.KIE_API_KEY});
   if(r==='profile'){const p={...parse(salon.profile),...(b.profile||{})};for(const k of PROFILE_LINKS)p[k]=safeLink(p[k]||'');for(const k of PROFILE_TEXT)p[k]=text(p[k]||'',1000);p.phone=digits(p.phone||'').replace(/[\s()-]/g,'');must(!p.phone||/^\+?\d{5,15}$/.test(p.phone),'شمارهٔ تماس سالن معتبر نیست');for(const k of PROFILE_IMAGES)if(p[k])must(await one(db,"SELECT 1 FROM media WHERE id=? AND salon_id=? AND kind='brand'",p[k],salon.id),'عکس برند معتبر نیست');await run(db,'UPDATE salons SET name=?,profile=? WHERE id=?',text(b.name||salon.name,100),JSON.stringify(p),salon.id);return J({ok:true});}
   if(r==='settings'){const s={generation_enabled:!!b.generation_enabled,reference_verified:!!b.reference_verified,image_model:b.image_model==='fast'?'fast':'pro'};await run(db,'UPDATE salons SET settings=? WHERE id=?',JSON.stringify(s),salon.id);return J({ok:true});}
   if(r==='telegram-link')return J(await newLinkCode(db,salon,env));
   if(r==='telegram-unlink'){const col=b.platform==='bale'?'bale_chat_id':b.platform==='telegram'?'telegram_chat_id':null;if(col)await run(db,'UPDATE salons SET '+col+'=NULL WHERE id=?',salon.id);else await run(db,'UPDATE salons SET telegram_chat_id=NULL,bale_chat_id=NULL,telegram_code_hash=NULL,telegram_code_expires=NULL WHERE id=?',salon.id);return J({ok:true});}
+  if(r==='team'){const t=await createStaff(db,salon,b.name,b.specialty);return J({member:t,links:await staffInvite(db,env,t),ref:refLink(env,u.origin,salon,t)});}
+  if(r==='team/link'){const t=await one(db,'SELECT * FROM team WHERE id=? AND salon_id=? AND active=1',String(b.id||''),salon.id);must(t,'نیرو پیدا نشد',404);return J({links:await staffInvite(db,env,t),ref:refLink(env,u.origin,salon,t)});}
+  if(r==='team/remove'){const ids=await transfer(db,salon.id,String(b.id||''),b.to?String(b.to):null);for(const id of ids){const l=await one(db,'SELECT * FROM leads WHERE id=?',id);if(l)await deliverLead(env,l)}return J({ok:true,moved:ids.length});}
   if(r==='portfolio/delete'){await run(db,'DELETE FROM portfolio WHERE id=? AND salon_id=?',b.id,salon.id);return J({ok:true});}
   if(r==='leads/retry'){await run(db,"UPDATE leads SET status='retry',attempts=0 WHERE id=? AND salon_id=? AND status='failed'",b.id,salon.id);const l=await one(db,'SELECT * FROM leads WHERE id=? AND salon_id=?',b.id,salon.id);must(l,'درخواست یافت نشد',404);return J({delivered:await deliverLead(env,l)});}
   throw new Problem(404,'مسیر مدیریت یافت نشد');
  }
  if(route==='upload'&&req.method==='POST'){const kind=u.searchParams.get('kind')||'original';let s=null;if(kind==='brand')await owner(req,env);else{must(['original','reference'].includes(kind));s=await session(req,db,salon);await limited(db,'upload:'+s.id,30);}const bytes=new Uint8Array(await req.arrayBuffer());return J({id:await putImage(env,salon,s,bytes,kind)});}
- if(route.startsWith('media/')){const id=route.slice(6),m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,salon.id);must(m,'عکس یافت نشد',404);const profile=parse(salon.profile);let visible=m.kind==='brand'&&PROFILE_IMAGES.some(k=>profile[k]===id);if(!visible)visible=!!await one(db,'SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)',salon.id,id);if(!visible){let isOwner=false;try{await owner(req,env);isOwner=true}catch{}if(!isOwner){const s=await session(req,db,salon);await ownMedia(db,s,id);}must(m.kind==='brand'||m.kind==='portfolio'||m.created_at>Date.now()-30*86400000,'مهلت نگهداری عکس تمام شده است',410);}const object=await bucketFor(env).get(m.object_key);must(object,'عکس در دسترس نیست',410);return new Response(object.body,{headers:{'Content-Type':m.mime,'Cache-Control':visible?'public,max-age=300':'private,no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"}});}
+ if(route.startsWith('media/')){const id=route.slice(6),m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,salon.id);must(m,'عکس یافت نشد',404);const profile=parse(salon.profile);let visible=m.kind==='brand'&&PROFILE_IMAGES.some(k=>profile[k]===id);if(!visible)visible=!!await one(db,'SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)',salon.id,id);if(!visible){let isOwner=false;try{await owner(req,env);isOwner=true}catch{}if(!isOwner){const s=await session(req,db,salon);await ownMedia(db,s,id);}}const object=await bucketFor(env).get(m.object_key);must(object,'عکس در دسترس نیست',410);return new Response(object.body,{headers:{'Content-Type':m.mime,'Cache-Control':visible?'public,max-age=300':'private,no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"}});}
+ if(route==='ref'&&req.method==='POST'){const b=await req.json().catch(()=>({}));await limited(db,'ref:'+salon.id+':'+clientIp(req),3000);return J(await attribute(db,salon,String(b.v||''),String(b.r||'')));}
  if(route==='track'&&req.method==='POST'){const b=await req.json().catch(()=>({}));must(TRACK_KINDS.includes(b.kind)&&b.kind!=='sent','رویداد معتبر نیست');await limited(db,'track:'+salon.id+':'+clientIp(req),800);await logEvent(db,salon.id,b.kind,String(b.v||''),typeof b.meta==='string'||typeof b.meta==='number'?String(b.meta):'');return J({ok:true});}
  const s=await session(req,db,salon);
  if(route==='session')return J({ok:true,verified:!!s.verified_phone,name:s.verified_name||'',phone:s.verified_phone||''});
@@ -121,20 +124,27 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   const b=await req.json();must(b.data_consent===true,'رضایت ارسال عکس برای سالن لازم است');must(/^[a-f0-9-]{36}$/.test(b.idem),'شناسه درخواست معتبر نیست');
   must(!smsReady(env)||s.verified_phone,'اول شمارهٔ موبایلت را تأیید کن',403);
   const old=await one(db,'SELECT id,status FROM leads WHERE session_id=? AND idem=?',s.id,b.idem);if(old)return J({id:old.id,delivered:old.status==='sent'});
-  must(inboxes(env,salon).length,'این سالن هنوز ارسال آنلاین را فعال نکرده؛ مستقیم با سالن تماس بگیرید',503);
   const name=s.verified_name||text(b.name||'',100);must(name.length>=2,'نام را وارد کنید');const number=s.verified_phone||phone(b.phone);
+  const visitorIn=/^[a-f0-9]{16,32}$/.test(String(b.v||''))?String(b.v):'';
+  const hasTeam=!!await one(db,'SELECT 1 FROM team WHERE salon_id=? AND active=1',salon.id);
+  must(inboxes(env,salon).length||hasTeam,'این سالن هنوز ارسال آنلاین را فعال نکرده؛ مستقیم با سالن تماس بگیرید',503);
   let handle=text(String(b.telegram||''),40).replace(/^@/,'').replace(/^https?:\/\/t\.me\//,'');if(handle)must(/^[A-Za-z][A-Za-z0-9_]{4,31}$/.test(handle),'آیدی تلگرام معتبر نیست');
   const original=await ownMedia(db,s,b.original_id);must(original.kind==='original','عکس خودتان لازم است');
   if(b.reference_id)await ownMedia(db,s,b.reference_id);
   if(b.preview_id){const p=await ownMedia(db,s,b.preview_id);must(p.kind==='simulation','نتیجهٔ معتبر انتخاب کنید');must(await one(db,"SELECT 1 FROM generations WHERE result_id=? AND original_id=? AND COALESCE(reference_id,'')=? AND salon_id=?",b.preview_id,b.original_id,b.reference_id||'',salon.id),'نتیجه باید با عکس و مدل انتخابی مطابقت داشته باشد');}
   await limited(db,'lead:'+s.id,10);await limited(db,'lead-ip:'+salon.id+':'+clientIp(req),20);
-  const id=uid(),visitor=/^[a-f0-9]{16,32}$/.test(String(b.v||''))?String(b.v):'';
+  const id=uid(),visitor=visitorIn;
+  // The server decides who owns the request (referral tree and mobile lock); the client cannot.
+  const own=await ownerFor(db,env,salon,visitor,number);
   // The follow token lets this customer (and only her) link a bot chat for status updates.
   const follow=Array.from(crypto.getRandomValues(new Uint8Array(12)),x=>x.toString(16).padStart(2,'0')).join('');
-  await run(db,'INSERT INTO leads(id,salon_id,session_id,name,phone,telegram,original_id,reference_id,preview_id,look,color,note,idem,created_at,follow_hash,visitor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',id,salon.id,s.id,name,number,handle,b.original_id,b.reference_id||null,b.preview_id||null,text(b.look||'',150),text(b.color||'',120),text(b.note||'',1000),b.idem,Date.now(),await hash(follow),visitor);
+  await run(db,'INSERT INTO leads(id,salon_id,session_id,name,phone,telegram,original_id,reference_id,preview_id,look,color,note,idem,created_at,follow_hash,visitor,staff_id) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',id,salon.id,s.id,name,number,handle,b.original_id,b.reference_id||null,b.preview_id||null,text(b.look||'',150),text(b.color||'',120),text(b.note||'',1000),b.idem,Date.now(),await hash(follow),visitor,own.staff);
+  if(visitor)await run(db,'UPDATE ref_visitors SET name=? WHERE salon_id=? AND visitor=?',name,salon.id,visitor);
   await logEvent(db,salon.id,'sent',visitor,b.preview_id?'sim':'plain');
   const delivered=await deliverLead(env,await one(db,'SELECT * FROM leads WHERE id=?',id));
-  return J({id,delivered,follow:followLinks(env,follow)});
+  if(own.conflict)await notifyConflict(env,await one(db,'SELECT * FROM leads WHERE id=?',id),own.conflict).catch(e=>console.error('conflict notice',e?.message));
+  const waiting=!!(await one(db,'SELECT waiting FROM leads WHERE id=?',id))?.waiting;
+  return J({id,delivered,waiting,follow:followLinks(env,follow)});
  }
  if(route==='views'&&req.method==='POST'){
   const b=await req.json();must(env.KIE_API_KEY&&cfg.generation_enabled,'تولید فعال نیست',503);must(/^[a-f0-9-]{36}$/.test(b.idem));const existing=await one(db,'SELECT id,state FROM generations WHERE session_id=? AND idem=?',s.id,b.idem);if(existing)return J(existing);const base=await one(db,"SELECT * FROM generations WHERE id=? AND session_id=? AND salon_id=? AND state='success'",b.parent,s.id,salon.id);must(base?.result_id,'عکس پایه معتبر نیست');const m=await ownMedia(db,s,base.result_id),id=uid(),now=Date.now();await limited(db,'views:'+salon.id,20);await run(db,"INSERT INTO generations(id,salon_id,session_id,idem,kind,state,original_id,created_at,updated_at) VALUES(?,?,?,?,'views','creating',?,?,?)",id,salon.id,s.id,b.idem,base.original_id,now,now);
