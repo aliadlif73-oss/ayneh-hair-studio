@@ -20,8 +20,8 @@ async function salonPage(u,env){
  if(!salon)return customerHTML;
  let p={};try{p=JSON.parse(salon.profile||'{}')}catch{}
  const origin=env.APP_ORIGIN||u.origin,url=origin+'/s/'+salon.slug;
- const title=salon.name+' | مدل موی بعدی‌ات را روی عکس خودت ببین';
- const desc=(p.bio?String(p.bio).slice(0,150)+' ':'')+'مدل و رنگ مو را روی عکس خودت امتحان کن و برای آرایشگر بفرست.';
+ const title=salon.name+' | مو، ناخن و مژهٔ بعدی‌ات را روی عکس خودت ببین';
+ const desc=(p.bio?String(p.bio).slice(0,150)+' ':'')+'مدل مو، طرح ناخن یا مژه را روی عکس خودت امتحان کن و برای سالن بفرست.';
  const img=p.cover||p.logo?origin+'/api/s/'+salon.slug+'/media/'+(p.cover||p.logo):'';
  const tags='<title>'+attr(title)+'</title>\n<meta name="description" content="'+attr(desc)+'">\n<meta property="og:title" content="'+attr(title)+'">\n<meta property="og:description" content="'+attr(desc)+'">\n<meta property="og:type" content="website">\n<meta property="og:url" content="'+attr(url)+'">\n<meta property="og:site_name" content="آینه">\n<meta property="og:locale" content="fa_IR">\n'+(img?'<meta property="og:image" content="'+attr(img)+'">\n<meta property="og:image:alt" content="'+attr(salon.name)+'">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:image" content="'+attr(img)+'">\n':'<meta name="twitter:card" content="summary">\n')+'<link rel="canonical" href="'+attr(url)+'">';
  return customerHTML.replace(/<meta name="description"[^>]*>\n?/,'').replace(/<meta property="og:[a-z:]+"[^>]*>\n?/g,'').replace(/<title>[^<]*<\/title>/,tags);

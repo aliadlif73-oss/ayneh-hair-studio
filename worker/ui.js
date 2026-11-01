@@ -28,6 +28,7 @@ const css=String.raw`
 .dcard{display:grid;gap:10px;align-content:start}
 .dcard>.lead{margin-bottom:4px}
 .hbars{display:grid;gap:10px}
+.port__line{font:inherit;font-size:12.5px;padding:4px 8px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface)}
 .setup{display:grid;gap:4px;margin-top:6px}.setup small{color:var(--muted);font-size:12px;line-height:1.7}
 .setup__bar{display:block;height:6px;border-radius:3px;background:var(--line-2);overflow:hidden}.setup__bar span{display:block;height:100%;background:var(--accent);border-radius:3px}
 .acts{display:grid;gap:6px;max-height:420px;overflow:auto;margin-top:6px}
@@ -252,6 +253,8 @@ function dashboard(salons){
    card('رضایت از شبیه‌سازی',r.count?'میانگین '+fa(r.avg.toFixed(1))+' از ۵، از '+fa(r.count)+' امتیاز':'هنوز امتیازی ثبت نشده.',hbars([5,4,3,2,1].map(function(v,i){return {label:fa(v)+' ستاره',count:r.dist[i]}}),{tone:'honey'}),tableOf(['امتیاز','تعداد'],[5,4,3,2,1].map(function(v,i){return [fa(v),fa(r.dist[i])]}))),
    card('کیفیت فنی و رفتار','',el('div',{class:'kpis kpis--small'},[tile('شبیه‌سازی موفق',g.total?pct(g.rate):'—',null,fa(g.success)+' از '+fa(g.total)),tile('تور آموزشی',x.tourStart?pct(x.tourDone/x.tourStart):'—',null,'کامل دیدند ('+fa(x.tourDone)+' از '+fa(x.tourStart)+')'),tile('نمای ۳۶۰',fa(x.view360)),tile('خبرم کن',fa(x.follow),null,'مشتری ربات را باز کرد'),tile('دربارهٔ سالن',fa(x.about))]))
   ]));
+  var L=d.lines||{requests:{},switches:{}},LN=[['hair','مو'],['nails','ناخن'],['lashes','مژه']];
+  out.push(card('خدمت‌ها','درخواست‌ها به تفکیک مو، ناخن و مژه، و چند بار مشتری‌ها به هر بخش سر زدند.',hbars(LN.map(function(x){return {label:x[1],count:L.requests[x[0]]||0,sw:L.switches[x[0]]||0}}),{fmt:function(it){return fa(it.count)+' درخواست'},tip:function(it){return fa(it.count)+' درخواست · '+fa(it.sw)+' بار باز کردن این بخش'}}),tableOf(['خدمت','درخواست','باز کردن بخش'],LN.map(function(x){return [x[1],fa(L.requests[x[0]]||0),fa(L.switches[x[0]]||0)]}))));
   var sh=d.share||{opened:0,sent:0,visitors:0,byApp:[]},APP={telegram:'تلگرام',whatsapp:'واتساپ',sms:'پیامک',instagram:'اینستاگرام',copy:'کپی لینک',native:'سایر برنامه‌ها (بله، ایتا…)'};
   var apps=sh.byApp.map(function(a){return {label:APP[a.label]||a.label,count:a.count}});
   out.push(card('معرفی به دوستان','بنر پایین صفحهٔ سالن: چند نفر لینک را برای دوستشان فرستادند و چند نفر از همین لینک آمدند.',el('div',{},[el('div',{class:'kpis kpis--small'},[tile('بنر را باز کردند',fa(sh.opened)),tile('فرستادند',fa(sh.sent)),tile('آمده از لینک معرفی',fa(sh.visitors),null,'بازدیدکنندهٔ تازه')]),apps.length?el('div',{style:'margin-top:16px'},[hbars(apps)]):el('p',{class:'lead',style:'margin-top:14px',text:'هنوز کسی لینک را نفرستاده.'})]),apps.length?tableOf(['برنامه','دفعه'],apps.map(function(x){return [x.label,fa(x.count)]})):null));
@@ -404,7 +407,7 @@ function salonPage(){return api('/api/s/'+slug+'/owner').then(function(d){
 
  // Portfolio
  var ports=el('div',{class:'ports'});
- d.portfolio.forEach(function(it){var ids=[];try{ids=JSON.parse(it.images)}catch(e){}ports.append(el('div',{class:'port'},[ids[0]?el('img',{src:'/api/s/'+slug+'/media/'+ids[0],alt:'',loading:'lazy'}):null,h('b',it.title),el('button',{class:'btn btn--danger btn--sm',type:'button',text:'حذف',onclick:act(function(){if(!confirm('«'+it.title+'» از صفحهٔ سالن حذف شود؟'))return;return api('/api/s/'+slug+'/owner/portfolio/delete',{id:it.id}).then(salonPage)})})]))});
+ d.portfolio.forEach(function(it){var ids=[];try{ids=JSON.parse(it.images)}catch(e){}var ln=el('select',{class:'port__line','aria-label':'بخش'},[['hair','مو'],['nails','ناخن'],['lashes','مژه']].map(function(o){return el('option',{value:o[0],text:o[1]})}));ln.value=it.line||'hair';ln.addEventListener('change',function(){api('/api/s/'+slug+'/owner/portfolio/line',{id:it.id,line:ln.value}).then(function(){toast('بخش نمونه‌کار عوض شد.')}).catch(function(e){toast(e.message,true)})});ports.append(el('div',{class:'port'},[ids[0]?el('img',{src:'/api/s/'+slug+'/media/'+ids[0],alt:'',loading:'lazy'}):null,h('b',it.title),it.stylist?h('small','کار '+it.stylist):null,ln,el('button',{class:'btn btn--danger btn--sm',type:'button',text:'حذف',onclick:act(function(){if(!confirm('«'+it.title+'» از صفحهٔ سالن حذف شود؟'))return;return api('/api/s/'+slug+'/owner/portfolio/delete',{id:it.id}).then(salonPage)})})]))});
  var port=el('section',{class:'card'},[h('h2','نمونه‌کارها'),h('p','سالن عکس را برای ربات تلگرام می‌فرستد و همان لحظه اینجا و روی صفحهٔ مشتری می‌نشیند.','lead'),d.portfolio.length?ports:h('p','هنوز نمونه‌کاری نیامده.','empty-note')]);
 
  // Delivery log
