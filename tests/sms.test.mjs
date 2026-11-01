@@ -13,7 +13,7 @@ const png=()=>{const b=new Uint8Array(150);b.set([137,80,78,71,13,10,26,10]);ret
 function mock({reject=false,offline=false}={}){const calls={sms:[],tg:[]};const previous=globalThis.fetch;
  globalThis.fetch=async(url,init)=>{const u=String(url);
   if(u.startsWith('https://console.melipayamak.com/')){if(offline)throw new TypeError('fetch failed');const b=JSON.parse(init.body);calls.sms.push({url:u,...b});return Response.json(reject?{recId:0,status:'invalid bodyId'}:{recId:'5800000000012345'+calls.sms.length,status:''});}
-  if(u.startsWith('https://rest.payamak-panel.com/')){const b=Object.fromEntries(new URLSearchParams(init.body));calls.sms.push({url:u,...b});return Response.json(reject?{Value:'-110',RetStatus:0,StrRetStatus:'ApiKey'}:{Value:'1234567890123456',RetStatus:1,StrRetStatus:'Ok'});}
+  if(u.startsWith('https://rest.payamak-panel.com/')){const b=Object.fromEntries(new URLSearchParams(init.body));calls.sms.push({url:u,...b});return Response.json(reject?{Value:'-110',RetStatus:35,StrRetStatus:'InvalidData'}:{Value:'1234567890123456',RetStatus:1,StrRetStatus:'Ok'});}
   if(u.startsWith('https://api.telegram.org/')){calls.tg.push({method:u.split('/').pop(),body:JSON.parse(init?.body||'{}')});return Response.json({ok:true,result:{message_id:1}});}
   if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/a.jpg'}});
   if(u.includes('createTask'))return Response.json({code:200,data:{taskId:'t1'}});
@@ -52,7 +52,8 @@ test('OTP: five wrong guesses burn the code; rejected sends store nothing; netwo
 });
 
 test('classic REST credentials send the pattern with ;-joined variables',async()=>{const e=fixture({MELIPAYAMAK_USERNAME:'u',MELIPAYAMAK_PASSWORD:'p',MELIPAYAMAK_OTP_BODY_ID:'77',SESSION_SECRET:'s'}),s=await salon(e),g=await guest(e,s),m=mock();
- try{assert.equal((await call(e,'/api/s/salon-a/otp/send',{name:'سارا محمدی',phone:'09121234567'},g)).status,200);const c=m.calls.sms.at(-1);assert.match(c.url,/BaseServiceNumber$/);assert.equal(c.bodyId,'77');assert.equal(c.to,'09121234567');assert.match(c.text,/^\d{5}$/);}finally{m.restore()}});
+ try{assert.equal((await call(e,'/api/s/salon-a/otp/send',{name:'سارا محمدی',phone:'09121234567'},g)).status,200);const c=m.calls.sms.at(-1);assert.match(c.url,/BaseServiceNumber$/);assert.equal(c.bodyId,'77');assert.equal(c.to,'09121234567');assert.match(c.text,/^\d{5}$/);}finally{m.restore()}
+ const g2=await guest(e,s),bad=mock({reject:true});try{assert.equal((await call(e,'/api/s/salon-a/otp/send',{name:'مینا رضایی',phone:'09351112233'},g2)).status,502);assert.match(e.DB.sql.prepare("SELECT error FROM sms_log WHERE phone=?").get('+989351112233').error,/code_-110 .*ApiKey/);}finally{bad.restore()}});
 
 test('without Melipayamak settings nothing changes: no OTP gate',async()=>{const e=fixture({KIE_API_KEY:'mock'}),s=await salon(e),g=await guest(e,s),m=mock();
  try{assert.equal((await call(e,'/api/s/salon-a/public')).data.otp,false);const up=await call(e,'/api/s/salon-a/upload?kind=original',png(),g);assert.equal((await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:up.data.id,style:0},g)).status,200);assert.equal((await call(e,'/api/s/salon-a/otp/send',{name:'سارا محمدی',phone:'09121234567'},g)).status,503);}finally{m.restore()}});
