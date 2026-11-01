@@ -28,6 +28,14 @@ const css=String.raw`
 .dcard{display:grid;gap:10px;align-content:start}
 .dcard>.lead{margin-bottom:4px}
 .hbars{display:grid;gap:10px}
+.setup{display:grid;gap:4px;margin-top:6px}.setup small{color:var(--muted);font-size:12px;line-height:1.7}
+.setup__bar{display:block;height:6px;border-radius:3px;background:var(--line-2);overflow:hidden}.setup__bar span{display:block;height:100%;background:var(--accent);border-radius:3px}
+.acts{display:grid;gap:6px;max-height:420px;overflow:auto;margin-top:6px}
+.act{display:flex;gap:10px;align-items:flex-start;padding:9px 12px;border-radius:12px;background:var(--surface-2);font-size:13px;line-height:1.8}
+.act small{color:var(--muted);font-size:11.5px}.act--warn{background:#fbf1de}.act--danger{background:#f8e3e0}.act--ok{background:#e2f1ea}
+.act__ic{flex:none}
+.digest{white-space:pre-wrap;font:inherit;font-size:12.5px;line-height:1.9;background:var(--surface-2);padding:12px;border-radius:12px;margin-top:10px;max-height:360px;overflow:auto}
+h3.sub{font-size:15px;margin:16px 0 4px}
 .team{display:grid;gap:10px;margin:12px 0}
 .team__row{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;padding:12px 14px;border-radius:14px;background:var(--surface-2)}
 .team__row b{font-size:14.5px}.team__row small{color:var(--muted);font-size:12px}
@@ -283,6 +291,27 @@ function referrals(r){
 var SW={'مشکی':'#151515','قهوه‌ای':'#5e3c25','شکلات':'#4b2b1c','عسل':'#b8803a','کارامل':'#a86c34','بلوند':'#d8b064','شامپاین':'#e2cfa5','پلاتین':'#ece8dc','مس':'#b5602f','شراب':'#6b1f2e','دودی':'#8a7f75','زیتون':'#6b6a3f','نسکافه':'#8d6646','بنفش':'#5b3a78','صورتی':'#e8b4c4','نقره':'#c4c4c2','خاکستر':'#a9a9a6','حنا':'#a4482a','ماهاگون':'#6e2f25'};
 function swatchOf(name){var k=Object.keys(SW).find(function(k){return String(name).indexOf(k)>=0});return k?SW[k]:'#cdd6d2'}
 
+// Setup progress of a salon page: how many fields are filled and which are missing.
+function setupLine(s){var st=s.setup||{filled:0,total:11,missing:[]};var done=st.filled>=st.total;
+ return el('div',{class:'setup'},[el('span',{class:'setup__bar'},[el('span',{style:'width:'+Math.round(st.filled/st.total*100)+'%'})]),h('small',(done?'صفحه کامل است':'صفحه '+fa(st.filled)+' از '+fa(st.total)+' — مانده: '+st.missing.join('، ')))])}
+// The owner's own alerts: link a Telegram chat, preview tonight's digest, and the activity log.
+var LEVEL={info:['ℹ️',''],good:['✅','ok'],warn:['⚠️','warn'],error:['❌','danger']},KIND={setup:'راه‌اندازی',team:'تیم',stuck:'گیرکرده',noanswer:'بی‌جواب',error:'خطا'};
+function alertsCard(d){
+ var a=d.alerts||{chats:[]},on=a.chats.length>0,out=el('div');
+ var c=el('section',{class:'card'},[h('h2','گزارش‌ها و هشدارها'),h('p','هشدار فوری (وصل شدن یا نشدن سالن و آرایشگر، صفحهٔ نیمه‌کاره، درخواست بی‌جواب یا گیرکرده، خطای ربات) و هر شب ساعت ۲۱ خلاصهٔ روز در گفتگوی تلگرام خودت با ربات.','lead'),
+  el('div',{class:'tg-state tg-state--'+(on?'on':'off')},[el('span',{html:TG}),el('div',{},[h('b',on?'گزارش‌ها به تلگرام خودت می‌آید':'هنوز به تلگرام خودت وصل نیست'),h('span',on?'در ربات /report خلاصهٔ همین الان را می‌دهد.':'دکمه را بزن، لینک را در تلگرام خودت باز کن و Start بزن.')])])]);
+ c.append(el('div',{class:'row',style:'gap:8px;flex-wrap:wrap'},[
+  el('button',{class:'btn btn--primary btn--sm',type:'button',text:on?'وصل کردن یک گفتگوی دیگر':'وصل کردن تلگرام من',onclick:act(function(){return api('/api/owner/alerts-link',{}).then(function(r){var L=r.links||{};out.replaceChildren.apply(out,[L.telegram?copyLink('تلگرام',L.telegram):null,L.bale?copyLink('بله',L.bale):null,el('p',{class:'tiny muted',text:'یک‌بار مصرف، ۲۴ ساعت اعتبار.'})].filter(Boolean))})})}),
+  el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'پیش‌نمایش گزارش امشب',onclick:act(function(){return api('/api/owner/digest').then(function(r){out.replaceChildren(el('pre',{class:'digest',text:r.text}))})})}),
+  on?el('button',{class:'btn btn--danger btn--sm',type:'button',text:'قطع گزارش‌ها',onclick:act(function(){if(!confirm('گزارش‌ها دیگر به تلگرام نیاید؟'))return;return api('/api/owner/alerts-unlink',{}).then(home)})}):null
+ ]),out);
+ var acts=d.activity||[],list=el('div',{class:'acts'});
+ acts.forEach(function(x){var l=LEVEL[x.level]||LEVEL.info;list.append(el('div',{class:'act act--'+(l[1]||'info')},[el('span',{class:'act__ic',text:l[0]}),el('div',{class:'grow'},[h('span',x.text),el('br'),h('small',(KIND[x.kind]||x.kind)+' · '+fmt(x.created_at))])]))});
+ c.append(h('h3','رویدادهای اخیر','sub'),acts.length?list:h('p','هنوز رویدادی ثبت نشده.','empty-note'));
+ return c;
+}
+function copyLink(label,url){return el('div',{class:'linkbox'},[h('b',label,'linkbox__label'),el('code',{text:url}),el('button',{class:'btn btn--soft btn--sm',type:'button',text:'کپی',onclick:function(){navigator.clipboard&&navigator.clipboard.writeText(url).then(function(){toast('لینک کپی شد.')})}})])}
+
 function botCard(bot){
  var st=function(ok,on,off){return el('li',{class:ok?'on':'off'},[h('span',ok?'✓':'–','dot'),h('span',ok?on:off)])};
  var t=bot.telegram||{},b=bot.bale||{};
@@ -297,10 +326,10 @@ function botCard(bot){
 function home(){return api('/api/owner').then(function(d){
  var head=el('div',{class:'page-head'},[el('div',{},[h('h1','داشبورد'),h('p','مشتری‌ها چطور از صفحه‌ها استفاده می‌کنند و سالن‌ها چقدر جواب می‌دهند. پایین صفحه، فهرست سالن‌ها و تنظیمات ربات است.')])]);
  var list=el('div',{class:'salons'});
- d.salons.forEach(function(s){list.append(el('div',{class:'salon'},[el('div',{class:'grow'},[h('strong',s.name),h('small','/s/'+s.slug)]),badge(s.telegram&&s.bale?'تلگرام و بله وصل':s.telegram?'تلگرام وصل':s.bale?'بله وصل':'ربات وصل نیست',s.telegram||s.bale?'ok':'warn'),h('small',fa(s.portfolio)+' نمونه‌کار، '+fa(s.leads)+' درخواست'),el('a',{class:'btn btn--ghost btn--sm',href:'/s/'+s.slug,target:'_blank',rel:'noopener',text:'صفحهٔ مشتری'}),el('a',{class:'btn btn--primary btn--sm',href:'/admin/'+s.slug,text:'تنظیمات'})]))});
+ d.salons.forEach(function(s){list.append(el('div',{class:'salon'},[el('div',{class:'grow'},[h('strong',s.name),h('small','/s/'+s.slug)]),badge(s.telegram&&s.bale?'تلگرام و بله وصل':s.telegram?'تلگرام وصل':s.bale?'بله وصل':'ربات وصل نیست',s.telegram||s.bale?'ok':'warn'),h('small',fa(s.portfolio)+' نمونه‌کار، '+fa(s.leads)+' درخواست'+(s.team?'، تیم '+fa(s.team_linked)+'/'+fa(s.team)+' وصل':'')),setupLine(s),(s.waiting||s.overdue)?el('div',{class:'row',style:'gap:6px'},[s.waiting?badge(fa(s.waiting)+' درخواست منتظر وصل شدن','warn'):null,s.overdue?badge(fa(s.overdue)+' بی‌جواب بیش از ۲۴ ساعت','danger'):null]):null,el('a',{class:'btn btn--ghost btn--sm',href:'/s/'+s.slug,target:'_blank',rel:'noopener',text:'صفحهٔ مشتری'}),el('a',{class:'btn btn--primary btn--sm',href:'/admin/'+s.slug,text:'تنظیمات'})]))});
  if(!d.salons.length)list.append(h('p','هنوز سالنی نساخته‌اید.','empty-note'));
  var create=el('section',{class:'card'},[h('h2','سالن تازه'),field('name','نام سالن'),field('slug','نشانی انگلیسی صفحه','', 'text','مثل ayneh-saadatabad؛ صفحهٔ مشتری می‌شود /s/ayneh-saadatabad'),el('button',{class:'btn btn--primary',type:'button',text:'ساخت سالن',onclick:act(function(){return api('/api/salons',{name:$('#name').value,slug:$('#slug').value.trim()}).then(function(s){location.href='/admin/'+s.slug})})})]);
- $('#app').replaceChildren(head,dashboard(d.salons),el('h2',{class:'section-title',text:'سالن‌ها'}),el('div',{class:'grid grid--2'},[el('div',{class:'stack'},[list,create]),el('div',{class:'stack'},[botCard(d.bot),smsCard(d.sms||{}),imageCard(d.image)])]));
+ $('#app').replaceChildren(head,dashboard(d.salons),el('h2',{class:'section-title',text:'سالن‌ها'}),el('div',{class:'grid grid--2'},[el('div',{class:'stack'},[list,create]),el('div',{class:'stack'},[alertsCard(d),botCard(d.bot),smsCard(d.sms||{}),imageCard(d.image)])]));
 })}
 function smsCard(sms){
  var st=function(ok,on,off){return el('li',{class:ok?'on':'off'},[h('span',ok?'✓':'–','dot'),h('span',ok?on:off)])};
@@ -325,7 +354,7 @@ function shrink(file){return createImageBitmap(file).then(function(b){var c=docu
 function salonPage(){return api('/api/s/'+slug+'/owner').then(function(d){
  var S=d.salon,p=S.profile||{},images={logo:p.logo,cover:p.cover,portrait:p.portrait};
  document.title=S.name+' | مدیریت آینه';
- var head=el('div',{class:'page-head'},[el('div',{},[el('a',{class:'back',href:'/admin',text:'→ همهٔ سالن‌ها'}),h('h1',S.name),h('p','اطلاعاتی که اینجا وارد می‌کنید در بخش «دربارهٔ سالن» صفحهٔ مشتری دیده می‌شود.')]),el('div',{class:'row'},[el('a',{class:'btn btn--ghost',href:'/admin?salon='+encodeURIComponent(S.slug),text:'آمار این سالن'}),el('a',{class:'btn btn--ghost',href:'/s/'+S.slug,target:'_blank',rel:'noopener',text:'دیدن صفحهٔ مشتری'})])]);
+ var head=el('div',{class:'page-head'},[el('div',{},[el('a',{class:'back',href:'/admin',text:'→ همهٔ سالن‌ها'}),h('h1',S.name),h('p','اطلاعاتی که اینجا وارد می‌کنید در بخش «دربارهٔ سالن» صفحهٔ مشتری دیده می‌شود.'),setupLine({setup:d.setup})]),el('div',{class:'row'},[el('a',{class:'btn btn--ghost',href:'/admin?salon='+encodeURIComponent(S.slug),text:'آمار این سالن'}),el('a',{class:'btn btn--ghost',href:'/s/'+S.slug,target:'_blank',rel:'noopener',text:'دیدن صفحهٔ مشتری'})])]);
 
  // Telegram
  var linked=[S.telegram?'تلگرام':'',S.bale?'بله':''].filter(Boolean),on=linked.length>0;

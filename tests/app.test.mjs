@@ -542,3 +542,91 @@ test('Bale: a member links through Bale and gets their customers there, in plain
   assert(!calls.some(c=>c.host==='tg'&&String(c.body.chat_id)==='777'&&String(c.body.text||'').includes('رها')),'not to the manager');
  }finally{globalThis.fetch=previous}
 });
+
+// ---------- bot reliability and owner alerts ----------
+async function linkOwnerChat(e,chat=1000){const r=await call(e,'/api/owner/alerts-link',{},OWNER);assert.equal(r.status,200,JSON.stringify(r));await hook(e,{message:{chat:{id:chat,type:'private'},text:'/start '+r.data.links.telegram.split('start=')[1]}});return chat;}
+const toOwner=(tg,chat=1000)=>tg.calls.filter(c=>c.method==='sendMessage'&&String(c.body.chat_id)===String(chat)).map(c=>c.body.text);
+const say=(e,chat,text)=>hook(e,{message:{chat:{id:chat,type:'private'},text}});
+
+test('owner alerts: linking, setup events, abandoned wizard frees later photos, /report and the nightly digest',async()=>{const e=tgEnv(fixture()),s=await salon(e);const tg=mockTelegram();try{
+ await linkOwnerChat(e);assert(toOwner(tg).some(t=>/گزارش‌های آینه/.test(t)));
+ assert.deepEqual((await call(e,'/api/owner',undefined,OWNER)).data.alerts.chats,['telegram']);
+ const r=await call(e,'/api/s/salon-a/owner/telegram-link',{},OWNER);await say(e,777,'/start '+r.data.code);
+ assert(toOwner(tg).some(t=>/ربات را در تلگرام وصل کرد/.test(t)),'owner hears the salon linked');
+ // The wizard started on link (profile empty). Answer the name, then abandon at the logo step.
+ await say(e,777,'سالن ساناز');assert.equal(JSON.parse(e.DB.sql.prepare('SELECT bot_state b FROM salons').get().b).step,1);
+ e.DB.sql.exec("UPDATE salons SET bot_state=json_set(bot_state,'$.ts',"+(Date.now()-30*60000)+")");
+ await hook(e,{message:{chat:{id:777,type:'private'},photo:[{file_id:'p1',file_size:100}],caption:'بالیاژ عسلی'}});
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM portfolio').get().n,1,'the photo became portfolio, not the logo');
+ assert.equal(JSON.parse(e.DB.sql.prepare('SELECT profile FROM salons').get().profile).logo,undefined);
+ assert(toOwner(tg).some(t=>/نیمه‌کاره رها کرد/.test(t)&&/مانده:/.test(t)));
+ // Finishing early gives a summary to the salon and the owner.
+ await say(e,777,'/setup');await hook(e,{callback_query:{id:'d',data:'wz:done',message:{chat:{id:777},message_id:3}}});
+ assert(tg.calls.some(c=>c.body.chat_id==='777'&&/از ۱۱ مورد پر شده/.test(c.body.text||'')));assert(toOwner(tg).some(t=>/زودتر تمام کرد/.test(t)));
+ const owner=(await call(e,'/api/owner',undefined,OWNER)).data;assert.equal(owner.salons[0].setup.total,11);assert(owner.activity.length>=3);
+ // /report and the 21:00 digest (once a day).
+ await say(e,1000,'/report');assert(toOwner(tg).some(t=>/گزارش امروز آینه/.test(t)));
+ const {maybeDigest}=await import('../worker/alerts.js');const nine=Date.parse('2026-11-02T17:45:00Z');
+ assert.equal(await maybeDigest(e,nine),true);assert.equal(await maybeDigest(e,nine+60000),false,'once a day');
+ assert.equal(await maybeDigest(e,Date.parse('2026-11-03T10:00:00Z')),false,'not before 21:00');
+ // A stranger link cannot subscribe; stale/abandoned states expire on the scheduler too.
+ await say(e,2000,'/start o_'+'0'.repeat(24));assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM owner_chats').get().n,1);
+ assert.equal((await call(e,'/api/owner/alerts-link',{})).status,401);
+}finally{tg.restore()}});
+
+test('team question: an abandoned or wrong answer never becomes a member; errors are explained to the sender',async()=>{const e=tgEnv(fixture()),s=await salon(e);const tg=mockTelegram();try{
+ await linkSalon(e,s,777);
+ await hook(e,{callback_query:{id:'a',data:'tm:add',message:{chat:{id:777},message_id:3}}});
+ await say(e,777,'09121234567');assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM team').get().n,0);assert.match(tg.calls.at(-1).body.text,/اسم درست نیست/);
+ e.DB.sql.exec("UPDATE salons SET bot_state=json_set(bot_state,'$.ts',"+(Date.now()-30*60000)+")");
+ await say(e,777,'مریم');assert.equal(e.DB.sql.prepare('SELECT bot_state b FROM salons').get().b,'','expired: not taken as a name');
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM team').get().n,0);
+ // Oversized photo: the salon is told why.
+ await hook(e,{message:{chat:{id:777,type:'private'},document:{file_id:'big',mime_type:'image/jpeg',file_size:9*1024*1024},caption:'x'}});
+ assert.match(tg.calls.filter(c=>c.body.chat_id==='777').at(-1).body.text,/بزرگ‌تر از ۵ مگابایت/);
+ // Same update delivered twice is handled once.
+ const u={update_id:42,message:{chat:{id:777,type:'private'},photo:[{file_id:'p9',file_size:100}],caption:'لایت'}};await hook(e,u);await hook(e,u);
+ assert.equal(e.DB.sql.prepare("SELECT count(*) n FROM portfolio WHERE title='لایت'").get().n,1);
+ // An album: the caption arrives on the second photo but names both.
+ await hook(e,{message:{chat:{id:777,type:'private'},media_group_id:'g1',photo:[{file_id:'a1',file_size:100}]}});
+ await hook(e,{message:{chat:{id:777,type:'private'},media_group_id:'g1',photo:[{file_id:'a2',file_size:100}],caption:'شینیون عروس'}});
+ await hook(e,{message:{chat:{id:777,type:'private'},media_group_id:'g1',photo:[{file_id:'a3',file_size:100}]}});
+ assert.equal(e.DB.sql.prepare("SELECT count(*) n FROM portfolio WHERE title='شینیون عروس'").get().n,3);
+}finally{tg.restore()}});
+
+test('waiting for the manager, the manager as a member, follower replies, album fallback, unanswered alert',async()=>{const e=tgEnv(fixture()),s=await salon(e);const tg=mockTelegram();try{
+ await linkOwnerChat(e);
+ const m=await addMember(e,s,'سارا',4002);
+ // No manager chat yet: a salon customer's request waits and the owner is told.
+ const g=await guest(e,s);const d=await sendLead(e,s,g,{v:V(1),phone:'09120000031',name:'آیدا'});assert.equal(d.waiting,true);
+ assert(toOwner(tg).some(t=>/منتظر مدیر سالن/.test(t)));
+ await linkSalon(e,s,777);assert(tg.calls.some(c=>c.body.chat_id==='777'&&(c.body.text||'').includes('آیدا')),'delivered when the manager links');
+ // The manager works too: /link gives their own code; their customers come to the manager chat as a member.
+ await say(e,777,'/link');const me=e.DB.sql.prepare('SELECT * FROM team WHERE is_manager=1').get();assert(me);assert.equal(me.telegram_chat_id,'777');
+ await visit(e,s,V(2),me.ref_code);const d2=await sendLead(e,s,await guest(e,s),{v:V(2),phone:'09120000032',name:'لیلی'});
+ assert.equal(e.DB.sql.prepare('SELECT staff_id FROM leads WHERE id=?').get(d2.id).staff_id,me.id);
+ await hook(e,{callback_query:{id:'b',data:'ls:booked:'+d2.id,message:{chat:{id:777},message_id:1}}});assert.equal(e.DB.sql.prepare('SELECT salon_status s FROM leads WHERE id=?').get(d2.id).s,'booked');
+ // A customer who follows and writes gets her status, not "get a link from the owner".
+ const token=d2.follow.telegram.split('start=f_')[1];await say(e,6100,'/start f_'+token);await say(e,6100,'سلام کی زنگ میزنید؟');
+ assert.match(tg.calls.at(-1).body.text,/نوبت هماهنگ شد|وضعیت درخواستت/);
+ // 24h unanswered: the owner is told once.
+ e.DB.sql.exec("UPDATE leads SET created_at="+(Date.now()-25*3600000)+" WHERE id='"+d.id+"'");
+ const {alertUnanswered}=await import('../worker/alerts.js');assert.equal(await alertUnanswered(e),1);assert.equal(await alertUnanswered(e),0);
+ assert(toOwner(tg).some(t=>/بیش از ۲۴ ساعت/.test(t)));
+}finally{tg.restore()}});
+
+test('Telegram album refused: photos go one by one and the details still arrive',async()=>{const e=tgEnv(fixture()),s=await salon(e);
+ const calls=[];const previous=globalThis.fetch;globalThis.fetch=async(url,init)=>{const u=String(url);if(!u.startsWith('https://api.telegram.org/'))return previous(url,init);const method=u.split('/').pop();let body=init?.body;if(body instanceof FormData){const o={};for(const [k,v] of body.entries())o[k]=typeof v==='string'?v:'<file>';body=o}else body=JSON.parse(body||'{}');calls.push({method,body});if(method==='sendMediaGroup')return Response.json({ok:false,description:'Bad Request: wrong file'},{status:400});return Response.json({ok:true,result:{message_id:5}})};
+ try{await linkSalon(e,s,777);const g=await guest(e,s);const d=await sendLead(e,s,g);assert.equal(d.delivered,true);
+  assert(calls.some(c=>c.method==='sendPhoto'));assert(calls.some(c=>c.method==='sendMessage'&&(c.body.text||'').includes('درخواست تازه')));
+  assert.equal(e.DB.sql.prepare('SELECT status FROM leads').get().status,'sent');
+ }finally{globalThis.fetch=previous}
+});
+
+test('a member texts their own link, so the referral is kept',async()=>{const e=smsEnv(tgEnv(fixture())),s=await salon(e);const tg=mockTelegram();try{
+ await linkSalon(e,s,777);const m=await addMember(e,s,'مریم',4001);
+ const sms=mockSms();try{await say(e,4001,'09121112233');
+  const inv=sms.calls.find(c=>c.kind==='shared');assert(inv,'texted');assert.deepEqual(inv.body.args,['سالن salon-a','salon-a?r='+m.ref_code]);
+ }finally{sms.restore()}
+ await say(e,4001,'/list');assert.match(tg.calls.at(-1).body.text,/هنوز نمونه‌کاری از تو/);
+}finally{tg.restore()}});

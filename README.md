@@ -36,7 +36,7 @@ For a local end-to-end run without a real bot, put `TELEGRAM_BOT_TOKEN=dev-mock`
 - `worker/stats.js`: dashboard numbers from `events_log` (anonymous visitor id from the browser, no personal data) and `leads`.
 - `worker/server.js`: API, sessions, private media, KIE generation, submissions, retention.
 - `worker/design.js`, `worker/fonts.js`: shared design system and self-hosted Vazirmatn / Estedad (SIL OFL 1.1) served from `/fonts/*`.
-- `drizzle/`: migrations. `0002_telegram.sql` adds the Telegram link and the `leads` table; `0003_sms.sql` adds mobile verification (`otps`) and salon link texts (`invites`, see SETUP-SMS.md); `0004_engagement.sql` adds `events_log`, lead salon status/reminders/follow and the Bale chat and wizard state; `0005_team.sql` adds `team`, `ref_visitors`, `ref_phones` and the member on leads and portfolio. Older booking tables are kept, unused, so no data is destroyed. Append new migrations; never edit applied ones.
+- `drizzle/`: migrations. `0002_telegram.sql` adds the Telegram link and the `leads` table; `0003_sms.sql` adds mobile verification (`otps`) and salon link texts (`invites`, see SETUP-SMS.md); `0004_engagement.sql` adds `events_log`, lead salon status/reminders/follow and the Bale chat and wizard state; `0005_team.sql` adds `team`, `ref_visitors`, `ref_phones` and the member on leads and portfolio; `0006_alerts.sql` adds `app_settings`, `owner_chats`, `activity`, `bot_seen` (update dedupe), the manager's own member row, album grouping and the owner-alerted flag. Older booking tables are kept, unused, so no data is destroyed. Append new migrations; never edit applied ones.
 - `scripts/generate-catalog.mjs` + `.github/workflows/catalog.yml`: generates the 20 catalog photos (Iranian women, Nano Banana Pro) and the demo pair with the project's `KIE_API_KEY` and commits them. Runs when the script changes or from the Actions tab; only missing photos are generated.
 
 ## Team and referrals
@@ -45,6 +45,12 @@ For a local end-to-end run without a real bot, put `TELEGRAM_BOT_TOKEN=dev-mock`
 - Whoever arrives through a member's link, and everyone they share the page with at any depth, is that member's customer for good. Their requests, reminders and status buttons go only to that member; other members and the manager never see them (the manager sees numbers only, on the owner dashboard). A request from a member who has not linked yet waits and is delivered when they link.
 - Customers who arrive with no member link belong to the salon: their requests go to the manager with one "give to <member>" button per member. If a member's customer later comes through another member's link, the request still goes to the first member and the manager gets a note with a button to move the customer.
 - The customer page only shows the salon; portfolio items carry the member's name, and a member's own work is shown first to their customers.
+
+## Owner alerts and reports
+
+- In /admin, "گزارش‌ها و هشدارها" links the owner's own Telegram chat (one-time `/start o_<code>`). Instant alerts go there: a salon or member linked the bot, a page setup finished or was abandoned (with what is missing), a member added or removed, a request waiting for an unlinked manager or member, a failed delivery, a request unanswered for 24 hours, and bot errors. Each repeated warning is sent at most once every 6 hours.
+- Every night at 21:00 Tehran the owner gets a digest per salon (visitors, requests, answered, unanswered, waiting, failed, page completeness, and per member requests and new referrals). `/report` in the owner chat sends it now; /admin can preview it.
+- The same events are listed in /admin (`activity`, kept 400 days), and each salon shows its page completeness (x of 11 and what is missing), team linked, waiting and overdue requests.
 
 ## Privacy and delivery
 
