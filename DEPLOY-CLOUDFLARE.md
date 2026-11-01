@@ -68,6 +68,10 @@ R2 لازم نیست. اگر روزی کارت اضافه کردی، بلوک R2
 | `TELEGRAM_BOT_TOKEN` | ✅ | توکن ربات از BotFather (راهنما: `SETUP-TELEGRAM.md`) |
 | `TELEGRAM_BOT_USERNAME` | ✅ | نام کاربری ربات بدون @ |
 | `TELEGRAM_WEBHOOK_SECRET` | ✅ | `openssl rand -hex 24` |
+| `MELIPAYAMAK_TOKEN` | برای پیامک | کلید API کنسول ملی‌پیامک (راهنما: `SETUP-SMS.md`) |
+| `MELIPAYAMAK_USERNAME` / `MELIPAYAMAK_PASSWORD` | جایگزین بالا | نام کاربری و رمز/ApiKey پنل |
+| `MELIPAYAMAK_OTP_BODY_ID` | برای کد تأیید | شمارهٔ الگوی کد تأیید |
+| `MELIPAYAMAK_INVITE_BODY_ID` | برای دعوت از ربات | شمارهٔ الگوی دعوت |
 | `JOB_TOKEN` | اختیاری | `openssl rand -hex 32` (برای صدا زدن دستی صف) |
 | `OWNER_ID` | اختیاری | پیش‌فرض `owner` |
 

@@ -251,6 +251,7 @@ body.is-touring{overflow:hidden}
 .outbox__thumbs{display:flex;flex:none}
 .outbox__thumbs img{width:46px;height:60px;object-fit:cover;border-radius:999px 999px 8px 8px;border:3px solid var(--surface);background:var(--glass-2)}
 .outbox__thumbs img+img{margin-inline-start:-14px}
+.sheet__lead{margin:0 0 14px;font-size:14px;line-height:1.9;color:var(--ink-2)}
 .how{margin:0 0 18px;padding:0;list-style:none;counter-reset:how;display:grid;gap:8px}
 .how li{counter-increment:how;display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.8;color:var(--ink-2)}
 .how li::before{content:counter(how,persian);width:24px;height:24px;flex:none;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:#fff;font-size:12px;font-weight:700;margin-top:1px}
@@ -295,7 +296,7 @@ var ICO={
  gallery:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m20.5 15-4.6-4.4L7 19.5"/></svg>',
  orbit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="9" ry="3.6"/><path d="M12 3.5c2 1.6 3.2 4.7 3.2 8.5s-1.2 6.9-3.2 8.5"/><path d="m18.6 13.8 2 1.6-2.3 1"/></svg>',
  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H4M10 6l-6 6 6 6"/></svg>',};
-var state={pub:null,step:1,original:null,reference:null,refTitle:'',style:null,tab:'salon',transfer:'both',color:'',result:null,gen:null,genState:null,busy:false,error:'',session:false,idem:null,rating:0,me:null};
+var state={pub:null,step:1,original:null,reference:null,refTitle:'',style:null,tab:'salon',transfer:'both',color:'',result:null,gen:null,genState:null,busy:false,error:'',session:false,verified:false,idem:null,rating:0,me:null};
 try{state.me=JSON.parse(localStorage.getItem('ayneh-me')||'null')}catch(e){}
 var $=function(s,r){return (r||document).querySelector(s)};
 var $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
@@ -798,6 +799,7 @@ function generate(){
  var box=$('#flow');
  var consent=box?box.querySelector('#consent'):null;
  if(consent&&!consent.checked){consent.closest('.check').style.color='var(--danger)';toast('رضایت ارسال عکس را تأیید کن');return}
+ if(state.pub.otp&&!state.verified){ensureSession().then(function(){if(state.verified)generate();else openVerify(generate)}).catch(function(e){toast(e.message,'error')});return}
  state.busy=true;state.error='';state.result=null;renderFlow();renderDock();
  ensureSession().then(function(){
   state.idem=state.idem||uuid();
@@ -808,8 +810,10 @@ function generate(){
   renderFlow();renderDock();
   return poll(job.id);
  }).catch(function(e){
+  state.busy=false;
+  if(/تأیید شمارهٔ موبایل/.test(e.message)){state.verified=false;renderFlow();renderDock();openVerify(generate);return}
   state.error=friendly(e.message);
-  state.busy=false;renderFlow();renderDock();
+  renderFlow();renderDock();
  });
 }
 function friendly(msg){
@@ -962,9 +966,68 @@ function startTour(){
 /* ---------- session ---------- */
 function ensureSession(){
  if(state.session)return Promise.resolve();
- return api('session').then(function(){state.session=true}).catch(function(){
-  return api('session',{}).then(function(){state.session=true});
+ return api('session').then(function(d){state.session=true;applyVerified(d)}).catch(function(){
+  return api('session',{}).then(function(){state.session=true;state.verified=false});
  });
+}
+function applyVerified(d){
+ state.verified=!!(d&&d.verified);
+ if(state.verified){state.me=Object.assign({},state.me||{},{name:d.name,phone:fa0(d.phone)});try{localStorage.setItem('ayneh-me',JSON.stringify(state.me))}catch(e){}}
+}
+
+/* ---------- mobile verification (OTP) before generation ---------- */
+function openVerify(then){
+ var panel=el('div',{class:'sheet__panel'});
+ var head=el('div',{class:'sheet__head'},[h('h2','تأیید شمارهٔ موبایل'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:closeSheet})]);
+ var body=el('div',{});
+ panel.append(head,body);
+ function askNumber(){
+  var form=el('form',{novalidate:'true'});
+  var nameWrap=wrapField('vname','نام و نام خانوادگی','text',state.me&&state.me.name||'','',{autocomplete:'name'});
+  var phoneWrap=wrapField('vphone','شمارهٔ موبایل','tel',state.me&&state.me.phone||'','۰۹۱۲۱۲۳۴۵۶۷',{inputmode:'tel',autocomplete:'tel'});
+  phoneWrap.querySelector('input').setAttribute('dir','ltr');
+  var submit=el('button',{class:'btn btn--primary btn--block',type:'submit',text:'فرستادن کد تأیید'});
+  form.append(h('p','برای ساختن عکس، یک کد ۵ رقمی به موبایلت پیامک می‌شود. این کار فقط یک بار لازم است.','sheet__lead'),nameWrap,phoneWrap,submit);
+  form.addEventListener('submit',function(e){
+   e.preventDefault();
+   var name=nameWrap.querySelector('input').value.trim(),num=normalizePhone(phoneWrap.querySelector('input').value);
+   var okName=validate(nameWrap,function(){return name.length>=3},'نام و نام خانوادگی‌ات را بنویس');
+   var okPhone=validate(phoneWrap,function(){return /^\+989\d{9}$/.test(num)},'شمارهٔ موبایل درست نیست؛ مثل ۰۹۱۲۱۲۳۴۵۶۷');
+   if(!okName||!okPhone)return;
+   submit.disabled=true;submit.textContent='در حال فرستادن…';
+   state.me=Object.assign({},state.me||{},{name:name,phone:phoneWrap.querySelector('input').value.trim()});
+   try{localStorage.setItem('ayneh-me',JSON.stringify(state.me))}catch(err){}
+   ensureSession().then(function(){return api('otp/send',{name:name,phone:num})}).then(function(d){askCode(name,num,d.resend_in||120)})
+    .catch(function(err){submit.disabled=false;submit.textContent='فرستادن کد تأیید';toast(err.message,'error')});
+  });
+  body.replaceChildren(form);
+  setTimeout(function(){var i=nameWrap.querySelector('input');if(!i.value)i.focus();else phoneWrap.querySelector('input').focus()},50);
+ }
+ function askCode(name,num,wait){
+  var form=el('form',{novalidate:'true'});
+  var codeWrap=wrapField('vcode','کد تأیید','text','','• • • • •',{inputmode:'numeric',autocomplete:'one-time-code'});
+  var input=codeWrap.querySelector('input');input.setAttribute('dir','ltr');input.setAttribute('maxlength','5');input.style.letterSpacing='.4em';input.style.textAlign='center';
+  var submit=el('button',{class:'btn btn--primary btn--block',type:'submit',text:'تأیید و ادامه'});
+  var resend=el('button',{class:'btn btn--ghost btn--sm',type:'button',disabled:'true'});
+  var change=el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'تغییر شماره',onclick:askNumber});
+  var left=wait,timer=null;
+  function countdown(){if(!resend.isConnected){clearInterval(timer);return}if(left>0){resend.disabled=true;resend.textContent='ارسال دوباره تا '+fa(left)+' ثانیه';left--}else{resend.disabled=false;resend.textContent='ارسال دوبارهٔ کد';clearInterval(timer)}}
+  resend.addEventListener('click',function(){resend.disabled=true;api('otp/send',{name:name,phone:num}).then(function(d){left=d.resend_in||120;timer=setInterval(countdown,1000);countdown();toast('کد تازه پیامک شد')}).catch(function(err){resend.disabled=false;toast(err.message,'error')})});
+  form.append(h('p','کد ۵ رقمی به '+fa0(num)+' پیامک شد.','sheet__lead'),codeWrap,submit,el('div',{class:'about__quick',style:'margin-top:10px'},[resend,change]));
+  form.addEventListener('submit',function(e){
+   e.preventDefault();
+   var code=normalizePhone(input.value).replace(/\D/g,'');
+   if(!validate(codeWrap,function(){return /^\d{5}$/.test(code)},'کد ۵ رقمی را وارد کن'))return;
+   submit.disabled=true;submit.textContent='در حال بررسی…';
+   api('otp/verify',{code:code}).then(function(d){applyVerified(d);closeSheet();toast('شماره‌ات تأیید شد');if(then)then()})
+    .catch(function(err){submit.disabled=false;submit.textContent='تأیید و ادامه';validate(codeWrap,function(){return false},err.message)});
+  });
+  input.addEventListener('input',function(){var c=normalizePhone(input.value).replace(/\D/g,'');if(c.length===5)form.requestSubmit()});
+  body.replaceChildren(form);timer=setInterval(countdown,1000);countdown();
+  setTimeout(function(){input.focus()},50);
+ }
+ askNumber();
+ openSheet(panel);
 }
 
 /* ---------- send to the salon (Telegram) ---------- */
@@ -1002,6 +1065,7 @@ function openRequest(){
  var phoneWrap=wrapField('phone','شمارهٔ موبایل','tel',state.me&&state.me.phone||'','۰۹۱۲۱۲۳۴۵۶۷',{inputmode:'tel',autocomplete:'tel'});
  var tgWrap=wrapField('tgid','آیدی تلگرام (اختیاری)','text',state.me&&state.me.telegram||'','@username',{autocomplete:'off'});
  tgWrap.querySelector('input').setAttribute('dir','ltr');
+ if(state.verified){[nameWrap,phoneWrap].forEach(function(w){var i=w.querySelector('input');i.readOnly=true;i.setAttribute('aria-readonly','true');w.querySelector('.lbl').append(' (تأییدشده)')})}
  var note=el('textarea',{id:'rnote',placeholder:'مثلاً سابقهٔ رنگ یا حنا، حساسیت پوستی، یا هر چیزی که آرایشگر باید بداند'});
  var consent=el('input',{type:'checkbox',id:'dataConsent'});
  var submit=el('button',{class:'btn btn--primary btn--block',type:'submit',html:ICO.send+'<span>فرستادن</span>'});
