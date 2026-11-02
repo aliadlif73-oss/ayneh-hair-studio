@@ -63,7 +63,7 @@ if((!existsSync(before)||!existsSync(after)||force)&&(!only.length||only.include
  try{
   const b=await generate({prompt:'Photorealistic casual smartphone selfie of an Iranian woman in her late twenties with olive skin, at home by a window in soft daylight, looking at the camera with a slight smile. Her hair is plain shoulder-length straight dark brown hair, no styling, visible and uncovered. Head and shoulders, vertical framing, plain light wall behind her. Natural skin, no filter, no text.',image_input:[],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
   // Hairstyle only: the same pipeline customers get, her own colour kept.
-  const a=await generate({prompt:transferPrompt('catalog','Butterfly haircut',''),image_input:[b],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
+  const a=await generate({prompt:transferPrompt('catalog','Short bob',''),image_input:[b],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
   await save(b,before,450,600);await save(a,after,450,600);console.log('demo ✓');made+=2;
  }catch(e){if(e instanceof NoCredit){console.log(e.message+' — top up KIE and run this workflow again.');process.exit(1)}console.log('demo failed:',e.message);failed++}
 }
