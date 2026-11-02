@@ -721,12 +721,72 @@ test('without SMS invites the bot offers messenger buttons and /i/ is a send pag
   assert.equal((await app.fetch(new Request(origin+'/i/nope'),e)).status,404);
  }finally{tg.restore()}});
 
+// ---------- landing page and salon inquiries ----------
+test('landing page is public at / and the owner console stays at /admin',async()=>{const e=tgEnv(fixture());
+ const r=await app.fetch(new Request(origin+'/'),e);assert.equal(r.status,200);const html=await r.text();
+ assert.match(html,/id="leadForm"/);assert.match(html,/مشتری‌تان قبل از نشستن روی صندلی می‌داند چه می‌خواهد/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
+ new Function(html.match(/<script>([\s\S]*?)<\/script>/g).map(s=>s.replace(/<\/?script>/g,'')).join('\n'));
+ assert.equal((await app.fetch(new Request(origin+'/admin'),e)).status,200);});
+
+test('salon inquiry from the landing form: saved, sent to the owner chat with the phone, phone kept out of the activity log',async()=>{const e=tgEnv(fixture());const tg=mockTelegram();try{
+ await linkOwnerChat(e);
+ const bad=await call(e,'/api/inquiry',{name:'سارا',salon:'سالن رز',city:'تهران',phone:'123',consent:true});assert.equal(bad.status,400);
+ assert.equal((await call(e,'/api/inquiry',{name:'سارا',salon:'سالن رز',phone:'09121234567',consent:false})).status,400);
+ const bot=await call(e,'/api/inquiry',{name:'ربات',salon:'x',phone:'09121234567',consent:true,website:'http://spam'});assert.equal(bot.status,200);
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM inquiries').get().n,0,'honeypot is dropped silently');
+ const ok=await call(e,'/api/inquiry',{name:'سارا',salon:'سالن رز',city:'تهران',phone:'۰۹۱۲۱۲۳۴۵۶۷',note:'سه آرایشگر داریم',chosen:'ولف‌کات · اسپرسو',consent:true});assert.equal(ok.status,200,JSON.stringify(ok));
+ const row=e.DB.sql.prepare('SELECT * FROM inquiries').get();assert.equal(row.phone,'+989121234567');assert.equal(row.salon,'سالن رز');
+ const msg=toOwner(tg).find(t=>/سالن رز/.test(t)&&/درخواست معرفی آینه/.test(t));assert(msg,'owner chat got the inquiry');assert.match(msg,/\+989121234567/);assert.match(msg,/ولف‌کات · اسپرسو/);
+ assert.equal(e.DB.sql.prepare("SELECT count(*) n FROM activity WHERE text LIKE '%989121234567%'").get().n,0,'phone is not stored in the activity log');
+ assert.equal((await app.fetch(new Request(origin+'/api/inquiry',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),e)).status,403,'cross-origin post is refused');
+}finally{tg.restore()}});
+
 test('salon address: capitals and spaces are normalised, duplicates and bad addresses get a clear message',async()=>{const e=fixture();
  const r=await call(e,'/api/salons',{slug:'Aliadli Salon',name:'Ali adli'},OWNER);assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.data.slug,'aliadli-salon');
  const dup=await call(e,'/api/salons',{slug:'ALIADLI-salon',name:'x y'},OWNER);assert.equal(dup.status,400);assert.match(dup.data.error,/سالن دیگری گرفته/);
  const bad=await call(e,'/api/salons',{slug:'سالن',name:'x y'},OWNER);assert.equal(bad.status,400);assert.match(bad.data.error,/aliadli-salon/);
 });
 
+test('free trial salon: built from the landing form, one per mobile, 5 images and 10 hours enforced by the server',async()=>{const e=tgEnv(fixture());e.KIE_API_KEY='mock';const tg=mockTelegram();const previous=globalThis.fetch;let tasks=0;
+ const net=globalThis.fetch;globalThis.fetch=async(url,opts)=>{const u=String(url);if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(u.includes('createTask')){tasks++;return Response.json({code:200,data:{taskId:'t'+tasks}})}return net(url,opts)};
+ try{await linkOwnerChat(e);
+  const body={name:'سارا',salon:'سالن رز',city:'تهران',phone:'۰۹۱۲۱۲۳۴۵۶۷',brand:'#8E3050',consent:true};
+  assert.equal((await call(e,'/api/trial',{...body,consent:false})).status,400);
+  assert.equal((await call(e,'/api/trial',{...body,website:'x'})).status,200);assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM trials').get().n,0,'honeypot is dropped');
+  const r=await call(e,'/api/trial',body);assert.equal(r.status,200,JSON.stringify(r));assert.match(r.data.path,/^\/s\/t-[a-f0-9]{8}$/);assert.equal(r.data.images,5);assert.equal(r.data.hours,10);
+  assert.equal((await call(e,'/api/trial',body)).status,409,'one trial per mobile');
+  const slug=r.data.path.slice(3),row=e.DB.sql.prepare('SELECT * FROM trials').get();assert.ok(Math.abs(row.expires_at-row.created_at-36000000)<1000);
+  assert(toOwner(tg).find(t=>/سالن رز/.test(t)&&new RegExp(slug).test(t)),'owner chat got the trial link');
+  const pub=await call(e,'/api/s/'+slug+'/public');assert.equal(pub.status,200);assert.equal(pub.data.trial.images_left,5);assert.equal(pub.data.trial.brand,'#8E3050');
+  const g=await guest(e,{slug}),original=await upload(e,{slug},g);
+  const gen=()=>call(e,'/api/s/'+slug+'/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:0,color:'عسلی'},g);
+  for(let i=0;i<5;i++)assert.equal((await gen()).status,200);assert.equal(tasks,5);
+  const sixth=await gen();assert.equal(sixth.status,402);assert.equal(tasks,5,'no paid task after the budget');
+  assert.equal((await call(e,'/api/s/'+slug+'/public')).data.trial.images_left,0);
+  e.DB.sql.prepare('UPDATE trials SET expires_at=?, images_used=0').run(Date.now()-1000);
+  assert.equal((await gen()).status,410);assert.equal((await call(e,'/api/s/'+slug+'/session',{})).status,410);
+  const done=await call(e,'/api/s/'+slug+'/public');assert.equal(done.status,200);assert.equal(done.data.trial.expired,true);
+ }finally{globalThis.fetch=previous;tg.restore()}});
+
+test('landing carries an absolute share image and is cacheable',async()=>{const e=fixture();const r=await app.fetch(new Request(origin+'/'),e);const html=await r.text();assert.match(html,new RegExp('og:image" content="'+origin+'/landing/og.jpg"'));assert.doesNotMatch(html,/__ORIGIN__/);assert.match(r.headers.get('cache-control'),/max-age=300/);assert.ok(readFileSync(new URL('../public/landing/og.jpg',import.meta.url)).length>10000)});
+
+test('demo salon behind the landing: mobile confirmation first, 3 images a day per mobile, no 360 view, look handed over by the landing',async()=>{
+ const e=tgEnv(fixture());e.KIE_API_KEY='mock';const s={slug:'demo'};
+ const pub=await call(e,'/api/s/demo/public');assert.equal(pub.status,200);assert.equal(pub.data.demo,true);assert.equal(pub.data.generation,false,'no SMS configured: demo generation stays off');
+ let g=await guest(e,s);const original=await upload(e,s,g);
+ const gen=()=>call(e,'/api/s/demo/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:1},g);
+ assert.equal((await gen()).status,503,'without SMS nobody can spend paid images');
+ smsEnv(e);assert.equal((await call(e,'/api/s/demo/public')).data.generation,true);
+ const need=await gen();assert.equal(need.status,403);assert.match(need.data.error,/را تأیید کن/,'the page opens its mobile dialog on this message');
+ const sms=mockSms(),net=globalThis.fetch;
+ globalThis.fetch=async(url,opts)=>{const u=String(url);if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(u.includes('createTask'))return Response.json({code:200,data:{taskId:'t'+crypto.randomUUID()}});return net(url,opts)};
+ try{assert.equal((await call(e,'/api/s/demo/otp/send',otpBody(),g)).status,200);assert.equal((await call(e,'/api/s/demo/otp/verify',{code:'48213'},g)).status,200);
+  for(let i=0;i<3;i++)assert.equal((await gen()).status,200);
+  const fourth=await gen();assert.equal(fourth.status,429);
+  const v=await call(e,'/api/s/demo/views',{idem:crypto.randomUUID(),parent:'x'},g);assert.equal(v.status,400,'no 360 view in the demo');
+ }finally{globalThis.fetch=net;sms.restore()}
+ assert.match(customerHTML,/location\.search\.match\(\/\[\?&\]s=/,'customer page reads the landing look');
+});
 test('customer page: four services, «بساز» starts building with no consent checkbox, one name per saved photo',()=>{
  const js=customerHTML.match(/<script>([\s\S]*?)<\/script>\s*<\/body>/)[1];
  for(const w of ['مدل مو','رنگ مو','ناخن','مژه'])assert(js.includes("'"+w+"'"),w);
@@ -756,3 +816,14 @@ test('owner adds portfolio from the console: photo, title and section; published
  const pub=(await call(e,'/api/s/salon-a/public')).data.portfolio;assert.equal(pub.length,1);assert.equal(pub[0].line,'color');assert.equal(pub[0].title,'بالیاژ موکا بژ');
  assert.equal((await call(e,'/api/s/salon-a/media/'+up.data.id)).status,200,'public once published');
 });
+
+test('free trial with SMS on: the mobile is confirmed by a texted code before the page is built',async()=>{const e=smsEnv(tgEnv(fixture()));const tg=mockTelegram(),sms=mockSms();try{await linkOwnerChat(e);
+ const body={salon:'سالن یاس',phone:'۰۹۱۲۷۶۵۴۳۲۱',consent:true};
+ const sent=await call(e,'/api/trial',body);assert.equal(sent.status,200,JSON.stringify(sent));assert.equal(sent.data.code_sent,true);assert.equal(sms.calls.length,1);
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM trials').get().n,0,'nothing is built before the code');
+ assert.equal((await call(e,'/api/trial',body)).status,429,'resend cooldown');
+ assert.equal((await call(e,'/api/trial',{...body,code:'11111'})).status,400);
+ const ok=await call(e,'/api/trial',{...body,code:'۴۸۲۱۳'});assert.equal(ok.status,200,JSON.stringify(ok));assert.match(ok.data.path,/^\/s\/t-/);
+ assert.equal(e.DB.sql.prepare("SELECT count(*) n FROM otps WHERE session_id LIKE 'trial:%'").get().n,0,'a used code is gone');
+ assert.equal((await call(e,'/api/trial',{...body,code:'48213'})).status,409);
+}finally{tg.restore();sms.restore()}});

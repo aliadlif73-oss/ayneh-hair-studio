@@ -44,7 +44,8 @@ export const isOwnerChat=async(db,p,chat)=>!!await one(db,'SELECT 1 FROM owner_c
 const ICON={info:'ℹ️',warn:'⚠️',error:'❌',good:'✅'};
 // Records an event and sends it to the owner's chats. The same text for the same salon is sent at
 // most once every 6 hours, so a repeating problem does not flood the chat.
-export async function notifyOwner(env,{salon=null,kind='info',level='info',text}){
+// detail (e.g. a prospect's phone) goes to the owner's chats only; it is never written to the activity log.
+export async function notifyOwner(env,{salon=null,kind='info',level='info',text,detail=''}){
  const db=env?.DB;if(!db||!text)return;
  try{
   const sid=salon?.id||null,line=(salon?.name?'«'+salon.name+'» ':'')+text;
@@ -54,7 +55,7 @@ export async function notifyOwner(env,{salon=null,kind='info',level='info',text}
   if(recent)return;
   for(const c of await all(db,'SELECT platform,chat_id FROM owner_chats')){
    if(!platformReady(env,c.platform))continue;
-   try{await call(env,c.platform,'sendMessage',{chat_id:c.chat_id,text:(ICON[level]||'•')+' '+line})}catch(e){console.error('owner alert',e?.message)}
+   try{await call(env,c.platform,'sendMessage',{chat_id:c.chat_id,text:(ICON[level]||'•')+' '+line+(detail?'\n'+detail:'')})}catch(e){console.error('owner alert',e?.message)}
   }
  }catch(e){console.error('notifyOwner',e?.message)}
 }

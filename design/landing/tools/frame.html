@@ -1,0 +1,10 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#888;display:flex;gap:12px;align-items:flex-start">
+<script>
+// Device frames for headless checks: ?w=390,820&h=844,1180&sel=%23plans (element to scroll to) or &y=1200
+const q=new URLSearchParams(location.search),ws=(q.get('w')||'390').split(','),hs=(q.get('h')||'844').split(',');
+ws.forEach((w,i)=>{const f=document.createElement('iframe');f.width=w;f.height=hs[i]||hs[0];f.style.border='0';f.src='/out/v2m.html';
+ f.onload=()=>setTimeout(()=>{const d=f.contentDocument;d.documentElement.style.scrollBehavior='auto';const sel=q.get('sel');
+  if(sel){const e=d.querySelector(sel);if(e)f.contentWindow.scrollTo(0,e.getBoundingClientRect().top+f.contentWindow.scrollY+(+q.get('frac')||0)*(e.offsetHeight-f.height)-(q.get('frac')?0:70))}
+  else if(q.get('y'))f.contentWindow.scrollTo(0,+q.get('y'))},800);
+ document.body.append(f)});
+</script>
