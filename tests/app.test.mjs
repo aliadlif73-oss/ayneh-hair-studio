@@ -719,3 +719,24 @@ test('salon address: capitals and spaces are normalised, duplicates and bad addr
  const dup=await call(e,'/api/salons',{slug:'ALIADLI-salon',name:'x y'},OWNER);assert.equal(dup.status,400);assert.match(dup.data.error,/سالن دیگری گرفته/);
  const bad=await call(e,'/api/salons',{slug:'سالن',name:'x y'},OWNER);assert.equal(bad.status,400);assert.match(bad.data.error,/aliadli-salon/);
 });
+
+test('free trial salon: built from the landing form, one per mobile, 5 images and 10 hours enforced by the server',async()=>{const e=tgEnv(fixture());e.KIE_API_KEY='mock';const tg=mockTelegram();const previous=globalThis.fetch;let tasks=0;
+ const net=globalThis.fetch;globalThis.fetch=async(url,opts)=>{const u=String(url);if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(u.includes('createTask')){tasks++;return Response.json({code:200,data:{taskId:'t'+tasks}})}return net(url,opts)};
+ try{await linkOwnerChat(e);
+  const body={name:'سارا',salon:'سالن رز',city:'تهران',phone:'۰۹۱۲۱۲۳۴۵۶۷',brand:'#8E3050',consent:true};
+  assert.equal((await call(e,'/api/trial',{...body,consent:false})).status,400);
+  assert.equal((await call(e,'/api/trial',{...body,website:'x'})).status,200);assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM trials').get().n,0,'honeypot is dropped');
+  const r=await call(e,'/api/trial',body);assert.equal(r.status,200,JSON.stringify(r));assert.match(r.data.path,/^\/s\/t-[a-f0-9]{8}$/);assert.equal(r.data.images,5);assert.equal(r.data.hours,10);
+  assert.equal((await call(e,'/api/trial',body)).status,409,'one trial per mobile');
+  const slug=r.data.path.slice(3),row=e.DB.sql.prepare('SELECT * FROM trials').get();assert.ok(Math.abs(row.expires_at-row.created_at-36000000)<1000);
+  assert(toOwner(tg).find(t=>/سالن رز/.test(t)&&new RegExp(slug).test(t)),'owner chat got the trial link');
+  const pub=await call(e,'/api/s/'+slug+'/public');assert.equal(pub.status,200);assert.equal(pub.data.trial.images_left,5);assert.equal(pub.data.trial.brand,'#8E3050');
+  const g=await guest(e,{slug}),original=await upload(e,{slug},g);
+  const gen=()=>call(e,'/api/s/'+slug+'/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:0,color:'عسلی'},g);
+  for(let i=0;i<5;i++)assert.equal((await gen()).status,200);assert.equal(tasks,5);
+  const sixth=await gen();assert.equal(sixth.status,402);assert.equal(tasks,5,'no paid task after the budget');
+  assert.equal((await call(e,'/api/s/'+slug+'/public')).data.trial.images_left,0);
+  e.DB.sql.prepare('UPDATE trials SET expires_at=?, images_used=0').run(Date.now()-1000);
+  assert.equal((await gen()).status,410);assert.equal((await call(e,'/api/s/'+slug+'/session',{})).status,410);
+  const done=await call(e,'/api/s/'+slug+'/public');assert.equal(done.status,200);assert.equal(done.data.trial.expired,true);
+ }finally{globalThis.fetch=previous;tg.restore()}});

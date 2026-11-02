@@ -689,11 +689,11 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
         <div class="sec-head">
           <p class="kicker">صفحهٔ آزمایشی رایگان</p>
           <h2 id="h-trial">صفحهٔ سالن خودت را قبل از خرید ببین.</h2>
-          <p class="sub">اسم سالن و رنگ برندت را همین‌جا امتحان کن. بعد اطلاعات تماست را بگذار؛ با تو تماس می‌گیریم و صفحهٔ آزمایشی را با لوگو و چند نمونه‌کار خودت می‌سازیم.</p>
+          <p class="sub">اسم سالن و رنگ برندت را بنویس و صفحه‌ات همان لحظه ساخته می‌شود. ۱۰ ساعت فرصت داری و می‌توانی ۵ تصویر بسازی تا ببینی مشتری‌هایت چه تجربه‌ای دارند.</p>
         </div>
         <form class="path path--form" id="leadForm" novalidate aria-labelledby="h-lead">
           <h3 id="h-lead">صفحهٔ آزمایشی سالن من را بساز</h3>
-          <p>اطلاعات را بگذار تا برای ساخت صفحهٔ آزمایشی با تو تماس بگیریم. هیچ پرداختی لازم نیست.</p>
+          <p>چند ثانیه طول می‌کشد. صفحه ۱۰ ساعت فعال است، ۵ تصویر دارد و پرداختی لازم ندارد.</p>
           <div class="lf-grid">
             <div class="lf-field"><label for="lf-name">نام شما</label><input id="lf-name" name="name" type="text" autocomplete="name" maxlength="60" required></div>
             <div class="lf-field"><label for="lf-salon">نام سالن</label><input id="lf-salon" name="salon" type="text" autocomplete="organization" maxlength="80" required></div>
@@ -702,9 +702,9 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
           </div>
           <div class="lf-field"><label for="lf-note">توضیح (اختیاری)</label><textarea id="lf-note" name="note" rows="2" maxlength="300"></textarea></div>
           <div class="lf-hp" aria-hidden="true"><label for="lf-web">وب‌سایت</label><input id="lf-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-          <label class="lf-check" for="lf-consent"><input id="lf-consent" name="consent" type="checkbox"><span>موافقم که برای معرفی آینه با من تماس بگیرند.</span></label>
+          <label class="lf-check" for="lf-consent"><input id="lf-consent" name="consent" type="checkbox"><span>موافقم که آینه برای ادامه با من تماس بگیرد.</span></label>
           <p class="lf-err" id="lf-err" role="alert"></p>
-          <button class="btn btn--lg" type="submit" id="lf-send"><span>ارسال درخواست</span><span class="arrow" aria-hidden="true">←</span></button>
+          <button class="btn btn--lg" type="submit" id="lf-send"><span>صفحهٔ سالن مرا بساز</span><span class="arrow" aria-hidden="true">←</span></button>
           <p class="lf-done" id="lf-done" role="status" hidden></p>
         </form>
 
@@ -728,7 +728,7 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
           <div class="sc-works" aria-hidden="true"><img data-k="s01" alt="" width="240" height="300"><img data-k="s03" alt="" width="240" height="300"><img data-k="s09" alt="" width="240" height="300"></div>
           <div class="sc-cta" aria-hidden="true">مدل و رنگ را انتخاب کن و برای سالن بفرست</div>
         </div>
-        <p class="mock-note">نمونهٔ نمایشی. صفحهٔ واقعی با لوگو و نمونه‌کار خودت ساخته می‌شود.</p>
+        <p class="mock-note">نمونهٔ نمایشی. نسخهٔ دائمی با لوگو و نمونه‌کار خودت ساخته می‌شود.</p>
       </div>
     </div>
   </section>
@@ -768,8 +768,8 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
     <div class="wrap">
       <div class="sec-head"><p class="kicker">پرسش‌های پرتکرار</p><h2 id="h-faq">قبل از شروع می‌پرسند…</h2></div>
       <div class="faq">
-        <details><summary>صفحهٔ آزمایشی چیست؟</summary><p>نسخهٔ نمونه‌ای از صفحهٔ سالن تو با نام، لوگو و چند نمونه‌کار خودت. با آن می‌بینی مشتری‌هایت چه تجربه‌ای خواهند داشت، قبل از اینکه چیزی بخری.</p></details>
-        <details><summary>بعد از ثبت درخواست چه می‌شود؟</summary><p>اطلاعاتت در ربات ما به دست ما می‌رسد و با شمارهٔ خودت تماس می‌گیریم تا صفحهٔ آزمایشی را بسازیم. تا همان‌جا هیچ پرداختی لازم نیست.</p></details>
+        <details><summary>صفحهٔ آزمایشی چیست؟</summary><p>صفحهٔ سالن خودت با نام و رنگ برندت، که همان لحظه می‌سازی و مثل مشتری‌هایت امتحانش می‌کنی. ۱۰ ساعت فعال است و در آن می‌توانی ۵ تصویر بسازی. هیچ هزینه‌ای ندارد.</p></details>
+        <details><summary>بعد از ثبت درخواست چه می‌شود؟</summary><p>همان لحظه لینک صفحهٔ سالنت ساخته می‌شود و درخواستت هم به ما می‌رسد. بعد از ۱۰ ساعت یا ۵ تصویر، صفحه بسته می‌شود و برای ادامه با شمارهٔ خودت با تو تماس می‌گیریم. پرداختی لازم نیست.</p></details>
         <details><summary>آینه نوبت می‌دهد؟</summary><p>نه. آینه برای انتخاب مدل و رنگ و رساندن واضح درخواست به سالن است. زمان و هزینه را سالن با تو هماهنگ می‌کند.</p></details>
         <details><summary>نتیجهٔ شبیه‌سازی دقیقاً همان چیزی است که می‌شود؟</summary><p>نه. شبیه‌سازی یک پیش‌نمایش پیشنهادی برای گفتگو با آرایشگر است و نتیجهٔ نهایی را تضمین نمی‌کند.</p></details>
         <details><summary>شبیه‌سازی برای همهٔ سالن‌ها فعال است؟</summary><p>نه، هر سالن خودش تعیین می‌کند. اگر فعال نباشد، باز هم می‌توانی مدل و رنگ را انتخاب کنی و درخواستت را بفرستی.</p></details>
@@ -1031,13 +1031,13 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
  const form=$('leadForm');if(!form)return;
  /* live mockup of the trial salon page: salon name and brand colour update the card */
  const mock=$('mock'),SRCI=(k)=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'/landing/')+k+'.webp');
- let brandName='';
+ let brandName='',brandHex='#B9975B';
  if(mock){
   mock.querySelectorAll('img[data-k]').forEach(i=>{i.src=SRCI(i.dataset.k)});
   const nm=$('mockName'),ini=$('mockInit'),DEFAULT_NAME=nm.textContent;
   $('lf-salon').addEventListener('input',e=>{const t=e.target.value.trim();nm.textContent=t||DEFAULT_NAME;ini.textContent=t?[...t][0]:'س'});
   const picks=[...document.querySelectorAll('.brand-pick button')];
-  picks.forEach(b=>b.addEventListener('click',()=>{picks.forEach(x=>x.setAttribute('aria-checked',String(x===b)));mock.style.setProperty('--brand',b.dataset.brand);brandName=b.getAttribute('aria-label')}));
+  picks.forEach(b=>b.addEventListener('click',()=>{picks.forEach(x=>x.setAttribute('aria-checked',String(x===b)));mock.style.setProperty('--brand',b.dataset.brand);brandName=b.getAttribute('aria-label');brandHex=b.dataset.brand}));
  }
  const PREVIEW=!!window.__AYN_PREVIEW;
  const err=$('lf-err'),done=$('lf-done'),send=$('lf-send');
@@ -1045,7 +1045,7 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
  function fail(msg,field){err.textContent=msg;[...form.querySelectorAll('input,textarea')].forEach(i=>i.removeAttribute('aria-invalid'));if(field){field.setAttribute('aria-invalid','true');field.focus()}}
  form.addEventListener('submit',async e=>{
   e.preventDefault();err.textContent='';
-  const v={name:$('lf-name').value.trim(),salon:$('lf-salon').value.trim(),city:$('lf-city').value.trim(),phone:faDigits($('lf-phone').value).replace(/[\\s-]/g,''),note:$('lf-note').value.trim(),website:$('lf-web').value,consent:$('lf-consent').checked};
+  const v={name:$('lf-name').value.trim(),salon:$('lf-salon').value.trim(),city:$('lf-city').value.trim(),phone:faDigits($('lf-phone').value).replace(/[\\s-]/g,''),note:$('lf-note').value.trim(),website:$('lf-web').value,consent:$('lf-consent').checked,brand:brandHex};
   if(v.name.length<2)return fail('نام خودت را بنویس.',$('lf-name'));
   if(v.salon.length<2)return fail('نام سالن را بنویس.',$('lf-salon'));
   if(!/^(\\+98|0098|98|0)?9\\d{9}$/.test(v.phone))return fail('شمارهٔ موبایل را مثل ۰۹۱۲۰۰۰۰۰۰۰ بنویس.',$('lf-phone'));
@@ -1055,10 +1055,10 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
   try{
    if(PREVIEW){await new Promise(r=>setTimeout(r,700));done.textContent='پیش‌نمایش: این فرم روی سایت اصلی به ربات می‌رسد و در این نسخه چیزی ارسال نشد.'}
    else{
-    const r=await fetch('/api/inquiry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(v)});
+    const r=await fetch('/api/trial',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(v)});
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(j.error||'ارسال نشد. کمی بعد دوباره امتحان کن.');
-    done.textContent='درخواستت ثبت شد. برای معرفی آینه با شمارهٔ '+v.phone+' تماس می‌گیریم.';
+    done.textContent='صفحهٔ سالنت ساخته شد. ۱۰ ساعت و ۵ تصویر داری. ';const a=document.createElement('a');a.href=j.path;a.className='btn';a.textContent='صفحهٔ سالن مرا باز کن ←';a.style.marginTop='12px';a.style.display='inline-flex';done.append(a);
    }
    done.hidden=false;form.querySelectorAll('input,textarea').forEach(i=>i.disabled=true);send.hidden=true;done.focus&&done.setAttribute('tabindex','-1');done.focus();
   }catch(x){fail(x.message||'ارسال نشد. کمی بعد دوباره امتحان کن.')}
