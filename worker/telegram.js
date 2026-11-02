@@ -14,6 +14,7 @@
 //          BALE_BOT_TOKEN, BALE_BOT_USERNAME (BALE_WEBHOOK_SECRET defaults to the Telegram one).
 import {Problem,must,uid,hash,text,phone,safeLink,digits,limited} from './domain.js';
 import {inviteReady,sendInvite} from './sms.js';
+import {shareLinks,shareKeyboard} from './share.js';
 import {bucketFor,putImage} from './storage.js';
 import {createStaff,transfer,assign,team as teamOf,SPECIALTIES} from './referral.js';
 import {guessLine,lineFromSpecialty,LINE_LABEL} from './lines.js';
@@ -79,8 +80,8 @@ const help=(name,sms,P)=>'<b>راهنمای مدیر سالن'+(name?' — '+esc
  'زیر درخواست‌ها دکمهٔ «👤 بده به …» هم هست: با آن درخواست را به یکی از آرایشگرها می‌دهید و از آن به بعد آن مشتری (و هر کس که او بیاورد) مال همان آرایشگر است.\n'+
  'مشتری‌هایی که با لینک یک آرایشگر آمده‌اند فقط به خود او می‌رسند. اگر مشتری یک آرایشگر با لینک آرایشگر دیگری بیاید، یک پیام کوتاه می‌گیرید که اگر خواستید جابه‌جایش کنید.\n\n'+
  '<b>🖼 نمونه‌کار</b>\nعکس را همین‌جا بفرستید و زیرش (کپشن) اسم کار را بنویسید، مثلاً «بالیاژ عسلی»، «فرنچ بادامی» یا «مژه والیوم». ربات از کپشن می‌فهمد کار مو، ناخن یا مژه است و زیر هر عکس سه دکمه برای اصلاحش هست. چند عکس با هم هم می‌شود؛ همه کپشن همان آلبوم را می‌گیرند. عکس بلافاصله روی صفحهٔ سالن می‌نشیند. با فرستادن عکس تأیید می‌کنید اجازهٔ انتشارش را دارید.\n\n'+
- (sms?'<b>📲 لینک برای مشتری</b>\nشمارهٔ موبایل مشتری را بنویسید (مثلاً ۰۹۱۲۱۲۳۴۵۶۷، تا ۵ شماره با فاصله) تا لینک سالن برایش پیامک شود.\n\n':'')+
- '<b>دستورها</b>\n/team تیم سالن: افزودن و حذف آرایشگر، لینک دعوت و لینک اختصاصی هر نفر\n/link لینک اختصاصی خودتان (اگر خودتان هم کار می‌کنید)\n/setup تکمیل یا تغییر اطلاعات صفحهٔ سالن (هر سؤال «رد شو» دارد)\n/list نمونه‌کارها و حذف\n/help همین راهنما';
+ '<b>📲 لینک برای مشتری</b>\nشمارهٔ موبایل مشتری را بنویسید (مثلاً ۰۹۱۲۱۲۳۴۵۶۷، تا ۵ شماره با فاصله)'+(sms?' تا لینک سالن برایش پیامک شود.':'. دکمه‌هایی می‌آید که لینک را با واتساپ، تلگرام، پیامک از گوشی خودتان، بله یا دایرکت اینستاگرام برایش بفرستید. /share همین دکمه‌ها را بدون شماره می‌دهد.')+'\n\n'+
+ '<b>دستورها</b>\n/share فرستادن لینک برای مشتری با پیام‌رسان\n/team تیم سالن: افزودن و حذف آرایشگر، لینک دعوت و لینک اختصاصی هر نفر\n/link لینک اختصاصی خودتان (اگر خودتان هم کار می‌کنید)\n/setup تکمیل یا تغییر اطلاعات صفحهٔ سالن (هر سؤال «رد شو» دارد)\n/list نمونه‌کارها و حذف\n/help همین راهنما';
 const ownerHelp='<b>گزارش‌های آینه</b>\n\nاز این به بعد هشدارها همین‌جا می‌آید: سالن یا آرایشگری که ربات را وصل کرد یا نکرد، صفحه‌ای که کامل یا نیمه‌کاره ماند، درخواستی که ۲۴ ساعت بی‌جواب ماند یا گیر کرد، و خطاهای ربات. هر شب ساعت ۲۱ هم خلاصهٔ روز می‌آید.\n\n/report خلاصهٔ همین الان';
 async function salonByChat(db,p,chat){return one(db,'SELECT * FROM salons WHERE '+PLATFORMS[p].col+'=?',String(chat))}
 // Who is writing: the salon's manager chat, or a team member's chat (manager wins if both).
@@ -96,8 +97,8 @@ const staffHelp=(t,salon,origin,sms)=>'<b>'+esc(t.name)+' — تیم «'+esc(sal
  'این لینک را برای مشتری‌ها و دوستانت بفرست (تلگرام، واتساپ، استوری…). هر کس با این لینک بیاید، و هر کس که او لینک را برایش بفرستد، برای همیشه مشتری تو حساب می‌شود و درخواستش فقط به خودت می‌رسد.\n\n'+
  '<b>📥 درخواست مشتری‌هایت</b>\nهمین‌جا با عکس قبل و بعد، اسم و شماره می‌آید. بعد از تماس یکی از دکمه‌ها را بزن («📞 تماس گرفتم»، «✅ نوبت دادم»، «🚫 قابل اجرا نیست») تا مشتری خبردار شود.\n\n'+
  '<b>🖼 نمونه‌کار</b>\nعکس کارت را بفرست و زیرش اسم کار را بنویس (مثلاً «کوتاهی پروانه‌ای»). با اسم تو روی صفحهٔ سالن می‌نشیند و مشتری‌هایت اول کارهای تو را می‌بینند. برای حذف، /list را بزن.\n\n'+
- (sms?'<b>📲 پیامک لینک</b>\nشمارهٔ موبایل مشتری را بنویس (تا ۵ شماره با فاصله) تا لینک اختصاصی تو برایش پیامک شود.\n\n':'')+
- '/link لینک اختصاصی من\n/list نمونه‌کارهای من و حذف\n/help همین راهنما';
+ '<b>📲 فرستادن لینک برای مشتری</b>\nشمارهٔ موبایل مشتری را بنویس (تا ۵ شماره با فاصله)'+(sms?' تا لینک اختصاصی تو برایش پیامک شود.':'. دکمه‌هایی می‌آید که لینک اختصاصی‌ات را با واتساپ، تلگرام، پیامک از گوشی خودت، بله یا دایرکت اینستاگرام برایش بفرستی.')+'\n\n'+
+ '/share فرستادن لینک با پیام‌رسان\n/link لینک اختصاصی من\n/list نمونه‌کارهای من و حذف\n/help همین راهنما';
 // One-time invite for a member (same code format as the salon link, kept on the member's row).
 export async function staffInvite(db,env,t){
  const raw=Array.from(crypto.getRandomValues(new Uint8Array(12)),x=>x.toString(16).padStart(2,'0')).join('');
@@ -138,6 +139,7 @@ async function handle(req,env,p){
   if(textIn==='/team'){await run(db,"UPDATE salons SET bot_state='' WHERE id=?",salon.id);await sendTeam(ctx);return J({ok:true})}
   if(textIn==='/help'){await ctx.say(help(salon.name,inviteReady(env),PLATFORMS[p]),{parse_mode:'HTML'});return J({ok:true})}
   if(textIn==='/list'){await sendList(ctx);return J({ok:true})}
+  if(textIn==='/share'){await shareInvites(ctx,[],ctx.staff);return J({ok:true})}
   if(textIn==='/setup'){await wizardStart(ctx,0);return J({ok:true})}
   let state=parse(salon.bot_state);
   const photo=photoOf(m);
@@ -150,9 +152,9 @@ async function handle(req,env,p){
   }
   if(state.p===p&&state.team&&!photo){await teamAnswer(ctx,state,textIn);return J({ok:true})}
   const numbers=mobilesIn(textIn);
-  if(numbers.length){await sendInvites(env,db,salon,ctx.chat,numbers,ctx.say);return J({ok:true})}
+  if(numbers.length){if(inviteReady(env))await sendInvites(env,db,salon,ctx.chat,numbers,ctx.say);else await shareInvites(ctx,numbers,ctx.staff);return J({ok:true})}
   if(photo){await addPortfolio(ctx,photo,m.caption||'',m.media_group_id);return J({ok:true})}
-  await ctx.say('برای اضافه‌کردن نمونه‌کار، عکس بفرستید'+(inviteReady(env)?' و برای فرستادن لینک سالن به مشتری، شمارهٔ موبایلش را بنویسید':'')+'. /help راهنما را نشان می‌دهد.');
+  await ctx.say('برای اضافه‌کردن نمونه‌کار، عکس بفرستید'+' و برای فرستادن لینک سالن به مشتری، شمارهٔ موبایلش را بنویسید. /help راهنما را نشان می‌دهد.');
   return J({ok:true});
  }catch(e){
   // Always 200 so a bad update is not redelivered forever. The sender is told what went wrong in
@@ -289,10 +291,11 @@ async function staffMessage(ctx,m,textIn){
  if(textIn==='/help'||textIn==='/link'){await ctx.say(staffHelp(t,ctx.salon,ctx.origin,inviteReady(ctx.env)),{parse_mode:'HTML'});return}
  if(textIn==='/list'){await sendList(ctx);return}
  const numbers=mobilesIn(textIn);
- if(numbers.length){await sendInvites(ctx.env,ctx.db,ctx.salon,ctx.chat,numbers,ctx.say,t);return}
+ if(numbers.length){if(inviteReady(ctx.env))await sendInvites(ctx.env,ctx.db,ctx.salon,ctx.chat,numbers,ctx.say,t);else await shareInvites(ctx,numbers,t);return}
+ if(textIn==='/share'){await shareInvites(ctx,[],t);return}
  const photo=photoOf(m);
  if(photo){await addPortfolio(ctx,photo,m.caption||'',m.media_group_id);return}
- await ctx.say('برای نمونه‌کار، عکس کارت را بفرست و زیرش اسم کار را بنویس.'+(inviteReady(ctx.env)?' برای پیامک لینک اختصاصی‌ات به مشتری، شماره‌اش را بنویس.':'')+'\n/link لینک اختصاصی · /list نمونه‌کارها · /help راهنما');
+ await ctx.say('برای نمونه‌کار، عکس کارت را بفرست و زیرش اسم کار را بنویس.'+' برای فرستادن لینک اختصاصی‌ات به مشتری، شماره‌اش را بنویس.'+'\n/share فرستادن لینک · /link لینک اختصاصی · /list نمونه‌کارها · /help راهنما');
 }
 const teamLine=(t,i)=>fa(i+1)+'. <b>'+esc(t.name)+'</b>'+(t.is_manager?' (خودِ مدیر)':'')+(t.specialty&&!t.is_manager?' — '+esc(t.specialty):'')+' · '+(t.telegram_chat_id||t.bale_chat_id?'✅ وصل':'⏳ هنوز وصل نشده');
 async function sendTeam(ctx){
@@ -494,6 +497,18 @@ export function mobilesIn(textIn){
  const out=[];
  for(const p of parts){let n;try{n=phone(p)}catch{return []}if(!out.includes(n))out.push(n)}
  return out;
+}
+
+// Without an SMS text that may carry a link, the stylist sends the link herself: one message per
+// number with buttons for WhatsApp (straight to that number), Telegram, and the /i/ page (SMS from
+// her own phone, Bale, Instagram Direct, copy). No numbers: one message with the same buttons.
+async function shareInvites(ctx,numbers,member=null){
+ const targets=numbers.length?numbers:[null];
+ for(const n of targets){
+  const L=shareLinks(ctx.origin,ctx.salon,member,n);
+  const head=n?'📲 لینک برای <b>'+esc(local(n))+'</b>':'📲 لینک '+(member&&!member.is_manager?'اختصاصی تو':'«'+esc(ctx.salon.name)+'»')+' برای مشتری';
+  await ctx.say(head+'\nیکی از دکمه‌ها را بزن؛ پیام آماده از '+(member&&!member.is_manager?'گوشی خودت':'گوشی خودتان')+' فرستاده می‌شود.\n\n'+esc(L.both),{parse_mode:'HTML',reply_markup:shareKeyboard(L,n),disable_web_page_preview:true});
+ }
 }
 
 // Texts the salon's page link to each number. Limits keep a mistyped or abusive chat from burning
