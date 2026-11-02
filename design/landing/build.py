@@ -11,17 +11,17 @@ st = re.search(r'<style>(.*?)</style>', h, re.S)
 css = st.group(1)
 drop = re.compile(r'^\s*(\.hero|\.swatch|\.style-dock|\.lines-row|\.lead\{|h1\{|\.eyebrow|\.fineprint|\.hero-copy)')
 css = NL.join(l for l in css.split(NL) if not drop.match(l))
-css += NL + R('src/hero.css') + NL + R('src/sec2.css') + NL + R('src/lead.css') + NL + R('src/trial.css')
+css += NL + R('src/hero.css') + NL + R('src/sec2.css') + NL + R('src/lead.css') + NL + R('src/trial.css') + NL + R('src/scenes.css')
 css += NL + '.compare{margin-top:0}' + NL + '@media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}' + NL
 h = h.replace(st.group(0), '<style>' + css + '</style>')
 h = re.sub(r'  <!-- 1\. Hero -->.*?(?=  <!-- 2\. Experience -->)', lambda m: R('src/hero.html') + NL, h, flags=re.S)
-h = re.sub(r'  <!-- 2\. Experience -->.*?(?=  <!-- 3\. Services -->)', lambda m: R('src/sec2.html') + NL, h, flags=re.S)
+h = re.sub(r'  <!-- 2\. Experience -->.*?(?=  <!-- 3\. Services -->)', lambda m: R('src/scenes.html') + R('src/sec2.html') + NL, h, flags=re.S)
 # the free-trial section (live mockup + lead form) goes right before the plans
 trial = R('src/trial.html').replace('<!--LEAD-->', R('src/lead.html'))
 assert '  <!-- 6. Plans -->' in h
 h = h.replace('  <!-- 6. Plans -->', trial + '  <!-- 6. Plans -->', 1)
 assert 'leadForm' in h and 'id="mock"' in h, 'trial section not inserted'
-scripts = ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/hero.js', 'src/sec2.js', 'src/lead.js'])
+scripts = ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/hero.js', 'src/sec2.js', 'src/scenes.js', 'src/lead.js'])
 h = h.replace('</body>', scripts + '</body>')
 W('out/v2.html', h)
 
@@ -32,7 +32,7 @@ def b64(f, m):
 
 # ---------------- single-file artifact (everything inlined, preview flag on) ----------------
 a = h.replace('assets/estedad.woff2', b64('estedad.woff2', 'font/woff2'))
-for f in ['hero', 'compare']:
+for f in ['hero', 'compare', 'a2']:
     a = a.replace('assets/%s.webp' % f, b64(f + '.webp', 'image/webp'))
 imgmap = {('s%02d' % i): b64('s%02d.webp' % i, 'image/webp') for i in range(1, 20)}
 imgmap.update({('ic%d' % i): b64('ic%d.webp' % i, 'image/webp') for i in range(1, 5)})
@@ -41,9 +41,10 @@ imgmap['hero'] = b64('hero.webp', 'image/webp')
 for n in ['lob', 'bob']:
     imgmap['look-' + n] = b64('look-%s.webp' % n, 'image/webp')
     imgmap['hair-mask-' + n] = b64('hair-mask-%s.png' % n, 'image/png')
+frames = {k: [b64('f/%s/%03d.webp' % (k, i + 1), 'image/webp') for i in range(n)] for k, n in [('hair', 52), ('nails', 45), ('lashes', 43)]}
 marker = '<script>' + NL + '/* Film hero'
 assert marker in a
-a = a.replace(marker, '<script>window.__AYN_PREVIEW=true;window.__AYN_IMG=' + json.dumps(imgmap) + ';</script>' + NL + marker, 1)
+a = a.replace(marker, '<script>window.__AYN_PREVIEW=true;window.__AYN_IMG=' + json.dumps(imgmap) + ';window.__AYN_FRAMES=' + json.dumps(frames) + ';</script>' + NL + marker, 1)
 a = re.sub(r'<link rel="preload"[^>]*>' + NL, '', a)
 a = re.sub(r'<meta name="robots"[^>]*>(<!--.*?-->)?' + NL, '', a)
 a = re.sub(r'<link rel="icon"[^>]*>' + NL, '', a)

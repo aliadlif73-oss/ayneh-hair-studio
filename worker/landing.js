@@ -470,6 +470,37 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
 .mock-note{font-size:13px;color:var(--muted);text-align:center;max-width:340px}
 @media (max-width:900px){.trial-grid{grid-template-columns:1fr}.trial-mock{position:static;order:-1}}
 
+/* Scenes: pinned stage + scroll-scrubbed frame sequences (no library) */
+.scene{position:relative;background:var(--canvas)}
+.scene--pain{height:210svh}.scene[data-scene=transform]{height:420svh}.scene[data-scene=lines]{height:360svh}
+.scene--dark{background:var(--espresso);color:var(--cream)}
+.scene .sstage{position:sticky;top:0;height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2svh,20px);padding:88px var(--gut) 20px;overflow:hidden}
+.scene-head{width:min(100%,1100px)}
+.scene-head h2{margin:0;font-size:clamp(24px,3.4vw,44px);line-height:1.5;font-weight:800;text-wrap:balance}
+.film-frame{position:relative;margin:0;width:min(100%,1100px);aspect-ratio:16/9;max-height:56svh;border-radius:var(--r-frame);overflow:hidden;background:var(--espresso-2);box-shadow:0 30px 70px -34px rgba(0,0,0,.6)}
+.film-frame--pain{aspect-ratio:auto;height:min(56svh,100%);background:transparent;box-shadow:none;border-radius:0}
+.film-frame--pain img{width:100%;height:100%;object-fit:contain;transform:scale(var(--ps,1.14)) rotate(var(--pr,-2deg));opacity:var(--po,.4);will-change:transform,opacity}
+.film-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.film-canvas--b{opacity:0}
+.cap-row{position:absolute;inset:auto 0 0 0;padding:44px clamp(16px,3vw,32px) clamp(14px,2.4vw,24px);background:linear-gradient(to top,rgba(22,13,7,.82),rgba(22,13,7,0));display:grid}
+.film-frame--pain .cap-row{position:static;background:none;padding:12px 0 0;color:var(--ink)}
+.cap{grid-area:1/1;font-size:clamp(15px,1.8vw,20px);font-weight:700;opacity:0;transform:translateY(8px);transition:opacity .35s var(--ease),transform .35s var(--ease)}
+.cap.is-on{opacity:1;transform:none}
+.rail{position:absolute;inset:auto 0 0 0;height:3px;background:rgba(249,241,232,.18)}
+.rail i{display:block;height:100%;width:100%;background:var(--brass);transform-origin:right;transform:scaleX(var(--rp,0))}
+.ai-note{margin:0;font-size:12.5px;opacity:.7}
+@media (max-width:760px){
+  .film-frame{aspect-ratio:4/5;max-height:58svh;width:min(100%,460px)}
+  .film-frame--pain{aspect-ratio:auto}
+  .scene-head h2{font-size:23px}
+}
+@media (prefers-reduced-motion:reduce){
+  .scene{height:auto!important}.scene .sstage{position:static;height:auto;padding-block:64px}
+  .film-frame--pain img{transform:none;opacity:1}
+  .film-canvas--b{display:none}
+  .cap{position:static;opacity:1;transform:none;grid-area:auto}.cap-row{display:block}.cap:not(:first-child){display:none}
+}
+
 .compare{margin-top:0}
 @media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}
 </style>
@@ -561,6 +592,52 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
           <button type="button" class="nav-btn nav-l" id="stNext" aria-label="مدل‌های بعدی">‹</button>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Scenes 2-4: the pain, the transformation, nails and lashes. Scroll plays the film. -->
+  <section id="pain" class="scene scene--pain" data-scene="pain" aria-labelledby="h-pain">
+    <div class="sstage">
+      <div class="scene-head">
+        <p class="kicker">مشکل هر سالن</p>
+        <h2 id="h-pain">سه ربع مشاوره، با یک عکس از اینستاگرام.</h2>
+      </div>
+      <figure class="film-frame film-frame--pain">
+        <img src="/landing/a2.webp" alt="ده‌ها عکس مرجع مختلف روی هم، هر کدام سلیقه‌ای متفاوت" width="1254" height="1254" loading="lazy" id="painImg">
+        <figcaption class="cap-row"><span class="cap is-on" data-from="0" data-to=".5">مشتری چند عکس نشان می‌دهد، هر کدام یک سلیقه.</span><span class="cap" data-from=".5" data-to="1.01">تا مدل مشخص شود، وقت صندلی و حوصلهٔ هر دو تمام شده است.</span></figcaption>
+      </figure>
+      <p class="ai-note">نمونهٔ تصویری ساخته‌شده با هوش مصنوعی</p>
+    </div>
+  </section>
+
+  <section id="transform" class="scene scene--dark on-dark" data-scene="transform" aria-labelledby="h-tr">
+    <div class="sstage">
+      <div class="scene-head">
+        <p class="kicker">با آینه</p>
+        <h2 id="h-tr">از عکس تا تصمیم، چند ثانیه.</h2>
+      </div>
+      <figure class="film-frame">
+        <canvas class="film-canvas" data-set="hair" data-n="52" data-fx=".5" role="img" aria-label="موی بلند و مسی یک مشتری که تدریجی به باب بلوند شامپاینی تبدیل می‌شود"></canvas>
+        <figcaption class="cap-row"><span class="cap is-on" data-from="0" data-to=".34">عکس مشتری: مو بلند و مسی.</span><span class="cap" data-from=".34" data-to=".7">مدل و رنگ را انتخاب می‌کند.</span><span class="cap" data-from=".7" data-to="1.01">نتیجه را قبل از آمدن می‌بیند.</span></figcaption>
+        <div class="rail" aria-hidden="true"><i id="railTr"></i></div>
+      </figure>
+      <p class="ai-note">نمونهٔ تصویری ساخته‌شده با هوش مصنوعی</p>
+    </div>
+  </section>
+
+  <section id="lines" class="scene scene--dark on-dark" data-scene="lines" aria-labelledby="h-ln">
+    <div class="sstage">
+      <div class="scene-head">
+        <p class="kicker">ناخن و مژه</p>
+        <h2 id="h-ln">همین کار برای ناخن و مژه.</h2>
+      </div>
+      <figure class="film-frame">
+        <canvas class="film-canvas" data-set="nails" data-n="45" data-fx=".5" role="img" aria-label="ناخن‌های ساده که به فرنچ بادامی با خط طلایی تبدیل می‌شوند"></canvas>
+        <canvas class="film-canvas film-canvas--b" data-set="lashes" data-n="43" data-fx=".42" role="img" aria-label="مژه‌های طبیعی که پرتر و حالت‌دارتر می‌شوند"></canvas>
+        <figcaption class="cap-row"><span class="cap is-on" data-from="0" data-to=".5">طرح ناخن را قبل از لاک ببین.</span><span class="cap" data-from=".5" data-to="1.01">حالت مژه را قبل از اکستنشن ببین.</span></figcaption>
+        <div class="rail" aria-hidden="true"><i id="railLn"></i></div>
+      </figure>
+      <p class="ai-note">نمونهٔ تصویری ساخته‌شده با هوش مصنوعی</p>
     </div>
   </section>
 
@@ -1021,6 +1098,59 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
  /* plays once when first scrolled into view; everything is visible at rest */
  if(!matchMedia('(prefers-reduced-motion:reduce)').matches&&'IntersectionObserver' in window){
   const io=new IntersectionObserver(es=>{if(es.some(x=>x.isIntersecting)){demo.classList.add('play');io.disconnect()}},{threshold:.25});io.observe(demo)}
+})();
+
+</script>
+<script>
+/* Scenes: scroll scrubs a frame sequence painted on a canvas (video.currentTime stutters on iOS).
+   Frames load only when a scene is near the viewport; the first and last frame come first. */
+(()=>{
+ const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+ const FR=window.__AYN_FRAMES,base=(window.__AYN_BASE||'/landing/')+'f/';
+ const cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+ const url=(set,i)=>FR?FR[set][i]:base+set+'/'+String(i+1).padStart(3,'0')+'.webp';
+
+ function seq(canvas){
+  const set=canvas.dataset.set,n=+canvas.dataset.n,fx=+canvas.dataset.fx||.5,imgs=new Array(n);
+  let started=false,prog=0,cw=0,ch=0;
+  const ok=im=>im&&im.complete&&im.naturalWidth;
+  function load(i){if(imgs[i])return;const im=new Image();im.decoding='async';im.onload=()=>paint();im.src=url(set,i);imgs[i]=im}
+  function start(){if(started)return;started=true;load(0);load(n-1);for(let i=1;i<n-1;i++)setTimeout(()=>load(i),40+i*35)}
+  function size(){const r=canvas.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,1.5);cw=canvas.width=Math.max(2,Math.round(r.width*d));ch=canvas.height=Math.max(2,Math.round(r.height*d));paint()}
+  function paint(){
+   const f=Math.round(cl(prog)*(n-1));let im=null;if(started)load(f);
+   for(let k=0;k<n&&!im;k++){if(ok(imgs[f-k]))im=imgs[f-k];else if(ok(imgs[f+k]))im=imgs[f+k]}
+   if(!im||!cw)return;
+   const s=Math.max(cw/im.naturalWidth,ch/im.naturalHeight),w=im.naturalWidth*s,h=im.naturalHeight*s;
+   canvas.getContext('2d').drawImage(im,(cw-w)*fx,(ch-h)/2,w,h);
+  }
+  return {start,size,set(p){prog=p;paint()},canvas};
+ }
+
+ const scenes=[...document.querySelectorAll('.scene[data-scene]')].map(el=>({el,kind:el.dataset.scene,seqs:[...el.querySelectorAll('.film-canvas')].map(seq),caps:[...el.querySelectorAll('.cap')],img:el.querySelector('#painImg'),rail:el.querySelector('.rail i')}));
+ if(!scenes.length)return;
+ const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){const s=scenes.find(x=>x.el===e.target);s.seqs.forEach(q=>q.start())}}),{rootMargin:'160% 0px'});
+ scenes.forEach(s=>{io.observe(s.el);s.seqs.forEach(q=>q.size())});
+ addEventListener('resize',()=>scenes.forEach(s=>s.seqs.forEach(q=>q.size())));
+
+ function update(){
+  const vh=innerHeight;
+  for(const s of scenes){
+   const r=s.el.getBoundingClientRect();if(r.bottom<-vh||r.top>vh*2)continue;
+   const p=cl(-r.top/Math.max(1,r.height-vh));
+   s.caps.forEach(c=>c.classList.toggle('is-on',p>=+c.dataset.from&&p<+c.dataset.to));
+   if(s.rail)s.el.style.setProperty('--rp',p);
+   if(s.kind==='pain'&&s.img){const e=cl(p/.6);s.img.style.setProperty('--ps',1.14-.14*e);s.img.style.setProperty('--pr',(-2*(1-e))+'deg');s.img.style.setProperty('--po',.35+.65*e)}
+   else if(s.kind==='transform'){s.seqs[0].set(cl(p/.92))}
+   else if(s.kind==='lines'){
+    const [a,b]=s.seqs,pa=cl(p/.46),pb=cl((p-.54)/.46),mix=cl((p-.46)/.08);
+    a.set(pa);b.set(pb);a.canvas.style.opacity=1-mix;b.canvas.style.opacity=mix;
+   }
+  }
+ }
+ if(reduce){scenes.forEach(s=>{s.seqs.forEach(q=>{q.start();q.set(1)})});return}
+ let tick=false;addEventListener('scroll',()=>{if(!tick){tick=true;requestAnimationFrame(()=>{tick=false;update()})}},{passive:true});
+ update();
 })();
 
 </script>
