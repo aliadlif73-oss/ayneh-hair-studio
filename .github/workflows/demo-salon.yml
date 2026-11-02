@@ -39,7 +39,7 @@ jobs:
         run: |
           MODE='${{ inputs.mode }}'; ONLY='${{ inputs.only }}'; FORCE='${{ inputs.force && '1' || '0' }}'
           if [ -f demo/ayneh/run.env ] && [ -z "$MODE" ]; then . demo/ayneh/run.env; fi
-          echo "mode=${MODE:-images}" >> "$GITHUB_OUTPUT"; echo "only=$ONLY" >> "$GITHUB_OUTPUT"; echo "force=${FORCE:-0}" >> "$GITHUB_OUTPUT"
+          echo "mode=${MODE:-images}" >> "$GITHUB_OUTPUT"; echo "only=$ONLY" >> "$GITHUB_OUTPUT"; echo "force=${FORCE:-0}" >> "$GITHUB_OUTPUT"; echo "replace=${REPLACE:-0}" >> "$GITHUB_OUTPUT"
       - run: npm install --no-save sharp@0.34
         if: steps.cfg.outputs.mode == 'images'
       - name: Run
@@ -47,6 +47,7 @@ jobs:
           MODE: ${{ steps.cfg.outputs.mode }}
           ONLY: ${{ steps.cfg.outputs.only }}
           FORCE: ${{ steps.cfg.outputs.force }}
+          REPLACE: ${{ steps.cfg.outputs.replace }}
           KIE_API_KEY: ${{ secrets.KIE_API_KEY }}
           APP_ORIGIN: ${{ secrets.APP_ORIGIN || 'https://ayneh-salon.site' }}
           OWNER_PASSWORD: ${{ secrets.OWNER_PASSWORD }}

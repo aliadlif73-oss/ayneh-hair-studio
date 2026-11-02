@@ -64,12 +64,15 @@ async function create(){
 async function portfolio(){
  const {call}=await signIn();
  const list=JSON.parse(readFileSync(dir+'/portfolio/list.json','utf8'));
- const have=new Set((await call('/api/s/'+SLUG+'/owner')).portfolio.map(x=>x.title));
+ // REPLACE=1 swaps photos already on the page (same title) for the files here.
+ const current=(await call('/api/s/'+SLUG+'/owner')).portfolio,replace=process.env.REPLACE==='1';
  for(const it of list){
-  if(have.has(it.title)){console.log('exists:',it.line,it.title);continue}
+  const old=current.filter(x=>x.title===it.title);
+  if(old.length&&!replace){console.log('exists:',it.line,it.title);continue}
+  for(const o of old)await call('/api/s/'+SLUG+'/owner/portfolio/delete',{id:o.id});
   const m=await call('/api/s/'+SLUG+'/upload?kind=portfolio',readFileSync(dir+'/portfolio/'+it.file),true);
   await call('/api/s/'+SLUG+'/owner/portfolio/add',{media_id:m.id,title:it.title,line:it.line,category:it.category||''});
-  console.log('added:',it.line,it.title);
+  console.log(old.length?'replaced:':'added:',it.line,it.title);
  }
  const pub=(await call('/api/s/'+SLUG+'/public')).portfolio;const by={};for(const x of pub)by[x.line]=(by[x.line]||0)+1;
  console.log('on the page:',JSON.stringify(by));
