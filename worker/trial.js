@@ -1,5 +1,6 @@
-import {must,phone,text,uid} from './domain.js';
+import {must,phone,text,uid,digits,hash,limited} from './domain.js';
 import {notifyOwner} from './alerts.js';
+import {smsReady,sendOtp} from './sms.js';
 
 // Free trial salon page: a salon owner builds it from the landing form and can use it for a short
 // time with a small image budget. Both limits are enforced here on the server, never in the page.
@@ -30,6 +31,26 @@ export async function createTrial(db,env,origin,b){
  must(salon.length>=2,'نام سالن را بنویسید');
  const tel=phone(b.phone),brand=BRANDS.includes(b.brand)?b.brand:BRANDS[0];
  must(!await one(db,'SELECT 1 FROM trials WHERE phone=?',tel),'برای این شماره قبلاً صفحهٔ آزمایشی ساخته شده است؛ با ما تماس بگیرید',409);
+ // With SMS configured the mobile is confirmed first, so nobody spends a trial on someone else's number.
+ if(smsReady(env)){
+  const key='trial:'+tel,given=digits(String(b.code||'')).replace(/\s/g,'');
+  if(!given){
+   const prev=await one(db,'SELECT created_at FROM otps WHERE session_id=? ORDER BY created_at DESC LIMIT 1',key);
+   must(!prev||Date.now()-prev.created_at>=60000,'برای گرفتن دوبارهٔ کد یک دقیقه صبر کنید',429);
+   await limited(db,'trial-otp:'+tel,3,'برای این شماره امروز چند بار کد فرستاده شده؛ فردا دوباره امتحان کنید');
+   const code=await sendOtp(env,tel),oid=uid(),now=Date.now();
+   await run(db,'DELETE FROM otps WHERE session_id=?',key);
+   await run(db,'INSERT INTO otps(id,session_id,phone,first_name,last_name,code_hash,expires_at,created_at) VALUES(?,?,?,?,?,?,?,?)',oid,key,tel,name,salon,await hash(oid+':'+code),now+10*60000,now);
+   return {code_sent:true,resend_in:60};
+  }
+  must(/^\d{3,12}$/.test(given),'کد پیامک‌شده را درست وارد کنید');
+  const o=await one(db,'SELECT * FROM otps WHERE session_id=? ORDER BY created_at DESC LIMIT 1',key);
+  must(o,'اول کد تأیید بگیرید');must(o.expires_at>Date.now(),'کد منقضی شده؛ کد تازه بگیرید',410);
+  const spent=await run(db,'UPDATE otps SET attempts=attempts+1 WHERE id=? AND attempts<5',o.id);
+  must(spent.meta.changes,'تعداد تلاش‌ها تمام شد؛ کد تازه بگیرید',429);
+  must(await hash(o.id+':'+given)===o.code_hash,'کد درست نیست');
+  await run(db,'DELETE FROM otps WHERE session_id=?',key);
+ }
  const id=uid(),salonId=uid(),slug='t-'+rand(),now=Date.now(),expires=now+TRIAL_HOURS*3600000;
  await db.batch([
   db.prepare('INSERT INTO salons(id,slug,owner_id,name,created_at,profile,settings) VALUES(?,?,?,?,?,?,?)').bind(salonId,slug,'trial',salon,now,JSON.stringify(city?{address:city}:{}),JSON.stringify({generation_enabled:true,reference_verified:true,trial:true})),

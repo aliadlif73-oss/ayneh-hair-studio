@@ -16,3 +16,12 @@
 /* section reveals (added by reveal.js only to content below the first screen) */
 .rv{opacity:0;transform:translateY(28px);transition:opacity 700ms var(--ease),transform 800ms var(--ease)}
 .rv.in{opacity:1;transform:none}
+/* cinematic layer (reveal.js) */
+.scroll-line{position:fixed;top:env(safe-area-inset-top,0px);inset-inline:0;height:2px;z-index:40;background:linear-gradient(90deg,#8E6A3A,#E2C88F,#B9975B);transform-origin:100% 50%;transform:scaleX(0);pointer-events:none}
+.site-header{transition:padding 360ms var(--ease),box-shadow 360ms var(--ease),background-color 360ms var(--ease)}
+.site-header.is-tight{padding-block:8px;box-shadow:0 10px 30px -18px rgba(40,26,12,.45)}
+.site-header .nav a[aria-current]{border-color:var(--brass)}
+.wipe{clip-path:inset(0 0 100% 0);transform:translateY(.35em);transition:clip-path 1000ms var(--ease),transform 1000ms var(--ease)}
+.wipe.in{clip-path:inset(0 0 -.2em 0);transform:none}
+.s2-demo img,.trial-mock img,.svc .ico{will-change:transform}
+@media (prefers-reduced-motion:reduce){.site-header{transition:none}}

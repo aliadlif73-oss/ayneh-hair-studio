@@ -816,3 +816,14 @@ test('owner adds portfolio from the console: photo, title and section; published
  const pub=(await call(e,'/api/s/salon-a/public')).data.portfolio;assert.equal(pub.length,1);assert.equal(pub[0].line,'color');assert.equal(pub[0].title,'بالیاژ موکا بژ');
  assert.equal((await call(e,'/api/s/salon-a/media/'+up.data.id)).status,200,'public once published');
 });
+
+test('free trial with SMS on: the mobile is confirmed by a texted code before the page is built',async()=>{const e=smsEnv(tgEnv(fixture()));const tg=mockTelegram(),sms=mockSms();try{await linkOwnerChat(e);
+ const body={salon:'سالن یاس',phone:'۰۹۱۲۷۶۵۴۳۲۱',consent:true};
+ const sent=await call(e,'/api/trial',body);assert.equal(sent.status,200,JSON.stringify(sent));assert.equal(sent.data.code_sent,true);assert.equal(sms.calls.length,1);
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM trials').get().n,0,'nothing is built before the code');
+ assert.equal((await call(e,'/api/trial',body)).status,429,'resend cooldown');
+ assert.equal((await call(e,'/api/trial',{...body,code:'11111'})).status,400);
+ const ok=await call(e,'/api/trial',{...body,code:'۴۸۲۱۳'});assert.equal(ok.status,200,JSON.stringify(ok));assert.match(ok.data.path,/^\/s\/t-/);
+ assert.equal(e.DB.sql.prepare("SELECT count(*) n FROM otps WHERE session_id LIKE 'trial:%'").get().n,0,'a used code is gone');
+ assert.equal((await call(e,'/api/trial',{...body,code:'48213'})).status,409);
+}finally{tg.restore();sms.restore()}});

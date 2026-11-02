@@ -79,7 +79,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   return J({ok:true});
  }
  if(path==='/api/trial'&&req.method==='POST'){
-  await limited(db,'trial:'+clientIp(req),5,'از این شبکه چند صفحهٔ آزمایشی ساخته شده؛ فردا دوباره امتحان کنید');
+  await limited(db,'trial:'+clientIp(req),12,'از این شبکه چند صفحهٔ آزمایشی ساخته شده؛ فردا دوباره امتحان کنید');
   const b=await req.json().catch(()=>({}));
   if(String(b.website||'').trim())return J({ok:true,path:'/'});// honeypot
   return J(await createTrial(db,env,u.origin,b));

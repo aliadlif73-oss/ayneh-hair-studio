@@ -17,3 +17,6 @@
 .path--form .btn[disabled]{opacity:.6;cursor:progress}
 @media (max-width:640px){.lf-grid{grid-template-columns:1fr}}
 #lf-send[hidden]{display:none}
+.lf-resend{margin-top:8px;background:none;border:0;padding:6px 0;font:inherit;font-size:.85rem;color:var(--brass,#B9975B);text-decoration:underline;cursor:pointer;min-height:44px}
+.lf-resend:disabled{color:inherit;opacity:.55;text-decoration:none;cursor:default}
+#lf-code{letter-spacing:.4em;text-align:center;font-variant-numeric:tabular-nums}

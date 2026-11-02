@@ -366,6 +366,8 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
   .fade{display:none}
 }
 @media (prefers-reduced-motion:reduce){.reveal,.plate{animation:none}.more svg{animation:none}.mirror{transform:none}}
+/* touch targets: the dock arrows stay visually small inside the plate but get a 44px hit area */
+.nav-btn::before{content:"";position:absolute;inset:50% auto auto 50%;width:44px;height:44px;transform:translate(-50%,-50%);border-radius:50%}
 
 
 /* ---------- Section 2: request lands in the salon chat ---------- */
@@ -435,6 +437,9 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
 .path--form .btn[disabled]{opacity:.6;cursor:progress}
 @media (max-width:640px){.lf-grid{grid-template-columns:1fr}}
 #lf-send[hidden]{display:none}
+.lf-resend{margin-top:8px;background:none;border:0;padding:6px 0;font:inherit;font-size:.85rem;color:var(--brass,#B9975B);text-decoration:underline;cursor:pointer;min-height:44px}
+.lf-resend:disabled{color:inherit;opacity:.55;text-decoration:none;cursor:default}
+#lf-code{letter-spacing:.4em;text-align:center;font-variant-numeric:tabular-nums}
 
 
 /* ---------- Free trial section: live mockup + form ---------- */
@@ -518,6 +523,15 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
 /* section reveals (added by reveal.js only to content below the first screen) */
 .rv{opacity:0;transform:translateY(28px);transition:opacity 700ms var(--ease),transform 800ms var(--ease)}
 .rv.in{opacity:1;transform:none}
+/* cinematic layer (reveal.js) */
+.scroll-line{position:fixed;top:env(safe-area-inset-top,0px);inset-inline:0;height:2px;z-index:40;background:linear-gradient(90deg,#8E6A3A,#E2C88F,#B9975B);transform-origin:100% 50%;transform:scaleX(0);pointer-events:none}
+.site-header{transition:padding 360ms var(--ease),box-shadow 360ms var(--ease),background-color 360ms var(--ease)}
+.site-header.is-tight{padding-block:8px;box-shadow:0 10px 30px -18px rgba(40,26,12,.45)}
+.site-header .nav a[aria-current]{border-color:var(--brass)}
+.wipe{clip-path:inset(0 0 100% 0);transform:translateY(.35em);transition:clip-path 1000ms var(--ease),transform 1000ms var(--ease)}
+.wipe.in{clip-path:inset(0 0 -.2em 0);transform:none}
+.s2-demo img,.trial-mock img,.svc .ico{will-change:transform}
+@media (prefers-reduced-motion:reduce){.site-header{transition:none}}
 
 .compare{margin-top:0}
 @media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}
@@ -811,6 +825,7 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
           <div class="lf-hp" aria-hidden="true"><label for="lf-web">وب‌سایت</label><input id="lf-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
           <label class="lf-check" for="lf-consent"><input id="lf-consent" name="consent" type="checkbox"><span>موافقم که آینه بعد از امتحان صفحه، برای راهنمایی با من تماس بگیرد.</span></label>
           <p class="lf-err" id="lf-err" role="alert"></p>
+          <div class="lf-field" id="lf-codebox" hidden><label for="lf-code">کد پیامک‌شده به موبایل شما</label><input id="lf-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" dir="ltr" maxlength="8" placeholder="- - - - -"><button type="button" class="lf-resend" id="lf-resend" disabled>ارسال دوبارهٔ کد</button></div>
           <button class="btn btn--lg" type="submit" id="lf-send"><span>صفحهٔ سالن مرا بساز</span><span class="arrow" aria-hidden="true">←</span></button>
           <p class="lf-micro">۱۰ ساعت · ۵ تصویر · بدون پرداخت و کارت بانکی</p>
           <p class="lf-done" id="lf-done" role="status" hidden></p>
@@ -1247,6 +1262,29 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
  els.forEach(e=>{e.classList.add('rv');io.observe(e)});
 })();
 
+/* Cinematic layer: a brass progress hairline, a header that tightens once you leave the hero and marks the section in
+   view, headings that wipe in line by line, and slow depth on section media. All of it is transform/opacity on rAF,
+   so scrolling stays on the compositor; reduced motion keeps only the progress line and the active link. */
+(()=>{
+ const still=matchMedia('(prefers-reduced-motion:reduce)').matches,header=document.querySelector('.site-header');
+ const bar=document.createElement('div');bar.className='scroll-line';bar.setAttribute('aria-hidden','true');document.body.prepend(bar);
+ const links=[...document.querySelectorAll('.site-header .nav a[href^="#"]')],secs=links.map(a=>document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+ const deep=still||innerWidth<900?[]:[...document.querySelectorAll('.s2-demo img,.trial-mock img,.svc .ico')];
+ let busy=false;
+ function frame(){busy=false;const y=scrollY,h=document.documentElement.scrollHeight-innerHeight;
+  bar.style.transform='scaleX('+(h>0?Math.min(1,y/h):0)+')';
+  header&&header.classList.toggle('is-tight',y>80);
+  let cur=null;for(const s of secs){if(s.getBoundingClientRect().top<innerHeight*.4)cur=s.id}
+  links.forEach(a=>a.toggleAttribute('aria-current',a.getAttribute('href')==='#'+cur));
+  for(const el of deep){const r=el.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)continue;
+   const p=(r.top+r.height/2)/innerHeight-.5;el.style.transform='translate3d(0,'+(p*-28).toFixed(1)+'px,0)'}}
+ const ask=()=>{if(!busy){busy=true;requestAnimationFrame(frame)}};addEventListener('scroll',ask,{passive:true});addEventListener('resize',ask);frame();
+ if(still||!('IntersectionObserver' in window))return;
+ const heads=[...document.querySelectorAll('.sec-head h2,.cta-band h2')].filter(h=>h.getBoundingClientRect().top>innerHeight);
+ const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -12% 0px'});
+ heads.forEach(h=>{h.classList.add('wipe');io.observe(h)});
+})();
+
 </script>
 <script>
 /* Salon lead form: POST /api/inquiry, which saves the request and sends it to the owner's Telegram/Bale chat. */
@@ -1266,6 +1304,12 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
  }
  const PREVIEW=!!window.__AYN_PREVIEW;
  const err=$('lf-err'),done=$('lf-done'),send=$('lf-send');
+ const code=$('lf-code'),codeBox=$('lf-codebox'),resend=$('lf-resend');let codeOn=false,tick=0;
+ /* With SMS on, the server first texts a code; the same button then confirms it and builds the page. */
+ function askCode(wait){codeOn=true;codeBox.hidden=false;$('lf-phone').readOnly=true;send.querySelector('span').textContent='تأیید کد و ساخت صفحه';err.textContent='کد به '+$('lf-phone').value+' پیامک شد.';code.value='';code.focus();
+  clearInterval(tick);let t=wait;resend.disabled=true;const show=()=>{resend.textContent=t>0?'ارسال دوباره تا '+t.toLocaleString('fa-IR')+' ثانیه':'ارسال دوبارهٔ کد'};show();
+  tick=setInterval(()=>{t--;show();if(t<=0){clearInterval(tick);resend.disabled=false}},1000)}
+ resend&&resend.addEventListener('click',()=>{codeOn=false;code.value='';form.requestSubmit()});
  const faDigits=s=>String(s).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
  function fail(msg,field){err.textContent=msg;[...form.querySelectorAll('input,textarea')].forEach(i=>i.removeAttribute('aria-invalid'));if(field){field.setAttribute('aria-invalid','true');field.focus()}}
  form.addEventListener('submit',async e=>{
@@ -1279,9 +1323,11 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
   try{
    if(PREVIEW){await new Promise(r=>setTimeout(r,700));done.textContent='پیش‌نمایش: این فرم روی سایت اصلی به ربات می‌رسد و در این نسخه چیزی ارسال نشد.'}
    else{
+    if(codeOn){v.code=faDigits(code.value).replace(/\\D/g,'');if(v.code.length<3)throw new Error('کد پیامک‌شده را وارد کنید.')}
     const r=await fetch('/api/trial',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(v)});
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(j.error||'ارسال نشد. کمی بعد دوباره امتحان کنید.');
+    if(j.code_sent){askCode(j.resend_in||60);return}
     done.textContent='صفحهٔ سالن شما آماده است. ۱۰ ساعت و ۵ تصویر دارید. ';const a=document.createElement('a');a.href=j.path;a.className='btn';a.textContent='باز کردن صفحهٔ سالن من ←';a.style.marginTop='12px';a.style.display='inline-flex';done.append(a);
    }
    done.hidden=false;form.querySelectorAll('input,textarea').forEach(i=>i.disabled=true);send.hidden=true;done.focus&&done.setAttribute('tabindex','-1');done.focus();

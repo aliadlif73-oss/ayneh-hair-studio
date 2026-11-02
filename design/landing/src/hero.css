@@ -145,3 +145,5 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
   .fade{display:none}
 }
 @media (prefers-reduced-motion:reduce){.reveal,.plate{animation:none}.more svg{animation:none}.mirror{transform:none}}
+/* touch targets: the dock arrows stay visually small inside the plate but get a 44px hit area */
+.nav-btn::before{content:"";position:absolute;inset:50% auto auto 50%;width:44px;height:44px;transform:translate(-50%,-50%);border-radius:50%}
