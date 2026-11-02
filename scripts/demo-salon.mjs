@@ -43,10 +43,10 @@ async function images(){
 async function create(){
  const base=String(process.env.APP_ORIGIN||'').replace(/\/$/,'');if(!base){console.log('APP_ORIGIN is not set');process.exit(1)}
  if(!process.env.OWNER_PASSWORD){console.log('OWNER_PASSWORD secret is not set; cannot sign in');process.exit(1)}
- const login=await fetch(base+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:process.env.OWNER_PASSWORD})});
+ const login=await fetch(base+'/api/login',{method:'POST',headers:{'Content-Type':'application/json',Origin:base},body:JSON.stringify({password:process.env.OWNER_PASSWORD})});
  if(!login.ok){console.log('sign-in failed:',login.status,(await login.text()).slice(0,200));process.exit(1)}
  const cookie=login.headers.getSetCookie().map(c=>c.split(';')[0]).join('; ');
- const call=async(path,body,raw)=>{const r=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:{Cookie:cookie,...(raw?{'Content-Type':'image/jpeg'}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:raw?body:JSON.stringify(body)})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(path+' '+r.status+' '+(d.error||''));return d};
+ const call=async(path,body,raw)=>{const r=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:{Cookie:cookie,Origin:base,...(raw?{'Content-Type':'image/jpeg'}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:raw?body:JSON.stringify(body)})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(path+' '+r.status+' '+(d.error||''));return d};
  let exists=true;try{await call('/api/s/'+SLUG+'/owner')}catch{exists=false}
  if(!exists){await call('/api/salons',{slug:SLUG,name:NAME});console.log('salon created: /s/'+SLUG)}else console.log('salon exists: /s/'+SLUG+' (updating its profile)');
  const ids={};for(const k of Object.keys(IMAGES)){ids[k]=(await call('/api/s/'+SLUG+'/upload?kind=brand',readFileSync(dir+'/'+k+'.jpg'),true)).id;console.log(k,'uploaded')}
