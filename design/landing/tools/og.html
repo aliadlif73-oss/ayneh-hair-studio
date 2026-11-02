@@ -1,0 +1,23 @@
+<!doctype html><meta charset="utf-8"><body style="margin:0;background:#160D07"><canvas id="c" width="1200" height="630"></canvas>
+<script>
+(async()=>{
+ const f=new FontFace('Estedad','url(../assets/estedad.woff2)',{weight:'100 900'});await f.load();document.fonts.add(f);
+ const c=document.getElementById('c'),x=c.getContext('2d');
+ x.fillStyle='#160D07';x.fillRect(0,0,1200,630);
+ const g=x.createRadialGradient(300,320,40,300,320,520);g.addColorStop(0,'rgba(185,151,91,.28)');g.addColorStop(1,'rgba(22,13,7,0)');x.fillStyle=g;x.fillRect(0,0,1200,630);
+ const im=new Image();im.src='../assets/hero.webp';await im.decode();
+ const W=520,H=630,s=Math.max(W/im.naturalWidth,H/im.naturalHeight);
+ x.save();x.beginPath();x.rect(0,0,W,H);x.clip();x.drawImage(im,(W-im.naturalWidth*s)/2,(H-im.naturalHeight*s)/2,im.naturalWidth*s,im.naturalHeight*s);x.restore();
+ const e=x.createLinearGradient(W-160,0,W,0);e.addColorStop(0,'rgba(22,13,7,0)');e.addColorStop(1,'#160D07');x.fillStyle=e;x.fillRect(W-160,0,160,H);
+ x.direction='rtl';x.textAlign='right';x.textBaseline='alphabetic';
+ x.fillStyle='#D6BE8C';x.font='700 34px Estedad';x.fillText('آینه',1120,110);
+ x.fillStyle='#B9975B';x.fillRect(1120-70,128,70,3);
+ x.fillStyle='#F9F1E8';x.font='800 64px Estedad';
+ ['مشتری‌ات قبل از آمدن','می‌داند چه می‌خواهد.'].forEach((t,i)=>x.fillText(t,1120,255+i*92));
+ x.fillStyle='#E7D9C8';x.font='500 30px Estedad';
+ x.fillText('مو، ناخن و مژه؛ مدل را روی عکس خودش ببیند',1120,470);
+ x.fillStyle='#D6BE8C';x.font='700 28px Estedad';x.fillText('صفحهٔ آزمایشی رایگان برای سالن‌ها',1120,530);
+ const b=await new Promise(r=>c.toBlob(r,'image/jpeg',.9));
+ const r=await fetch('/save',{method:'POST',body:b});document.title=r.ok?'saved':'fail';
+})();
+</script>

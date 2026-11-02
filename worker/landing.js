@@ -12,8 +12,14 @@ export const landingHTML=`<!doctype html>
 <meta property="og:description" content="مدل و رنگ را انتخاب کن، نتیجه را روی عکس خودت ببین و برای سالن بفرست.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fa_IR">
+<meta property="og:image" content="__ORIGIN__/landing/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="آینهٔ سه‌تکهٔ برنجی و تیتر آینه">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23160D07'/%3E%3Cpath d='M16 6c-4.4 0-7 3.3-7 7.4v8.6c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-8.6C23 9.300 20.400 6 16 6z' fill='none' stroke='%23D6BE8C' stroke-width='1.600'/%3E%3C/svg%3E">
 <link rel="preload" href="/fonts/estedad-arabic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/landing/hero.webp" as="image" fetchpriority="high">
 <style>
 @font-face{font-family:"Vazirmatn";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/vazirmatn-arabic.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200F,U+2010-2011,U+204F,U+FB50-FDFF,U+FE70-FEFC}
 @font-face{font-family:"Vazirmatn";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/vazirmatn-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-200B,U+2012-206F,U+20AC,U+2122,U+2212}
@@ -539,7 +545,7 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
   <section id="intro" class="film" aria-labelledby="h1" tabindex="-1">
     <div class="stage" id="stage">
       <figure class="room" id="room">
-        <img id="roomImg" src="/landing/hero.webp" width="1376" height="768" alt="آینهٔ سه‌تکهٔ برنجی با تصویر یک مدل در آن، روی پایه‌ای از سنگ">
+        <img id="roomImg" fetchpriority="high" decoding="async" src="/landing/hero.webp" width="1376" height="768" alt="آینهٔ سه‌تکهٔ برنجی با تصویر یک مدل در آن، روی پایه‌ای از سنگ">
         <img id="roomImg2" class="alt" src="" alt="" aria-hidden="true" width="1376" height="768">
         <canvas id="hairCanvas" width="1376" height="768" aria-hidden="true"></canvas>
         <div class="dock glass" id="dock">
@@ -665,7 +671,7 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
           <div class="push" id="s2push" aria-hidden="true"><span class="dot"></span>درخواست تازه از صفحهٔ سالن</div>
           <div class="chat" id="s2chat" aria-live="polite">
             <div class="msg in" id="s2msg">
-              <span class="ph"><img id="s2img" alt="" width="240" height="300"></span>
+              <span class="ph"><img id="s2img" loading="lazy" alt="" width="240" height="300"></span>
               <div class="body">
                 <strong>درخواست مشاوره</strong>
                 <dl><div><dt>مدل</dt><dd id="s2style">ولف‌کات</dd></div><div><dt>رنگ</dt><dd id="s2color">کاراملی</dd></div><div><dt>عکس مشتری</dt><dd>پیوست شد</dd></div></dl>

@@ -23,7 +23,7 @@ h = h.replace('  <!-- 6. Plans -->', trial + '  <!-- 6. Plans -->', 1)
 assert 'leadForm' in h and 'id="mock"' in h, 'trial section not inserted'
 scripts = ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/hero.js', 'src/sec2.js', 'src/scenes.js', 'src/lead.js'])
 h = h.replace('</body>', scripts + '</body>')
-W('out/v2.html', h)
+W('out/v2.html', h.replace('__ORIGIN__', ''))
 
 
 def b64(f, m):
@@ -31,7 +31,7 @@ def b64(f, m):
 
 
 # ---------------- single-file artifact (everything inlined, preview flag on) ----------------
-a = h.replace('assets/estedad.woff2', b64('estedad.woff2', 'font/woff2'))
+a = h.replace('__ORIGIN__', '').replace('assets/estedad.woff2', b64('estedad.woff2', 'font/woff2'))
 for f in ['hero', 'compare', 'a2']:
     a = a.replace('assets/%s.webp' % f, b64(f + '.webp', 'image/webp'))
 imgmap = {('s%02d' % i): b64('s%02d.webp' % i, 'image/webp') for i in range(1, 20)}

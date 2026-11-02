@@ -740,3 +740,5 @@ test('free trial salon: built from the landing form, one per mobile, 5 images an
   assert.equal((await gen()).status,410);assert.equal((await call(e,'/api/s/'+slug+'/session',{})).status,410);
   const done=await call(e,'/api/s/'+slug+'/public');assert.equal(done.status,200);assert.equal(done.data.trial.expired,true);
  }finally{globalThis.fetch=previous;tg.restore()}});
+
+test('landing carries an absolute share image and is cacheable',async()=>{const e=fixture();const r=await app.fetch(new Request(origin+'/'),e);const html=await r.text();assert.match(html,new RegExp('og:image" content="'+origin+'/landing/og.jpg"'));assert.doesNotMatch(html,/__ORIGIN__/);assert.match(r.headers.get('cache-control'),/max-age=300/);assert.ok(readFileSync(new URL('../public/landing/og.jpg',import.meta.url)).length>10000)});
