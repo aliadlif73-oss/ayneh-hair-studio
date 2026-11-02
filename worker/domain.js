@@ -60,7 +60,7 @@ export function transferPrompt(mode,style,color){
   'If she wears a headscarf or hat, keep it exactly as it is and change only the hair that is visible.\n';
  const realism='\nREALISM: real hair density and individual strand detail, a natural hairline and parting that fit her head shape and face, believable volume and fall under gravity, light and shadow matching the original photo\'s light direction and color temperature, soft natural shadows where hair meets skin and clothing. Seamless edges, no halo, no wig look, no painted or plastic texture.\n'+
   'OUTPUT: one photorealistic photo with the same composition and aspect ratio as Photo 1, high detail. No text, watermark, border, collage or before/after split.';
- const ref='Photo 2 is ONLY a hair reference: ignore its face, skin, body, clothing and background completely.\n';
+ const ref='Photo 2 is ONLY a hair reference: ignore its face, skin, body, clothing and background completely. Photo 2 may carry an overlaid caption, label, frame, logo or watermark: ignore it and never copy any text, banner or frame into the result.\n';
  const tint=color?'\nHAIR COLOR: '+colorText(color)+'. This overrides any hair color in photo 2.':'';
  if(mode==='style')return lock+ref+'HAIR: copy ONLY the haircut, length, layers, texture and styling from photo 2.'+(color?tint:' Keep her original hair color from photo 1.')+realism;
  if(mode==='color')return lock+ref+'HAIR: copy ONLY the hair color, tones, roots, highlights and color placement from photo 2. Keep her exact haircut, length, part and styling from photo 1.'+tint+realism;

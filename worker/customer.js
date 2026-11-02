@@ -373,6 +373,16 @@ body.is-touring{overflow:hidden}
 .fatal{display:grid;gap:14px;justify-items:start;padding:28px;margin:40px auto;max-width:460px}
 .fatal h1{font-family:var(--display);font-weight:800;font-size:26px}
 
+/* ---------- toasts sit at the top, never over the choices or the dock; a tap closes them ---------- */
+.toast{top:calc(env(safe-area-inset-top,0px) + 10px);bottom:auto;transform:translateY(-12px);pointer-events:auto;cursor:pointer;font-size:13.5px;line-height:1.8}
+/* ---------- images that are still loading: a soft shimmer, then a fade-in ---------- */
+.style-card__art,.port-card .mirror__glass,.base__opt img{background-image:linear-gradient(100deg,rgba(255,255,255,0) 30%,rgba(255,255,255,.55) 50%,rgba(255,255,255,0) 70%);background-size:220% 100%;background-color:#dfe7e4;animation:shimmer 1.3s linear infinite}
+.style-card__art--sw{background-image:none;animation:none}
+@keyframes shimmer{from{background-position:120% 0}to{background-position:-120% 0}}
+img[loading="lazy"]{opacity:0;transition:opacity .35s var(--ease)}
+img[loading="lazy"].is-in{opacity:1}
+.style-card__art.is-in,.port-card .mirror__glass.is-in{animation:none;background-image:none}
+@media (prefers-reduced-motion:reduce){.style-card__art,.port-card .mirror__glass{animation:none}img[loading="lazy"]{transition:none}}
 /* ---------- four services on a phone: icon above the word ---------- */
 @media(max-width:479px){
  .linesw{border-radius:18px;width:100%}
@@ -508,10 +518,14 @@ function api(path,body,raw){
 function toast(msg,kind){
  var t=$('#toast');if(!t)return;
  t.textContent=msg;t.className='toast is-on'+(kind==='error'?' is-error':'');
- clearTimeout(window.__tt);window.__tt=setTimeout(function(){t.className='toast'},6500);
+ if(!t.__tap){t.__tap=1;t.addEventListener('click',function(){t.className='toast'})}
+ clearTimeout(window.__tt);window.__tt=setTimeout(function(){t.className='toast'},kind==='error'?6500:4200);
 }
 function svg(name){return el('span',{html:ICO[name]||'',class:'ico'})}
 
+/* ---------- lazy images fade in when they arrive (or show their frame if they fail) ---------- */
+document.addEventListener('load',function(e){var t=e.target;if(t&&t.tagName==='IMG'&&t.loading==='lazy'){t.classList.add('is-in');if(t.parentNode&&t.parentNode.classList)t.parentNode.classList.add('is-in')}},true);
+document.addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='IMG'&&t.parentNode&&t.parentNode.classList)t.parentNode.classList.add('is-in')},true);
 /* ---------- anonymous usage events (no name, phone or photo) ---------- */
 var VISITOR=(function(){var v='';try{v=localStorage.getItem('ayneh-v')||''}catch(e){}if(!/^[a-f0-9]{32}$/.test(v)){v=Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)),function(b){return b.toString(16).padStart(2,'0')}).join('');try{localStorage.setItem('ayneh-v',v)}catch(e){}}return v})();
 var tracked={};
@@ -781,6 +795,7 @@ function stepModel(){
   box.append(el('div',{class:'selfie'+(fresh?' selfie--fresh':'')},[el('img',{src:state.preview||media(state.original),alt:''}),el('div',{},[el('b',{html:ICO.check+'<span>'+(fresh?'عکست ثبت شد':'عکست آماده است')+'</span>'}),el('span',{text:(L==='nails'?'طرح':L==='color'?'رنگ':'مدل')+' انتخابی روی همین عکس امتحان می‌شود.'})]),el('button',{class:'btn btn--ghost btn--sm',type:'button',onclick:function(){changePhoto();go(1)},text:'تغییر'})]));
  }
  box.append(flowHead(MODEL_HEAD[L][0],MODEL_HEAD[L][1]));
+ if(quotaLeft()===0&&!state.tourDemo)box.append(notice('warn',quotaOut()));
  if(L==='color'){var bc=baseChooser();if(bc)box.append(bc)}
  var seg=el('div',{class:'seg',role:'tablist'});
  [['salon',0],['catalog',1],['upload',2]].forEach(function(x){
@@ -863,13 +878,19 @@ function stepModel(){
  // Nails and lashes: a colour box for every way of choosing. Hair colour: a colour can also just be typed.
  if(L!=='hair')box.append(colorPicker());
  if(state.reference&&!state.pub.reference&&state.pub.generation)box.append(notice('warn','ساخت تصویر از عکس مرجع یا کار سالن هنوز برای این سالن فعال نشده. می‌توانی از موارد آماده انتخاب کنی، یا همین را بدون شبیه‌سازی برای '+artist()+' بفرستی.'));
- var can=canGenerate()||!!state.tourDemo;
+ var can=canGenerate()||!!state.tourDemo,ready=hasChoice()||!!state.tourDemo,left=quotaLeft();
  box.append(el('div',{class:'flow__nav'},[
   el('button',{class:'btn btn--ghost',type:'button',onclick:function(){go(1)},text:'بازگشت'}),
-  el('button',{class:'btn btn--primary btn--build',type:'button',onclick:build,html:(can?ICO.spark+'<span>بساز</span>':'<span>ادامه: نتیجه</span>')})
+  el('button',{class:'btn btn--primary btn--build',type:'button',disabled:!ready,onclick:build,html:buildLabel(can)})
  ]));
- if(can)box.append(h('p','با زدن «بساز» عکست برای ساخت شبیه‌سازی فرستاده می‌شود و فقط برای همین سالن می‌ماند.','fine-print'));
+ box.append(h('p',buildHint(ready,can,left),'fine-print build-hint'));
  return box;
+}
+function buildLabel(can){return can?ICO.spark+'<span>بساز</span>':(quotaLeft()===0?ICO.send+'<span>فرستادن برای '+artist()+'</span>':'<span>ادامه: نتیجه</span>')}
+function buildHint(ready,can,left){
+ if(!ready)return missingReason()+'؛ بعد «بساز» فعال می‌شود.';
+ if(!can)return '';
+ return 'با زدن «بساز» عکست برای ساخت فرستاده می‌شود و فقط برای همین سالن می‌ماند.'+(left!=null?' '+fa(left)+' ساخت دیگر در این بخش داری.':'');
 }
 // Step 2 → 3 in one tap: «بساز» goes straight to building, no page in between.
 function build(){
@@ -946,12 +967,13 @@ function colorPicker(){
  return wrap;
 }
 
-function renderDockSoon(){clearTimeout(renderDockSoon.t);renderDockSoon.t=setTimeout(function(){renderDock();var b=$('#flow .btn--build');if(b){var c=canGenerate();b.innerHTML=c?ICO.spark+'<span>بساز</span>':'<span>ادامه: نتیجه</span>'}},60)}
+function renderDockSoon(){clearTimeout(renderDockSoon.t);renderDockSoon.t=setTimeout(function(){renderDock();var b=$('#flow .btn--build');if(b){var c=canGenerate(),r=hasChoice();b.innerHTML=buildLabel(c);b.disabled=!r;var hn=$('#flow .build-hint');if(hn)hn.textContent=buildHint(r,c,quotaLeft())}},60)}
 function typedColor(){return state.line==='color'&&state.style===null&&!state.reference&&String(state.color||'').trim().length>=2}
 function hasChoice(){return !!state.original&&(state.style!==null||!!state.reference||typedColor())}
-function canGenerate(){return hasChoice()&&!!state.pub.generation&&(!state.reference||!!state.pub.reference)}
+function canGenerate(){return hasChoice()&&!!state.pub.generation&&(!state.reference||!!state.pub.reference)&&quotaLeft()!==0}
 function missingReason(){
  if(!state.original)return 'اول عکس خودت را اضافه کن';
+ if(quotaLeft()===0)return quotaOut();
  if(!state.pub.generation)return 'تولید شبیه‌سازی برای این سالن فعال نیست؛ می‌توانی درخواست بررسی بفرستی';
  if(state.reference&&!state.pub.reference)return 'انتقال عکس مرجع هنوز فعال نشده است';
  return {color:'یک رنگ انتخاب کن یا اسمش را بنویس',nails:'یک طرح انتخاب کن'}[state.line]||'یک مدل انتخاب کن';
@@ -1046,7 +1068,9 @@ function washColor(){
  if(cl)return cl[1].split(',').pop();
  return state.line==='nails'?'#d9506e':state.line==='color'?'#b8803a':'#c9a14a';
 }
-function buildPct(){var t=Date.now()-(state.genT0||Date.now());return state.result?100:Math.min(96,Math.round(3+93*(1-Math.exp(-t/15000))))}
+// Real builds take about 50–80 seconds: the curve reaches ~80% at a minute and keeps moving after.
+function buildPct(){var t=Date.now()-(state.genT0||Date.now());return state.result?100:Math.min(97,Math.round(3+94*(1-Math.exp(-t/38000))))}
+function buildNote(){var t=Date.now()-(state.genT0||Date.now());return t>85000?'کمی بیشتر از همیشه طول کشید؛ هنوز در حال ساخت است. صفحه را نبند.':t>45000?'دارد تمام می‌شود… معمولاً حدود یک دقیقه طول می‌کشد.':'این صفحه را نبند؛ معمولاً حدود یک دقیقه طول می‌کشد.'}
 function buildStage(){
  var L=state.line,B=BUILD[L]||BUILD.hair,pct=buildPct(),src=state.genBase?media(state.genBase):(state.original?media(state.original):'');
  var stage=el('div',{class:'stage mirror build build--'+L,style:'--wash:'+washColor()},[el('div',{class:'mirror__glass'},[
@@ -1058,7 +1082,7 @@ function buildStage(){
  ])]);
  var at=Math.min(B.steps.length-1,Math.floor(pct/100*B.steps.length));
  var list=el('ol',{class:'build__steps'},B.steps.map(function(t,i){return el('li',{class:i<at?'is-done':i===at?'is-on':''},[el('span',{html:i<at?ICO.check:''}),el('b',{text:t})])}));
- return el('div',{class:'build-wrap',role:'status','aria-live':'polite'},[stage,el('div',{class:'build__side'},[h('p',B.title,'build__title'),el('div',{class:'progress'},[el('div',{class:'progress__bar'},[el('div',{class:'progress__fill',style:'width:'+pct+'%'})])]),list,h('p','این صفحه را نبند؛ معمولاً کمتر از ۳۰ ثانیه طول می‌کشد.','tiny muted')])]);
+ return el('div',{class:'build-wrap',role:'status','aria-live':'polite'},[stage,el('div',{class:'build__side'},[h('p',B.title,'build__title'),el('div',{class:'progress'},[el('div',{class:'progress__bar'},[el('div',{class:'progress__fill',style:'width:'+pct+'%'})])]),list,h('p',buildNote(),'tiny muted build__note')])]);
 }
 // One name per saved photo: salon, service, date and time, and the result's own id.
 function saveName(id){
@@ -1132,8 +1156,9 @@ function renderDock(){
   else primary=el('button',{class:'btn btn--primary',type:'button',onclick:function(){(state.original?go(2):pickNow())},html:(state.original?ICO.check:ICO.camera)+'<span>'+(state.original?'ادامه':'افزودن عکس')+'</span>'});
  }else if(state.step===2){
   var ready=hasChoice(),can=canGenerate();
-  hint=ready?(can?'آماده؛ بزن بساز':'آماده'):missingReason();
-  primary=el('button',{class:'btn btn--primary',type:'button',disabled:!ready,onclick:build,html:can?ICO.spark+'<span>بساز</span>':ICO.arrow+'<span>ادامه</span>'});
+  var out=quotaLeft()===0;
+  hint=out?'سهم ساخت این بخش تمام شد':ready?(can?'آماده؛ بزن بساز':'آماده'):missingReason();
+  primary=el('button',{class:'btn btn--primary',type:'button',disabled:!ready,onclick:build,html:can?ICO.spark+'<span>بساز</span>':out?ICO.send+'<span>فرستادن</span>':ICO.arrow+'<span>ادامه</span>'});
  }else{
   if(state.busy){hint='در حال ساخت…';primary=el('button',{class:'btn btn--primary',type:'button',disabled:true,text:'در حال ساخت…'})}
   else if(state.result||!canGenerate()){hint='فرستادن در تلگرام برای سالن';primary=el('button',{class:'btn btn--primary',type:'button',onclick:openRequest,html:ICO.send+'<span>فرستادن برای '+artist()+'</span>'})}
@@ -1204,9 +1229,10 @@ function generate(){
   state.idem=state.idem||uuid();
   var col=state.line==='hair'?'':state.line==='color'?(typedColor()?state.color.trim():''):state.color;
   // The page's own note under «بساز» says the photo is sent for the simulation; no extra checkbox.
-  return api('generate',{image_consent:true,idem:state.idem,line:state.line,opts:state.opts,ratio:state.ratio||undefined,original_id:state.original,base_id:state.line==='color'?(state.genBase||undefined):undefined,reference_id:state.reference||undefined,style:state.reference?undefined:(state.style===null?undefined:state.style),color:col||undefined});
+  return api('generate',{v:VISITOR,image_consent:true,idem:state.idem,line:state.line,opts:state.opts,ratio:state.ratio||undefined,original_id:state.original,base_id:state.line==='color'?(state.genBase||undefined):undefined,reference_id:state.reference||undefined,style:state.reference?undefined:(state.style===null?undefined:state.style),color:col||undefined});
  }).then(function(job){
   track('generate',state.reference?(state.refTitle?'salon':'upload'):'catalog');
+  spentQuota(state.line);
   state.gen=job.id;state.genState=job.state;state.step=3;
   try{sessionStorage.setItem('ayneh-job-'+SLUG,state.line+':'+job.id)}catch(e){}
   renderFlow();renderDock();
@@ -1214,6 +1240,7 @@ function generate(){
  }).catch(function(e){
   state.busy=false;
   if(needsVerify(e.message)){state.verified=false;state.error='';renderFlow();renderDock();openOtp(generate);return}
+  if(/سهم امتحان/.test(e.message)&&state.quota&&state.quota.left)state.quota.left[state.line]=0;
   state.error=friendly(e.message);
   renderFlow();renderDock();
  });
@@ -1230,7 +1257,7 @@ function updateProgress(){
  var f=$('#flow');if(!f)return;
  var pct=buildPct(),B=BUILD[state.line]||BUILD.hair;
  var bar=f.querySelector('.progress__fill');if(bar)bar.style.width=pct+'%';
- var num=f.querySelector('.build__num');if(num)num.textContent=fa(pct);
+ var num=f.querySelector('.build__num');if(num)num.textContent=fa(pct);var note=f.querySelector('.build__note');if(note){var nt=buildNote();if(note.textContent!==nt)note.textContent=nt}
  var at=Math.min(B.steps.length-1,Math.floor(pct/100*B.steps.length));
  Array.prototype.forEach.call(f.querySelectorAll('.build__steps li'),function(li,i){var c=i<at?'is-done':i===at?'is-on':'';if(li.className!==c){li.className=c;li.firstChild.innerHTML=i<at?ICO.check:''}});
 }
@@ -1244,7 +1271,7 @@ function poll(id,resumed){
    if(d.state==='success'){
     track('result','',true);
     if(window.__trialLeft)window.__trialLeft();
-    state.result=d.result_id;state.resultBase=state.genBase||null;state.busy=false;state.idem=null;
+    state.result=d.result_id;state.resultBase=state.genBase||null;state.busy=false;state.idem=null;state.session=false;loadSession().catch(function(){});
     try{sessionStorage.removeItem('ayneh-job-'+SLUG)}catch(e){}
     state.rating=Number(localStorage.getItem('ayneh-rating-'+d.result_id)||0);
     renderFlow();renderDock();toast('شبیه‌سازی آماده شد');
@@ -1277,7 +1304,7 @@ function openViews(){
  panel.append(el('div',{class:'sheet__head'},[h('h2','از همهٔ زاویه‌ها'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:closeSheet})]));
  var a=el('div',{class:'spin__layer'}),b=el('div',{class:'spin__layer'});
  var stage=el('div',{class:'spin',tabindex:'0',role:'img','aria-label':'نمای چرخشی مدل مو؛ برای چرخاندن بکش یا از کلیدهای جهت استفاده کن'},[a,b]);
- var tip=el('p',{class:'spin__tip',text:'دارم زاویه‌های دیگر را می‌سازم…'}),bar=el('span',{class:'spin__bar'});
+ var tip=el('p',{class:'spin__tip',text:'دارم زاویه‌های دیگر را می‌سازم… معمولاً ۲ تا ۳ دقیقه طول می‌کشد.'}),bar=el('span',{class:'spin__bar'});
  var loading=el('div',{class:'spin__loading'},[el('div',{class:'spin__orbit'},[el('img',{src:media(state.result),alt:''})]),el('span',{class:'spin__ring'}),tip,el('span',{class:'spin__track'},[bar])]);
  stage.append(loading);
  var angle=el('span',{class:'spin__angle',text:''});
@@ -1313,15 +1340,16 @@ function openViews(){
   setTimeout(function(){loading.remove()},reduce?0:350);
   show(0,true);auto(true);
  }
- var tips=['دارم پشت سرت را می‌سازم…','نیم‌رخ چپ…','نیم‌رخ راست…','هماهنگ‌کردن نور و رنگ مو…','تقریباً آماده است…'],ti=0,started=Date.now();
+ var tips=['دارم پشت سرت را می‌سازم…','نیم‌رخ چپ…','نیم‌رخ راست…','هماهنگ‌کردن نور و رنگ مو…','۸ زاویه با هم ساخته می‌شود؛ ۲ تا ۳ دقیقه صبر کن…'],ti=0,started=Date.now();
  tipTimer=setInterval(function(){if(!panel.isConnected){cleanup();return}tip.textContent=tips[ti++%tips.length]},2400);
- progTimer=setInterval(function(){bar.style.width=Math.min(95,(Date.now()-started)/600)+'%'},400);
+ progTimer=setInterval(function(){bar.style.width=Math.round(3+92*(1-Math.exp(-(Date.now()-started)/70000)))+'%'},400);
  if(state.views&&state.views.gen===state.gen){ready(state.views.id);return}
- api('views',{parent:state.gen,idem:state.viewsIdem||(state.viewsIdem=uuid())}).then(function(job){
-  var tries=0;
+ if(quotaLeft('hair')===0){cleanup();tip.textContent='سهم امتحان «مدل مو» برای شما تمام شد؛ نمای ۳۶۰ هم یک تصویر از همین سهم است.';return}
+ api('views',{v:VISITOR,parent:state.gen,idem:state.viewsIdem||(state.viewsIdem=uuid())}).then(function(job){
+  spentQuota('hair');var tries=0;
   function check(){if(!panel.isConnected)return;return api('generation/'+job.id).then(function(d){
    if(d.state==='success'){state.views={gen:state.gen,id:d.result_id};state.viewsIdem=null;ready(d.result_id);return}
-   if(d.state==='fail'||d.state==='unknown'||++tries>40){cleanup();tip.textContent='ساخت زاویه‌ها ممکن نشد؛ کمی بعد دوباره امتحان کن.';state.viewsIdem=null;return}
+   if(d.state==='fail'||d.state==='unknown'||++tries>90){cleanup();tip.textContent='ساخت زاویه‌ها ممکن نشد؛ کمی بعد دوباره امتحان کن.';state.viewsIdem=null;return}
    return sleep(3000).then(check);
   })}
   return check();
@@ -1466,10 +1494,18 @@ function startTour(){
 /* ---------- session ---------- */
 function ensureSession(){
  if(state.session)return Promise.resolve();
- return api('session').then(function(d){state.session=true;applyVerified(d)}).catch(function(){
+ return loadSession().catch(function(){
   state.verified=false;
-  return api('session',{}).then(function(){state.session=true});
+  return api('session',{}).then(function(){return loadSession().catch(function(){state.session=true})});
  });
+}
+// The session also says how many images this person has left in each service.
+function loadSession(){return api('session?v='+VISITOR).then(function(d){state.session=true;applyVerified(d);if(d.quota){state.quota=d.quota;renderDockSoon();var f=$('#flow');if(f&&state.step===2&&!state.busy)renderFlow()}})}
+function quotaLeft(line){return state.quota&&state.quota.left?state.quota.left[line||state.line]:null}
+function spentQuota(line){if(state.quota&&state.quota.left&&state.quota.left[line]>0)state.quota.left[line]--}
+function quotaOut(){
+ var others=LINE_LIST.filter(function(x){return x[0]!==state.line&&quotaLeft(x[0])!==0}).map(function(x){return '«'+x[1]+'»'});
+ return 'سهم امتحان «'+LINES.label[state.line]+'» برای شما تمام شد ('+fa(state.quota.per)+' تصویر). '+(others.length?'هنوز می‌توانی '+others.join('، ')+' را امتحان کنی، یا همین نتیجه‌ها را برای سالن بفرستی.':'سهم امتحان همهٔ بخش‌ها تمام شده؛ می‌توانی همین نتیجه‌ها را برای سالن بفرستی تا با تو تماس بگیرند.');
 }
 
 /* ---------- phone verification (SMS code) ---------- */

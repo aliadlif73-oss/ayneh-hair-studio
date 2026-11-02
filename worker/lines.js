@@ -113,8 +113,8 @@ export const LASH_SHOTS=[
 // means "what suits her" in the prompt.
 export const LINE_OPTIONS={
  nails:[
-  {key:'shape',label:'فرم ناخن',items:[['مربعی','square'],['مربع‌بیضی','squoval (square with soft rounded corners)'],['گرد','round'],['بیضی','oval'],['بادامی','almond'],['تابوتی (بالرین)','coffin / ballerina'],['استیلتو','stiletto (pointed)']]},
-  {key:'length',label:'طول',items:[['کوتاه','short, just past the fingertip'],['متوسط','medium'],['بلند','long extensions']]}
+  {key:'shape',label:'فرم ناخن',items:[['مربعی','square: straight parallel sidewalls and a perfectly flat, straight-across free edge with crisp corners'],['مربع‌بیضی','squoval: straight sidewalls and a straight free edge with softly rounded corners'],['گرد','round: the free edge follows a gentle semicircle that mirrors the fingertip'],['بیضی','oval: sidewalls taper slightly into a smooth egg-shaped curved tip'],['بادامی','almond: slim sidewalls tapering to a soft rounded point, like an almond'],['تابوتی (بالرین)','coffin / ballerina: sidewalls taper toward the tip, which is cut flat and straight across'],['استیلتو','stiletto: sidewalls taper sharply to a single fine point']]},
+  {key:'length',label:'طول',items:[['کوتاه','short: the free edge extends only about 1–2 mm past the fingertip'],['متوسط','medium: the free edge extends about 4–6 mm past the fingertip (roughly a third of the nail-bed length), clearly not long'],['بلند','long extensions: the free edge is longer than half the nail-bed length']]}
  ],
  lashes:[
   {key:'map',label:'حالت',items:[['طبیعی','natural: even length across the eye'],['گربه‌ای','cat eye: longer toward the outer corners, lifted and elongated'],['عروسکی','doll eye: longest at the centre, opening the eye round'],['سنجابی','squirrel: peak length a little before the outer corner, lifted'],['روباهی','fox eye: dramatic upswept outer corners']]},
@@ -143,12 +143,14 @@ export function cleanOptions(line,opts){
 }
 export function optionText(line,opts){return (LINE_OPTIONS[line]||[]).map(o=>Number.isInteger(opts?.[o.key])?o.items[opts[o.key]][0]:'').filter(Boolean).join('، ')}
 
+// Salon and Instagram photos often carry a caption banner or watermark; it must never reach the result.
+const NOTEXT=' Photo 2 may carry an overlaid caption, label, frame, logo or watermark: ignore it and never copy any text, banner or frame into the result.';
 const OUT='\nOUTPUT: one photorealistic photo with the same composition and aspect ratio as Photo 1, high detail. No text, watermark, border, collage or before/after split.';
 // mode: 'catalog' (style = English description) or 'reference' (photo 2 is the design reference).
 // Hair colour: 'catalog' (style = description), 'reference' (copy the colour of photo 2) or
 // 'text' (only the colour the customer typed). The haircut of photo 1 never changes.
 export function colorPrompt(mode,style,color){
- const what=mode==='reference'?'Photo 2 is ONLY a hair-colour reference: ignore its face, skin, haircut, clothing and background completely.\nHAIR COLOR: copy ONLY the hair colour, tones, roots, highlights and colour placement from photo 2 onto her hair.'
+ const what=mode==='reference'?'Photo 2 is ONLY a hair-colour reference: ignore its face, skin, haircut, clothing and background completely.'+NOTEXT+'\nHAIR COLOR: copy ONLY the hair colour, tones, roots, highlights and colour placement from photo 2 onto her hair.'
   :mode==='text'?'HAIR COLOR: '+colorText(color)+'.':'HAIR COLOR: '+style+'.';
  return 'Professional hair-colour consultation preview. Photo 1 is the client. Change ONLY the colour of her hair.\n'+
   'IDENTITY LOCK: keep her exact face and facial features, skin tone and texture, makeup, age, expression, head angle, ears, neck, clothing, jewelry, background, framing and lighting unchanged. It must be clearly the same person in the same photo. Do not beautify, retouch, slim or swap the face.\n'+
@@ -162,9 +164,9 @@ export function linePrompt(line,mode,style,opts,color){
   const shape=optEn('nails','shape',opts.shape),len=optEn('nails','length',opts.length);
   return 'Professional nail-salon consultation preview. Photo 1 is the client\'s hand. Edit ONLY her fingernails.\n'+
    'IDENTITY LOCK: keep the exact hand and fingers, skin tone and texture, pose, rings and jewellery, sleeves, background, framing and lighting unchanged. Do not change finger length or shape and never add or remove fingers. Keep the cuticles and nail beds natural.\n'+
-   (mode==='reference'?'Photo 2 is ONLY a nail design reference: ignore its hand, skin, jewellery and background.\nNAILS: copy the nail design, finish and colours from photo 2 onto all of her visible nails.':'NAILS: '+style+' on all of her visible nails.')+
-   '\nNAIL SHAPE: '+(shape||(mode==='reference'?'as in photo 2, adapted to her fingers':'a shape that suits her fingers'))+'.'+
-   '\nNAIL LENGTH: '+(len||(mode==='reference'?'as in photo 2':'medium'))+'.'+
+   (mode==='reference'?'Photo 2 is ONLY a nail design reference: ignore its hand, skin, jewellery and background.'+NOTEXT+'\nNAILS: copy the nail design, finish and colours from photo 2 onto all of her visible nails.':'NAILS: '+style+' on all of her visible nails.')+
+   '\nNAIL SHAPE: '+(shape?shape+'. This exact shape on every nail'+(mode==='reference'?', overriding the shape in photo 2':''):(mode==='reference'?'as in photo 2, adapted to her fingers':'keep the shape of her own nails in photo 1'))+'.'+
+   '\nNAIL LENGTH: '+(len?len+'. Measure against her own fingertips in photo 1 and keep this exact length on every nail; never longer'+(mode==='reference'?', even if photo 2 shows longer nails':''):(mode==='reference'?'as in photo 2':'keep her own nail length from photo 1 exactly; do not lengthen'))+'.'+
    (color?'\nNAIL COLOUR: '+colourEn('nails',color)+'.'+(mode==='reference'?' This overrides the colour in photo 2.':''):'')+
    '\nDo not add any nail art, glitter, gems or colours that are not described.'+
    '\nREALISM: real gel gloss and reflections matching the photo\'s light, each nail sitting naturally on its finger with correct perspective and curvature, clean edges along the cuticles and sidewalls, every visible nail done consistently.'+OUT;
@@ -173,7 +175,7 @@ export function linePrompt(line,mode,style,opts,color){
   const map=optEn('lashes','map',opts.map),len=optEn('lashes','length',opts.length);
   return 'Professional lash-studio consultation preview. Photo 1 is the client. Edit ONLY her upper eyelashes.\n'+
    'IDENTITY LOCK: keep her exact face, eye shape and size, eye colour, eyelids, brows, skin, makeup, expression, head angle, hair, headscarf, clothing, background, framing and lighting unchanged. Do not enlarge the eyes, beautify or retouch.\n'+
-   (mode==='reference'?'Photo 2 is ONLY a lash reference: ignore its face, eyes, makeup and background.\nLASHES: copy the lash style, density, curl and mapping from photo 2 onto both of her eyes.':'LASHES: '+style+' on both eyes.')+
+   (mode==='reference'?'Photo 2 is ONLY a lash reference: ignore its face, eyes, makeup and background.'+NOTEXT+'\nLASHES: copy the lash style, density, curl and mapping from photo 2 onto both of her eyes.':'LASHES: '+style+' on both eyes.')+
    (map?'\nLASH MAPPING: '+map+'.':'')+(len?'\nLASH LENGTH: '+len+'.':'')+
    (color?'\nLASH COLOUR: '+colourEn('lashes',color)+'.':'')+
    '\nKeep the lash type exactly as described; do not change her brows or add eyeliner.'+

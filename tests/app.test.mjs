@@ -664,7 +664,7 @@ test('nails and lashes: line prompts with options, photo-shaped output, no 360, 
  globalThis.fetch=async(url,opts)=>{const u=String(url);if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(u.includes('createTask')){captured.push(JSON.parse(opts.body));return Response.json({code:200,data:{taskId:'t'+captured.length}})}if(u.includes('recordInfo'))return Response.json({code:200,data:{state:'success',resultJson:JSON.stringify({resultUrls:['https://provider.example/o.png']})}});return new Response(png())};
  try{
   const n=await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),line:'nails',original_id:hand,style:1,opts:{shape:4,length:9},ratio:'4:5',color:'نود'},g);assert.equal(n.status,200,JSON.stringify(n));
-  const p=captured.at(-1).input;assert.match(p.prompt,/Edit ONLY her fingernails/);assert.match(p.prompt,/French manicure/);assert.match(p.prompt,/NAIL SHAPE: almond/);assert.match(p.prompt,/NAIL LENGTH: medium/,'an invalid length index is dropped');assert.match(p.prompt,/nude beige/);assert.equal(p.aspect_ratio,'4:5');
+  const p=captured.at(-1).input;assert.match(p.prompt,/Edit ONLY her fingernails/);assert.match(p.prompt,/French manicure/);assert.match(p.prompt,/NAIL SHAPE: almond/);assert.match(p.prompt,/NAIL LENGTH: keep her own nail length/,'an invalid length index is dropped');assert.match(p.prompt,/nude beige/);assert.equal(p.aspect_ratio,'4:5');
   const row=e.DB.sql.prepare('SELECT line,opts FROM generations WHERE id=?').get(n.data.id);assert.equal(row.line,'nails');assert.deepEqual(JSON.parse(row.opts),{shape:4});
   const l=await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),line:'lashes',original_id:hand,reference_id:ref,opts:{map:1},ratio:'weird'},g);assert.equal(l.status,200,JSON.stringify(l));
   assert.match(captured.at(-1).input.prompt,/upper eyelashes[\s\S]*Photo 2 is ONLY a lash reference[\s\S]*cat eye/);assert.equal(captured.at(-1).input.aspect_ratio,'3:4');
@@ -827,3 +827,23 @@ test('free trial with SMS on: the mobile is confirmed by a texted code before th
  assert.equal(e.DB.sql.prepare("SELECT count(*) n FROM otps WHERE session_id LIKE 'trial:%'").get().n,0,'a used code is gone');
  assert.equal((await call(e,'/api/trial',{...body,code:'48213'})).status,409);
 }finally{tg.restore();sms.restore()}});
+test('each person gets 3 images per service: a new session in the same browser still counts, failures do not, the message names what is left',async()=>{
+ const e=fixture(),s=await salon(e),g=await guest(e,s);e.KIE_API_KEY='mock';await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true,reference_verified:true},OWNER);
+ const previous=globalThis.fetch;let tasks=0;
+ globalThis.fetch=async(url)=>{if(String(url).includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(String(url).includes('createTask')){tasks++;return Response.json({code:200,data:{taskId:'t'+tasks}})}return new Response(png())};
+ try{
+  const v='ab'.repeat(16),original=await upload(e,s,g);
+  const gen=(who,o,line='hair',extra={})=>call(e,'/api/s/salon-a/generate',{v,image_consent:true,idem:crypto.randomUUID(),line,original_id:o,style:0,...extra},who);
+  assert.deepEqual((await call(e,'/api/s/salon-a/session?v='+v,undefined,g)).data.quota.left,{hair:3,color:3,nails:3,lashes:3});
+  for(let i=0;i<3;i++)assert.equal((await gen(g,original)).status,200);
+  const fourth=await gen(g,original);assert.equal(fourth.status,429);assert.match(fourth.data.error,/سهم امتحان «مدل مو»[\s\S]*«رنگ مو»، «ناخن»، «مژه»/);
+  // A fresh session in the same browser is the same person.
+  const g2=await guest(e,s),o2=await upload(e,s,g2);assert.equal((await gen(g2,o2)).status,429);
+  assert.equal((await gen(g2,o2,'nails')).status,200);
+  // A failed image is given back.
+  e.DB.sql.prepare("UPDATE generations SET state='fail' WHERE session_id=(SELECT session_id FROM generations WHERE line='hair' LIMIT 1) AND line='hair' AND rowid=(SELECT MIN(rowid) FROM generations WHERE line='hair')").run();
+  assert.equal((await call(e,'/api/s/salon-a/session?v='+v,undefined,g)).data.quota.left.hair,1);
+  assert.equal((await gen(g,original)).status,200);
+  assert.equal(tasks,5,'nothing paid beyond the quota');
+ }finally{globalThis.fetch=previous}
+});
