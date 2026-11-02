@@ -134,6 +134,9 @@ main#app{max-width:1080px;margin:0 auto;padding:6px 20px 80px;min-height:70vh}
 @media(min-width:620px){.two{grid-template-columns:1fr 1fr}}
 .field input[type=url],.field input[type=tel],#slug{direction:ltr;text-align:right}
 .ports{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px}
+.port-add{display:grid;gap:10px;margin-top:18px;padding:14px;border:1.5px dashed var(--line);border-radius:16px}
+.port-add__list{display:grid;gap:6px}.port-add__list input{min-height:40px}
+.port-add select,.port-add input[type=file]{max-width:100%}
 .port{display:grid;gap:6px}
 .port img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:999px 999px 12px 12px;background:var(--glass-2)}
 .port b{font-size:13px;line-height:1.5}
@@ -414,7 +417,14 @@ function salonPage(){return api('/api/s/'+slug+'/owner').then(function(d){
  // Portfolio
  var ports=el('div',{class:'ports'});
  d.portfolio.forEach(function(it){var ids=[];try{ids=JSON.parse(it.images)}catch(e){}var ln=el('select',{class:'port__line','aria-label':'بخش'},[['hair','مدل مو'],['color','رنگ مو'],['nails','ناخن'],['lashes','مژه']].map(function(o){return el('option',{value:o[0],text:o[1]})}));ln.value=it.line||'hair';ln.addEventListener('change',function(){api('/api/s/'+slug+'/owner/portfolio/line',{id:it.id,line:ln.value}).then(function(){toast('بخش نمونه‌کار عوض شد.')}).catch(function(e){toast(e.message,true)})});ports.append(el('div',{class:'port'},[ids[0]?el('img',{src:'/api/s/'+slug+'/media/'+ids[0],alt:'',loading:'lazy'}):null,h('b',it.title),it.stylist?h('small','کار '+it.stylist):null,ln,el('button',{class:'btn btn--danger btn--sm',type:'button',text:'حذف',onclick:act(function(){if(!confirm('«'+it.title+'» از صفحهٔ سالن حذف شود؟'))return;return api('/api/s/'+slug+'/owner/portfolio/delete',{id:it.id}).then(salonPage)})})]))});
- var port=el('section',{class:'card'},[h('h2','نمونه‌کارها'),h('p','سالن عکس را برای ربات تلگرام می‌فرستد و همان لحظه اینجا و روی صفحهٔ مشتری می‌نشیند.','lead'),d.portfolio.length?ports:h('p','هنوز نمونه‌کاری نیامده.','empty-note')]);
+ // Add from here too: pick photos, a title for each (the file name by default) and the section.
+ var addLine=el('select',{'aria-label':'بخش'},[['hair','مدل مو'],['color','رنگ مو'],['nails','ناخن'],['lashes','مژه']].map(function(o){return el('option',{value:o[0],text:o[1]})}));
+ var addFiles=el('input',{type:'file',accept:'image/jpeg,image/png,image/webp',multiple:'multiple'}),addList=el('div',{class:'port-add__list'});
+ addFiles.addEventListener('change',function(){addList.replaceChildren.apply(addList,Array.prototype.map.call(addFiles.files,function(f){return el('input',{type:'text',maxlength:'150',value:f.name.replace(/\.[a-z]+$/i,'').replace(/[-_]+/g,' '),'aria-label':'اسم کار '+f.name})}))});
+ var addBtn=el('button',{class:'btn btn--primary',type:'button',text:'افزودن به صفحه',onclick:act(function(){var fs=Array.prototype.slice.call(addFiles.files);if(!fs.length){toast('اول عکس انتخاب کنید',true);return}var names=Array.prototype.map.call(addList.querySelectorAll('input'),function(i){return i.value.trim()});
+  return fs.reduce(function(p,f,i){return p.then(function(){return api('/api/s/'+slug+'/upload?kind=portfolio',f,true).then(function(m){return api('/api/s/'+slug+'/owner/portfolio/add',{media_id:m.id,title:names[i]||'نمونه‌کار',line:addLine.value})})})},Promise.resolve()).then(function(){toast(fs.length+' نمونه‌کار اضافه شد.');salonPage()})})});
+ var add=el('div',{class:'port-add'},[h('b','افزودن نمونه‌کار از همین‌جا'),el('label',{class:'field'},[el('span',{class:'lbl',text:'بخش'}),addLine]),el('label',{class:'field'},[el('span',{class:'lbl',text:'عکس‌ها'}),addFiles]),addList,addBtn]);
+ var port=el('section',{class:'card'},[h('h2','نمونه‌کارها'),h('p','سالن عکس را برای ربات تلگرام می‌فرستد و همان لحظه اینجا و روی صفحهٔ مشتری می‌نشیند. از همین‌جا هم می‌توانید اضافه کنید.','lead'),d.portfolio.length?ports:h('p','هنوز نمونه‌کاری نیامده.','empty-note'),add]);
 
  // Delivery log
  var tone={sent:'ok',queued:'',sending:'accent',retry:'warn',failed:'danger'},label={sent:'رسید',queued:'در صف',sending:'در حال ارسال',retry:'تلاش دوباره',failed:'ناموفق'};

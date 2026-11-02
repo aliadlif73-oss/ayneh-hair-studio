@@ -746,3 +746,13 @@ test('hair colour: catalog, prompt keeps the haircut, captions and specialties p
  assert.match(colorPrompt('text','','عسلی'),/honey brown/);assert.match(colorPrompt('reference','',''),/ignore its face, skin, haircut/);
  assert.equal(lineFromSpecialty('رنگ و مش'),'color');assert.equal(lineFromSpecialty('کوتاهی'),null);
 });
+test('owner adds portfolio from the console: photo, title and section; published and usable for try-on',async()=>{
+ const e=fixture(),s=await salon(e);
+ const up=await call(e,'/api/s/salon-a/upload?kind=portfolio',png(),OWNER);assert.equal(up.status,200,JSON.stringify(up));
+ assert.equal((await call(e,'/api/s/salon-a/upload?kind=portfolio',png())).status,401,'owner only');
+ const a=await call(e,'/api/s/salon-a/owner/portfolio/add',{media_id:up.data.id,title:'بالیاژ موکا بژ',line:'color'},OWNER);assert.equal(a.status,200,JSON.stringify(a));
+ assert.equal((await call(e,'/api/s/salon-a/owner/portfolio/add',{media_id:up.data.id,title:'دوباره',line:'color'},OWNER)).status,400,'no duplicates');
+ assert.equal((await call(e,'/api/s/salon-a/owner/portfolio/add',{media_id:'nope',title:'x',line:'color'},OWNER)).status,400);
+ const pub=(await call(e,'/api/s/salon-a/public')).data.portfolio;assert.equal(pub.length,1);assert.equal(pub[0].line,'color');assert.equal(pub[0].title,'بالیاژ موکا بژ');
+ assert.equal((await call(e,'/api/s/salon-a/media/'+up.data.id)).status,200,'public once published');
+});
