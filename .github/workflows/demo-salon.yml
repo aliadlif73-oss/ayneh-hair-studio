@@ -1,0 +1,54 @@
+name: Demo salon
+# One-off: builds the fictional demo salon «سالن زیبایی آینه» (/s/ayneh) on the live site.
+# images: makes the logo, cover and manager portrait into demo/ayneh/ and commits them to this branch.
+# create: signs in as the owner and creates or updates the salon with those images and a full profile.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'images or create'
+        type: choice
+        options: [images, create]
+        default: images
+      only:
+        description: 'images only: logo, cover, portrait (empty = all missing)'
+        type: string
+        default: ''
+      force:
+        description: 'images only: make them again'
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: demo-salon
+  cancel-in-progress: false
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: npm install --no-save sharp@0.34
+        if: inputs.mode == 'images'
+      - name: Run
+        env:
+          MODE: ${{ inputs.mode }}
+          ONLY: ${{ inputs.only }}
+          FORCE: ${{ inputs.force && '1' || '0' }}
+          KIE_API_KEY: ${{ secrets.KIE_API_KEY }}
+          APP_ORIGIN: ${{ secrets.APP_ORIGIN }}
+          OWNER_PASSWORD: ${{ secrets.OWNER_PASSWORD }}
+        run: node scripts/demo-salon.mjs
+      - name: Commit images
+        if: always() && inputs.mode == 'images'
+        run: |
+          git add demo
+          if git diff --cached --quiet; then echo "No new images."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Demo salon images"
+          git pull --rebase origin "${GITHUB_REF_NAME}"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
