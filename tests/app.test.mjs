@@ -713,3 +713,9 @@ test('salon inquiry from the landing form: saved, sent to the owner chat with th
  assert.equal(e.DB.sql.prepare("SELECT count(*) n FROM activity WHERE text LIKE '%989121234567%'").get().n,0,'phone is not stored in the activity log');
  assert.equal((await app.fetch(new Request(origin+'/api/inquiry',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),e)).status,403,'cross-origin post is refused');
 }finally{tg.restore()}});
+
+test('salon address: capitals and spaces are normalised, duplicates and bad addresses get a clear message',async()=>{const e=fixture();
+ const r=await call(e,'/api/salons',{slug:'Aliadli Salon',name:'Ali adli'},OWNER);assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.data.slug,'aliadli-salon');
+ const dup=await call(e,'/api/salons',{slug:'ALIADLI-salon',name:'x y'},OWNER);assert.equal(dup.status,400);assert.match(dup.data.error,/سالن دیگری گرفته/);
+ const bad=await call(e,'/api/salons',{slug:'سالن',name:'x y'},OWNER);assert.equal(bad.status,400);assert.match(bad.data.error,/aliadli-salon/);
+});
