@@ -28,6 +28,7 @@ const css=String.raw`
 .dcard{display:grid;gap:10px;align-content:start}
 .dcard>.lead{margin-bottom:4px}
 .hbars{display:grid;gap:10px}
+.slug-preview{direction:ltr;text-align:right;unicode-bidi:plaintext;font-family:ui-monospace,monospace;color:var(--accent-ink)}
 .port__line{font:inherit;font-size:12.5px;padding:4px 8px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface)}
 .setup{display:grid;gap:4px;margin-top:6px}.setup small{color:var(--muted);font-size:12px;line-height:1.7}
 .setup__bar{display:block;height:6px;border-radius:3px;background:var(--line-2);overflow:hidden}.setup__bar span{display:block;height:100%;background:var(--accent);border-radius:3px}
@@ -331,7 +332,12 @@ function home(){return api('/api/owner').then(function(d){
  var list=el('div',{class:'salons'});
  d.salons.forEach(function(s){list.append(el('div',{class:'salon'},[el('div',{class:'grow'},[h('strong',s.name),h('small','/s/'+s.slug)]),badge(s.telegram&&s.bale?'تلگرام و بله وصل':s.telegram?'تلگرام وصل':s.bale?'بله وصل':'ربات وصل نیست',s.telegram||s.bale?'ok':'warn'),h('small',fa(s.portfolio)+' نمونه‌کار، '+fa(s.leads)+' درخواست'+(s.team?'، تیم '+fa(s.team_linked)+'/'+fa(s.team)+' وصل':'')),setupLine(s),(s.waiting||s.overdue)?el('div',{class:'row',style:'gap:6px'},[s.waiting?badge(fa(s.waiting)+' درخواست منتظر وصل شدن','warn'):null,s.overdue?badge(fa(s.overdue)+' بی‌جواب بیش از ۲۴ ساعت','danger'):null]):null,el('a',{class:'btn btn--ghost btn--sm',href:'/s/'+s.slug,target:'_blank',rel:'noopener',text:'صفحهٔ مشتری'}),el('a',{class:'btn btn--primary btn--sm',href:'/admin/'+s.slug,text:'تنظیمات'})]))});
  if(!d.salons.length)list.append(h('p','هنوز سالنی نساخته‌اید.','empty-note'));
- var create=el('section',{class:'card'},[h('h2','سالن تازه'),field('name','نام سالن'),field('slug','نشانی انگلیسی صفحه','', 'text','مثل ayneh-saadatabad؛ صفحهٔ مشتری می‌شود /s/ayneh-saadatabad'),el('button',{class:'btn btn--primary',type:'button',text:'ساخت سالن',onclick:act(function(){return api('/api/salons',{name:$('#name').value,slug:$('#slug').value.trim()}).then(function(s){location.href='/admin/'+s.slug})})})]);
+ var create=el('section',{class:'card'},[h('h2','سالن تازه'),field('name','نام سالن'),field('slug','نشانی انگلیسی صفحه','', 'text','فقط حروف انگلیسی، عدد و خط تیره؛ حروف بزرگ و فاصله خودکار درست می‌شوند.'),el('button',{class:'btn btn--primary',type:'button',text:'ساخت سالن',onclick:act(function(){return api('/api/salons',{name:$('#name').value,slug:$('#slug').value.trim()}).then(function(s){location.href='/admin/'+s.slug})})})]);
+ // The page address is cleaned as it is typed: lowercase, spaces become dashes, nothing else allowed.
+ (function(){var si=create.querySelector('#slug');if(!si)return;si.setAttribute('dir','ltr');si.setAttribute('autocapitalize','off');si.setAttribute('autocorrect','off');si.setAttribute('spellcheck','false');si.setAttribute('inputmode','url');si.setAttribute('placeholder','aliadli-salon');
+  var prev=el('span',{class:'hint slug-preview'});si.closest('.field').append(prev);
+  function show(){var v=si.value;prev.textContent=v?'صفحهٔ مشتری: '+location.host+'/s/'+v:''}
+  si.addEventListener('input',function(){var c=si.value.toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'').replace(/-+/g,'-');if(c!==si.value)si.value=c;show()});show()})();
  $('#app').replaceChildren(head,dashboard(d.salons),el('h2',{class:'section-title',text:'سالن‌ها'}),el('div',{class:'grid grid--2'},[el('div',{class:'stack'},[list,create]),el('div',{class:'stack'},[alertsCard(d),botCard(d.bot),smsCard(d.sms||{}),imageCard(d.image)])]));
 })}
 function smsCard(sms){
