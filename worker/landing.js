@@ -1,5 +1,5 @@
 // Public landing page served at "/" (owner console lives at /admin). Static HTML; images in public/landing/.
-// Visual direction: AYN-D057/D059/D060/D061/D062; tokens are PROPOSED (Tokens v0.3). Open items: see docs/landing.md.
+// Generated from the design source (visual direction AYN-D057/D059/D060/D061/D062; tokens are PROPOSED).
 export const landingHTML=`<!doctype html>
 <html lang="fa" dir="rtl">
 <head>
@@ -73,24 +73,6 @@ ul,ol{padding:0;list-style:none}
 .mobile-menu[hidden]{display:none!important}
 
 /* ---------- Hero (refs 15/16, D057/D060/D061) ---------- */
-.hero{position:relative;min-height:780px;background-image:url("/landing/hero.webp");background-size:cover;background-position:center 46%;background-repeat:no-repeat;isolation:isolate;background-color:var(--canvas)}
-.hero::after{content:"";position:absolute;inset:auto 0 0 0;height:120px;background:linear-gradient(180deg,rgba(248,242,235,0),rgba(248,242,235,.55));pointer-events:none;z-index:1}
-.hero-copy{position:absolute;z-index:5;top:clamp(56px,9vh,104px);inset-inline-start:clamp(24px,6vw,96px);width:min(410px,27vw);text-align:right}
-.eyebrow{margin:0 0 14px;font-size:17px;font-weight:600;color:#6B5233}
-h1{margin:0 0 18px;font-size:clamp(40px,4vw,60px);line-height:1.25;font-weight:800;color:#170E07}
-.lead{margin:0 0 26px;font-size:19px;line-height:1.9;color:#33261A;font-weight:500}
-.lines-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px}
-.lines-row li{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:var(--r-pill);border:1px solid rgba(185,151,91,.6);background:rgba(252,250,246,.7);font-size:15px;font-weight:700;color:#2A1D12}
-.fineprint{margin:16px 0 0;font-size:14px;color:#5C4A38;font-weight:500}
-.swatch-arc{position:absolute;z-index:6;top:12%;left:clamp(18px,5vw,84px);width:190px;height:470px;pointer-events:none}
-.swatch-arc svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.swatch{position:absolute;display:flex;flex-direction:column;align-items:center;gap:8px;width:92px;margin-inline-start:-46px;color:#241A12}
-.swatch .ring{width:64px;height:64px;border-radius:50%;padding:3px;background:linear-gradient(145deg,#E7D3A4,#A9824F 55%,#E2C88F);box-shadow:0 8px 18px rgba(60,40,18,.18),inset 0 0 0 1px rgba(255,248,230,.55)}
-.swatch .ring img{width:100%;height:100%;border-radius:50%;object-fit:cover}
-.swatch span.t{font-size:14px;font-weight:700;white-space:nowrap;text-shadow:0 1px 0 rgba(255,255,255,.55)}
-.swatch.s1{top:0;left:118px}.swatch.s2{top:118px;left:56px}.swatch.s3{top:238px;left:50px}.swatch.s4{top:356px;left:104px}
-.style-dock{position:absolute;z-index:7;left:50%;bottom:6.5%;transform:translateX(-50%);width:min(340px,30vw);border-radius:20px;overflow:hidden;box-shadow:0 22px 48px rgba(40,26,12,.24),0 0 0 1px rgba(185,151,91,.45);background:rgba(233,222,207,.72);backdrop-filter:blur(10px)}
-.style-dock h3{position:absolute;top:10px;left:0;right:0;text-align:center;font-size:18px;font-weight:800;color:#24170C}
 
 /* ---------- Section 2: selection (dark) ---------- */
 .selection{position:relative;background:var(--espresso);color:var(--cream);padding:96px var(--gut) 110px}
@@ -200,19 +182,8 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
   .menu-link:hover{color:var(--brass-text)}
   .menu-link>span:last-child{color:var(--brass-text);font-size:18px}
 
-  .hero{min-height:720px;background-position:42% 46%}
-  .hero-copy{width:min(400px,42vw)}
 }
 @media (max-width:1100px){
-  .hero{min-height:auto;display:flex;flex-direction:column;padding:0 20px 44px;background-image:none}
-  .hero::before{content:"";display:block;order:1;height:500px;margin:0 -20px;background-image:url("/landing/hero.webp");background-size:max(115%,1030px) auto;background-position:42% 46%;background-repeat:no-repeat;background-color:var(--canvas)}
-  .hero::after{display:none}
-  .hero-copy{position:relative;top:auto;inset-inline-start:auto;order:3;width:100%;text-align:center;margin:8px auto 0}
-  .lead{margin-inline:auto}
-  .lines-row{justify-content:center}
-  .swatch-arc{top:20px;left:10px;transform:scale(.72);transform-origin:top left}
-  .swatch{gap:4px}.swatch span.t{font-size:20px;line-height:1.2}
-  .style-dock{position:relative;left:auto;bottom:auto;transform:none;order:2;width:min(340px,75vw);margin:-72px auto 26px}
   .selection{padding-top:0}
   .selection-grid{grid-template-columns:1fr;gap:30px}
   .selection-copy{order:2;text-align:center}
@@ -229,28 +200,248 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
   .menu-toggle{width:44px;height:44px;flex-basis:44px}
   .btn{min-height:44px;padding:0 14px;font-size:14px}
   .btn--lg{min-height:52px;font-size:17px;padding:0 24px}
-  .hero::before{height:380px;background-size:auto 115%;background-position:37% center}
-  .hero{padding-bottom:36px}
-  h1{font-size:38px}
-  .swatch-arc{transform:scale(.58);top:12px;left:6px}
-  .swatch .ring{width:76px;height:76px}.swatch span.t{font-size:25px}
-  .style-dock{width:min(275px,72vw);margin-top:-50px;transform:translateX(clamp(24px,9vw,35px))}
-  .style-dock h3{font-size:15px;top:7px}
   .compare .tag{font-size:13px;bottom:12%}
   .selection-copy p,.sec-head p.sub{font-size:17px}
 }
 @media (max-width:360px){
   .brand{font-size:20px}.brand small{font-size:13px;margin-inline-start:4px}
   .btn{padding:0 11px;font-size:13px;gap:6px}.btn .arrow{font-size:16px}
-  .hero::before{background-position:39% center}
 }
 @media (min-width:1101px) and (max-width:1280px){
-  .hero{background-position:58% 46%}
-  .style-dock{left:calc(58% - 129px)}
 }
 @media (min-width:1101px){.hero{background-size:max(112%,1565px) auto}}
 @keyframes menu-appear{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+
+/* ---------- Film hero: pinned stage (scroll = playback), mirror recolor, style rail, color column ---------- */
+:root{--hh:76px;--p:0;--z:1;--base:1}
+.room{--u:calc(1 / var(--base))}
+.film{position:relative;height:calc(100svh - var(--hh) + 120svh);background:#EFE6DA}
+.stage{position:sticky;top:calc(var(--hh) + env(safe-area-inset-top,0px));height:calc(100svh - var(--hh));min-height:500px;overflow:hidden;isolation:isolate;background:#EFE6DA}
+.room{position:absolute;inset:0;margin:0;overflow:hidden;translate:0 -4%;transform-origin:50% 40%;transform:scale(calc(var(--base) * var(--z)));will-change:transform}
+.room img,.room canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 36%}
+.room img{animation:dolly 2400ms var(--ease) both}
+.room::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(22,13,7,.22) 100%);pointer-events:none}
+.fade{position:absolute;inset:0;z-index:9;pointer-events:none;background:linear-gradient(180deg,rgba(22,13,7,0) 40%,#160D07 100%);opacity:0}
+@keyframes dolly{from{transform:scale(1.14);filter:brightness(.7) saturate(.8)}to{transform:scale(1);filter:none}}
+
+.copy{position:absolute;z-index:6;top:clamp(28px,7vh,72px);inset-inline-start:clamp(24px,6vw,96px);width:min(400px,28vw);text-align:right;opacity:calc(1 - var(--p)*2.4);transform:translateX(calc(var(--p)*-70px))}
+.eyebrow{margin:0 0 12px;font-size:17px;font-weight:600;color:#6B5233}
+h1{margin:0 0 16px;font-size:clamp(38px,4vw,60px);line-height:1.25;font-weight:800;color:#170E07}
+.lead{margin:0 0 20px;font-size:18px;line-height:1.9;color:#33261A;font-weight:500}
+.lines-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
+.lines-row li{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:var(--r-pill);border:1px solid rgba(185,151,91,.6);background:rgba(252,250,246,.7);font-size:15px;font-weight:700;color:#2A1D12}
+.fineprint{margin:14px 0 0;font-size:14px;color:#5C4A38;font-weight:500}
+.reveal{animation:rise 900ms var(--ease) both}
+.reveal:nth-child(2){animation-delay:140ms}.reveal:nth-child(3){animation-delay:260ms}.reveal:nth-child(4){animation-delay:380ms}.reveal:nth-child(5){animation-delay:500ms}.reveal:nth-child(6){animation-delay:620ms}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+
+/* panels share one glass recipe (D060: frosted, brass hairline) */
+.glass{background:rgba(236,226,212,.74);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(185,151,91,.5);box-shadow:0 18px 44px rgba(40,26,12,.2)}
+@supports not (backdrop-filter:blur(1px)){.glass{background:#ECE2D4}}
+
+/* ----- hair colour column (vertical scroll) ----- */
+.colors{position:absolute;z-index:7;left:clamp(14px,3vw,56px);top:50%;transform:translateY(-50%);width:104px;border-radius:52px;padding:10px 0}
+.colors h2,.styles-head h2{font-size:13px;line-height:1.4;font-weight:700;letter-spacing:.02em;color:#5C4A38;text-align:center;margin:0 0 4px}
+.col-list{display:flex;flex-direction:column;gap:4px;height:min(48vh,372px);overflow-y:auto;overscroll-behavior:auto;scroll-snap-type:y proximity;scrollbar-width:none;padding:14px 0;-webkit-mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent)}
+.col-list::-webkit-scrollbar{display:none}
+.sw{position:relative;flex:0 0 auto;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;width:100%;padding:8px 6px;border:0;background:none;cursor:pointer;color:#241A12;font-size:13px;font-weight:700;line-height:1.35;text-align:center}
+.sw .dot{width:52px;height:52px;border-radius:50%;padding:3px;background:linear-gradient(145deg,#E7D3A4,#A9824F 55%,#E2C88F);box-shadow:0 8px 16px rgba(60,40,18,.18);transition:transform 240ms var(--ease)}
+.sw .dot i{display:block;width:100%;height:100%;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,248,230,.45)}
+.sw:hover .dot{transform:scale(1.06)}
+.sw svg.frame{position:absolute;inset:2px 4px;width:calc(100% - 8px);height:calc(100% - 4px);overflow:visible;pointer-events:none}
+.frame rect{x:1px;y:1px;width:calc(100% - 2px);height:calc(100% - 2px);rx:18px;ry:18px;fill:none;stroke:#A57E34;stroke-width:2.6;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 700ms var(--ease);filter:drop-shadow(0 0 6px rgba(185,151,91,.5))}
+[aria-checked="true"] .frame rect{stroke-dashoffset:0}
+.sw[aria-checked="true"] .dot{transform:scale(1.08);box-shadow:0 0 0 3px #F6EFE5,0 0 0 4.5px #B9975B,0 8px 16px rgba(60,40,18,.18)}
+
+/* ----- hairstyle rail (horizontal) ----- */
+.styles{position:absolute;z-index:7;left:0;right:0;bottom:clamp(10px,2.4vh,26px)}
+.styles-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 clamp(16px,6vw,96px) 8px}
+.styles-head h2{margin:0;text-align:right;font-size:14px}
+.styles-head .nav-btns{display:flex;gap:8px}
+.arrow-btn{width:44px;height:44px;border-radius:50%;border:1px solid var(--brass);background:rgba(252,250,246,.88);color:var(--ink);font-size:18px;cursor:pointer;display:grid;place-items:center}
+.arrow-btn:hover{background:#fff}
+.track{display:flex;gap:16px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;scrollbar-width:none;padding:12px clamp(16px,6vw,96px) 14px;cursor:grab;touch-action:pan-x pan-y}
+.track::-webkit-scrollbar{display:none}
+.track.dragging{cursor:grabbing;scroll-snap-type:none}
+.card{position:relative;flex:0 0 auto;scroll-snap-align:center;width:clamp(84px,min(10.5vw,19vh),138px);padding:0;border:0;background:none;cursor:pointer;text-align:center;font-size:14px;font-weight:700;color:#241A12;transition:transform 320ms var(--ease)}
+.card .ph{display:block;aspect-ratio:4/5;border-radius:16px;overflow:hidden;box-shadow:0 12px 26px rgba(40,26,12,.26)}
+.card img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;-webkit-user-drag:none}
+.card .nm{display:block;margin-top:8px;padding:2px 8px;border-radius:10px;background:rgba(246,239,229,.82);line-height:1.5}
+.card:hover{transform:translateY(-4px)}
+.card svg.frame{position:absolute;inset:-7px -7px 28px -7px;width:calc(100% + 14px);height:calc(100% - 21px);overflow:visible;pointer-events:none}
+.card[aria-checked="true"]{transform:translateY(-8px) scale(1.04)}
+.card[aria-checked="true"] .ph{box-shadow:0 0 0 3px #F6EFE5,0 0 0 4.5px #B9975B,0 18px 36px rgba(40,26,12,.34)}
+.card[aria-checked="true"] .nm{background:var(--espresso);color:var(--cream)}
+
+/* ----- reference & result chip ----- */
+.reference{position:absolute;z-index:6;left:clamp(150px,15vw,240px);top:clamp(70px,16vh,150px);width:154px;padding:10px;border-radius:20px;text-align:center;font-size:13px;font-weight:700;color:#241A12;opacity:0;transform:translateY(12px) rotate(-1.5deg);transition:opacity 420ms var(--ease),transform 420ms var(--ease);pointer-events:none}
+.reference.on{opacity:1;transform:rotate(-1.5deg)}
+.reference .ph{display:block;aspect-ratio:4/5;border-radius:14px;overflow:hidden;margin-bottom:8px;background:#d9cdbb}
+.reference img{width:100%;height:100%;object-fit:cover;display:block}
+.reference small{display:block;font-size:12px;font-weight:600;color:#5C4A38}
+.result{position:absolute;z-index:8;top:clamp(14px,3vh,28px);left:50%;transform:translateX(-50%) translateY(-10px);display:flex;align-items:center;gap:14px;padding:8px 8px 8px 20px;border-radius:var(--r-pill);font-size:15px;font-weight:700;color:#241A12;opacity:0;pointer-events:none;transition:opacity 360ms var(--ease),transform 360ms var(--ease);white-space:nowrap}
+.result.on{opacity:1;transform:translateX(-50%);pointer-events:auto}
+.result .btn{min-height:44px;padding:0 18px;font-size:15px}
+.cue{display:none;position:absolute;z-index:6;inset-inline-start:clamp(24px,6vw,96px);bottom:clamp(180px,30vh,260px);display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;color:#5C4A38;opacity:calc(1 - var(--p)*10)}
+.cue i{display:block;width:1.5px;height:42px;background:linear-gradient(180deg,var(--brass),transparent);transform-origin:top;animation:cue 2s var(--ease) infinite}
+@keyframes cue{0%{transform:scaleY(0)}60%{transform:scaleY(1)}100%{transform:scaleY(1);opacity:0}}
+
+/* ----- pre-entrance states (set by JS only when motion is allowed) ----- */
+.js-film .track .card.pre{opacity:0;transform:translateX(120vw) skewX(-16deg)}
+.js-film .col-list .sw.pre{opacity:0;transform:translateY(90px)}
+
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+@media (max-width:900px){
+  :root{--base:1.55}
+  .film{height:calc(100svh - var(--hh) + 90svh)}
+  .room img,.room canvas{object-position:50% 33%}
+  .room{inset:0 0 auto 0;height:62%;transform-origin:50% 38%}
+  .copy{left:0;right:0;inset-inline-start:0;top:clamp(10px,2vh,22px);width:auto;padding:0 20px;text-align:center}
+  .eyebrow,.lead,.fineprint,.lines-row{display:none}
+  h1{margin:0;font-size:clamp(28px,8vw,36px)}
+  .colors{left:8px;top:35%;width:84px;border-radius:44px}
+  .col-list{height:min(30vh,250px)}
+  .sw{font-size:12px}.sw .dot{width:44px;height:44px}
+  .styles{bottom:8px}
+  .card{width:clamp(92px,26vw,112px)}
+  .reference{display:none}
+  .result{top:auto;bottom:228px;padding:6px 6px 6px 14px;font-size:13px;gap:10px;max-width:calc(100% - 24px)}
+  .result .btn{min-height:40px;padding:0 12px;font-size:13px}
+  .cue{display:none}
+  .arrow-btn{display:none}
+}
+@media (prefers-reduced-motion:reduce){.room img{animation:none}.reveal{animation:none}.cue i{animation:none}.js-film .track .card.pre,.js-film .col-list .sw.pre{opacity:1;transform:none}}
+
+@media (min-width:901px) and (max-height:720px){.lead,.lines-row,.fineprint{display:none}.copy{width:min(380px,30vw)}h1{font-size:clamp(34px,3.6vw,48px)}}
+
+/* ===== v3: dock on the podium (approved icon selector, D057/D060) + expandable photo rail ===== */
+.dock{position:absolute;z-index:3;left:var(--dk-x,50%);top:var(--dk-y,64%);width:var(--dk-w,290px);padding:calc(8px * var(--u)) calc(10px * var(--u)) calc(8px * var(--u));border-radius:calc(20px * var(--u));transform:translateX(-50%);transition:opacity 360ms var(--ease),transform 360ms var(--ease)}
+.dock.away{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(14px)}
+.dock h2{margin:0 0 calc(2px * var(--u));font-size:calc(14px * var(--u));font-weight:800;color:#24170C;text-align:center;letter-spacing:0}
+.dock-view{position:relative}
+.dock-track{display:flex;gap:calc(6px * var(--u));overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;padding:calc(6px * var(--u)) calc(2px * var(--u));-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);cursor:grab;touch-action:pan-x pan-y}
+.dock-track::-webkit-scrollbar{display:none}
+.dock-track.dragging{cursor:grabbing;scroll-snap-type:none}
+.d-item{position:relative;flex:0 0 29%;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;gap:calc(2px * var(--u));padding:calc(4px * var(--u)) 0 calc(5px * var(--u));border:0;background:none;cursor:pointer;color:#241A12;font-size:calc(12px * var(--u));font-weight:700;line-height:1.35;text-align:center;border-radius:calc(14px * var(--u))}
+.d-item .ic{display:grid;place-items:center;height:calc(70px * var(--u));width:100%;margin-bottom:calc(4px * var(--u))}
+.d-item img{max-height:92%;max-width:74%;object-fit:contain;filter:drop-shadow(0 calc(5px * var(--u)) calc(5px * var(--u)) rgba(60,36,16,.28));transition:transform 260ms var(--ease);pointer-events:none;-webkit-user-drag:none}
+.d-item:hover img{transform:translateY(-3px) scale(1.06)}
+.d-item[aria-checked="true"]{background:rgba(255,250,242,.55);box-shadow:0 0 0 calc(1.5px * var(--u)) #B9975B}
+.d-item[aria-checked="true"] img{transform:translateY(-3px) scale(1.08)}
+.d-item svg.frame{position:absolute;inset:calc(-3px * var(--u));width:calc(100% + 6px * var(--u));height:calc(100% + 6px * var(--u));overflow:visible;pointer-events:none}
+.nav-btn{position:absolute;top:50%;z-index:2;width:calc(30px * var(--u));height:calc(30px * var(--u));margin-top:calc(-15px * var(--u));border-radius:50%;border:1px solid var(--brass);background:rgba(252,250,246,.94);color:var(--ink);font-size:calc(20px * var(--u));line-height:1;cursor:pointer;display:grid;place-items:center;padding:0 0 calc(2px * var(--u));box-shadow:0 4px 10px rgba(40,26,12,.18)}
+.nav-btn:hover{background:#fff}
+.nav-r{right:calc(-4px * var(--u))}.nav-l{left:calc(-4px * var(--u))}
+.more{display:flex;align-items:center;justify-content:center;gap:calc(6px * var(--u));width:100%;min-height:calc(30px * var(--u));margin-top:calc(2px * var(--u));border:0;border-top:1px solid rgba(185,151,91,.4);background:none;color:#4A3722;font-size:calc(12px * var(--u));font-weight:700;cursor:pointer;border-radius:0 0 calc(14px * var(--u)) calc(14px * var(--u))}
+.more:hover{color:#1E140B}
+.more svg,.close svg{width:calc(16px * var(--u));height:calc(16px * var(--u));fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.more svg{animation:bob 1.8s var(--ease) infinite}
+@keyframes bob{0%,100%{transform:translateY(-1px)}50%{transform:translateY(3px)}}
+
+/* photo rail: opens from the dock's arrow */
+.styles{opacity:0;visibility:hidden;transform:translateY(60px);transition:opacity 420ms var(--ease),transform 520ms var(--ease),visibility 0s linear 520ms;bottom:0;padding-bottom:clamp(10px,2.4vh,24px);background:linear-gradient(180deg,rgba(239,230,218,0),rgba(239,230,218,.88) 28%)}
+.styles.open{opacity:1;visibility:visible;transform:none;transition:opacity 420ms var(--ease),transform 520ms var(--ease)}
+.styles-head{padding-top:18px}
+.close{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:var(--r-pill);border:1px solid var(--brass);background:rgba(252,250,246,.9);color:var(--ink);font-size:14px;font-weight:700;cursor:pointer}
+.close:hover{background:#fff}
+.rail-wrap{position:relative}
+.rail-wrap .nav-btn{--u:1px;width:44px;height:44px;margin-top:-34px;font-size:26px}
+.rail-wrap .nav-r{right:clamp(8px,2vw,28px)}.rail-wrap .nav-l{left:clamp(8px,2vw,28px)}
+.card .ph{aspect-ratio:4/5}
+.card{width:clamp(88px,min(10.5vw,17vh),132px)}
+@media (max-width:900px){
+ .rail-wrap .nav-btn{display:none}
+ .styles{bottom:0}
+ .reference{display:none}
+}
+.js-film .d-item.pre{opacity:0;transform:translateX(120vw) skewX(-16deg)}
+@media (prefers-reduced-motion:reduce){.js-film .d-item.pre{opacity:1;transform:none}.more svg{animation:none}}
+.d-item>span:last-of-type{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 calc(2px * var(--u))}
+
+.room img.alt{opacity:0;transition:opacity 480ms var(--ease);animation:none}
+.room img.alt.show{opacity:1}
+.d-item:hover{z-index:2}
+.d-item:hover img{transform:translateY(calc(-5px * var(--u))) scale(1.3)}
+.d-item[aria-checked="true"] img,.d-item[aria-checked="true"]:hover img{transform:translateY(calc(-5px * var(--u))) scale(1.3)}
+.dock-track{padding-top:calc(14px * var(--u))}
+.card:hover{transform:translateY(-6px) scale(1.07)}
+.reference small.note{margin-top:4px;font-size:11px;line-height:1.6;color:#6B5233}
+
+.dock{transition:opacity 360ms var(--ease),transform 360ms var(--ease),visibility 0s}
+.dock.away{visibility:hidden;transition:opacity 360ms var(--ease),transform 360ms var(--ease),visibility 0s linear 360ms}
+
+
+/* ---------- Section 2: request lands in the salon chat ---------- */
+.s2{position:relative;background:radial-gradient(90% 70% at 22% 40%,#2a1a0e 0%,#160D07 62%);color:var(--cream);padding:var(--sec-y) var(--gut)}
+.s2-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(32px,6vw,88px);align-items:center}
+.s2-copy h2{margin:0 0 16px;color:var(--ivory)}
+.s2 .sub{margin:0 0 28px;font-size:18px;line-height:1.95;color:var(--ivory-2);font-weight:500;max-width:560px}
+.s2-points{display:grid;gap:12px;margin:0 0 32px;max-width:560px}
+.s2-points li{display:grid;gap:2px;padding:14px 18px;border-radius:var(--r-card);border:1px solid var(--line-dark);background:linear-gradient(180deg,rgba(255,248,238,.07),rgba(255,248,238,.02))}
+.s2-points strong{color:var(--ivory);font-size:17px}
+.s2-points span{color:var(--ivory-2);font-size:15px}
+.s2-cta{display:flex;flex-wrap:wrap;gap:12px}
+.s2-demo{position:relative;display:grid;justify-items:center;gap:18px}
+.phone{position:relative;width:min(340px,100%);padding:14px 14px 18px;border-radius:38px;background:#120A05;border:1.5px solid var(--brass);box-shadow:0 0 0 6px rgba(185,151,91,.1),0 40px 80px rgba(0,0,0,.5)}
+.phone-top{display:flex;align-items:center;gap:12px;padding:6px 8px 12px;border-bottom:1px solid rgba(214,190,140,.2)}
+.phone-top .av{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:linear-gradient(145deg,#E7D3A4,#A9824F);color:var(--espresso);font-weight:800}
+.phone-top strong{display:block;font-size:15px;color:var(--ivory);line-height:1.4}
+.phone-top small{display:block;font-size:12px;color:var(--ivory-2);line-height:1.4}
+.push{position:absolute;z-index:3;inset-inline:22px;top:64px;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:16px;background:rgba(249,241,232,.96);color:var(--espresso);font-size:13px;font-weight:700;box-shadow:0 14px 30px rgba(0,0,0,.4);opacity:0;transform:translateY(-14px);pointer-events:none}
+.push .dot{width:8px;height:8px;border-radius:50%;background:#B9975B}
+.chat{display:grid;gap:12px;padding:14px 4px 4px;min-height:340px;align-content:start}
+.msg{max-width:92%;border-radius:18px;font-size:14px;line-height:1.8}
+.msg.in{display:flex;gap:12px;padding:10px;background:#23160C;border:1px solid rgba(214,190,140,.25);color:var(--ivory)}
+.msg .ph{flex:0 0 74px;aspect-ratio:4/5;border-radius:12px;overflow:hidden;background:#3a2a1c}
+.msg .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.msg .body{min-width:0}
+.msg .body>strong{display:block;font-size:14px;margin-bottom:2px}
+.msg dl{margin:0;display:grid;gap:0}
+.msg dl div{display:flex;gap:6px;font-size:13px}
+.msg dt{color:var(--brass-soft);font-weight:600}
+.msg dt::after{content:":"}
+.msg dd{margin:0;color:var(--ivory);font-weight:700}
+.msg small{display:block;margin-top:4px;font-size:11.5px;line-height:1.6;color:var(--ivory-2)}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.actions button{min-height:44px;padding:0 14px;border-radius:var(--r-pill);border:1px solid var(--brass-soft);background:transparent;color:var(--ivory);font-size:13.5px;font-weight:700;cursor:pointer;transition:background 160ms var(--ease),color 160ms var(--ease)}
+.actions button:hover{background:rgba(214,190,140,.16)}
+.actions button[aria-pressed="true"]{background:var(--cream);color:var(--espresso)}
+.msg.out{margin-inline-start:auto;padding:8px 14px;background:linear-gradient(145deg,#C9A569,#A9824F);color:var(--espresso);font-weight:700;border-radius:18px 18px 4px 18px}
+.cust{width:min(340px,100%);padding:14px 18px;border-radius:var(--r-card);border:1px dashed var(--line-dark);background:rgba(255,248,238,.04);text-align:right}
+.cust small{display:block;font-size:12.5px;color:var(--brass-soft);font-weight:700}
+.cust strong{display:block;font-size:16px;color:var(--ivory);line-height:1.7}
+.s2-demo.play .push{animation:push 3200ms var(--ease) 500ms both}
+.s2-demo.play #s2msg{animation:bubble 700ms var(--ease) 1500ms both}
+.s2-demo.play .actions{animation:bubble 600ms var(--ease) 2200ms both}
+.s2-demo.play .phone{animation:bubble 800ms var(--ease) both}
+@keyframes push{0%{opacity:0;transform:translateY(-14px)}12%,70%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-8px)}}
+@keyframes bubble{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@media (max-width:900px){.s2-grid{grid-template-columns:1fr}.s2-cta .btn--lg{width:100%}}
+@media (prefers-reduced-motion:reduce){.s2-demo.play *{animation:none!important}}
+
+
+/* ---------- lead form (sends to the owner's bot chat via /api/inquiry) ---------- */
+.path--form{gap:16px}
+.path--form>p{max-width:560px}
+.lf-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%}
+.lf-field{display:grid;gap:6px;width:100%}
+.lf-field label,.lf-hp label{font-size:14px;font-weight:700;color:var(--ivory)}
+.lf-field input,.lf-field textarea{width:100%;min-height:48px;padding:10px 14px;border-radius:var(--r-control);border:1px solid #A98F7A;background:#160D07;color:var(--ivory);font:inherit;font-size:16px;line-height:1.6}
+.lf-field textarea{min-height:72px;resize:vertical}
+.lf-field input:focus-visible,.lf-field textarea:focus-visible{outline:3px solid var(--focus-dark);outline-offset:2px;border-color:var(--focus-dark)}
+.lf-field input[aria-invalid="true"]{border-color:#F2B8BE}
+.lf-hp{position:absolute;inset-inline-start:-9999px;width:1px;height:1px;overflow:hidden}
+.lf-check{display:flex;align-items:flex-start;gap:12px;font-size:15px;color:var(--ivory-2);cursor:pointer;line-height:1.8}
+.lf-check input{flex:0 0 24px;width:24px;height:24px;margin:2px 0 0;accent-color:#D6BE8C}
+.lf-err{min-height:1.6em;margin:0;font-size:15px;font-weight:700;color:#F2B8BE}
+.lf-done{margin:0;padding:16px 18px;border-radius:var(--r-control);border:1px solid #BFE3C8;background:rgba(191,227,200,.08);color:#BFE3C8;font-weight:700;line-height:1.9}
+.path--form .btn[disabled]{opacity:.6;cursor:progress}
+@media (max-width:640px){.lf-grid{grid-template-columns:1fr}}
+
+.compare{margin-top:0}
+@media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}
 </style>
 </head>
 <body>
@@ -284,50 +475,113 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
 </header>
 
 <main id="main">
-  <!-- 1. Hero -->
-  <section id="intro" class="hero" aria-labelledby="h1" tabindex="-1">
-    <div class="hero-copy">
-      <p class="eyebrow">مشاوره تصویری مو، ناخن و مژه</p>
-      <h1 id="h1">انتخاب بعدی‌ات را ببین.</h1>
-      <p class="lead">مدل و رنگ دلخواهت را انتخاب کن و با سالن مشورت کن؛ اگر سالن شبیه‌سازی را فعال کرده باشد، نتیجه را روی عکس خودت ببین.</p>
-      <ul class="lines-row" aria-label="خدمات پوشش‌داده‌شده"><li>مو</li><li>ناخن</li><li>مژه</li></ul>
-      <a class="btn btn--lg" href="#start"><span>امتحان آینه</span><span class="arrow" aria-hidden="true">←</span></a>
-      <p class="fineprint">شبیه‌سازی پیشنهادی است، نه تضمین نتیجه.</p>
-    </div>
-
-    <div class="swatch-arc" role="img" aria-label="نمونه رنگ مو: بلوند شامپاینی، کاراملی، اسپرسو، آمبره">
-      <svg viewBox="0 0 190 470" fill="none" aria-hidden="true"><path d="M164 32 C 118 62, 102 104, 102 150 C 102 196, 96 228, 96 270 C 96 318, 118 356, 150 388" stroke="#B9975B" stroke-width="1.6" stroke-linecap="round" opacity=".85"/></svg>
-      <div class="swatch s1"><span class="ring"><img src="/landing/sw1.webp" alt="" width="56" height="56"></span><span class="t">بلوند شامپاینی</span></div>
-      <div class="swatch s2"><span class="ring"><img src="/landing/sw2.webp" alt="" width="56" height="56"></span><span class="t">کاراملی</span></div>
-      <div class="swatch s3"><span class="ring"><img src="/landing/sw3.webp" alt="" width="56" height="56"></span><span class="t">اسپرسو</span></div>
-      <div class="swatch s4"><span class="ring"><img src="/landing/sw4.webp" alt="" width="56" height="56"></span><span class="t">آمبره</span></div>
-    </div>
-
-    <figure class="style-dock">
-      <img src="/landing/dock.webp" width="1619" height="640" alt="چهار مدل موی سه‌بعدی به رنگ اسپرسو">
-      <h3>مدل مو</h3>
-    </figure>
-  </section>
-
-  <!-- 2. Experience -->
-  <section id="experience" class="selection on-dark" aria-labelledby="h-exp" tabindex="-1">
-    <div class="selection-grid">
-      <div class="selection-copy">
-        <h2 id="h-exp">از تصور تا انتخاب.</h2>
-        <p>مدل و رنگ مو، طرح ناخن یا مدل مژه را بررسی کن، با سالن در میان بگذار و درخواستت را برایش بفرست.</p>
-        <ul class="chips">
-          <li class="chip">صفحه اختصاصی سالن</li>
-          <li class="chip">مو، ناخن و مژه</li>
-          <li class="chip">ارسال به سالن</li>
-        </ul>
-      </div>
-      <figure class="compare">
-        <img src="/landing/compare.webp" width="1133" height="928" alt="نمای مقایسه‌ای قبل و شبیه‌سازی مدل و رنگ مو" loading="lazy">
-        <span class="tag before" aria-hidden="true">قبل</span>
-        <span class="tag after" aria-hidden="true">شبیه‌سازی</span>
+  <!-- 1. Film hero: pinned stage. Scroll plays the scene; swatches and styles drive the mirror. -->
+  <section id="intro" class="film" aria-labelledby="h1" tabindex="-1">
+    <div class="stage" id="stage">
+      <figure class="room" id="room">
+        <img id="roomImg" src="/landing/hero.webp" width="1376" height="768" alt="آینهٔ سه‌تکهٔ برنجی با تصویر یک مدل در آن، روی پایه‌ای از سنگ">
+        <img id="roomImg2" class="alt" src="" alt="" aria-hidden="true" width="1376" height="768">
+        <canvas id="hairCanvas" width="1376" height="768" aria-hidden="true"></canvas>
+        <div class="dock glass" id="dock">
+          <h2 id="dock-h">مدل مو</h2>
+          <div class="dock-view">
+            <div class="dock-track" id="dockTrack" role="radiogroup" aria-labelledby="dock-h"></div>
+            <button type="button" class="nav-btn nav-r" id="dkPrev" aria-label="مدل‌های قبلی">›</button>
+            <button type="button" class="nav-btn nav-l" id="dkNext" aria-label="مدل‌های بعدی">‹</button>
+          </div>
+          <button type="button" class="more" id="more" aria-expanded="false" aria-controls="styles"><span>همهٔ مدل‌ها با عکس</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7.5 10 12.5 15 7.5"/></svg></button>
+        </div>
       </figure>
+      <div class="fade" id="fade" aria-hidden="true"></div>
+
+      <div class="copy" id="copy">
+        <p class="eyebrow reveal">مشاوره تصویری مو، ناخن و مژه</p>
+        <h1 id="h1" class="reveal">انتخاب بعدی‌ات را ببین.</h1>
+        <p class="lead reveal">مدل و رنگ دلخواهت را انتخاب کن و با سالن مشورت کن؛ اگر سالن شبیه‌سازی را فعال کرده باشد، نتیجه را روی عکس خودت ببین.</p>
+        <ul class="lines-row reveal" aria-label="خدمات پوشش‌داده‌شده"><li>مو</li><li>ناخن</li><li>مژه</li></ul>
+        <a class="btn btn--lg reveal" href="#start"><span>امتحان آینه</span><span class="arrow" aria-hidden="true">←</span></a>
+        <p class="fineprint reveal">شبیه‌سازی پیشنهادی است، نه تضمین نتیجه.</p>
+      </div>
+
+      <div class="colors glass" id="colors">
+        <h2 id="colors-h">رنگ مو</h2>
+        <div class="col-list" id="colList" role="radiogroup" aria-labelledby="colors-h" tabindex="-1"></div>
+      </div>
+
+      <aside class="reference glass" id="ref" aria-live="polite">
+        <span class="ph"><img id="refImg" alt="" width="240" height="300"></span>
+        <span id="refName"></span>
+        <small>مدل انتخاب‌شده</small>
+        <small id="refNote" class="note"></small>
+      </aside>
+
+      <div class="result glass" id="result" role="status" aria-live="polite">
+        <span id="resultText"></span>
+        <a class="btn" href="#start"><span>این ترکیب را بفرست</span><span class="arrow" aria-hidden="true">←</span></a>
+      </div>
+
+
+      <div class="styles" id="styles" aria-hidden="true">
+        <div class="styles-head">
+          <h2 id="styles-h">مدل مو <span id="styCount"></span></h2>
+          <button type="button" class="close" id="closeRail"><span>بستن</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 12.5 10 7.5 15 12.5"/></svg></button>
+        </div>
+        <div class="rail-wrap">
+          <div class="track" id="track" role="radiogroup" aria-labelledby="styles-h"></div>
+          <button type="button" class="nav-btn nav-r" id="stPrev" aria-label="مدل‌های قبلی">›</button>
+          <button type="button" class="nav-btn nav-l" id="stNext" aria-label="مدل‌های بعدی">‹</button>
+        </div>
+      </div>
     </div>
   </section>
+
+  <!-- 2. Request lands in the salon chat (carries the visitor's mirror selection) -->
+  <section id="experience" class="s2 on-dark" aria-labelledby="h-exp" tabindex="-1">
+    <div class="s2-grid wrap">
+      <div class="s2-copy">
+        <p class="kicker">از آینه تا سالن</p>
+        <h2 id="h-exp">مشتری انتخابش را می‌فرستد، سالن در همان چت می‌بیند.</h2>
+        <p class="sub">هر درخواست با عکس، مدل و رنگ انتخاب‌شده به ربات سالن در تلگرام یا بله می‌رسد. سالن با یک ضربه وضعیت را مشخص می‌کند و مشتری همان را در صفحهٔ خودش می‌بیند.</p>
+        <ul class="s2-points">
+          <li><strong>بدون پنل جدید</strong><span>سالن همان پیام‌رسانی را باز می‌کند که هر روز استفاده می‌کند.</span></li>
+          <li><strong>وضعیت با یک ضربه</strong><span>«تماس گرفتم»، «نوبت شد» یا «انجام نمی‌دهم»؛ بدون نوشتن پیام.</span></li>
+          <li><strong>مشتری بی‌خبر نمی‌ماند</strong><span>نتیجهٔ همان ضربه در صفحهٔ خود مشتری نمایش داده می‌شود.</span></li>
+        </ul>
+        <div class="s2-cta">
+          <a class="btn btn--lg" href="#start"><span>این تجربه را برای سالن من فعال کن</span><span class="arrow" aria-hidden="true">←</span></a>
+          <a class="btn btn--ghost" href="#plans">قیمت پلن‌ها</a>
+        </div>
+      </div>
+
+      <div class="s2-demo" id="s2demo">
+        <div class="phone" role="group" aria-label="نمونهٔ نمایشی چت ربات سالن">
+          <div class="phone-top"><span class="av" aria-hidden="true">آ</span><div><strong>ربات سالن</strong><small>آینه · نمونهٔ نمایشی</small></div></div>
+          <div class="push" id="s2push" aria-hidden="true"><span class="dot"></span>درخواست تازه از صفحهٔ سالن</div>
+          <div class="chat" id="s2chat" aria-live="polite">
+            <div class="msg in" id="s2msg">
+              <span class="ph"><img id="s2img" alt="" width="240" height="300"></span>
+              <div class="body">
+                <strong>درخواست مشاوره</strong>
+                <dl><div><dt>مدل</dt><dd id="s2style">ولف‌کات</dd></div><div><dt>رنگ</dt><dd id="s2color">کاراملی</dd></div><div><dt>عکس مشتری</dt><dd>پیوست شد</dd></div></dl>
+                <small id="s2tag">نمونه؛ با انتخاب در آینه عوض می‌شود</small>
+              </div>
+            </div>
+            <div class="actions" id="s2acts" role="group" aria-label="وضعیت درخواست">
+              <button type="button" data-s="called">تماس گرفتم</button>
+              <button type="button" data-s="booked">نوبت شد</button>
+              <button type="button" data-s="declined">انجام نمی‌دهم</button>
+            </div>
+            <div class="msg out" id="s2out" hidden><span id="s2outText"></span></div>
+          </div>
+        </div>
+        <div class="cust" id="s2cust" aria-live="polite">
+          <small>مشتری در صفحهٔ سالن می‌بیند</small>
+          <strong id="s2custText">درخواستت به دست سالن رسید.</strong>
+        </div>
+      </div>
+    </div>
+  </section>
+
 
   <!-- 3. Services -->
   <section id="services" class="section" aria-labelledby="h-svc" tabindex="-1">
@@ -455,12 +709,22 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
           <!-- OPEN: link to a demo salon page /s/<slug> once the demo salon exists. -->
           <a class="btn btn--ghost" href="#faq">لینک سالن را ندارم</a>
         </div>
-        <div class="path">
-          <h3>سالن هستم</h3>
-          <p>می‌خواهی مشتری‌هایت قبل از آمدن، مدل و رنگ مو، ناخن و مژهٔ دلخواهشان را واضح بفرستند؟ برای معرفی و امتحان آینه با ما در تماس باش.</p>
-          <!-- OPEN: salon contact channel (Telegram / Bale / phone) is not yet defined in the Master. -->
-          <a class="btn" href="#start"><span>درخواست معرفی آینه</span><span class="arrow" aria-hidden="true">←</span></a>
-        </div>
+        <form class="path path--form" id="leadForm" novalidate aria-labelledby="h-lead">
+          <h3 id="h-lead">سالن هستم</h3>
+          <p>می‌خواهی مشتری‌هایت قبل از آمدن، مدل و رنگ مو، ناخن و مژهٔ دلخواهشان را واضح بفرستند؟ اطلاعات را بگذار تا برای معرفی و امتحان آینه با تو تماس بگیریم.</p>
+          <div class="lf-grid">
+            <div class="lf-field"><label for="lf-name">نام شما</label><input id="lf-name" name="name" type="text" autocomplete="name" maxlength="60" required></div>
+            <div class="lf-field"><label for="lf-salon">نام سالن</label><input id="lf-salon" name="salon" type="text" autocomplete="organization" maxlength="80" required></div>
+            <div class="lf-field"><label for="lf-city">شهر</label><input id="lf-city" name="city" type="text" autocomplete="address-level2" maxlength="40"></div>
+            <div class="lf-field"><label for="lf-phone">شمارهٔ موبایل</label><input id="lf-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="۰۹۱۲۰۰۰۰۰۰۰" maxlength="20" required></div>
+          </div>
+          <div class="lf-field"><label for="lf-note">توضیح (اختیاری)</label><textarea id="lf-note" name="note" rows="2" maxlength="300"></textarea></div>
+          <div class="lf-hp" aria-hidden="true"><label for="lf-web">وب‌سایت</label><input id="lf-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+          <label class="lf-check" for="lf-consent"><input id="lf-consent" name="consent" type="checkbox"><span>موافقم که برای معرفی آینه با من تماس بگیرند.</span></label>
+          <p class="lf-err" id="lf-err" role="alert"></p>
+          <button class="btn btn--lg" type="submit" id="lf-send"><span>ارسال درخواست</span><span class="arrow" aria-hidden="true">←</span></button>
+          <p class="lf-done" id="lf-done" role="status" hidden></p>
+        </form>
       </div>
     </div>
   </section>
@@ -495,6 +759,251 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
  document.addEventListener('focusin',e=>{if(!menu.hidden&&!header.contains(e.target))setOpen(false)});
  compact.addEventListener('change',e=>{if(!e.matches&&!menu.hidden)setOpen(false)});
 })();
+</script>
+<script>window.__AYN_BASE='/landing/';</script>
+<script>
+/* Film hero. Data-driven: STYLES / COLORS below are the only things to extend.
+   - Colour changes are real: the model's hair is recoloured on a canvas through a hair mask (/landing/hair-mask.png).
+   - Style changes use the catalogue photo as the reference card plus a scan pass over the model; a true re-render of the
+     model in that style is the AI simulation (product feature), not faked here. */
+(()=>{
+ const $=id=>document.getElementById(id);
+ const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
+ const SRC=(k,e)=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'/landing/')+k+'.'+(e||'webp'));
+ const fa=n=>new Intl.NumberFormat('fa-IR').format(n);
+ const STYLES=['لیر بلند','کوتاهی پروانه‌ای','ولف‌کات','هاش‌کات','لُب (باب بلند)','باب کوتاه','کوتاهی جلوبلند','پیکسی','چتری پرده‌ای','چتری پروانه‌ای','چتری کج','چتری صاف کامل','براشینگ حجیم','صاف و براق','ویو درشت','فر طبیعی','فر درشت لوله‌ای','مدل گوجه‌ای','شینیون پایین'];
+ // first four = approved swatches (D060); the rest are proposed additions
+ const COLORS=[
+  {id:'champagne',name:'بلوند شامپاینی',h:43,s:.36,l:.7,css:'linear-gradient(145deg,#F3E2B8,#D3B677)'},
+  {id:'caramel',name:'کاراملی',h:28,s:.62,l:.46,css:'linear-gradient(145deg,#C98745,#8A5424)'},
+  {id:'espresso',name:'اسپرسو',h:22,s:.42,l:.17,css:'linear-gradient(145deg,#4F3322,#1C110A)'},
+  {id:'ombre',name:'آمبره',ombre:true,h:30,s:.5,l:.4,css:'linear-gradient(180deg,#2A1A10,#D6B27A)'},
+  {id:'copper',name:'مسی',h:16,s:.72,l:.43,css:'linear-gradient(145deg,#CF6C3C,#8C3D1B)'},
+  {id:'platinum',name:'بلوند پلاتینی',h:50,s:.2,l:.86,css:'linear-gradient(145deg,#F4EFE2,#CBC3AE)'},
+  {id:'wine',name:'شرابی',h:343,s:.55,l:.27,css:'linear-gradient(145deg,#8E3050,#481327)'}
+ ];
+ const st={style:null,color:null,shown:null,look:'long'};
+ const stage=$('stage'),film=$('intro'),track=$('track'),colList=$('colList');
+ if(!reduced)stage.classList.add('js-film');
+
+ /* ---------- build rails ---------- */
+ const frame='<svg class="frame" aria-hidden="true"><rect pathLength="1"/></svg>';
+ const cards=STYLES.map((name,i)=>{
+  const b=document.createElement('button');b.type='button';b.className='card'+(reduced?'':' pre');b.setAttribute('role','radio');b.setAttribute('aria-checked','false');
+  const n=String(i+1).padStart(2,'0');
+  b.innerHTML='<span class="ph"><img src="'+SRC('s'+n)+'" alt="" width="240" height="300" loading="lazy" draggable="false"></span><span class="nm">'+name+'</span>'+frame;
+  b.addEventListener('click',()=>pickStyle(i));track.append(b);return b});
+ $('styCount').textContent='· '+fa(STYLES.length)+' مدل';
+ const sws=COLORS.map((c,i)=>{
+  const b=document.createElement('button');b.type='button';b.className='sw'+(reduced?'':' pre');b.setAttribute('role','radio');b.setAttribute('aria-checked','false');
+  b.innerHTML='<span class="dot"><i style="background:'+c.css+'"></i></span><span>'+c.name+'</span>'+frame;
+  b.addEventListener('click',()=>pickColor(i));colList.append(b);return b});
+
+
+ /* ---------- dock on the podium (approved icon selector) ---------- */
+ const dockTrack=$('dockTrack'),dock=$('dock'),room=$('room');
+ // Icon-to-style pairing is a placeholder until one 3D icon exists per style; the four icons are the approved set.
+ const dItems=STYLES.map((name,i)=>{
+  const b=document.createElement('button');b.type='button';b.className='d-item'+(reduced?'':' pre');b.setAttribute('role','radio');b.setAttribute('aria-checked','false');
+  const flip=(i%8)>=4?' style="transform:scaleX(-1)"':'';
+  b.innerHTML='<span class="ic"><img src="'+SRC('ic'+(i%4+1))+'" alt=""'+flip+' draggable="false"></span><span>'+name+'</span>'+frame;
+  b.addEventListener('click',()=>pickStyle(i));dockTrack.append(b);return b});
+ function layout(){
+  const W=room.clientWidth,H=room.clientHeight;if(!W||!H)return;
+  const s=Math.max(W/1376,H/768),ox=(W-1376*s)*.5,oy=(H-768*s)*.36;
+  dock.style.setProperty('--dk-x',(ox+686*s)+'px');dock.style.setProperty('--dk-y',(oy+503*s)+'px');dock.style.setProperty('--dk-w',(372*s*.86)+'px')}
+ let dDrag=null,dMoved=false;
+ dockTrack.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'||e.button!==0)return;dDrag={x:e.clientX,s:dockTrack.scrollLeft};dMoved=false});
+ addEventListener('pointermove',e=>{if(!dDrag)return;const dx=e.clientX-dDrag.x;if(Math.abs(dx)>5){dMoved=true;dockTrack.classList.add('dragging')}if(dMoved)dockTrack.scrollLeft=dDrag.s+dx*(getComputedStyle(dockTrack).direction==='rtl'?1:-1)});
+ addEventListener('pointerup',()=>{if(dDrag){dDrag=null;setTimeout(()=>dockTrack.classList.remove('dragging'),0)}});
+ dockTrack.addEventListener('click',e=>{if(dMoved){e.stopPropagation();e.preventDefault();dMoved=false}},true);
+ const dStep=()=>dockTrack.clientWidth*.6,sgn=el=>getComputedStyle(el).direction==='rtl'?1:-1;
+ $('dkPrev').addEventListener('click',()=>dockTrack.scrollBy({left:dStep()*sgn(dockTrack),behavior:reduced?'auto':'smooth'}));
+ $('dkNext').addEventListener('click',()=>dockTrack.scrollBy({left:-dStep()*sgn(dockTrack),behavior:reduced?'auto':'smooth'}));
+ /* arrow on the dock opens the photo rail */
+ const rail=$('styles'),more=$('more');let railSeen=false;
+ function setRail(open){
+  rail.classList.toggle('open',open);rail.setAttribute('aria-hidden',String(!open));more.setAttribute('aria-expanded',String(open));dock.classList.toggle('away',open);
+  if(open&&!railSeen){railSeen=true;flyIn(cards,0)}
+  if(open)setTimeout(()=>{const sel=cards[st.style??0];sel&&sel.scrollIntoView({inline:'center',block:'nearest',behavior:'auto'})},60);
+  else more.focus({preventScroll:true})}
+ more.addEventListener('click',()=>setRail(true));$('closeRail').addEventListener('click',()=>setRail(false));
+ addEventListener('keydown',e=>{if(e.key==='Escape'&&rail.classList.contains('open'))setRail(false)});
+
+ /* ---------- hair recolour engine ---------- */
+ const img=$('roomImg'),cv=$('hairCanvas'),ctx=cv.getContext('2d');
+ const R={x:500,y:150,w:380,h:310},TOP=185,BOT=430;
+ let px=null,rafId=0,lookTok=0;
+ const img2=$('roomImg2');
+ /* looks: each look = a full render of the mirror scene + its own hair mask. Today lob/bob are cut from the photo;
+    the same slots take AI renders per style later (see LOOK_OF). */
+ const LOOKS={long:{img:'hero',mask:'hair-mask'},lob:{img:'look-lob',mask:'hair-mask-lob'},bob:{img:'look-bob',mask:'hair-mask-bob'}};
+ const LOOK_OF=['long','long','lob','lob','lob','bob','bob','bob','long','long','long','long','long','long','long','long','long','long','long'];
+ const SHAPED=[0,1,2,3,4,5,6,7]; // styles whose shape is applied to the model today
+ const preps={};
+ function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src})}
+ function prepare(key){
+  if(preps[key])return preps[key];
+  const L=LOOKS[key];
+  return preps[key]=Promise.all([loadImg(SRC(L.img)),loadImg(SRC(L.mask,'png'))]).then(([im,mi])=>{
+   const W=cv.width,H=cv.height,a=document.createElement('canvas');a.width=W;a.height=H;const c=a.getContext('2d',{willReadFrequently:true});
+   c.drawImage(im,0,0,W,H);const base=c.getImageData(R.x,R.y,R.w,R.h).data;
+   c.clearRect(0,0,W,H);c.drawImage(mi,0,0,W,H);const mk=c.getImageData(R.x,R.y,R.w,R.h).data;
+   const idx=[];for(let i=0;i<R.w*R.h;i++)if(mk[i*4]>6)idx.push(i);
+   return {src:im.src,base,mk,idx,out:ctx.createImageData(R.w,R.h)}}).catch(()=>null);
+ }
+ function startPrep(){prepare('long').then(p=>{px=p});prepare('lob');prepare('bob')}
+ if(img.complete)startPrep();else img.addEventListener('load',startPrep);
+ async function setLook(key,after){
+  if(key===st.look){after&&after();return}
+  const my=++lookTok;st.look=key;cancelAnimationFrame(rafId);px=null;ctx.clearRect(0,0,cv.width,cv.height);
+  const p=await prepare(key);if(my!==lookTok||!p)return;
+  img2.src=p.src;try{await img2.decode()}catch(e){}
+  img2.classList.add('show');
+  setTimeout(()=>{if(my!==lookTok)return;img.src=p.src;const done=()=>{img2.style.transition='none';img2.classList.remove('show');void img2.offsetWidth;img2.style.transition='';px=p;after&&after()};img.decode?img.decode().then(done,done):done()},reduced?0:500);
+ }
+ const cl=(v,a,b)=>v<a?a:v>b?b:v,sm=(a,b,x)=>{x=cl((x-a)/(b-a),0,1);return x*x*(3-2*x)};
+ function hsl(h,s,l){const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));return[f(0)*255,f(8)*255,f(4)*255]}
+ function tint(c,Y,yn){let l=c.ombre?.16+(.7-.16)*sm(.3,.85,yn):c.l;l=cl(l+(Y-.4)*1.2,.03,.96);const s=c.s*(1-cl((l-.72)*2.2,0,.8));return hsl(c.h,s,l)}
+ /* from/to: colour objects or null (original); t: 0..1 blend; scan: -1 (off) or 0..1 sweep position */
+ function draw(from,to,t,scan){
+  if(!px){return}
+  const {base,mk,idx,out}=px,o=out.data;o.fill(0);
+  if(!to&&!from&&scan<0){ctx.clearRect(0,0,cv.width,cv.height);return}
+  for(let k=0;k<idx.length;k++){
+   const i=idx[k],p=i*4,y=R.y+((i/R.w)|0),yn=cl((y-TOP)/(BOT-TOP),0,1);
+   const r0=base[p],g0=base[p+1],b0=base[p+2],Y=(.2126*r0+.7152*g0+.0722*b0)/255;
+   let A=from?tint(from,Y,yn):[r0,g0,b0],B=to?tint(to,Y,yn):[r0,g0,b0];
+   let r=A[0]+(B[0]-A[0])*t,g=A[1]+(B[1]-A[1])*t,b=B[2]*t+A[2]*(1-t);
+   if(scan>=0){const d=(y-R.y)/R.h-scan,w=Math.exp(-(d*d)/.0045)*.75;r+=(255-r)*w*.8+30*w;g+=(255-g)*w*.7+18*w;b+=(255-b)*w*.45}
+   o[p]=cl(r,0,255);o[p+1]=cl(g,0,255);o[p+2]=cl(b,0,255);o[p+3]=mk[p];
+  }
+  ctx.clearRect(0,0,cv.width,cv.height);ctx.putImageData(out,R.x,R.y);
+ }
+ function run(dur,fn,done){cancelAnimationFrame(rafId);if(reduced){fn(1);done&&done();return}const t0=performance.now();(function f(now){const x=cl((now-t0)/dur,0,1);fn(x);if(x<1)rafId=requestAnimationFrame(f);else done&&done()})(t0)}
+ const ease=x=>1-Math.pow(1-x,3);
+ function paintColor(prev,next){run(820,x=>draw(prev,next,ease(x),x*1.3-.15),()=>draw(null,next,1,-1))}
+ function paintScan(cur){run(900,x=>draw(cur,cur,1,x*1.3-.15),()=>draw(null,cur,1,-1))}
+
+ /* ---------- selection ---------- */
+ function mark(list,idx){list.forEach((b,i)=>b.setAttribute('aria-checked',String(i===idx)))}
+ function pickColor(i){const prev=st.shown;st.color=i;st.shown=COLORS[i];mark(sws,i);paintColor(prev,st.shown);summary()}
+ function pickStyle(i){st.style=i;mark(cards,i);mark(dItems,i);
+  const n=String(i+1).padStart(2,'0');$('refImg').src=SRC('s'+n);$('refName').textContent=STYLES[i];$('ref').classList.add('on');
+  const key=LOOK_OF[i];
+  $('refNote').textContent=SHAPED.includes(i)?'شکل مو روی مدل اعمال شد':'شکل این مدل با شبیه‌سازی روی عکس خودت دیده می‌شود';
+  if(key!==st.look)setLook(key,()=>st.shown?paintColor(null,st.shown):paintScan(null));else paintScan(st.shown);
+  summary()}
+ function summary(){
+  const parts=[];if(st.style!=null)parts.push(STYLES[st.style]);if(st.color!=null)parts.push(COLORS[st.color].name);
+  $('resultText').textContent=parts.join(' · ');$('result').classList.toggle('on',parts.length>0);
+  const d={style:st.style!=null?STYLES[st.style]:null,styleIdx:st.style,color:st.color!=null?COLORS[st.color].name:null};window.__AYN_SEL=d;dispatchEvent(new CustomEvent('ayneh:selection',{detail:d}))}
+
+ /* ---------- rail controls: drag, buttons ---------- */
+ let drag=null,moved=false;
+ const dirSign=()=>getComputedStyle(track).direction==='rtl'?1:-1;
+ track.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'||e.button!==0)return;drag={x:e.clientX,s:track.scrollLeft};moved=false});
+ addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x;if(Math.abs(dx)>5){moved=true;track.classList.add('dragging')}if(moved)track.scrollLeft=drag.s+dx*dirSign()*-1*-1});
+ addEventListener('pointerup',()=>{if(drag){drag=null;setTimeout(()=>track.classList.remove('dragging'),0)}});
+ track.addEventListener('click',e=>{if(moved){e.stopPropagation();e.preventDefault();moved=false}},true);
+ const step=()=>track.clientWidth*.7;
+ $('stPrev').addEventListener('click',()=>track.scrollBy({left:step()*dirSign(),behavior:reduced?'auto':'smooth'}));
+ $('stNext').addEventListener('click',()=>track.scrollBy({left:-step()*dirSign(),behavior:reduced?'auto':'smooth'}));
+
+ /* arrow keys move between options inside each radio group */
+ [[cards,track],[dItems,dockTrack],[sws,colList]].forEach(([list,box])=>box.addEventListener('keydown',e=>{
+  const k=e.key,i=list.indexOf(document.activeElement);if(i<0)return;
+  const dir=(k==='ArrowRight'||k==='ArrowDown')?(box===colList||k==='ArrowDown'?1:-1):(k==='ArrowLeft'||k==='ArrowUp')?(box===colList||k==='ArrowUp'?-1:1):0;
+  if(!dir)return;e.preventDefault();const n=list[(i+dir+list.length)%list.length];n.focus();n.scrollIntoView({inline:'center',block:'nearest'})}));
+ /* ---------- act I/II: entrance ---------- */
+ function flyIn(list,base){
+  list.forEach((c,i)=>{
+   const a=c.animate([{transform:'translateX('+(110+i*6)+'vw) skewX(-16deg)',filter:'blur(8px)',opacity:0},{opacity:1,offset:.18},{transform:'translateX(0) skewX(0)',filter:'blur(0)',opacity:1}],{duration:1700,delay:base+i*55,easing:'cubic-bezier(.08,.82,.12,1)',fill:'both'});
+   a.onfinish=()=>{c.classList.remove('pre');a.cancel()}})}
+ function entrance(){
+  if(reduced)return;
+  flyIn(dItems,700);
+  sws.forEach((c,i)=>{
+   const a=c.animate([{transform:'translateY(90px)',opacity:0},{transform:'none',opacity:1}],{duration:900,delay:500+i*80,easing:'cubic-bezier(.2,.7,.2,1)',fill:'both'});
+   a.onfinish=()=>{c.classList.remove('pre');a.cancel()}});
+  setTimeout(()=>paintScan(null),2300);
+  /* hint that the dock scrolls: a short nudge, then back */
+  setTimeout(()=>{dockTrack.scrollBy({left:-52*sgn(dockTrack),behavior:'smooth'});setTimeout(()=>dockTrack.scrollBy({left:52*sgn(dockTrack),behavior:'smooth'}),900)},3200);
+ }
+ setTimeout(entrance,reduced?0:900);
+
+ /* ---------- act III: scroll plays the scene ---------- */
+ const hdr=document.querySelector('.site-header');let tick=false;
+ function frameUpdate(){tick=false;
+  const hh=hdr?hdr.offsetHeight:76;document.documentElement.style.setProperty('--hh',hh+'px');
+  const span=film.offsetHeight-stage.offsetHeight;if(span<=0)return;
+  const p=cl((hh-film.getBoundingClientRect().top)/span,0,1);
+  stage.style.setProperty('--p',p.toFixed(4));stage.style.setProperty('--z',(1+p*.12).toFixed(4));
+  $('fade').style.opacity=sm(.55,1,p).toFixed(3)}
+ const req=()=>{if(!tick){tick=true;requestAnimationFrame(frameUpdate)}};
+ addEventListener('scroll',req,{passive:true});addEventListener('resize',()=>{layout();req()});layout();frameUpdate();if(img.complete)layout();else img.addEventListener('load',layout);
+})();
+
+</script>
+<script>
+/* Section 2: the hero selection becomes the request that "arrives" in the salon chat. */
+(()=>{
+ const $=id=>document.getElementById(id);
+ const SRC=(k,e)=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'/landing/')+k+'.'+(e||'webp'));
+ const demo=$('s2demo');if(!demo)return;
+ const DEFAULT={style:'ولف‌کات',idx:2,color:'کاراملی'};
+ let sel=window.__AYN_SEL||null;
+ function render(){
+  const has=sel&&(sel.style!=null||sel.color!=null);
+  const s=sel&&sel.style!=null?sel.style:DEFAULT.style,i=sel&&sel.styleIdx!=null?sel.styleIdx:DEFAULT.idx,c=sel&&sel.color!=null?sel.color:DEFAULT.color;
+  $('s2style').textContent=s;$('s2color').textContent=c;$('s2img').src=SRC('s'+String(i+1).padStart(2,'0'));
+  $('s2tag').textContent=has?'ترکیبی که همین الان در آینه انتخاب کردی':'نمونه؛ با انتخاب در آینه عوض می‌شود'}
+ addEventListener('ayneh:selection',e=>{sel=e.detail;render()});
+ render();
+ /* status buttons: one tap by the salon, shown to the customer */
+ const TEXT={called:['وضعیت: تماس گرفتم','سالن با تو تماس گرفت یا به‌زودی تماس می‌گیرد.'],booked:['وضعیت: نوبت شد','نوبتت ثبت شد. جزئیات را سالن اعلام می‌کند.'],declined:['وضعیت: انجام نمی‌دهم','سالن این مدل را انجام نمی‌دهد؛ می‌توانی مدل دیگری بفرستی.']};
+ const btns=[...document.querySelectorAll('#s2acts button')];
+ btns.forEach(b=>b.addEventListener('click',()=>{
+  btns.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  const t=TEXT[b.dataset.s];$('s2out').hidden=false;$('s2outText').textContent=t[0];$('s2custText').textContent=t[1]}));
+ /* plays once when first scrolled into view; everything is visible at rest */
+ if(!matchMedia('(prefers-reduced-motion:reduce)').matches&&'IntersectionObserver' in window){
+  const io=new IntersectionObserver(es=>{if(es.some(x=>x.isIntersecting)){demo.classList.add('play');io.disconnect()}},{threshold:.25});io.observe(demo)}
+})();
+
+</script>
+<script>
+/* Salon lead form: POST /api/inquiry, which saves the request and sends it to the owner's Telegram/Bale chat. */
+(()=>{
+ const $=id=>document.getElementById(id);
+ const form=$('leadForm');if(!form)return;
+ const PREVIEW=!!window.__AYN_PREVIEW;
+ const err=$('lf-err'),done=$('lf-done'),send=$('lf-send');
+ const faDigits=s=>String(s).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+ function fail(msg,field){err.textContent=msg;[...form.querySelectorAll('input,textarea')].forEach(i=>i.removeAttribute('aria-invalid'));if(field){field.setAttribute('aria-invalid','true');field.focus()}}
+ form.addEventListener('submit',async e=>{
+  e.preventDefault();err.textContent='';
+  const v={name:$('lf-name').value.trim(),salon:$('lf-salon').value.trim(),city:$('lf-city').value.trim(),phone:faDigits($('lf-phone').value).replace(/[\\s-]/g,''),note:$('lf-note').value.trim(),website:$('lf-web').value,consent:$('lf-consent').checked};
+  if(v.name.length<2)return fail('نام خودت را بنویس.',$('lf-name'));
+  if(v.salon.length<2)return fail('نام سالن را بنویس.',$('lf-salon'));
+  if(!/^(\\+98|0098|98|0)?9\\d{9}$/.test(v.phone))return fail('شمارهٔ موبایل را مثل ۰۹۱۲۰۰۰۰۰۰۰ بنویس.',$('lf-phone'));
+  if(!v.consent)return fail('برای ارسال، تأیید تماس لازم است.',$('lf-consent'));
+  const sel=window.__AYN_SEL||{};v.chosen=[sel.style,sel.color].filter(Boolean).join(' · ');
+  send.disabled=true;send.setAttribute('aria-busy','true');
+  try{
+   if(PREVIEW){await new Promise(r=>setTimeout(r,700));done.textContent='پیش‌نمایش: این فرم روی سایت اصلی به ربات می‌رسد و در این نسخه چیزی ارسال نشد.'}
+   else{
+    const r=await fetch('/api/inquiry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(v)});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(j.error||'ارسال نشد. کمی بعد دوباره امتحان کن.');
+    done.textContent='درخواستت ثبت شد. برای معرفی آینه با شمارهٔ '+v.phone+' تماس می‌گیریم.';
+   }
+   done.hidden=false;form.querySelectorAll('input,textarea').forEach(i=>i.disabled=true);send.hidden=true;done.focus&&done.setAttribute('tabindex','-1');done.focus();
+  }catch(x){fail(x.message||'ارسال نشد. کمی بعد دوباره امتحان کن.')}
+  finally{send.disabled=false;send.removeAttribute('aria-busy')}
+ });
+})();
+
 </script>
 </body>
 </html>

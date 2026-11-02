@@ -693,3 +693,23 @@ test('without SMS invites the bot offers messenger buttons and /i/ is a send pag
   const bad=await app.fetch(new Request(origin+'/i/salon-a?r=<x>&to=javascript:1'),e);const bh=await bad.text();assert.doesNotMatch(bh,/javascript:1|<x>/);assert.match(bh,/\/s\/salon-a/);
   assert.equal((await app.fetch(new Request(origin+'/i/nope'),e)).status,404);
  }finally{tg.restore()}});
+
+// ---------- landing page and salon inquiries ----------
+test('landing page is public at / and the owner console stays at /admin',async()=>{const e=tgEnv(fixture());
+ const r=await app.fetch(new Request(origin+'/'),e);assert.equal(r.status,200);const html=await r.text();
+ assert.match(html,/id="leadForm"/);assert.match(html,/انتخاب بعدی‌ات را ببین/);assert.doesNotMatch(html,/noindex/);
+ new Function(html.match(/<script>([\s\S]*?)<\/script>/g).map(s=>s.replace(/<\/?script>/g,'')).join('\n'));
+ assert.equal((await app.fetch(new Request(origin+'/admin'),e)).status,200);});
+
+test('salon inquiry from the landing form: saved, sent to the owner chat with the phone, phone kept out of the activity log',async()=>{const e=tgEnv(fixture());const tg=mockTelegram();try{
+ await linkOwnerChat(e);
+ const bad=await call(e,'/api/inquiry',{name:'سارا',salon:'سالن رز',city:'تهران',phone:'123',consent:true});assert.equal(bad.status,400);
+ assert.equal((await call(e,'/api/inquiry',{name:'سارا',salon:'سالن رز',phone:'09121234567',consent:false})).status,400);
+ const bot=await call(e,'/api/inquiry',{name:'ربات',salon:'x',phone:'09121234567',consent:true,website:'http://spam'});assert.equal(bot.status,200);
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM inquiries').get().n,0,'honeypot is dropped silently');
+ const ok=await call(e,'/api/inquiry',{name:'سارا',salon:'سالن رز',city:'تهران',phone:'۰۹۱۲۱۲۳۴۵۶۷',note:'سه آرایشگر داریم',chosen:'ولف‌کات · اسپرسو',consent:true});assert.equal(ok.status,200,JSON.stringify(ok));
+ const row=e.DB.sql.prepare('SELECT * FROM inquiries').get();assert.equal(row.phone,'+989121234567');assert.equal(row.salon,'سالن رز');
+ const msg=toOwner(tg).find(t=>/سالن رز/.test(t)&&/درخواست معرفی آینه/.test(t));assert(msg,'owner chat got the inquiry');assert.match(msg,/\+989121234567/);assert.match(msg,/ولف‌کات · اسپرسو/);
+ assert.equal(e.DB.sql.prepare("SELECT count(*) n FROM activity WHERE text LIKE '%989121234567%'").get().n,0,'phone is not stored in the activity log');
+ assert.equal((await app.fetch(new Request(origin+'/api/inquiry',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}),e)).status,403,'cross-origin post is refused');
+}finally{tg.restore()}});

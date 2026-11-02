@@ -4,7 +4,7 @@ import {identity,issueCookie,clearCookie,same,passwordLoginEnabled} from './auth
 import {bucketFor,putImage} from './storage.js';
 import {botReady,deliverLead,deliverPending,newLinkCode,setWebhook,inboxes,followLinks,PLATFORMS,platformReady,baleSecret,staffInvite,notifyConflict,expireStates} from './telegram.js';
 import {LINE_KEYS,lineStyles,cleanOptions,linePrompt,optionText,LINE_LABEL} from './lines.js';
-import {ownerLink,alertUnanswered,maybeDigest,setupStatus,digest} from './alerts.js';
+import {ownerLink,alertUnanswered,maybeDigest,setupStatus,digest,notifyOwner} from './alerts.js';
 import {attribute,ownerFor,createStaff,transfer,report,team as teamOf,liveStaff,SPECIALTIES} from './referral.js';
 import {stats} from './stats.js';
 import {smsReady,inviteReady,sendOtp} from './sms.js';
@@ -65,6 +65,18 @@ async function uploadProvider(env,m){const object=await bucketFor(env).get(m.obj
 
 export async function api(req,env){const u=new URL(req.url),path=u.pathname;must(env.DB,'پایگاه داده هنوز آماده نیست',503);const db=env.DB;
  if(req.method!=='GET'){must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
+ if(path==='/api/inquiry'&&req.method==='POST'){
+  await limited(db,'inquiry:'+clientIp(req),5,'درخواست‌های زیادی فرستاده‌ای؛ کمی بعد دوباره امتحان کن');
+  const b=await req.json().catch(()=>({}));
+  if(String(b.website||'').trim())return J({ok:true});// honeypot: bots fill it, people never see it
+  must(b.consent===true,'برای ارسال، تأیید تماس لازم است');
+  const name=text(String(b.name||''),60),salon=text(String(b.salon||''),80),city=text(String(b.city||''),40),note=text(String(b.note||''),300),chosen=text(String(b.chosen||''),90);
+  must(name.length>=2,'نام را بنویس');must(salon.length>=2,'نام سالن را بنویس');
+  const tel=phone(b.phone),id=uid();
+  await run(db,'INSERT INTO inquiries(id,name,salon,city,phone,note,chosen,created_at) VALUES(?,?,?,?,?,?,?,?)',id,name,salon,city,tel,note,chosen,Date.now());
+  await notifyOwner(env,{kind:'inquiry',level:'good',text:'درخواست معرفی آینه از «'+salon+'»'+(city?' ('+city+')':'')+' ثبت شد',detail:'👤 '+name+'\n📞 '+tel+(chosen?'\n✨ انتخاب در آینه: '+chosen:'')+(note?'\n📝 '+note:'')});
+  return J({ok:true});
+ }
  if(path==='/api/me'){const who=await identity(req,env);const isOwner=!!who&&(who.via==='password'||(!!env.OWNER_EMAIL&&who.email===env.OWNER_EMAIL));return J({user:!!who,owner:isOwner,email:who?.email||'',passwordLogin:passwordLoginEnabled(env)});}
  if(path==='/api/login'&&req.method==='POST'){must(passwordLoginEnabled(env),'ورود با رمز روی این میزبان فعال نیست',503);await limited(db,'login:'+clientIp(req),20);const b=await req.json();const given=await hash(String(b?.password||''));const expected=env.OWNER_PASSWORD_HASH?String(env.OWNER_PASSWORD_HASH).toLowerCase():await hash(String(env.OWNER_PASSWORD));must(same(given,expected),'رمز عبور نادرست است',401);return J({ok:true},200,{'Set-Cookie':await issueCookie(env,env.OWNER_ID||'owner',env.OWNER_EMAIL||'',u.protocol==='https:')});}
  if(path==='/api/logout'&&req.method==='POST')return J({ok:true},200,{'Set-Cookie':clearCookie(u.protocol==='https:')});
