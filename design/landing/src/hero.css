@@ -12,7 +12,7 @@
 
 .copy{position:absolute;z-index:6;top:clamp(28px,7vh,72px);inset-inline-start:clamp(24px,6vw,96px);width:min(400px,28vw);text-align:right;opacity:calc(1 - var(--p)*2.4);transform:translateX(calc(var(--p)*-70px))}
 .eyebrow{margin:0 0 12px;font-size:17px;font-weight:600;color:#6B5233}
-h1{margin:0 0 16px;font-size:clamp(38px,4vw,60px);line-height:1.25;font-weight:800;color:#170E07}
+h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight:800;color:#170E07}
 .lead{margin:0 0 20px;font-size:18px;line-height:1.9;color:#33261A;font-weight:500}
 .lines-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
 .lines-row li{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:var(--r-pill);border:1px solid rgba(185,151,91,.6);background:rgba(252,250,246,.7);font-size:15px;font-weight:700;color:#2A1D12}

@@ -11,15 +11,16 @@ st = re.search(r'<style>(.*?)</style>', h, re.S)
 css = st.group(1)
 drop = re.compile(r'^\s*(\.hero|\.swatch|\.style-dock|\.lines-row|\.lead\{|h1\{|\.eyebrow|\.fineprint|\.hero-copy)')
 css = NL.join(l for l in css.split(NL) if not drop.match(l))
-css += NL + R('src/hero.css') + NL + R('src/sec2.css') + NL + R('src/lead.css')
+css += NL + R('src/hero.css') + NL + R('src/sec2.css') + NL + R('src/lead.css') + NL + R('src/trial.css')
 css += NL + '.compare{margin-top:0}' + NL + '@media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}' + NL
 h = h.replace(st.group(0), '<style>' + css + '</style>')
 h = re.sub(r'  <!-- 1\. Hero -->.*?(?=  <!-- 2\. Experience -->)', lambda m: R('src/hero.html') + NL, h, flags=re.S)
 h = re.sub(r'  <!-- 2\. Experience -->.*?(?=  <!-- 3\. Services -->)', lambda m: R('src/sec2.html') + NL, h, flags=re.S)
-# salon card in the start section becomes the lead form
-h = re.sub(r'        <div class="path">\s*<h3>سالن هستم</h3>.*?</div>' + NL + r'      </div>' + NL + r'    </div>' + NL + r'  </section>',
-           lambda m: R('src/lead.html') + '      </div>' + NL + '    </div>' + NL + '  </section>', h, flags=re.S)
-assert 'leadForm' in h, 'lead form not inserted'
+# the free-trial section (live mockup + lead form) goes right before the plans
+trial = R('src/trial.html').replace('<!--LEAD-->', R('src/lead.html'))
+assert '  <!-- 6. Plans -->' in h
+h = h.replace('  <!-- 6. Plans -->', trial + '  <!-- 6. Plans -->', 1)
+assert 'leadForm' in h and 'id="mock"' in h, 'trial section not inserted'
 scripts = ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/hero.js', 'src/sec2.js', 'src/lead.js'])
 h = h.replace('</body>', scripts + '</body>')
 W('out/v2.html', h)

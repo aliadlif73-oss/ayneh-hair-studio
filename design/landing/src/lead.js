@@ -2,6 +2,16 @@
 (()=>{
  const $=id=>document.getElementById(id);
  const form=$('leadForm');if(!form)return;
+ /* live mockup of the trial salon page: salon name and brand colour update the card */
+ const mock=$('mock'),SRCI=(k)=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'assets/')+k+'.webp');
+ let brandName='';
+ if(mock){
+  mock.querySelectorAll('img[data-k]').forEach(i=>{i.src=SRCI(i.dataset.k)});
+  const nm=$('mockName'),ini=$('mockInit'),DEFAULT_NAME=nm.textContent;
+  $('lf-salon').addEventListener('input',e=>{const t=e.target.value.trim();nm.textContent=t||DEFAULT_NAME;ini.textContent=t?[...t][0]:'س'});
+  const picks=[...document.querySelectorAll('.brand-pick button')];
+  picks.forEach(b=>b.addEventListener('click',()=>{picks.forEach(x=>x.setAttribute('aria-checked',String(x===b)));mock.style.setProperty('--brand',b.dataset.brand);brandName=b.getAttribute('aria-label')}));
+ }
  const PREVIEW=!!window.__AYN_PREVIEW;
  const err=$('lf-err'),done=$('lf-done'),send=$('lf-send');
  const faDigits=s=>String(s).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
@@ -13,7 +23,7 @@
   if(v.salon.length<2)return fail('نام سالن را بنویس.',$('lf-salon'));
   if(!/^(\+98|0098|98|0)?9\d{9}$/.test(v.phone))return fail('شمارهٔ موبایل را مثل ۰۹۱۲۰۰۰۰۰۰۰ بنویس.',$('lf-phone'));
   if(!v.consent)return fail('برای ارسال، تأیید تماس لازم است.',$('lf-consent'));
-  const sel=window.__AYN_SEL||{};v.chosen=[sel.style,sel.color].filter(Boolean).join(' · ');
+  const sel=window.__AYN_SEL||{};v.chosen=[sel.style,sel.color,brandName&&('برند '+brandName)].filter(Boolean).join(' · ');
   send.disabled=true;send.setAttribute('aria-busy','true');
   try{
    if(PREVIEW){await new Promise(r=>setTimeout(r,700));done.textContent='پیش‌نمایش: این فرم روی سایت اصلی به ربات می‌رسد و در این نسخه چیزی ارسال نشد.'}

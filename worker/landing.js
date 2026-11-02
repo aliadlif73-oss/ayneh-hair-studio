@@ -227,7 +227,7 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
 
 .copy{position:absolute;z-index:6;top:clamp(28px,7vh,72px);inset-inline-start:clamp(24px,6vw,96px);width:min(400px,28vw);text-align:right;opacity:calc(1 - var(--p)*2.4);transform:translateX(calc(var(--p)*-70px))}
 .eyebrow{margin:0 0 12px;font-size:17px;font-weight:600;color:#6B5233}
-h1{margin:0 0 16px;font-size:clamp(38px,4vw,60px);line-height:1.25;font-weight:800;color:#170E07}
+h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight:800;color:#170E07}
 .lead{margin:0 0 20px;font-size:18px;line-height:1.9;color:#33261A;font-weight:500}
 .lines-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 22px}
 .lines-row li{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:var(--r-pill);border:1px solid rgba(185,151,91,.6);background:rgba(252,250,246,.7);font-size:15px;font-weight:700;color:#2A1D12}
@@ -440,6 +440,36 @@ h1{margin:0 0 16px;font-size:clamp(38px,4vw,60px);line-height:1.25;font-weight:8
 .path--form .btn[disabled]{opacity:.6;cursor:progress}
 @media (max-width:640px){.lf-grid{grid-template-columns:1fr}}
 
+
+/* ---------- Free trial section: live mockup + form ---------- */
+.trial{background:var(--canvas)}
+.trial-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:clamp(32px,6vw,80px);align-items:start}
+.trial .sec-head{margin-bottom:24px}
+.trial .path--form{background:var(--espresso);color:var(--cream);border-color:var(--line-dark)}
+.trial .path--form h3{color:var(--ivory)}
+.trial .path--form .btn{background:var(--cream);color:var(--espresso);border-color:var(--brass-soft)}
+.trial-mock{position:sticky;top:calc(var(--hh,76px) + 24px);display:grid;gap:14px;justify-items:center}
+.brand-pick{display:flex;align-items:center;gap:10px;width:min(340px,100%)}
+.bp-label{font-size:14px;font-weight:700;color:var(--muted);margin-inline-end:auto}
+.brand-pick button{width:44px;height:44px;padding:0;border-radius:50%;border:1px solid var(--line-control);background:var(--surface);cursor:pointer;display:grid;place-items:center}
+.brand-pick button i{display:block;width:28px;height:28px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
+.brand-pick button[aria-checked="true"]{box-shadow:0 0 0 3px var(--canvas),0 0 0 4.5px var(--brass-text)}
+.salon-card{width:min(340px,100%);border-radius:28px;overflow:hidden;background:var(--surface);border:1px solid var(--line-decor);box-shadow:0 30px 60px rgba(60,40,18,.18);--brand:#B9975B}
+.sc-cover{height:110px;background:linear-gradient(135deg,var(--brand),color-mix(in srgb,var(--brand) 55%,#160D07));transition:background 320ms var(--ease)}
+.sc-head{display:flex;align-items:center;gap:12px;padding:0 18px;margin-top:-26px}
+.sc-logo{display:grid;place-items:center;width:56px;height:56px;flex:0 0 56px;border-radius:50%;background:var(--surface);border:3px solid var(--surface);box-shadow:0 6px 16px rgba(0,0,0,.2);color:var(--brand);font-size:24px;font-weight:800;transition:color 320ms var(--ease)}
+.sc-head>div{min-width:0;padding-top:26px}
+.sc-head strong{display:block;font-size:17px;line-height:1.5;color:var(--ink);overflow-wrap:anywhere}
+.sc-head small{display:block;font-size:12.5px;color:var(--muted);line-height:1.5}
+.sc-lines{display:flex;gap:8px;padding:14px 18px 6px}
+.sc-lines li{padding:2px 14px;min-height:32px;display:inline-flex;align-items:center;border-radius:var(--r-pill);border:1px solid var(--line-decor);font-size:13px;font-weight:700;color:var(--muted)}
+.sc-lines li.on{background:var(--brand);border-color:var(--brand);color:#fff;transition:background 320ms var(--ease)}
+.sc-works{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px 18px}
+.sc-works img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:12px;display:block}
+.sc-cta{margin:8px 18px 18px;padding:12px 14px;border-radius:var(--r-pill);background:var(--brand);color:#fff;text-align:center;font-size:13.5px;font-weight:700;transition:background 320ms var(--ease)}
+.mock-note{font-size:13px;color:var(--muted);text-align:center;max-width:340px}
+@media (max-width:900px){.trial-grid{grid-template-columns:1fr}.trial-mock{position:static;order:-1}}
+
 .compare{margin-top:0}
 @media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}
 </style>
@@ -457,8 +487,7 @@ h1{margin:0 0 16px;font-size:clamp(38px,4vw,60px);line-height:1.25;font-weight:8
     <a href="#faq">پرسش‌ها</a>
   </nav>
   <div class="header-actions">
-    <!-- CTA destination: #start in this preview. Final destination (a demo salon page /s/<slug>) is OPEN. -->
-    <a class="btn" href="#start"><span>امتحان آینه</span><span class="arrow" aria-hidden="true">←</span></a>
+    <a class="btn" href="#start"><span>صفحهٔ آزمایشی رایگان</span><span class="arrow" aria-hidden="true">←</span></a>
     <button type="button" class="menu-toggle" aria-expanded="false" aria-controls="mobile-menu" aria-label="باز کردن فهرست">
       <span class="menu-bars" aria-hidden="true"><i></i><i></i></span>
     </button>
@@ -495,11 +524,11 @@ h1{margin:0 0 16px;font-size:clamp(38px,4vw,60px);line-height:1.25;font-weight:8
       <div class="fade" id="fade" aria-hidden="true"></div>
 
       <div class="copy" id="copy">
-        <p class="eyebrow reveal">مشاوره تصویری مو، ناخن و مژه</p>
-        <h1 id="h1" class="reveal">انتخاب بعدی‌ات را ببین.</h1>
-        <p class="lead reveal">مدل و رنگ دلخواهت را انتخاب کن و با سالن مشورت کن؛ اگر سالن شبیه‌سازی را فعال کرده باشد، نتیجه را روی عکس خودت ببین.</p>
+        <p class="eyebrow reveal">برای صاحبان سالن · مو، ناخن و مژه</p>
+        <h1 id="h1" class="reveal">مشتری‌ات قبل از آمدن می‌داند چه می‌خواهد.</h1>
+        <p class="lead reveal">با آینه، مشتری مدل و رنگ را روی صفحهٔ سالن تو انتخاب می‌کند و درخواستش را به ربات تلگرام یا بله‌ات می‌فرستد. همین آینه را همین‌جا امتحان کن.</p>
         <ul class="lines-row reveal" aria-label="خدمات پوشش‌داده‌شده"><li>مو</li><li>ناخن</li><li>مژه</li></ul>
-        <a class="btn btn--lg reveal" href="#start"><span>امتحان آینه</span><span class="arrow" aria-hidden="true">←</span></a>
+        <a class="btn btn--lg reveal" href="#start"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
         <p class="fineprint reveal">شبیه‌سازی پیشنهادی است، نه تضمین نتیجه.</p>
       </div>
 
@@ -548,7 +577,7 @@ h1{margin:0 0 16px;font-size:clamp(38px,4vw,60px);line-height:1.25;font-weight:8
           <li><strong>مشتری بی‌خبر نمی‌ماند</strong><span>نتیجهٔ همان ضربه در صفحهٔ خود مشتری نمایش داده می‌شود.</span></li>
         </ul>
         <div class="s2-cta">
-          <a class="btn btn--lg" href="#start"><span>این تجربه را برای سالن من فعال کن</span><span class="arrow" aria-hidden="true">←</span></a>
+          <a class="btn btn--lg" href="#start"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
           <a class="btn btn--ghost" href="#plans">قیمت پلن‌ها</a>
         </div>
       </div>
@@ -653,8 +682,59 @@ h1{margin:0 0 16px;font-size:clamp(38px,4vw,60px);line-height:1.25;font-weight:8
     </div>
   </section>
 
+  <!-- 6. Free trial salon page: live mockup + lead form (the single repeated CTA lands here) -->
+  <section id="start" class="section trial" aria-labelledby="h-trial" tabindex="-1">
+    <div class="wrap trial-grid">
+      <div class="trial-col">
+        <div class="sec-head">
+          <p class="kicker">صفحهٔ آزمایشی رایگان</p>
+          <h2 id="h-trial">صفحهٔ سالن خودت را قبل از خرید ببین.</h2>
+          <p class="sub">اسم سالن و رنگ برندت را همین‌جا امتحان کن. بعد اطلاعات تماست را بگذار؛ با تو تماس می‌گیریم و صفحهٔ آزمایشی را با لوگو و چند نمونه‌کار خودت می‌سازیم.</p>
+        </div>
+        <form class="path path--form" id="leadForm" novalidate aria-labelledby="h-lead">
+          <h3 id="h-lead">صفحهٔ آزمایشی سالن من را بساز</h3>
+          <p>اطلاعات را بگذار تا برای ساخت صفحهٔ آزمایشی با تو تماس بگیریم. هیچ پرداختی لازم نیست.</p>
+          <div class="lf-grid">
+            <div class="lf-field"><label for="lf-name">نام شما</label><input id="lf-name" name="name" type="text" autocomplete="name" maxlength="60" required></div>
+            <div class="lf-field"><label for="lf-salon">نام سالن</label><input id="lf-salon" name="salon" type="text" autocomplete="organization" maxlength="80" required></div>
+            <div class="lf-field"><label for="lf-city">شهر</label><input id="lf-city" name="city" type="text" autocomplete="address-level2" maxlength="40"></div>
+            <div class="lf-field"><label for="lf-phone">شمارهٔ موبایل</label><input id="lf-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="۰۹۱۲۰۰۰۰۰۰۰" maxlength="20" required></div>
+          </div>
+          <div class="lf-field"><label for="lf-note">توضیح (اختیاری)</label><textarea id="lf-note" name="note" rows="2" maxlength="300"></textarea></div>
+          <div class="lf-hp" aria-hidden="true"><label for="lf-web">وب‌سایت</label><input id="lf-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+          <label class="lf-check" for="lf-consent"><input id="lf-consent" name="consent" type="checkbox"><span>موافقم که برای معرفی آینه با من تماس بگیرند.</span></label>
+          <p class="lf-err" id="lf-err" role="alert"></p>
+          <button class="btn btn--lg" type="submit" id="lf-send"><span>ارسال درخواست</span><span class="arrow" aria-hidden="true">←</span></button>
+          <p class="lf-done" id="lf-done" role="status" hidden></p>
+        </form>
+
+      </div>
+
+      <div class="trial-mock" aria-label="پیش‌نمایش زندهٔ صفحهٔ سالن">
+        <div class="brand-pick" role="radiogroup" aria-label="رنگ برند سالن">
+          <span class="bp-label" id="bp-h">رنگ برند</span>
+          <button type="button" role="radio" aria-checked="true" aria-label="برنجی" data-brand="#B9975B"><i style="background:#B9975B"></i></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="شرابی" data-brand="#8E3050"><i style="background:#8E3050"></i></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="سبز زیتونی" data-brand="#5E6B3A"><i style="background:#5E6B3A"></i></button>
+          <button type="button" role="radio" aria-checked="false" aria-label="آبی نفتی" data-brand="#2E5468"><i style="background:#2E5468"></i></button>
+        </div>
+        <div class="salon-card" id="mock" style="--brand:#B9975B">
+          <div class="sc-cover" aria-hidden="true"></div>
+          <div class="sc-head">
+            <span class="sc-logo" id="mockInit" aria-hidden="true">س</span>
+            <div><strong id="mockName">نام سالن شما</strong><small id="mockCity">آدرس اینترنتی اختصاصی برای مشتری‌ها</small></div>
+          </div>
+          <ul class="sc-lines" aria-hidden="true"><li class="on">مو</li><li>ناخن</li><li>مژه</li></ul>
+          <div class="sc-works" aria-hidden="true"><img data-k="s01" alt="" width="240" height="300"><img data-k="s03" alt="" width="240" height="300"><img data-k="s09" alt="" width="240" height="300"></div>
+          <div class="sc-cta" aria-hidden="true">مدل و رنگ را انتخاب کن و برای سالن بفرست</div>
+        </div>
+        <p class="mock-note">نمونهٔ نمایشی. صفحهٔ واقعی با لوگو و نمونه‌کار خودت ساخته می‌شود.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- 6. Plans -->
-  <section id="plans" class="section" aria-labelledby="h-plans" tabindex="-1">
+  <section id="plans" class="section section--sunken" aria-labelledby="h-plans" tabindex="-1">
     <div class="wrap">
       <div class="sec-head">
         <p class="kicker">پلن‌ها</p>
@@ -684,10 +764,12 @@ h1{margin:0 0 16px;font-size:clamp(38px,4vw,60px);line-height:1.25;font-weight:8
   </section>
 
   <!-- 7. FAQ -->
-  <section id="faq" class="section section--sunken" aria-labelledby="h-faq" tabindex="-1">
+  <section id="faq" class="section" aria-labelledby="h-faq" tabindex="-1">
     <div class="wrap">
       <div class="sec-head"><p class="kicker">پرسش‌های پرتکرار</p><h2 id="h-faq">قبل از شروع می‌پرسند…</h2></div>
       <div class="faq">
+        <details><summary>صفحهٔ آزمایشی چیست؟</summary><p>نسخهٔ نمونه‌ای از صفحهٔ سالن تو با نام، لوگو و چند نمونه‌کار خودت. با آن می‌بینی مشتری‌هایت چه تجربه‌ای خواهند داشت، قبل از اینکه چیزی بخری.</p></details>
+        <details><summary>بعد از ثبت درخواست چه می‌شود؟</summary><p>اطلاعاتت در ربات ما به دست ما می‌رسد و با شمارهٔ خودت تماس می‌گیریم تا صفحهٔ آزمایشی را بسازیم. تا همان‌جا هیچ پرداختی لازم نیست.</p></details>
         <details><summary>آینه نوبت می‌دهد؟</summary><p>نه. آینه برای انتخاب مدل و رنگ و رساندن واضح درخواست به سالن است. زمان و هزینه را سالن با تو هماهنگ می‌کند.</p></details>
         <details><summary>نتیجهٔ شبیه‌سازی دقیقاً همان چیزی است که می‌شود؟</summary><p>نه. شبیه‌سازی یک پیش‌نمایش پیشنهادی برای گفتگو با آرایشگر است و نتیجهٔ نهایی را تضمین نمی‌کند.</p></details>
         <details><summary>شبیه‌سازی برای همهٔ سالن‌ها فعال است؟</summary><p>نه، هر سالن خودش تعیین می‌کند. اگر فعال نباشد، باز هم می‌توانی مدل و رنگ را انتخاب کنی و درخواستت را بفرستی.</p></details>
@@ -698,36 +780,6 @@ h1{margin:0 0 16px;font-size:clamp(38px,4vw,60px);line-height:1.25;font-weight:8
     </div>
   </section>
 
-  <!-- 8. Start -->
-  <section id="start" class="section section--dark on-dark" aria-labelledby="h-start" tabindex="-1">
-    <div class="wrap">
-      <div class="sec-head"><p class="kicker">شروع</p><h2 id="h-start">از کجا شروع کنیم؟</h2></div>
-      <div class="start-grid">
-        <div class="path">
-          <h3>مشتری هستم</h3>
-          <p>آینه صفحهٔ اختصاصی هر سالن است. لینک را از سالن خودت بگیر، یا اگر آن را داری همین حالا باز کن و عکس بگذار.</p>
-          <!-- OPEN: link to a demo salon page /s/<slug> once the demo salon exists. -->
-          <a class="btn btn--ghost" href="#faq">لینک سالن را ندارم</a>
-        </div>
-        <form class="path path--form" id="leadForm" novalidate aria-labelledby="h-lead">
-          <h3 id="h-lead">سالن هستم</h3>
-          <p>می‌خواهی مشتری‌هایت قبل از آمدن، مدل و رنگ مو، ناخن و مژهٔ دلخواهشان را واضح بفرستند؟ اطلاعات را بگذار تا برای معرفی و امتحان آینه با تو تماس بگیریم.</p>
-          <div class="lf-grid">
-            <div class="lf-field"><label for="lf-name">نام شما</label><input id="lf-name" name="name" type="text" autocomplete="name" maxlength="60" required></div>
-            <div class="lf-field"><label for="lf-salon">نام سالن</label><input id="lf-salon" name="salon" type="text" autocomplete="organization" maxlength="80" required></div>
-            <div class="lf-field"><label for="lf-city">شهر</label><input id="lf-city" name="city" type="text" autocomplete="address-level2" maxlength="40"></div>
-            <div class="lf-field"><label for="lf-phone">شمارهٔ موبایل</label><input id="lf-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="۰۹۱۲۰۰۰۰۰۰۰" maxlength="20" required></div>
-          </div>
-          <div class="lf-field"><label for="lf-note">توضیح (اختیاری)</label><textarea id="lf-note" name="note" rows="2" maxlength="300"></textarea></div>
-          <div class="lf-hp" aria-hidden="true"><label for="lf-web">وب‌سایت</label><input id="lf-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-          <label class="lf-check" for="lf-consent"><input id="lf-consent" name="consent" type="checkbox"><span>موافقم که برای معرفی آینه با من تماس بگیرند.</span></label>
-          <p class="lf-err" id="lf-err" role="alert"></p>
-          <button class="btn btn--lg" type="submit" id="lf-send"><span>ارسال درخواست</span><span class="arrow" aria-hidden="true">←</span></button>
-          <p class="lf-done" id="lf-done" role="status" hidden></p>
-        </form>
-      </div>
-    </div>
-  </section>
 </main>
 
 <footer class="site-footer">
@@ -977,6 +1029,16 @@ h1{margin:0 0 16px;font-size:clamp(38px,4vw,60px);line-height:1.25;font-weight:8
 (()=>{
  const $=id=>document.getElementById(id);
  const form=$('leadForm');if(!form)return;
+ /* live mockup of the trial salon page: salon name and brand colour update the card */
+ const mock=$('mock'),SRCI=(k)=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'/landing/')+k+'.webp');
+ let brandName='';
+ if(mock){
+  mock.querySelectorAll('img[data-k]').forEach(i=>{i.src=SRCI(i.dataset.k)});
+  const nm=$('mockName'),ini=$('mockInit'),DEFAULT_NAME=nm.textContent;
+  $('lf-salon').addEventListener('input',e=>{const t=e.target.value.trim();nm.textContent=t||DEFAULT_NAME;ini.textContent=t?[...t][0]:'س'});
+  const picks=[...document.querySelectorAll('.brand-pick button')];
+  picks.forEach(b=>b.addEventListener('click',()=>{picks.forEach(x=>x.setAttribute('aria-checked',String(x===b)));mock.style.setProperty('--brand',b.dataset.brand);brandName=b.getAttribute('aria-label')}));
+ }
  const PREVIEW=!!window.__AYN_PREVIEW;
  const err=$('lf-err'),done=$('lf-done'),send=$('lf-send');
  const faDigits=s=>String(s).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
@@ -988,7 +1050,7 @@ h1{margin:0 0 16px;font-size:clamp(38px,4vw,60px);line-height:1.25;font-weight:8
   if(v.salon.length<2)return fail('نام سالن را بنویس.',$('lf-salon'));
   if(!/^(\\+98|0098|98|0)?9\\d{9}$/.test(v.phone))return fail('شمارهٔ موبایل را مثل ۰۹۱۲۰۰۰۰۰۰۰ بنویس.',$('lf-phone'));
   if(!v.consent)return fail('برای ارسال، تأیید تماس لازم است.',$('lf-consent'));
-  const sel=window.__AYN_SEL||{};v.chosen=[sel.style,sel.color].filter(Boolean).join(' · ');
+  const sel=window.__AYN_SEL||{};v.chosen=[sel.style,sel.color,brandName&&('برند '+brandName)].filter(Boolean).join(' · ');
   send.disabled=true;send.setAttribute('aria-busy','true');
   try{
    if(PREVIEW){await new Promise(r=>setTimeout(r,700));done.textContent='پیش‌نمایش: این فرم روی سایت اصلی به ربات می‌رسد و در این نسخه چیزی ارسال نشد.'}
