@@ -1,12 +1,47 @@
-// Service lines beyond hair: nails (ناخن) and lashes (مژه). Each line has a catalog of looks
-// (names Iranian salons use), extra options (nail shape and length, lash mapping and length), a
-// colour list, photo guidance, and its own image prompt. Hair keeps its catalog in legacy.js and
-// its prompt in domain.js (transferPrompt).
+// Service lines: hairstyle (مدل مو), hair colour (رنگ مو), nails (ناخن) and lashes (مژه). Each line
+// has a catalog of looks (names Iranian salons use), photo guidance and its own image prompt; nails
+// and lashes also have options (shape and length, mapping and length) and a colour list. Hairstyle
+// keeps its catalog in legacy.js and its prompt in domain.js (transferPrompt, style only); hair
+// colour keeps the haircut and changes only the colour (colorPrompt below).
 // Catalog entries: [Persian name, English name, filter tag, English description for the model].
 // Option and colour entries: [Persian name, English for the model] (+ swatch for colours).
 
-export const LINE_KEYS=['hair','nails','lashes'];
-export const LINE_LABEL={hair:'مو',nails:'ناخن',lashes:'مژه'};
+import {colorText} from './domain.js';
+
+export const LINE_KEYS=['hair','color','nails','lashes'];
+export const LINE_LABEL={hair:'مدل مو',color:'رنگ مو',nails:'ناخن',lashes:'مژه'};
+// Lines tried on a face photo: one photo serves all three.
+export const FACE_LINES=['hair','color','lashes'];
+
+// Hair colours Iranian salons are asked for most (1405 trends: smoky olive, coffee-with-milk,
+// espresso, cherry cola, butter blonde, honey balayage, babylights) with the classics.
+export const COLOR_STYLES=[
+ ['مشکی کلاغی','Raven black','تیره','glossy blue-black raven hair: one deep even black with a cool blue sheen where the light hits'],
+ ['قهوه‌ای اسپرسو','Espresso brown','تیره','espresso brown: a very dark, rich brown that looks almost black in shadow and warm dark brown in the light, one even colour'],
+ ['شکلاتی','Chocolate brown','قهوه‌ای','rich chocolate brown: a deep warm medium-dark brown, one even glossy colour'],
+ ['نسکافه‌ای','Coffee-with-milk brown','قهوه‌ای','coffee-with-milk brown (نسکافه‌ای): a soft warm light-medium brown like milky coffee, one even colour'],
+ ['دودی زیتونی','Smoky olive brown','قهوه‌ای','smoky olive brown (دودی زیتونی): a muted, cool, ashy medium brown with a faint olive-grey tone and no red or orange, one even colour'],
+ ['فندقی','Hazelnut brown','قهوه‌ای','hazelnut brown: a medium golden-warm brown, one even colour'],
+ ['کاراملی','Caramel','قهوه‌ای','caramel: a warm light golden brown, one even colour'],
+ ['عسلی','Honey brown','روشن و بلوند','honey brown: a warm golden light brown that glows amber in the light, one even colour'],
+ ['بلوند شامپاینی','Champagne blonde','روشن و بلوند','champagne blonde: a soft pale beige-gold blonde, neither yellow nor ashy, one even colour'],
+ ['بلوند کره‌ای','Butter blonde','روشن و بلوند','butter blonde: a soft creamy warm golden blonde with a buttery glow, one even colour'],
+ ['بلوند یخی (پلاتینه)','Icy platinum blonde','روشن و بلوند','icy platinum blonde: a very pale, cool, almost white blonde with no yellow at all, one even colour'],
+ ['مسی','Copper','قرمز و مسی','copper: a bright warm copper-orange red, one even glossy colour'],
+ ['شرابی','Burgundy','قرمز و مسی','burgundy wine red: a deep red-violet wine colour, one even glossy colour'],
+ ['آلبالویی (چری کولا)','Cherry cola','قرمز و مسی','cherry cola: a dark brown-black base with a deep cherry-red glow that shows clearly in the light, one even colour'],
+ ['بالیاژ عسلی','Honey balayage','بالیاژ و مش','hand-painted honey-blonde balayage on a dark brown base: the roots and top stay dark brown, soft honey ribbons start around cheek level and get lighter toward the ends, blended with no hard lines'],
+ ['بالیاژ کاراملی','Caramel balayage','بالیاژ و مش','hand-painted caramel balayage on a dark brown base: dark roots, soft caramel ribbons from mid-length to the ends, seamlessly blended'],
+ ['مش دودی','Smoky ash highlights','بالیاژ و مش','smoky ash highlights: many fine cool ash-grey-beige streaks woven evenly through medium-brown hair from the roots to the ends'],
+ ['آمبره قهوه‌ای به بلوند','Brown-to-blonde ombré','بالیاژ و مش','ombré: dark brown from the roots to about chin level, then a smooth gradual fade to light golden blonde ends'],
+ ['بیبی لایت','Babylights','بالیاژ و مش','babylights: very fine, delicate, soft golden-blonde highlights spread evenly through light-brown hair, sun-kissed and natural'],
+ ['رزگلد','Rose gold','فانتزی','rose gold: a soft metallic pinkish-peach blonde, one even colour'],
+ ['یاسی پاستلی','Pastel lilac','فانتزی','pastel lilac: a soft light lavender-purple, one even pastel colour']
+];
+// Card swatch for each colour (shown until its photo loads): one hex, or "root,ends" for balayage.
+export const COLOR_SWATCHES=['#0f1420','#2a1b14','#4b2b1c','#8d6646','#6b6450','#8b5a2b','#a86c34','#b8803a','#e2cfa5','#e7cf8f','#ece8dc','#b5602f','#6b1f2e','#4a1a22','#3b2518,#c8913f','#4b2b1c,#b9864f','#5e4a3e,#b6aa96','#3b2518,#ddc28c','#8b5a2b,#ddc28c','#c98c7a','#b8a1d6'];
+// Lookbook photo of each colour: the same long soft-waved cut seen from behind, so only the colour changes.
+export const COLOR_SHOTS=COLOR_STYLES.map(c=>c[3]);
 
 export const NAIL_STYLES=[
  ['ژلیش ساده یکدست','Solid gel polish','ساده','a flawless glossy one-colour gel polish manicure with even coverage and clean cuticles'],
@@ -91,8 +126,8 @@ export const LINE_COLORS={
  lashes:[['مشکی','#111111','jet black'],['مشکی قهوه‌ای','#2a1d16','soft brown-black'],['قهوه‌ای','#4a2e1e','brown'],['رگه قهوه‌ای','#111111,#7a5233','black with a few brown accents'],['رگه رنگی','#111111,#8a5bd0','black with a few coloured accents']]
 };
 export const LINE_POPULAR={nails:['نود','صورتی ملایم','شیری','قرمز','زرشکی','کرم کاراملی','مشکی','یاسی'],lashes:['مشکی','مشکی قهوه‌ای','قهوه‌ای','رگه رنگی']};
-export const LINE_FILTERS={nails:['همه','ساده','فرنچ','براق','طرح‌دار','نگین'],lashes:['همه','طبیعی','پرحجم','بدون کاشت']};
-export const lineStyles=line=>line==='nails'?NAIL_STYLES:line==='lashes'?LASH_STYLES:null;
+export const LINE_FILTERS={color:['همه','تیره','قهوه‌ای','روشن و بلوند','قرمز و مسی','بالیاژ و مش','فانتزی'],nails:['همه','ساده','فرنچ','براق','طرح‌دار','نگین'],lashes:['همه','طبیعی','پرحجم','بدون کاشت']};
+export const lineStyles=line=>line==='nails'?NAIL_STYLES:line==='lashes'?LASH_STYLES:line==='color'?COLOR_STYLES:null;
 
 const norm=s=>String(s||'').replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[‌\s]/g,'');
 function colourEn(line,color){
@@ -110,7 +145,19 @@ export function optionText(line,opts){return (LINE_OPTIONS[line]||[]).map(o=>Num
 
 const OUT='\nOUTPUT: one photorealistic photo with the same composition and aspect ratio as Photo 1, high detail. No text, watermark, border, collage or before/after split.';
 // mode: 'catalog' (style = English description) or 'reference' (photo 2 is the design reference).
+// Hair colour: 'catalog' (style = description), 'reference' (copy the colour of photo 2) or
+// 'text' (only the colour the customer typed). The haircut of photo 1 never changes.
+export function colorPrompt(mode,style,color){
+ const what=mode==='reference'?'Photo 2 is ONLY a hair-colour reference: ignore its face, skin, haircut, clothing and background completely.\nHAIR COLOR: copy ONLY the hair colour, tones, roots, highlights and colour placement from photo 2 onto her hair.'
+  :mode==='text'?'HAIR COLOR: '+colorText(color)+'.':'HAIR COLOR: '+style+'.';
+ return 'Professional hair-colour consultation preview. Photo 1 is the client. Change ONLY the colour of her hair.\n'+
+  'IDENTITY LOCK: keep her exact face and facial features, skin tone and texture, makeup, age, expression, head angle, ears, neck, clothing, jewelry, background, framing and lighting unchanged. It must be clearly the same person in the same photo. Do not beautify, retouch, slim or swap the face.\n'+
+  'HAIRCUT LOCK: keep her exact haircut, length, layers, parting, volume, texture and styling from photo 1, strand for strand. Do not cut, lengthen, curl, straighten or restyle her hair. If she wears a headscarf or hat, keep it exactly as it is and recolour only the hair that is visible.\n'+
+  what+
+  '\nREALISM: salon-quality colour with natural dimension, believable roots and shine, the colour following every strand and wave, light and shadow matching the original photo\'s light direction and colour temperature. Keep brows and lashes their natural colour. Seamless edges, no halo, no wig look, no painted or plastic texture.'+OUT;
+}
 export function linePrompt(line,mode,style,opts,color){
+ if(line==='color')return colorPrompt(mode,style,color);
  if(line==='nails'){
   const shape=optEn('nails','shape',opts.shape),len=optEn('nails','length',opts.length);
   return 'Professional nail-salon consultation preview. Photo 1 is the client\'s hand. Edit ONLY her fingernails.\n'+
@@ -137,18 +184,26 @@ export function linePrompt(line,mode,style,opts,color){
 
 // Photo guidance per line for the customer page (step 1) and the catalog generator.
 export const LINE_PHOTO={
- hair:{head:'اول، عکس خودت',sub:'یک عکس روبه‌رو با صورت کامل. مدل انتخابی روی همین عکس امتحان می‌شود.',drop:'عکس چهره‌ات را اینجا بگذار',ready:'اگر صورتت کامل و روشن دیده می‌شود، برو سراغ انتخاب مدل.',tips:[['sun','نور روبه‌رو. ','کنار پنجره بایست، نه زیر لامپ سقف.'],['user','صورت کامل. ','بدون کلاه و عینک آفتابی، موها در قاب.'],['spark','بدون فیلتر. ','رنگ واقعی موهات مهم است.']],ref:'فقط موی این عکس استفاده می‌شود؛ چهره‌اش نه.',noun:'مو',demo:'یک نمونهٔ قبل و بعد. با عکس خودت، همین را روی صورت خودت می‌بینی و بعد برای آرایشگر می‌فرستی.'},
+ hair:{head:'اول، عکس خودت',sub:'یک عکس روبه‌رو با صورت کامل. مدل انتخابی روی همین عکس امتحان می‌شود.',drop:'عکس چهره‌ات را اینجا بگذار',ready:'اگر صورتت کامل و روشن دیده می‌شود، برو سراغ انتخاب مدل.',tips:[['sun','نور روبه‌رو. ','کنار پنجره بایست، نه زیر لامپ سقف.'],['user','صورت کامل. ','بدون کلاه و عینک آفتابی، موها در قاب.'],['spark','بدون فیلتر. ','چهره و موهایت همان‌طور که هست.']],ref:'فقط مدل موی این عکس استفاده می‌شود؛ رنگ و چهره‌اش نه.',noun:'مدل مو',demo:'یک نمونهٔ قبل و بعد. با عکس خودت، مدل را روی صورت خودت می‌بینی و بعد برای آرایشگر می‌فرستی.'},
+ color:{head:'اول، عکس خودت',sub:'یک عکس روبه‌رو یا سه‌رخ که موهایت کامل و واضح دیده شود. رنگ انتخابی روی همین عکس امتحان می‌شود.',drop:'عکس خودت را اینجا بگذار',ready:'اگر موهایت کامل و روشن دیده می‌شود، برو سراغ انتخاب رنگ.',tips:[['sun','نور روز. ','کنار پنجره، نه زیر نور زرد لامپ؛ رنگ واقعی مهم است.'],['user','موها در قاب. ','بدون کلاه، موها باز و تا جای ممکن کامل.'],['spark','بدون فیلتر. ','فیلتر رنگ موها را عوض می‌کند.']],ref:'فقط رنگ موی این عکس استفاده می‌شود؛ مدل و چهره‌اش نه.',noun:'رنگ',demo:'یک نمونهٔ قبل و بعد. با عکس خودت، رنگ را روی موهای خودت می‌بینی و بعد برای رنگ‌کار می‌فرستی.'},
  nails:{head:'اول، عکس دستت',sub:'پشت دست، انگشت‌ها کنار هم و ناخن‌ها کامل در قاب. طرح انتخابی روی همین عکس امتحان می‌شود.',drop:'عکس دستت را اینجا بگذار',ready:'اگر ناخن‌هایت واضح و کامل دیده می‌شوند، برو سراغ انتخاب طرح.',tips:[['sun','نور روز. ','کنار پنجره، بدون فلاش.'],['user','پشت دست. ','انگشت‌ها صاف و کنار هم، همهٔ ناخن‌ها در قاب.'],['spark','بدون فیلتر. ','لاک قبلی هم اشکالی ندارد.']],ref:'فقط طرح ناخن این عکس استفاده می‌شود؛ دستش نه.',noun:'ناخن',demo:'یک نمونهٔ قبل و بعد. با عکس دست خودت، طرح را روی ناخن‌های خودت می‌بینی و بعد برای ناخن‌کار می‌فرستی.'},
  lashes:{head:'اول، عکس چشم‌هایت',sub:'از نزدیک و روبه‌رو، چشم‌ها باز و رو به دوربین، بدون عینک. مدل انتخابی روی همین عکس امتحان می‌شود.',drop:'عکس چشم‌هایت را اینجا بگذار',ready:'اگر مژه‌ها و هر دو چشم واضح دیده می‌شوند، برو سراغ انتخاب مدل.',tips:[['sun','نور روبه‌رو. ','کنار پنجره، بدون سایهٔ تند.'],['user','از نزدیک. ','هر دو چشم کامل در قاب، بدون عینک.'],['spark','بدون فیلتر. ','ریمل و آرایش سنگین نداشته باش.']],ref:'فقط مدل مژهٔ این عکس استفاده می‌شود؛ چهره‌اش نه.',noun:'مژه',demo:'یک نمونهٔ قبل و بعد. با عکس خودت، مدل مژه را روی چشم‌های خودت می‌بینی و بعد برای مژه‌کار می‌فرستی.'}
 };
 
 // Bot: guess a portfolio photo's line from its caption (null if unclear).
-const WORDS={nails:['ناخن','ژلیش','لاک','فرنچ','مانیکور','پدیکور','بیبی بومر','کروم','کت آی','کت‌آی','نیل'],lashes:['مژه','اکستنشن','لیفت','لمینت','والیوم','هیبرید','وت لش','ریمل','لش'],hair:['مو','بالیاژ','کوتاهی','رنگ','مش','لایت','هایلایت','شینیون','کراتین','براشینگ','فر','صافی','آمبره','چتری','ویو','پروانه','ولف','باب','لیر','دم اسبی']};
+// "مو" alone is weak: «رنگ مو» is colour, «کوتاهی مو» is a haircut.
+const WORDS={nails:['ناخن','ژلیش','لاک','فرنچ','مانیکور','پدیکور','بیبی بومر','کروم','کت آی','کت‌آی','نیل'],lashes:['مژه','اکستنشن','لیفت','لمینت','والیوم','هیبرید','وت لش','ریمل','لش'],
+ color:['رنگ','مش','بالیاژ','لایت','هایلایت','آمبره','سامبره','بلوند','دکلره','تونر','آمبر','شرابی','عسلی','دودی','نسکافه','شکلاتی','مسی','پلاتینه'],
+ hair:['کوتاهی','شینیون','کراتین','براشینگ','فر ','فر‌','صافی','چتری','ویو','پروانه','ولف','باب','لیر','دم اسبی','گوجه','بافت','کات']};
 export function guessLine(caption){
- const c=String(caption||'');const hits=LINE_KEYS.filter(k=>WORDS[k].some(w=>c.includes(w)));
+ const c=String(caption||'')+' ';const has=k=>WORDS[k].some(w=>c.includes(w));
  // "ناخن"/"مژه" are decisive even when a hair word also appears (e.g. «رنگ ناخن»).
- if(hits.includes('nails')&&!hits.includes('lashes'))return 'nails';
- if(hits.includes('lashes')&&!hits.includes('nails'))return 'lashes';
- return hits.length===1?hits[0]:null;
+ const n=has('nails'),l=has('lashes');
+ if(n!==l)return n?'nails':'lashes';
+ if(n&&l)return null;
+ const col=has('color'),cut=has('hair');
+ if(col!==cut)return col?'color':'hair';
+ if(!col&&!cut&&c.includes('مو'))return 'hair';
+ return null;
 }
-export function lineFromSpecialty(sp){const s=String(sp||'');return s.includes('ناخن')?'nails':s.includes('مژه')?'lashes':null}
+export function lineFromSpecialty(sp){const s=String(sp||'');return s.includes('ناخن')?'nails':s.includes('مژه')?'lashes':/رنگ|مش|بالیاژ|لایت/.test(s)?'color':null}

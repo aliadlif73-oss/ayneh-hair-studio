@@ -123,13 +123,39 @@ test('Telegram webhook: secret required, link codes are one-time, photos become 
  const unlink=await call(e,'/api/s/salon-a/owner/telegram-unlink',{},OWNER);assert.equal(unlink.status,200);assert.equal((await call(e,'/api/s/salon-a/public')).data.telegram,false);
 }finally{tg.restore()}});
 
-test('generation uses two distinct images for references, passes the typed colour and deduplicates paid tasks (mock provider)',async()=>{const e=fixture(),s=await salon(e),g=await guest(e,s);e.KIE_API_KEY='mock';await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true,reference_verified:true},OWNER);
- const original=await upload(e,s,g),reference=await upload(e,s,g,'reference');let previous=globalThis.fetch,taskCalls=0,captured=[];
- globalThis.fetch=async(url,opts)=>{if(String(url).includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(String(url).includes('createTask')){taskCalls++;captured.push(JSON.parse(opts.body));return Response.json({code:200,data:{taskId:'task'+taskCalls}})}if(String(url).includes('recordInfo'))return Response.json({code:200,data:{state:'success',resultJson:JSON.stringify({resultUrls:['https://provider.example/output.png']})}});return new Response(png())};
- try{for(const mode of ['style','color','both']){const body={image_consent:true,idem:crypto.randomUUID(),original_id:original,reference_id:reference,transfer:mode,color:'شرابی'};const a=await call(e,'/api/s/salon-a/generate',body,g);assert.equal(a.status,200,JSON.stringify(a));const again=await call(e,'/api/s/salon-a/generate',body,g);assert.equal(again.data.id,a.data.id);const input=captured.at(-1).input;assert.equal(input.image_input.length,2);assert.notEqual(input.image_input[0],input.image_input[1]);assert.match(input.prompt,/HAIR COLOR: burgundy wine red/);assert.equal(captured.at(-1).model,'nano-banana-pro');assert.equal(input.resolution,'2K');assert.equal(input.output_format,'jpg');const result=await call(e,'/api/s/salon-a/generation/'+a.data.id,undefined,g);assert.equal(result.data.state,'success');assert.equal((await call(e,'/api/s/salon-a/media/'+result.data.result_id,undefined,g)).status,200);
-   if(mode==='both'){const v=await call(e,'/api/s/salon-a/views',{idem:crypto.randomUUID(),parent:a.data.id},g);assert.equal(v.status,200,JSON.stringify(v));assert.match(captured.at(-1).input.prompt,/360-degree/);}}
-  assert.equal(taskCalls,4);
-  const cat=await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:0,color:'عسلی'},g);assert.equal(cat.status,200);assert.match(captured.at(-1).input.prompt,new RegExp(styles[0][1]));
+test('hairstyle copies only the cut and keeps her colour; hair colour keeps the cut, can use the new hairstyle as its base, and paid tasks are deduplicated (mock provider)',async()=>{const e=fixture(),s=await salon(e),g=await guest(e,s);e.KIE_API_KEY='mock';await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true,reference_verified:true},OWNER);
+ const original=await upload(e,s,g),reference=await upload(e,s,g,'reference');let previous=globalThis.fetch,taskCalls=0,captured=[],uploads=[];
+ globalThis.fetch=async(url,opts)=>{if(String(url).includes('file-base64-upload')){const u='https://provider.example/'+crypto.randomUUID()+'.jpg';uploads.push(JSON.parse(opts.body));return Response.json({success:true,data:{downloadUrl:u}})}if(String(url).includes('createTask')){taskCalls++;captured.push(JSON.parse(opts.body));return Response.json({code:200,data:{taskId:'task'+taskCalls}})}if(String(url).includes('recordInfo'))return Response.json({code:200,data:{state:'success',resultJson:JSON.stringify({resultUrls:['https://provider.example/output.png']})}});return new Response(png())};
+ try{
+  // Hairstyle from a reference photo: two distinct images, only the cut, colour kept even if one is sent.
+  const body={image_consent:true,idem:crypto.randomUUID(),line:'hair',original_id:original,reference_id:reference,transfer:'both',color:'شرابی'};
+  const a=await call(e,'/api/s/salon-a/generate',body,g);assert.equal(a.status,200,JSON.stringify(a));
+  const again=await call(e,'/api/s/salon-a/generate',body,g);assert.equal(again.data.id,a.data.id);
+  let input=captured.at(-1).input;assert.equal(input.image_input.length,2);assert.notEqual(input.image_input[0],input.image_input[1]);
+  assert.match(input.prompt,/copy ONLY the haircut/);assert.match(input.prompt,/Keep her original hair color/);assert.doesNotMatch(input.prompt,/burgundy/);
+  assert.equal(captured.at(-1).model,'nano-banana-pro');assert.equal(input.resolution,'2K');assert.equal(input.output_format,'jpg');
+  const hair=await call(e,'/api/s/salon-a/generation/'+a.data.id,undefined,g);assert.equal(hair.data.state,'success');assert.equal((await call(e,'/api/s/salon-a/media/'+hair.data.result_id,undefined,g)).status,200);
+  const v=await call(e,'/api/s/salon-a/views',{idem:crypto.randomUUID(),parent:a.data.id},g);assert.equal(v.status,200,JSON.stringify(v));assert.match(captured.at(-1).input.prompt,/360-degree/);
+  const cat=await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:0,color:'عسلی'},g);assert.equal(cat.status,200);
+  assert.match(captured.at(-1).input.prompt,new RegExp(styles[0][1]));assert.match(captured.at(-1).input.prompt,/HAIR COLOR: keep her original hair color/);
+  // Hair colour from the catalog, on the new hairstyle: the hair result is the photo sent.
+  const n=uploads.length;
+  const c1=await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),line:'color',original_id:original,base_id:hair.data.result_id,style:4},g);assert.equal(c1.status,200,JSON.stringify(c1));
+  input=captured.at(-1).input;assert.equal(input.image_input.length,1);assert.match(input.prompt,/HAIRCUT LOCK/);assert.match(input.prompt,/smoky olive brown/);
+  assert.equal(uploads.length,n+1);assert.equal((await e.DB.prepare('SELECT base_id FROM generations WHERE id=?').bind(c1.data.id).first()).base_id,hair.data.result_id);
+  // Typed colour, on the original photo; and a colour reference.
+  const c2=await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),line:'color',original_id:original,color:'شرابی'},g);assert.equal(c2.status,200);assert.match(captured.at(-1).input.prompt,/HAIR COLOR: burgundy wine red/);assert.match(captured.at(-1).input.prompt,/HAIRCUT LOCK/);
+  const c3=await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),line:'color',original_id:original,reference_id:reference},g);assert.equal(c3.status,200);assert.match(captured.at(-1).input.prompt,/copy ONLY the hair colour/);assert.equal(captured.at(-1).input.image_input.length,2);
+  // A colour with nothing chosen, or a base that is not her own hairstyle result, is refused before paying.
+  const before=taskCalls;
+  assert.equal((await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),line:'color',original_id:original},g)).status,400);
+  assert.equal((await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),line:'color',original_id:original,base_id:reference,style:1},g)).status,400);
+  const c1r=await call(e,'/api/s/salon-a/generation/'+c1.data.id,undefined,g);
+  assert.equal((await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),line:'color',original_id:original,base_id:c1r.data.result_id,style:1},g)).status,400);
+  assert.equal(taskCalls,before);
+  // A request can carry the colour result made on the hairstyle.
+  const lead=await call(e,'/api/s/salon-a/leads',{data_consent:true,idem:crypto.randomUUID(),name:'مریم',phone:'09121234567',original_id:original,preview_id:c1r.data.result_id,look:'رنگ مو: دودی زیتونی',color:'دودی زیتونی',line:'color'},g);
+  assert.notEqual(lead.status,400,JSON.stringify(lead));
  }finally{globalThis.fetch=previous}});
 
 test('server enforces consent and limits before paid processing',async()=>{const e=fixture(),s=await salon(e),g=await guest(e,s);e.KIE_API_KEY='mock';
@@ -647,7 +673,7 @@ test('nails and lashes: line prompts with options, photo-shaped output, no 360, 
   assert.equal((await call(e,'/api/s/salon-a/views',{idem:crypto.randomUUID(),parent:n.data.id},g)).status,400,'no 360 for nails');
   const hair=await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:hand,style:0},g);assert.match(captured.at(-1).input.prompt,/Edit ONLY her hair/);assert.equal(hair.status,200);
  }finally{globalThis.fetch=previous}
- assert.equal(guessLine('فرنچ بادامی'),'nails');assert.equal(guessLine('کاشت مژه والیوم'),'lashes');assert.equal(guessLine('بالیاژ عسلی'),'hair');assert.equal(guessLine('عکس جدید'),null);assert.equal(guessLine('رنگ ناخن'),'nails');
+ assert.equal(guessLine('فرنچ بادامی'),'nails');assert.equal(guessLine('کاشت مژه والیوم'),'lashes');assert.equal(guessLine('بالیاژ عسلی'),'color');assert.equal(guessLine('کوتاهی ولف'),'hair');assert.equal(guessLine('رنگ مو'),'color');assert.equal(guessLine('عکس جدید'),null);assert.equal(guessLine('رنگ ناخن'),'nails');
  assert.equal(linePrompt('lashes','catalog',LASH_STYLES[0][3],{},'').includes('LASH MAPPING'),false,'no mapping when not chosen');
  // Requests carry the line; the salon sees the service.
  const tg=mockTelegram();try{
@@ -658,8 +684,9 @@ test('nails and lashes: line prompts with options, photo-shaped output, no 360, 
   await hook(e,{message:{chat:{id:777,type:'private'},photo:[{file_id:'p1',file_size:100}],caption:'مژه والیوم گربه‌ای'}});
   await hook(e,{message:{chat:{id:777,type:'private'},photo:[{file_id:'p2',file_size:100}],caption:'کار جدید'}});
   const rows=e.DB.sql.prepare('SELECT id,title,line FROM portfolio ORDER BY created_at').all();assert.equal(rows[0].line,'lashes');assert.equal(rows[1].line,'hair');
-  const keys=tg.calls.filter(c=>c.body.reply_markup?.inline_keyboard?.[0]?.[0]?.callback_data?.startsWith('pfl:')).at(-1).body.reply_markup.inline_keyboard[0];
-  await hook(e,{callback_query:{id:'x',data:keys[1].callback_data,message:{chat:{id:777},message_id:4}}});
+  const keys=tg.calls.filter(c=>c.body.reply_markup?.inline_keyboard?.[0]?.[0]?.callback_data?.startsWith('pfl:')).at(-1).body.reply_markup.inline_keyboard.flat();
+  assert.deepEqual(keys.filter(k=>k.callback_data.startsWith('pfl:')).map(k=>k.callback_data.split(':')[1]),['hair','color','nails','lashes']);
+  await hook(e,{callback_query:{id:'x',data:keys.find(k=>k.callback_data.startsWith('pfl:nails')).callback_data,message:{chat:{id:777},message_id:4}}});
   assert.equal(e.DB.sql.prepare('SELECT line FROM portfolio WHERE id=?').get(rows[1].id).line,'nails');
   assert.deepEqual((await call(e,'/api/s/salon-a/public')).data.portfolio.map(x=>x.line).sort(),['lashes','nails']);
   const st=(await call(e,'/api/owner/stats?days=7',undefined,OWNER)).data;assert.equal(st.lines.requests.nails,1);
@@ -698,4 +725,24 @@ test('salon address: capitals and spaces are normalised, duplicates and bad addr
  const r=await call(e,'/api/salons',{slug:'Aliadli Salon',name:'Ali adli'},OWNER);assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.data.slug,'aliadli-salon');
  const dup=await call(e,'/api/salons',{slug:'ALIADLI-salon',name:'x y'},OWNER);assert.equal(dup.status,400);assert.match(dup.data.error,/سالن دیگری گرفته/);
  const bad=await call(e,'/api/salons',{slug:'سالن',name:'x y'},OWNER);assert.equal(bad.status,400);assert.match(bad.data.error,/aliadli-salon/);
+});
+
+test('customer page: four services, «بساز» starts building with no consent checkbox, one name per saved photo',()=>{
+ const js=customerHTML.match(/<script>([\s\S]*?)<\/script>\s*<\/body>/)[1];
+ for(const w of ['مدل مو','رنگ مو','ناخن','مژه'])assert(js.includes("'"+w+"'"),w);
+ assert(!/id:'consent'|id:'dataConsent'|type:'checkbox'/.test(js),'no consent checkboxes');
+ assert.match(js,/function build\(\)\{[\s\S]*?go\(3\);generate\(\)/);
+ assert(!/download:'ayneh\.png'/.test(js));assert.match(js,/function saveName\(id\)/);
+ // Hairstyle never sends a colour; hair colour carries its base photo.
+ assert.match(js,/var col=state\.line==='hair'\?''/);assert.match(js,/base_id:state\.line==='color'/);
+ // Every service has its building scene and stages.
+ for(const l of ['hair','color','nails','lashes'])assert.match(js,new RegExp('\\n '+l+":\\{title:'"));
+});
+test('hair colour: catalog, prompt keeps the haircut, captions and specialties pick the colour line, stats name it',async()=>{
+ const {COLOR_STYLES,COLOR_SWATCHES,LINE_KEYS,LINE_LABEL,colorPrompt,lineFromSpecialty,lineStyles}=await import('../worker/lines.js');
+ assert.deepEqual(LINE_KEYS,['hair','color','nails','lashes']);assert.equal(LINE_LABEL.color,'رنگ مو');
+ assert.equal(COLOR_STYLES.length,COLOR_SWATCHES.length);assert.equal(lineStyles('color'),COLOR_STYLES);
+ for(const m of ['catalog','reference','text'])assert.match(colorPrompt(m,COLOR_STYLES[0][3],'عسلی'),/HAIRCUT LOCK[\s\S]*headscarf/);
+ assert.match(colorPrompt('text','','عسلی'),/honey brown/);assert.match(colorPrompt('reference','',''),/ignore its face, skin, haircut/);
+ assert.equal(lineFromSpecialty('رنگ و مش'),'color');assert.equal(lineFromSpecialty('کوتاهی'),null);
 });

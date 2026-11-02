@@ -1,14 +1,15 @@
 // Generates one lookbook photo per ready-made style with the project's own KIE key:
 //  - hair (worker/legacy.js `styles`) → public/catalog/NN.webp, plus demo-before/after.webp;
-//  - nails and lashes (worker/lines.js) → public/catalog/nails/NN.webp, public/catalog/lashes/NN.webp,
-//    each with its own demo-before/after.webp.
-// ONLY limits a run: hair numbers (3,7), 'demo', 'nails' / 'n3', 'lashes' / 'l2', 'demo-nails', 'demo-lashes'.
+//  - hair colour, nails and lashes (worker/lines.js) → public/catalog/color/NN.webp,
+//    public/catalog/nails/NN.webp, public/catalog/lashes/NN.webp, each with its own demo-before/after.webp.
+// ONLY limits a run: hair numbers (3,7), 'demo', 'color' / 'r3', 'nails' / 'n3', 'lashes' / 'l2',
+// 'demo-color', 'demo-nails', 'demo-lashes'.
 // Run by .github/workflows/catalog.yml; existing files are skipped unless FORCE=1, so a rerun
 // only pays for what is missing. Needs KIE_API_KEY in the environment and `sharp` installed.
 import {existsSync,mkdirSync,writeFileSync} from 'node:fs';
 import {styles} from '../worker/legacy.js';
-import {STYLE_DETAILS} from '../worker/domain.js';
-import {NAIL_STYLES,LASH_STYLES,NAIL_SHOTS,LASH_SHOTS,linePrompt} from '../worker/lines.js';
+import {STYLE_DETAILS,transferPrompt} from '../worker/domain.js';
+import {NAIL_STYLES,LASH_STYLES,COLOR_STYLES,NAIL_SHOTS,LASH_SHOTS,COLOR_SHOTS,linePrompt} from '../worker/lines.js';
 
 const key=process.env.KIE_API_KEY;
 if(!key){console.log('KIE_API_KEY is not set; nothing generated.');process.exit(0)}
@@ -61,7 +62,8 @@ const before=out+'/demo-before.webp',after=out+'/demo-after.webp';
 if((!existsSync(before)||!existsSync(after)||force)&&(!only.length||only.includes('demo'))){
  try{
   const b=await generate({prompt:'Photorealistic casual smartphone selfie of an Iranian woman in her late twenties with olive skin, at home by a window in soft daylight, looking at the camera with a slight smile. Her hair is plain shoulder-length straight dark brown hair, no styling, visible and uncovered. Head and shoulders, vertical framing, plain light wall behind her. Natural skin, no filter, no text.',image_input:[],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
-  const a=await generate({prompt:'Professional hair-salon consultation preview. Photo 1 is the client. Edit ONLY her hair. Keep her exact face, skin, expression, clothing, background, framing and lighting unchanged. HAIR: give her a butterfly haircut: long hair with short face-framing layers from the chin and long layers below, big bouncy blow-out volume, reaching past the shoulders. HAIR COLOR: hand-painted honey balayage on a darker brown base, soft blended root. Real strand detail, natural hairline, light matching the photo. One photorealistic photo, same composition. No text.',image_input:[b],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
+  // Hairstyle only: the same pipeline customers get, her own colour kept.
+  const a=await generate({prompt:transferPrompt('catalog','Butterfly haircut',''),image_input:[b],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
   await save(b,before,450,600);await save(a,after,450,600);console.log('demo ✓');made+=2;
  }catch(e){if(e instanceof NoCredit){console.log(e.message+' — top up KIE and run this workflow again.');process.exit(1)}console.log('demo failed:',e.message);failed++}
 }
@@ -70,8 +72,11 @@ const hands=['light-olive','fair','warm beige','medium olive','light-brown'];
 // The look itself comes from NAIL_SHOTS / LASH_SHOTS (exact colour, finish, shape, placement).
 const nailShot=(d,i)=>'Professional nail-salon lookbook photograph. ONE hand of an Iranian woman with '+hands[i%hands.length]+' skin, back of the hand toward the camera, all five fingers relaxed and slightly apart, every fingernail fully visible and in sharp focus, resting on a soft pale grey-green fabric. THE NAILS: '+d+'. The nail design must match this description exactly and be identical on the nails it names; nothing else on the nails. No rings, bracelets or other hand. Soft even studio light, natural skin texture, true colours. No text, no logo, no watermark.';
 const lashShot=(d,i)=>'Professional lash-studio lookbook photograph: extreme close-up of the eye area of '+people[i%people.length]+': framed from just above the eyebrows to the middle of the nose, both eyes filling the width of the photo, eyes open and looking straight at the camera. THE UPPER EYELASHES: '+d+'. The lashes must match this description exactly and be clearly the focus of the photo. Light natural makeup, NO eyeliner, NO mascara on the lower lashes, groomed natural brows, no glasses. Both eyes sharp, soft even studio light, natural skin texture, seamless pale grey-green background. No text, no logo, no watermark.';
-const want=(tag,i)=>!only.length||only.includes(tag)||only.includes(tag[0]+String(i+1));
-for(const [line,list,shot,shots] of [['nails',NAIL_STYLES,nailShot,NAIL_SHOTS],['lashes',LASH_STYLES,lashShot,LASH_SHOTS]]){
+// Hair colour: the same long, softly waved cut from behind in every photo, so only the colour differs.
+const colorShot=(d,i)=>'Professional hair-colour lookbook photograph of an Iranian woman seen from behind at a slight three-quarter angle, head and upper back, her long loose hair with soft natural waves reaching the middle of her back, fully in frame and filling most of the photo, every strand in sharp focus. THE HAIR COLOUR: '+d+'. The colour must match this description exactly, from roots to ends; nothing else in the photo competes with it. Plain off-white top, soft even daylight-balanced studio light that shows the true colour, seamless pale grey-green background. No text, no logo, no watermark.';
+const PREFIX={nails:'n',lashes:'l',color:'r'};
+const want=(tag,i)=>!only.length||only.includes(tag)||only.includes(PREFIX[tag]+String(i+1));
+for(const [line,list,shot,shots] of [['color',COLOR_STYLES,colorShot,COLOR_SHOTS],['nails',NAIL_STYLES,nailShot,NAIL_SHOTS],['lashes',LASH_STYLES,lashShot,LASH_SHOTS]]){
  const dir=out+'/'+line;mkdirSync(dir,{recursive:true});
  for(const [i,s] of list.entries()){
   const n=String(i+1).padStart(2,'0'),file=dir+'/'+n+'.webp';
@@ -84,11 +89,13 @@ for(const [line,list,shot,shots] of [['nails',NAIL_STYLES,nailShot,NAIL_SHOTS],[
  const b1=dir+'/demo-before.webp',a1=dir+'/demo-after.webp';
  if((!existsSync(b1)||!existsSync(a1)||force)&&(!only.length||only.includes('demo-'+line))){
   try{
-   const before=line==='nails'
+   const before=line==='color'
+    ?await generate({prompt:'Photorealistic casual smartphone selfie of an Iranian woman in her thirties with fair olive skin, at home by a window in soft daylight, looking at the camera with a slight smile. Her hair is long, loose, softly wavy, natural plain dark brown, uncovered and fully visible over her shoulders. Head and shoulders, vertical framing, plain light wall behind her. Natural skin, no filter, no text.',image_input:[],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'})
+    :line==='nails'
     ?await generate({prompt:'Photorealistic casual smartphone close-up of the hand of an Iranian woman with light-olive skin: the hand fills most of the frame, back of the hand toward the camera, fingers slightly apart, every nail clearly visible, resting on a wooden table at home in soft daylight. Short natural bare nails, clean, no polish, no rings. No text.',image_input:[],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'})
     :await generate({prompt:'Photorealistic casual smartphone close-up of the eye area of an Iranian woman in her late twenties with olive skin: framed from the eyebrows to the middle of the nose, both eyes filling the width, eyes open and looking at the camera, soft daylight from a window, her own short natural lashes with no mascara and no extensions, no makeup. No filter, no text.',image_input:[],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
-   // The change must be obvious in a small card: glossy red almond nails; dense cat-eye volume lashes.
-   const prompt=line==='nails'?linePrompt('nails','catalog',NAIL_STYLES[0][3],{shape:4,length:1},'قرمز'):linePrompt('lashes','catalog',LASH_STYLES[2][3],{map:1,length:2},'مشکی');
+   // The change must be obvious in a small card: honey balayage; glossy red almond nails; dense cat-eye volume lashes.
+   const prompt=line==='color'?linePrompt('color','catalog',COLOR_STYLES[14][3],{},''):line==='nails'?linePrompt('nails','catalog',NAIL_STYLES[0][3],{shape:4,length:1},'قرمز'):linePrompt('lashes','catalog',LASH_STYLES[2][3],{map:1,length:2},'مشکی');
    const after=await generate({prompt,image_input:[before],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
    await save(before,b1,450,600);await save(after,a1,450,600);console.log(line,'demo ✓');made+=2;
   }catch(e){if(e instanceof NoCredit){console.log(e.message+' — top up KIE and run this workflow again.');process.exit(1)}console.log(line,'demo failed:',e.message);failed++}
