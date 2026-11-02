@@ -1,5 +1,5 @@
 name: Generate catalog photos
-# Makes the ready-made style photos (hair, nails, lashes) with the project's KIE key and commits them.
+# Makes the ready-made style photos (hairstyle, hair colour, nails, lashes) with the project's KIE key and commits them.
 # Runs when the prompt script changes, or by hand from the Actions tab.
 # Only missing photos are generated, so reruns do not pay twice.
 on:
@@ -13,7 +13,7 @@ on:
         type: boolean
         default: false
       only:
-        description: 'Only these: hair numbers, demo, nails, n3, lashes, l2, demo-nails, demo-lashes (empty = all missing)'
+        description: 'Only these: hair numbers, demo, color, r3, nails, n3, lashes, l2, demo-color, demo-nails, demo-lashes (empty = all missing)'
         type: string
         default: ''
 permissions:
