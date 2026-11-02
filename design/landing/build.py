@@ -21,7 +21,7 @@ trial = R('src/trial.html').replace('<!--LEAD-->', R('src/lead.html'))
 assert '  <!-- 6. Plans -->' in h
 h = h.replace('  <!-- 6. Plans -->', trial + '  <!-- 6. Plans -->', 1)
 assert 'leadForm' in h and 'id="mock"' in h, 'trial section not inserted'
-scripts = ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/hero.js', 'src/sec2.js', 'src/scenes.js', 'src/lead.js'])
+scripts = ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/hero.js', 'src/sec2.js', 'src/scenes.js', 'src/try.js', 'src/lead.js'])
 h = h.replace('</body>', scripts + '</body>')
 W('out/v2.html', h.replace('__ORIGIN__', ''))
 

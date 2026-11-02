@@ -20,7 +20,7 @@ async function salonPage(u,env){
  const slug=u.pathname.split('/')[2];let salon=null;
  let failed=!env.DB;try{salon=env.DB?await env.DB.prepare('SELECT slug,name,profile FROM salons WHERE slug=?').bind(slug).first():null}catch{failed=true}
  // A database hiccup still serves the page (it shows its own error); only a missing salon is a 404.
- if(!salon)return failed?customerHTML:null;
+ if(!salon)return failed||slug==='demo'?customerHTML:null;
  let p={};try{p=JSON.parse(salon.profile||'{}')}catch{}
  const origin=env.APP_ORIGIN||u.origin,url=origin+'/s/'+salon.slug;
  const title=salon.name+' | مو، ناخن و مژهٔ بعدی‌ات را روی عکس خودت ببین';

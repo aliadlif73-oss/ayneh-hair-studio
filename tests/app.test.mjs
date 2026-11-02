@@ -742,3 +742,21 @@ test('free trial salon: built from the landing form, one per mobile, 5 images an
  }finally{globalThis.fetch=previous;tg.restore()}});
 
 test('landing carries an absolute share image and is cacheable',async()=>{const e=fixture();const r=await app.fetch(new Request(origin+'/'),e);const html=await r.text();assert.match(html,new RegExp('og:image" content="'+origin+'/landing/og.jpg"'));assert.doesNotMatch(html,/__ORIGIN__/);assert.match(r.headers.get('cache-control'),/max-age=300/);assert.ok(readFileSync(new URL('../public/landing/og.jpg',import.meta.url)).length>10000)});
+
+test('demo salon behind the landing: mobile confirmation first, 3 images a day per mobile, no 360 view, look handed over by the landing',async()=>{
+ const e=tgEnv(fixture());e.KIE_API_KEY='mock';const s={slug:'demo'};
+ const pub=await call(e,'/api/s/demo/public');assert.equal(pub.status,200);assert.equal(pub.data.demo,true);assert.equal(pub.data.generation,false,'no SMS configured: demo generation stays off');
+ let g=await guest(e,s);const original=await upload(e,s,g);
+ const gen=()=>call(e,'/api/s/demo/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:1},g);
+ assert.equal((await gen()).status,503,'without SMS nobody can spend paid images');
+ smsEnv(e);assert.equal((await call(e,'/api/s/demo/public')).data.generation,true);
+ const need=await gen();assert.equal(need.status,403);assert.match(need.data.error,/را تأیید کن/,'the page opens its mobile dialog on this message');
+ const sms=mockSms(),net=globalThis.fetch;
+ globalThis.fetch=async(url,opts)=>{const u=String(url);if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(u.includes('createTask'))return Response.json({code:200,data:{taskId:'t'+crypto.randomUUID()}});return net(url,opts)};
+ try{assert.equal((await call(e,'/api/s/demo/otp/send',otpBody(),g)).status,200);assert.equal((await call(e,'/api/s/demo/otp/verify',{code:'48213'},g)).status,200);
+  for(let i=0;i<3;i++)assert.equal((await gen()).status,200);
+  const fourth=await gen();assert.equal(fourth.status,429);
+  const v=await call(e,'/api/s/demo/views',{idem:crypto.randomUUID(),parent:'x'},g);assert.equal(v.status,400,'no 360 view in the demo');
+ }finally{globalThis.fetch=net;sms.restore()}
+ assert.match(customerHTML,/location\.search\.match\(\/\[\?&\]s=/,'customer page reads the landing look');
+});

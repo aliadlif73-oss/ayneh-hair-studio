@@ -156,3 +156,5 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
 
 .dock{transition:opacity 360ms var(--ease),transform 360ms var(--ease),visibility 0s}
 .dock.away{visibility:hidden;transition:opacity 360ms var(--ease),transform 360ms var(--ease),visibility 0s linear 360ms}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.svc-try{margin-top:16px}.try-note{display:block;margin-top:8px;font-size:13px;color:var(--muted);line-height:1.8}

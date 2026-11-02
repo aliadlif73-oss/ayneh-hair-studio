@@ -377,6 +377,8 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
 
 .dock{transition:opacity 360ms var(--ease),transform 360ms var(--ease),visibility 0s}
 .dock.away{visibility:hidden;transition:opacity 360ms var(--ease),transform 360ms var(--ease),visibility 0s linear 360ms}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.svc-try{margin-top:16px}.try-note{display:block;margin-top:8px;font-size:13px;color:var(--muted);line-height:1.8}
 
 
 /* ---------- Section 2: request lands in the salon chat ---------- */
@@ -566,7 +568,7 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
         <h1 id="h1" class="reveal">مشتری‌ات قبل از آمدن می‌داند چه می‌خواهد.</h1>
         <p class="lead reveal">با آینه، مشتری مدل و رنگ را روی صفحهٔ سالن تو انتخاب می‌کند و درخواستش را به ربات تلگرام یا بله‌ات می‌فرستد. همین آینه را همین‌جا امتحان کن.</p>
         <ul class="lines-row reveal" aria-label="خدمات پوشش‌داده‌شده"><li>مو</li><li>ناخن</li><li>مژه</li></ul>
-        <a class="btn btn--lg reveal" href="#start"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
+        <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" data-try="hair" href="/s/demo?l=hair"><span>ساخت تصویر روی عکس خودم</span></a></div>
         <p class="fineprint reveal">شبیه‌سازی پیشنهادی است، نه تضمین نتیجه.</p>
       </div>
 
@@ -710,6 +712,7 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
           <h3>مدل و رنگ مو</h3>
           <p>مدل آماده یا نمونه‌کار خود سالن را انتخاب کن، رنگ را از سواچ‌ها بردار یا خودت بنویس و اگر سالن شبیه‌سازی را فعال کرده باشد روی عکس خودت ببین. نمای ۳۶۰ درجه فقط برای مو است.</p>
           <ul class="picks"><li>ولف‌کات</li><li>پروانه‌ای</li><li>چتری پرده‌ای</li><li>آمبره</li></ul>
+          <a class="btn btn--ghost svc-try" data-try="hair" href="/s/demo?l=hair"><span>ساخت تصویر روی عکس خودم</span></a>
         </article>
         <article class="svc">
           <div class="ico"><span><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12 28V14c0-4 1.600-8 4-10 2.400 2 4 6 4 10v14"/><path d="M12 18h8"/><path d="M8 28h16"/></svg></span></div>
@@ -717,6 +720,7 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
           <p>از روی عکس دست، یکی از طرح‌های آماده را امتحان کن و فرم، طول و رنگ ناخن را انتخاب کن. به‌جای حدس‌زدن، همان را برای سالن می‌فرستی.</p>
           <p class="count">۱۸ طرح آماده</p>
           <ul class="picks"><li>فرنچ</li><li>میکرو فرنچ</li><li>کروم</li><li>کت‌آی</li><li>مرواریدی</li></ul>
+          <a class="btn btn--ghost svc-try" data-try="nails" href="/s/demo?l=nails"><span>ساخت تصویر روی عکس خودم</span></a>
         </article>
         <article class="svc">
           <div class="ico"><span><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 19c3.500-5 8-7.500 13-7.500S25.500 14 29 19c-3.500 5-8 7.500-13 7.500S6.500 24 3 19z"/><circle cx="16" cy="19" r="3.600"/><path d="M5 11 7.500 14M11 7.500l1.200 3.500M16 6v4M21 7.500 19.800 11M27 11l-2.500 3"/></svg></span></div>
@@ -724,6 +728,7 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
           <p>از روی عکس نزدیک چشم، نوع مژه، حالت چیدمان و طول را انتخاب کن. مژه می‌تواند از همان عکس صورتی که برای مو دادی شروع شود.</p>
           <p class="count">۹ نوع مژه</p>
           <ul class="picks"><li>کلاسیک</li><li>هیبریدی</li><li>والیوم</li><li>لیفت و لمینت</li><li>گربه‌ای</li></ul>
+          <a class="btn btn--ghost svc-try" data-try="lashes" href="/s/demo?l=lashes"><span>ساخت تصویر روی عکس خودم</span></a>
         </article>
       </div>
       <p class="note-bar">آینه جایگزین مشاوره حضوری نیست؛ نتیجهٔ شبیه‌سازی تقریبی است و تصمیم نهایی، زمان و هزینه با سالن است.</p>
@@ -1158,6 +1163,27 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
  if(reduce){scenes.forEach(s=>{s.seqs.forEach(q=>{q.start();q.set(1)})});return}
  let tick=false;addEventListener('scroll',()=>{if(!tick){tick=true;requestAnimationFrame(()=>{tick=false;update()})}},{passive:true});
  update();
+})();
+
+</script>
+<script>
+/* "Make an image on my photo" links: open the demo salon on the line (and look) the visitor picked. */
+(()=>{
+ const links=[...document.querySelectorAll('[data-try]')];if(!links.length)return;
+ const PREVIEW=!!window.__AYN_PREVIEW;
+ function href(line){
+  const sel=window.__AYN_SEL||{},q=['l='+line];
+  if(line==='hair'){if(sel.styleIdx!=null)q.push('s='+sel.styleIdx);if(sel.color)q.push('c='+encodeURIComponent(sel.color))}
+  return '/s/demo?'+q.join('&');
+ }
+ function sync(){links.forEach(a=>{a.href=href(a.dataset.try)})}
+ addEventListener('ayneh:selection',sync);sync();
+ links.forEach(a=>a.addEventListener('click',e=>{
+  if(!PREVIEW)return;e.preventDefault();
+  let n=a.parentElement.querySelector('.try-note');
+  if(!n){n=document.createElement('small');n.className='try-note';a.after(n)}
+  n.textContent='در پیش‌نمایش کار نمی‌کند. روی سایت اصلی به صفحهٔ نمونه می‌رود و آنجا بعد از تأیید موبایل تصویر ساخته می‌شود.';
+ }));
 })();
 
 </script>

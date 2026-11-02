@@ -434,10 +434,15 @@ function track(kind,meta,once){if(once){if(tracked[kind+meta])return;tracked[kin
  if(state.mine)state.pub.portfolio=(state.pub.portfolio||[]).slice().sort(function(a,b){return (b.maker===state.mine)-(a.maker===state.mine)});
  document.title=state.pub.salon.name+' | آینه';
  if(state.pub.trial)trialBar(state.pub.trial);
+ if(state.pub.demo)document.body.prepend(el('div',{class:'trialbar',role:'status'},[document.createTextNode('نسخهٔ نمونهٔ آینه · روزی ۳ تصویر · '),el('a',{href:'/#start',style:'color:#fff;text-decoration:underline',text:'صفحهٔ سالن خودت را بساز'})]));
  var lq=(location.search.match(/[?&]l=(hair|nails|lashes)/)||[])[1];var lm=null;try{lm=localStorage.getItem('ayneh-line-'+SLUG)}catch(e){}
  var pending=null;try{pending=sessionStorage.getItem('ayneh-job-'+SLUG)}catch(e){}
  var pm=pending&&pending.match(/^(hair|nails|lashes):(.+)$/);if(pm){lq=pm[1];pending=pm[2]}
  state.line=lq||(LINES.label[lm]?lm:'hair');document.body.setAttribute('data-line',state.line);
+ // The landing page hands over the look the visitor picked: ?s=<hair style index>&c=<colour name>.
+ var qs=(location.search.match(/[?&]s=(\d{1,2})/)||[])[1],qc=(location.search.match(/[?&]c=([^&]{1,240})/)||[])[1];
+ if(qs!==undefined&&state.line==='hair'&&+qs<20)state.style=+qs;
+ if(qc){try{state.color=decodeURIComponent(qc).slice(0,60)}catch(e){}}
  // Open on the salon's own work for this line when it has some, otherwise on the ready-made looks.
  state.tab=hasLineWork(state.line)?'salon':'catalog';
  renderHead();renderSteps();renderFlow();renderSide();renderDock();
@@ -1323,7 +1328,8 @@ function openRequest(){
  var panel=el('div',{class:'sheet__panel'});
  panel.append(el('div',{class:'sheet__head'},[h('h2','فرستادن برای '+artist()),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:closeSheet})]));
  if(!state.pub.telegram){
-  panel.append(notice('info','«'+s.name+'» هنوز دریافت آنلاین را فعال نکرده. عکس نتیجه را دانلود کن و از یکی از این راه‌ها برای سالن بفرست.'));
+  panel.append(notice('info',state.pub.demo?'این نسخهٔ نمونهٔ آینه است و سالنی برای دریافت ندارد. نتیجه را دانلود کن. برای اینکه مشتری‌های خودت به سالن خودت درخواست بفرستند، صفحهٔ آزمایشی رایگان را بساز.':'«'+s.name+'» هنوز دریافت آنلاین را فعال نکرده. عکس نتیجه را دانلود کن و از یکی از این راه‌ها برای سالن بفرست.'));
+  if(state.pub.demo)panel.append(el('a',{class:'btn btn--primary',href:'/#start',style:'margin-top:12px',text:'صفحهٔ آزمایشی رایگان سالن من'}));
   var ways=el('div',{class:'about__quick',style:'margin-top:14px'});
   if(p.phone)ways.append(el('a',{class:'btn btn--primary',href:'tel:'+p.phone,html:ICO.phone+'<span>تماس با سالن</span>'}));
   if(p.telegram)ways.append(el('a',{class:'btn btn--ghost',href:p.telegram,target:'_blank',rel:'noopener noreferrer',html:ICO.send+'<span>تلگرام سالن</span>'}));
