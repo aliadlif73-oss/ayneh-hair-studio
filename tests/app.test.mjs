@@ -693,3 +693,9 @@ test('without SMS invites the bot offers messenger buttons and /i/ is a send pag
   const bad=await app.fetch(new Request(origin+'/i/salon-a?r=<x>&to=javascript:1'),e);const bh=await bad.text();assert.doesNotMatch(bh,/javascript:1|<x>/);assert.match(bh,/\/s\/salon-a/);
   assert.equal((await app.fetch(new Request(origin+'/i/nope'),e)).status,404);
  }finally{tg.restore()}});
+
+test('salon address: capitals and spaces are normalised, duplicates and bad addresses get a clear message',async()=>{const e=fixture();
+ const r=await call(e,'/api/salons',{slug:'Aliadli Salon',name:'Ali adli'},OWNER);assert.equal(r.status,200,JSON.stringify(r));assert.equal(r.data.slug,'aliadli-salon');
+ const dup=await call(e,'/api/salons',{slug:'ALIADLI-salon',name:'x y'},OWNER);assert.equal(dup.status,400);assert.match(dup.data.error,/سالن دیگری گرفته/);
+ const bad=await call(e,'/api/salons',{slug:'سالن',name:'x y'},OWNER);assert.equal(bad.status,400);assert.match(bad.data.error,/aliadli-salon/);
+});
