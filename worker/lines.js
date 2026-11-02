@@ -16,11 +16,11 @@ export const FACE_LINES=['hair','color','lashes'];
 // Hair colours Iranian salons are asked for most (1405 trends: smoky olive, coffee-with-milk,
 // espresso, cherry cola, butter blonde, honey balayage, babylights) with the classics.
 export const COLOR_STYLES=[
- ['مشکی کلاغی','Raven black','تیره','glossy blue-black raven hair: one deep even black with a cool blue sheen where the light hits'],
+ ['مشکی کلاغی','Raven black','تیره','raven black: hair that is clearly BLACK, the deepest jet black, very glossy, with only a faint cool blue-black reflection in the brightest highlights; it must read as black, never navy or blue'],
  ['قهوه‌ای اسپرسو','Espresso brown','تیره','espresso brown: a very dark, rich brown that looks almost black in shadow and warm dark brown in the light, one even colour'],
  ['شکلاتی','Chocolate brown','قهوه‌ای','rich chocolate brown: a deep warm medium-dark brown, one even glossy colour'],
  ['نسکافه‌ای','Coffee-with-milk brown','قهوه‌ای','coffee-with-milk brown (نسکافه‌ای): a soft warm light-medium brown like milky coffee, one even colour'],
- ['دودی زیتونی','Smoky olive brown','قهوه‌ای','smoky olive brown (دودی زیتونی): a muted, cool, ashy medium brown with a faint olive-grey tone and no red or orange, one even colour'],
+ ['دودی زیتونی','Smoky olive brown','قهوه‌ای','smoky olive brown (دودی زیتونی): a medium-dark BROWN that is cool and muted, with a smoky ash veil and only a subtle olive undertone and no red, orange or gold; it must clearly read as brown hair, never green or grey, one even colour'],
  ['فندقی','Hazelnut brown','قهوه‌ای','hazelnut brown: a medium golden-warm brown, one even colour'],
  ['کاراملی','Caramel','قهوه‌ای','caramel: a warm light golden brown, one even colour'],
  ['عسلی','Honey brown','روشن و بلوند','honey brown: a warm golden light brown that glows amber in the light, one even colour'],
