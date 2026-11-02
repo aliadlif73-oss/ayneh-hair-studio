@@ -39,6 +39,41 @@ export const LASH_STYLES=[
  ['لیفت و لمینت','Lash lift and tint','بدون کاشت','a lash lift and tint on her own natural lashes: curled up from the root, darker and more visible, no extensions'],
  ['رگهٔ رنگی','Colour accents','پرحجم','black volume lashes with a few subtle coloured strands near the outer corners']
 ];
+// Lookbook photo of each catalog entry (scripts/generate-catalog.mjs). Every detail that defines the
+// look is spelled out (colour, finish, shape, length, placement) and everything else is excluded, so
+// the photo shows exactly the named style and nothing a customer could confuse it with.
+export const NAIL_SHOTS=[
+ 'a solid one-colour gel manicure: every nail painted in the same single glossy classic cherry red, smooth even coverage, NO French tips, NO nail art, NO glitter, NO gems; medium-length almond nails',
+ 'a classic French manicure on every nail: sheer pale natural pink base and a crisp opaque bright white tip of even width with a clean curved smile line; no other colour, no art, no glitter; medium-length squoval nails',
+ 'a micro French manicure on every nail: sheer nude-pink base and an ultra-thin white line about 1 mm wide only along the very edge of the tip; no other art; short natural rounded nails',
+ 'a coloured French manicure: sheer nude base on every nail and pastel tips in different soft colours (lilac, mint green, baby blue, peach, pink) with a clean curved smile line; no other art; medium-length almond nails',
+ 'baby boomer ombré on every nail: a seamless vertical fade from soft nude pink at the cuticle to milky white at the tip with no visible line between them; no art; medium-length almond nails',
+ 'a Russian manicure: very neat clean cuticle area and every nail coated in one sheer natural nude-pink gel that looks like perfect healthy bare nails, glossy; no colour, no art; short soft-square nails',
+ 'silver mirror chrome on every nail: a solid, highly reflective metallic silver finish that looks like a mirror with bright reflections; no other colour or art; medium-length almond nails',
+ 'glazed pearl nails: every nail a milky white translucent base with an iridescent pearly chrome sheen, like a glazed doughnut; no art; short-medium rounded almond nails',
+ 'magnetic cat-eye gel nails: every nail deep burgundy with a bright diagonal shimmering band of light across the middle of the nail, like a cat\'s eye gemstone; no other art; medium-length almond nails',
+ 'jelly nails: every nail a translucent see-through glossy soft-pink tinted gel, the nail tip visible through the colour like stained glass; no art; medium-length oval nails',
+ 'matte nails: every nail one solid dusty-rose colour with a completely flat, velvety, non-shiny matte finish and no gloss or reflections at all; no art; medium-length squoval nails',
+ 'full glitter nails: every nail densely and evenly covered in fine sparkling champagne-gold glitter from cuticle to tip; no other art; medium-length almond nails',
+ 'white marble nail art: every nail a glossy white base with thin soft grey marble veins and a few fine gold vein lines, like Carrara marble; medium-length almond nails',
+ 'minimal nail art: all nails a sheer nude base; the ring-finger and middle-finger nails each carry one tiny white hand-painted daisy and two small dots; the other nails are plain nude with one thin white diagonal line; medium-length oval nails',
+ 'geometric nail art: all nails a nude base with thin crisp black lines forming triangles and stripes, plus small solid blocks of black and white; clean graphic design; medium-length square nails',
+ 'rhinestone nails: every nail a glossy nude-pink gel with a neat row of small clear rhinestones along the cuticle; the ring-finger nail also has a small cluster of larger crystals; medium-length almond nails',
+ 'aura nails: every nail a soft nude base with a blurred, airbrushed glowing circle of pink and violet in the centre that fades outwards to the edges, no hard lines; medium-length almond nails',
+ 'smoky cloud nails: every nail glossy with soft grey, white and charcoal swirls blended together like smoke; no other art; medium-length almond nails'
+];
+export const LASH_SHOTS=[
+ 'classic eyelash extensions: exactly one extension on each natural upper lash, about 10 mm, black; the lashes are clearly separated so individual lashes can be counted, with small even gaps between them; natural and light, like perfect mascara, NOT dense, NO fans',
+ 'hybrid eyelash extensions: a visible mix of single separated lashes and small soft fans of 2–3 fine lashes; medium density with texture and a few small gaps, clearly fuller than classic but lighter than volume, about 11 mm',
+ 'Russian volume eyelash extensions: soft fluffy fans of many very fine lashes forming a full, dense, dark lash line with no gaps at all, about 11–12 mm, soft even C curl, uniform smooth edge',
+ 'mega volume eyelash extensions: an extremely dense, very dark, thick lash line that looks like a black eyeliner band at the base, about 13–14 mm, heavy and dramatic',
+ 'wet-look eyelash extensions: shiny lashes grouped into closed, pointed, glossy spikes as if wet, the spikes clearly separated with small gaps between them, about 11 mm',
+ 'wispy "Kim K" eyelash extensions: a soft fluffy base of medium lashes with distinctly longer, thicker spikes standing out every few millimetres along the lash line, giving an uneven, textured, spiky top edge',
+ 'anime-style eyelash extensions: thick, separated, triangular spikes with clear gaps between them along the upper lashes, plus a few small spikes on the lower lash line, doll-like',
+ 'a lash lift and tint on her own short natural lashes only: her real lashes curled sharply straight up from the root and tinted dark black, natural short length, sparse as real lashes are, absolutely NO extensions and NO false lashes',
+ 'black volume eyelash extensions with several bright violet and blue coloured strands mixed in, mostly at the outer corners, clearly visible colour'
+];
+
 // Extra choices shown as chips under the catalog. Index 0 of each list is never forced: no pick
 // means "what suits her" in the prompt.
 export const LINE_OPTIONS={
@@ -84,6 +119,7 @@ export function linePrompt(line,mode,style,opts,color){
    '\nNAIL SHAPE: '+(shape||(mode==='reference'?'as in photo 2, adapted to her fingers':'a shape that suits her fingers'))+'.'+
    '\nNAIL LENGTH: '+(len||(mode==='reference'?'as in photo 2':'medium'))+'.'+
    (color?'\nNAIL COLOUR: '+colourEn('nails',color)+'.'+(mode==='reference'?' This overrides the colour in photo 2.':''):'')+
+   '\nDo not add any nail art, glitter, gems or colours that are not described.'+
    '\nREALISM: real gel gloss and reflections matching the photo\'s light, each nail sitting naturally on its finger with correct perspective and curvature, clean edges along the cuticles and sidewalls, every visible nail done consistently.'+OUT;
  }
  if(line==='lashes'){
@@ -93,6 +129,7 @@ export function linePrompt(line,mode,style,opts,color){
    (mode==='reference'?'Photo 2 is ONLY a lash reference: ignore its face, eyes, makeup and background.\nLASHES: copy the lash style, density, curl and mapping from photo 2 onto both of her eyes.':'LASHES: '+style+' on both eyes.')+
    (map?'\nLASH MAPPING: '+map+'.':'')+(len?'\nLASH LENGTH: '+len+'.':'')+
    (color?'\nLASH COLOUR: '+colourEn('lashes',color)+'.':'')+
+   '\nKeep the lash type exactly as described; do not change her brows or add eyeliner.'+
    '\nREALISM: individual lash fibres rooted along the lash line, natural curl and spacing, correct perspective and symmetry on both eyes, soft believable shadow on the eyelid; lower lashes stay natural.'+OUT;
  }
  return '';
