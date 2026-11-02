@@ -149,7 +149,7 @@ test('unknown pages and APIs return 404; old access links are gone; HEAD and fav
  assert.equal((await app.fetch(new Request(origin+'/api/nope'),e)).status,404);
  assert.equal((await app.fetch(new Request(origin+'/',{method:'HEAD'}),e)).status,200);
  assert.equal((await app.fetch(new Request(origin+'/favicon.ico'),e)).status,204);
- assert.equal((await app.fetch(new Request(origin+'/s/salon-a'),e)).status,200);
+ assert.equal((await app.fetch(new Request(origin+'/s/salon-a'),e)).status,404,'a salon that does not exist is a real 404');
  assert.equal((await app.fetch(new Request(origin+'/s/salon-a/access'),e)).status,404);
  assert.equal((await app.fetch(new Request(origin+'/s/Bad Slug'),e)).status,404);
  assert.match(await (await app.fetch(new Request(origin+'/admin'),e)).text(),/<title>آینه \| مدیریت سالن‌ها/);
@@ -437,7 +437,7 @@ test('salon pages carry their own link preview; salon work is tryable by default
  const html=await (await app.fetch(new Request(origin+'/s/salon-a'),e)).text();
  assert.match(html,/<title>سالن &quot;ساناز&quot; &amp; دوستان \| /);assert.match(html,/og:image" content="https:\/\/test\.example\/api\/s\/salon-a\/media\//);assert.match(html,/og:description" content="تخصص ما رنگ است\./);
  assert.equal((html.match(/property="og:title"/g)||[]).length,1,'no duplicate tags');
- assert.match(await (await app.fetch(new Request(origin+'/s/unknown-salon'),e)).text(),/og:title" content="آینه/);
+ const unknown=await app.fetch(new Request(origin+'/s/unknown-salon'),e);assert.equal(unknown.status,404);assert.match(await unknown.text(),/پیدا نشد/);
  assert.equal((await call(e,'/api/s/salon-a/public')).data.reference,true);
  await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true,reference_verified:false},OWNER);assert.equal((await call(e,'/api/s/salon-a/public')).data.reference,false);
 });
@@ -665,3 +665,14 @@ test('nails and lashes: line prompts with options, photo-shaped output, no 360, 
   const st=(await call(e,'/api/owner/stats?days=7',undefined,OWNER)).data;assert.equal(st.lines.requests.nails,1);
  }finally{tg.restore()}
 });
+
+test('review fixes: send form shows when only members can receive; long free text is cut, not rejected',async()=>{const e=tgEnv(fixture()),s=await salon(e);const tg=mockTelegram();try{
+ assert.equal((await call(e,'/api/s/salon-a/public')).data.telegram,false);
+ const r=await call(e,'/api/s/salon-a/owner/team',{name:'مریم',specialty:'ناخن'},OWNER);
+ assert.equal((await call(e,'/api/s/salon-a/public')).data.telegram,true,'a member can receive (or the request waits for them)');
+ await hook(e,{message:{chat:{id:4001,type:'private'},text:'/start '+r.data.links.telegram.split('start=')[1]}});
+ await visit(e,s,V(1),r.data.ref.split('r=')[1]);const g=await guest(e,s);
+ const d=await sendLead(e,s,g,{v:V(1),phone:'09120000041',name:'ن'.repeat(140),look:'ل'.repeat(300),note:'x'.repeat(2000),color:'ر'.repeat(200)});
+ const row=e.DB.sql.prepare('SELECT name,look,note,color FROM leads WHERE id=?').get(d.id);assert.equal(row.name.length,100);assert.equal(row.look.length,150);assert.equal(row.note.length,1000);assert.equal(row.color.length,120);
+ assert(tg.calls.some(c=>String(c.body.chat_id)==='4001'&&(c.body.text||'').includes('درخواست تازه')));
+}finally{tg.restore()}});

@@ -34,6 +34,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 migrations apply DB --remote
       - name: Deploy worker
+        id: deploy
         if: steps.config.outputs.ready == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
@@ -52,7 +53,8 @@ jobs:
           OWNER_PASSWORD_HASH: ${{ secrets.OWNER_PASSWORD_HASH }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
           JOB_TOKEN: ${{ secrets.JOB_TOKEN }}
-          APP_ORIGIN: ${{ secrets.APP_ORIGIN }}
+          # Without the APP_ORIGIN secret, the address wrangler just deployed to is used.
+          APP_ORIGIN: ${{ secrets.APP_ORIGIN || steps.deploy.outputs.deployment-url }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
           TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
@@ -78,7 +80,7 @@ jobs:
         env:
           TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
-          ORIGIN: ${{ secrets.APP_ORIGIN }}
+          ORIGIN: ${{ secrets.APP_ORIGIN || steps.deploy.outputs.deployment-url }}
         run: |
           if [ -z "$TOKEN" ] || [ -z "$SECRET" ] || [ -z "$ORIGIN" ]; then echo "Telegram or APP_ORIGIN not configured; skipping webhook."; exit 0; fi
           curl -sS -o /dev/null -w "setWebhook HTTP %{http_code}\n" "https://api.telegram.org/bot$TOKEN/setWebhook" \
@@ -89,10 +91,12 @@ jobs:
         env:
           TOKEN: ${{ secrets.BALE_BOT_TOKEN }}
           SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
-          ORIGIN: ${{ secrets.APP_ORIGIN }}
+          ORIGIN: ${{ secrets.APP_ORIGIN || steps.deploy.outputs.deployment-url }}
         run: |
           if [ -z "$TOKEN" ] || [ -z "$SECRET" ] || [ -z "$ORIGIN" ]; then echo "Bale or APP_ORIGIN not configured; skipping."; exit 0; fi
           curl -sS -o /dev/null -w "Bale setWebhook HTTP %{http_code}\n" "https://tapi.bale.ai/bot$TOKEN/setWebhook" --data-urlencode "url=$ORIGIN/api/bale/webhook/$SECRET"
       - name: Summary
         if: steps.config.outputs.ready == 'true'
-        run: echo "Deployed https://ayneh-hair-studio.<your-subdomain>.workers.dev" >> "$GITHUB_STEP_SUMMARY"
+        env:
+          URL: ${{ secrets.APP_ORIGIN || steps.deploy.outputs.deployment-url }}
+        run: echo "Deployed ${URL:-(address not reported)}" >> "$GITHUB_STEP_SUMMARY"
