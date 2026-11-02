@@ -26,17 +26,17 @@ const rand=()=>Array.from(crypto.getRandomValues(new Uint8Array(4)),x=>x.toStrin
 // and the lead for the project owner in one go, and returns the page address.
 export async function createTrial(db,env,origin,b){
  must(b.consent===true,'برای ساخت صفحه، تأیید تماس لازم است');
- const name=text(String(b.name||''),60),salon=text(String(b.salon||''),80),city=text(String(b.city||''),40),note=text(String(b.note||''),300);
- must(name.length>=2,'نام خودت را بنویس');must(salon.length>=2,'نام سالن را بنویس');
+ const name=text(String(b.name||''),60)||'مدیر سالن',salon=text(String(b.salon||''),80),city=text(String(b.city||''),40),note=text(String(b.note||''),300),chosen=text(String(b.chosen||''),90);
+ must(salon.length>=2,'نام سالن را بنویسید');
  const tel=phone(b.phone),brand=BRANDS.includes(b.brand)?b.brand:BRANDS[0];
  must(!await one(db,'SELECT 1 FROM trials WHERE phone=?',tel),'برای این شماره قبلاً صفحهٔ آزمایشی ساخته شده است؛ با ما تماس بگیرید',409);
  const id=uid(),salonId=uid(),slug='t-'+rand(),now=Date.now(),expires=now+TRIAL_HOURS*3600000;
  await db.batch([
   db.prepare('INSERT INTO salons(id,slug,owner_id,name,created_at,profile,settings) VALUES(?,?,?,?,?,?,?)').bind(salonId,slug,'trial',salon,now,JSON.stringify(city?{address:city}:{}),JSON.stringify({generation_enabled:true,reference_verified:true,trial:true})),
   db.prepare('INSERT INTO trials(id,salon_id,name,phone,brand,created_at,expires_at,images_limit) VALUES(?,?,?,?,?,?,?,?)').bind(id,salonId,name,tel,brand,now,expires,TRIAL_IMAGES),
-  db.prepare('INSERT INTO inquiries(id,name,salon,city,phone,note,chosen,created_at) VALUES(?,?,?,?,?,?,?,?)').bind(uid(),name,salon,city,tel,note,'صفحهٔ آزمایشی '+slug,now)
+  db.prepare('INSERT INTO inquiries(id,name,salon,city,phone,note,chosen,created_at) VALUES(?,?,?,?,?,?,?,?)').bind(uid(),name,salon,city,tel,note,'صفحهٔ آزمایشی '+slug+(chosen?' · '+chosen:''),now)
  ]);
  const url=(env.APP_ORIGIN||origin)+'/s/'+slug;
- await notifyOwner(env,{kind:'trial',level:'good',text:'صفحهٔ آزمایشی «'+salon+'»'+(city?' ('+city+')':'')+' ساخته شد',detail:'👤 '+name+'\n📞 '+tel+'\n🔗 '+url+'\n⏳ '+TRIAL_HOURS+' ساعت · '+TRIAL_IMAGES+' تصویر'+(note?'\n📝 '+note:'')});
+ await notifyOwner(env,{kind:'trial',level:'good',text:'صفحهٔ آزمایشی «'+salon+'»'+(city?' ('+city+')':'')+' ساخته شد',detail:'👤 '+name+'\n📞 '+tel+'\n🔗 '+url+'\n⏳ '+TRIAL_HOURS+' ساعت · '+TRIAL_IMAGES+' تصویر'+(chosen?'\n✨ '+chosen:'')+(note?'\n📝 '+note:'')});
  return {ok:true,path:'/s/'+slug,url,expires_at:expires,images:TRIAL_IMAGES,hours:TRIAL_HOURS};
 }

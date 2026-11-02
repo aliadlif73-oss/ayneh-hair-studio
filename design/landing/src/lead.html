@@ -1,16 +1,17 @@
         <form class="path path--form" id="leadForm" novalidate aria-labelledby="h-lead">
-          <h3 id="h-lead">صفحهٔ آزمایشی سالن من را بساز</h3>
-          <p>چند ثانیه طول می‌کشد. صفحه ۱۰ ساعت فعال است، ۵ تصویر دارد و پرداختی لازم ندارد.</p>
+          <h3 id="h-lead">صفحهٔ آزمایشی سالن من</h3>
+          <p>فقط نام سالن و شمارهٔ موبایل را بنویسید. صفحه چند ثانیه بعد آماده است.</p>
           <div class="lf-grid">
-            <div class="lf-field"><label for="lf-name">نام شما</label><input id="lf-name" name="name" type="text" autocomplete="name" maxlength="60" required></div>
             <div class="lf-field"><label for="lf-salon">نام سالن</label><input id="lf-salon" name="salon" type="text" autocomplete="organization" maxlength="80" required></div>
-            <div class="lf-field"><label for="lf-city">شهر</label><input id="lf-city" name="city" type="text" autocomplete="address-level2" maxlength="40"></div>
             <div class="lf-field"><label for="lf-phone">شمارهٔ موبایل</label><input id="lf-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="۰۹۱۲۰۰۰۰۰۰۰" maxlength="20" required></div>
+            <div class="lf-field"><label for="lf-name">نام شما <span class="opt">(اختیاری)</span></label><input id="lf-name" name="name" type="text" autocomplete="name" maxlength="60"></div>
+            <div class="lf-field"><label for="lf-city">شهر <span class="opt">(اختیاری)</span></label><input id="lf-city" name="city" type="text" autocomplete="address-level2" maxlength="40"></div>
           </div>
-          <div class="lf-field"><label for="lf-note">توضیح (اختیاری)</label><textarea id="lf-note" name="note" rows="2" maxlength="300"></textarea></div>
+          <p class="lf-plan" id="lf-plan" hidden></p>
           <div class="lf-hp" aria-hidden="true"><label for="lf-web">وب‌سایت</label><input id="lf-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-          <label class="lf-check" for="lf-consent"><input id="lf-consent" name="consent" type="checkbox"><span>موافقم که آینه برای ادامه با من تماس بگیرد.</span></label>
+          <label class="lf-check" for="lf-consent"><input id="lf-consent" name="consent" type="checkbox"><span>موافقم که آینه بعد از امتحان صفحه، برای راهنمایی با من تماس بگیرد.</span></label>
           <p class="lf-err" id="lf-err" role="alert"></p>
           <button class="btn btn--lg" type="submit" id="lf-send"><span>صفحهٔ سالن مرا بساز</span><span class="arrow" aria-hidden="true">←</span></button>
+          <p class="lf-micro">۱۰ ساعت · ۵ تصویر · بدون پرداخت و کارت بانکی</p>
           <p class="lf-done" id="lf-done" role="status" hidden></p>
         </form>

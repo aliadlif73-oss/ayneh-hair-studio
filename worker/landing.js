@@ -5,11 +5,11 @@ export const landingHTML=`<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>آینه | مو، ناخن و مژهٔ بعدی‌ات را ببین</title>
-<meta name="description" content="آینه مشاوره تصویری مدل و رنگ مو، طرح ناخن و مدل مژه است. مدل را انتخاب کن، اگر سالن شبیه‌سازی را فعال کرده روی عکس خودت ببین و درخواستت را برای سالن بفرست.">
+<title>آینه | مشتری‌تان مدل مو، ناخن و مژه‌اش را قبل از آمدن می‌بیند</title>
+<meta name="description" content="صفحهٔ اینترنتی سالن شما: مشتری مدل مو، رنگ، طرح ناخن و مژه را روی عکس خودش امتحان می‌کند و درخواستش را با عکس به تلگرام یا بله شما می‌فرستد. صفحهٔ آزمایشی رایگان.">
 <meta name="theme-color" content="#F8F2EB">
-<meta property="og:title" content="آینه | مو، ناخن و مژهٔ بعدی‌ات را ببین">
-<meta property="og:description" content="مدل و رنگ را انتخاب کن، نتیجه را روی عکس خودت ببین و برای سالن بفرست.">
+<meta property="og:title" content="آینه | مشتری‌تان قبل از نشستن روی صندلی می‌داند چه می‌خواهد">
+<meta property="og:description" content="صفحهٔ آزمایشی رایگان برای سالن‌های مو، ناخن و مژه. ۱۰ ساعت وقت دارید و ۵ تصویر.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fa_IR">
 <meta property="og:image" content="__ORIGIN__/landing/og.jpg">
@@ -510,6 +510,22 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
   .cap{position:static;opacity:1;transform:none;grid-area:auto}.cap-row{display:block}.cap:not(:first-child){display:none}
 }
 
+/* CTA bands, sticky mobile CTA, plan buttons, form microcopy */
+.cta-band{padding:clamp(40px,6vw,72px) var(--gut);background:var(--espresso);color:var(--cream)}
+.cta-band--final{background:var(--espresso-2)}
+.cta-band__in{max-width:760px;margin:0 auto;text-align:center;display:grid;gap:14px;justify-items:center}
+.cta-band h2{margin:0;font-size:clamp(24px,3.2vw,38px);line-height:1.6;font-weight:800;text-wrap:balance}
+.cta-band p{margin:0;color:var(--ivory-2);font-size:18px;line-height:1.9;max-width:56ch}
+.cta-band .btn{margin-top:6px;background:var(--cream);color:var(--espresso)}
+.plan-cta{margin-top:16px;width:100%}
+.lf-micro{margin:8px 0 0;font-size:13.5px;color:var(--ivory-2);text-align:center}
+.lf-plan{margin:0 0 10px;font-size:14px;font-weight:700;color:var(--brass-soft)}
+.lf-field .opt{font-weight:500;opacity:.7;font-size:.9em}
+.sticky-cta{position:fixed;inset-inline:max(16px,env(safe-area-inset-left,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));z-index:35;display:none;align-items:center;justify-content:center;gap:10px;min-height:52px;border-radius:var(--r-pill);background:var(--espresso);color:var(--cream);font-weight:800;font-size:17px;box-shadow:0 14px 34px rgba(22,13,7,.4);border:1.5px solid var(--brass)}
+.sticky-cta.show{display:flex}
+@media (min-width:901px){.sticky-cta{display:none!important}}
+@media (prefers-reduced-motion:no-preference){.sticky-cta.show{animation:rise 400ms var(--ease) both}}
+
 .compare{margin-top:0}
 @media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}
 </style>
@@ -564,12 +580,12 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
       <div class="fade" id="fade" aria-hidden="true"></div>
 
       <div class="copy" id="copy">
-        <p class="eyebrow reveal">برای صاحبان سالن · مو، ناخن و مژه</p>
-        <h1 id="h1" class="reveal">مشتری‌ات قبل از آمدن می‌داند چه می‌خواهد.</h1>
-        <p class="lead reveal">با آینه، مشتری مدل و رنگ را روی صفحهٔ سالن تو انتخاب می‌کند و درخواستش را به ربات تلگرام یا بله‌ات می‌فرستد. همین آینه را همین‌جا امتحان کن.</p>
+        <p class="eyebrow reveal">برای صاحبان سالن مو، ناخن و مژه</p>
+        <h1 id="h1" class="reveal">مشتری‌تان قبل از نشستن روی صندلی می‌داند چه می‌خواهد.</h1>
+        <p class="lead reveal">آینه یک صفحهٔ اینترنتی برای سالن شماست. مشتری عکسش را می‌گذارد، مدل مو، رنگ، طرح ناخن یا مژه را روی خودش می‌بیند و درخواستش را با عکس به تلگرام یا بله شما می‌فرستد. همین حالا خودتان امتحانش کنید.</p>
         <ul class="lines-row reveal" aria-label="خدمات پوشش‌داده‌شده"><li>مو</li><li>ناخن</li><li>مژه</li></ul>
-        <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" data-try="hair" href="/s/demo?l=hair"><span>ساخت تصویر روی عکس خودم</span></a></div>
-        <p class="fineprint reveal">شبیه‌سازی پیشنهادی است، نه تضمین نتیجه.</p>
+        <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" data-try="hair" href="/s/demo?l=hair"><span>امتحان روی عکس خودم</span></a></div>
+        <p class="fineprint reveal">رایگان، بدون کارت بانکی: ۱۰ ساعت و ۵ تصویر. شبیه‌سازی پیشنهادی است و نتیجه را تضمین نمی‌کند.</p>
       </div>
 
       <div class="colors glass" id="colors">
@@ -586,7 +602,7 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
 
       <div class="result glass" id="result" role="status" aria-live="polite">
         <span id="resultText"></span>
-        <a class="btn" href="#start"><span>این ترکیب را بفرست</span><span class="arrow" aria-hidden="true">←</span></a>
+        <a class="btn" href="#start"><span>همین را برای سالنم بساز</span><span class="arrow" aria-hidden="true">←</span></a>
       </div>
 
 
@@ -608,12 +624,12 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
   <section id="pain" class="scene scene--pain" data-scene="pain" aria-labelledby="h-pain">
     <div class="sstage">
       <div class="scene-head">
-        <p class="kicker">مشکل هر سالن</p>
+        <p class="kicker">هر روز در سالن</p>
         <h2 id="h-pain">سه ربع مشاوره، با یک عکس از اینستاگرام.</h2>
       </div>
       <figure class="film-frame film-frame--pain">
         <img src="/landing/a2.webp" alt="ده‌ها عکس مرجع مختلف روی هم، هر کدام سلیقه‌ای متفاوت" width="1254" height="1254" loading="lazy" id="painImg">
-        <figcaption class="cap-row"><span class="cap is-on" data-from="0" data-to=".5">مشتری چند عکس نشان می‌دهد، هر کدام یک سلیقه.</span><span class="cap" data-from=".5" data-to="1.01">تا مدل مشخص شود، وقت صندلی و حوصلهٔ هر دو تمام شده است.</span></figcaption>
+        <figcaption class="cap-row"><span class="cap is-on" data-from="0" data-to=".5">مشتری گوشی‌اش را باز می‌کند و چند عکس نشان می‌دهد. هر عکس یک سلیقه است.</span><span class="cap" data-from=".5" data-to="1.01">تا مدل مشخص شود، وقت صندلی رفته و هر دو خسته شده‌اید.</span></figcaption>
       </figure>
       <p class="ai-note">نمونهٔ تصویری ساخته‌شده با هوش مصنوعی</p>
     </div>
@@ -623,11 +639,11 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
     <div class="sstage">
       <div class="scene-head">
         <p class="kicker">با آینه</p>
-        <h2 id="h-tr">از عکس تا تصمیم، چند ثانیه.</h2>
+        <h2 id="h-tr">از یک عکس تا تصمیم، چند ثانیه.</h2>
       </div>
       <figure class="film-frame">
         <canvas class="film-canvas" data-set="hair" data-n="52" data-fx=".5" role="img" aria-label="موی بلند و مسی یک مشتری که تدریجی به باب بلوند شامپاینی تبدیل می‌شود"></canvas>
-        <figcaption class="cap-row"><span class="cap is-on" data-from="0" data-to=".34">عکس مشتری: مو بلند و مسی.</span><span class="cap" data-from=".34" data-to=".7">مدل و رنگ را انتخاب می‌کند.</span><span class="cap" data-from=".7" data-to="1.01">نتیجه را قبل از آمدن می‌بیند.</span></figcaption>
+        <figcaption class="cap-row"><span class="cap is-on" data-from="0" data-to=".34">مشتری یک عکس از خودش می‌گذارد: موی بلند و مسی.</span><span class="cap" data-from=".34" data-to=".7">مدل و رنگ دلخواهش را انتخاب می‌کند.</span><span class="cap" data-from=".7" data-to="1.01">نتیجه را روی خودش می‌بیند و با خیال راحت می‌آید.</span></figcaption>
         <div class="rail" aria-hidden="true"><i id="railTr"></i></div>
       </figure>
       <p class="ai-note">نمونهٔ تصویری ساخته‌شده با هوش مصنوعی</p>
@@ -638,15 +654,23 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
     <div class="sstage">
       <div class="scene-head">
         <p class="kicker">ناخن و مژه</p>
-        <h2 id="h-ln">همین کار برای ناخن و مژه.</h2>
+        <h2 id="h-ln">برای ناخن و مژه هم همین‌طور.</h2>
       </div>
       <figure class="film-frame">
         <canvas class="film-canvas" data-set="nails" data-n="45" data-fx=".5" role="img" aria-label="ناخن‌های ساده که به فرنچ بادامی با خط طلایی تبدیل می‌شوند"></canvas>
         <canvas class="film-canvas film-canvas--b" data-set="lashes" data-n="43" data-fx=".42" role="img" aria-label="مژه‌های طبیعی که پرتر و حالت‌دارتر می‌شوند"></canvas>
-        <figcaption class="cap-row"><span class="cap is-on" data-from="0" data-to=".5">طرح ناخن را قبل از لاک ببین.</span><span class="cap" data-from=".5" data-to="1.01">حالت مژه را قبل از اکستنشن ببین.</span></figcaption>
+        <figcaption class="cap-row"><span class="cap is-on" data-from="0" data-to=".5">طرح ناخن را قبل از لاک روی دست خودش می‌بیند.</span><span class="cap" data-from=".5" data-to="1.01">حالت مژه را قبل از اکستنشن می‌بیند.</span></figcaption>
         <div class="rail" aria-hidden="true"><i id="railLn"></i></div>
       </figure>
       <p class="ai-note">نمونهٔ تصویری ساخته‌شده با هوش مصنوعی</p>
+    </div>
+  </section>
+
+  <section class="cta-band" aria-labelledby="h-cta1">
+    <div class="cta-band__in">
+      <h2 id="h-cta1">دوست دارید مشتری‌های شما همین تجربه را داشته باشند؟</h2>
+      <p>صفحهٔ سالن خودتان را همین حالا بسازید و درست مثل یک مشتری امتحانش کنید. رایگان است و کارت بانکی نمی‌خواهد.</p>
+      <a class="btn btn--lg" href="#start" data-cta="mid"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
     </div>
   </section>
 
@@ -654,17 +678,17 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
   <section id="experience" class="s2 on-dark" aria-labelledby="h-exp" tabindex="-1">
     <div class="s2-grid wrap">
       <div class="s2-copy">
-        <p class="kicker">از آینه تا سالن</p>
-        <h2 id="h-exp">مشتری انتخابش را می‌فرستد، سالن در همان چت می‌بیند.</h2>
-        <p class="sub">هر درخواست با عکس، مدل و رنگ انتخاب‌شده به ربات سالن در تلگرام یا بله می‌رسد. سالن با یک ضربه وضعیت را مشخص می‌کند و مشتری همان را در صفحهٔ خودش می‌بیند.</p>
+        <p class="kicker">بعد از انتخاب مشتری</p>
+        <h2 id="h-exp">درخواست مشتری، با عکس و همهٔ جزئیات، در چت سالن می‌نشیند.</h2>
+        <p class="sub">هر درخواست با عکس، مدل و رنگ انتخاب‌شده به ربات تلگرام یا بله شما می‌رسد. با یک ضربه وضعیتش را مشخص می‌کنید و مشتری همان را در صفحهٔ خودش می‌بیند.</p>
         <ul class="s2-points">
-          <li><strong>بدون پنل جدید</strong><span>سالن همان پیام‌رسانی را باز می‌کند که هر روز استفاده می‌کند.</span></li>
-          <li><strong>وضعیت با یک ضربه</strong><span>«تماس گرفتم»، «نوبت شد» یا «انجام نمی‌دهم»؛ بدون نوشتن پیام.</span></li>
-          <li><strong>مشتری بی‌خبر نمی‌ماند</strong><span>نتیجهٔ همان ضربه در صفحهٔ خود مشتری نمایش داده می‌شود.</span></li>
+          <li><strong>چیز تازه‌ای یاد نمی‌گیرید</strong><span>شما و همکارانتان همان پیام‌رسانی را باز می‌کنید که هر روز باز می‌کنید.</span></li>
+          <li><strong>وضعیت با یک ضربه</strong><span>«تماس گرفتم»، «نوبت شد» یا «انجام نمی‌دهم»؛ بدون تایپ کردن.</span></li>
+          <li><strong>مشتری بی‌خبر نمی‌ماند</strong><span>نتیجهٔ همان ضربه در صفحهٔ خود مشتری دیده می‌شود.</span></li>
         </ul>
         <div class="s2-cta">
           <a class="btn btn--lg" href="#start"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
-          <a class="btn btn--ghost" href="#plans">قیمت پلن‌ها</a>
+          <a class="btn btn--ghost" href="#plans">دیدن قیمت پلن‌ها</a>
         </div>
       </div>
 
@@ -691,7 +715,7 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
         </div>
         <div class="cust" id="s2cust" aria-live="polite">
           <small>مشتری در صفحهٔ سالن می‌بیند</small>
-          <strong id="s2custText">درخواستت به دست سالن رسید.</strong>
+          <strong id="s2custText">درخواست شما به دست سالن رسید.</strong>
         </div>
       </div>
     </div>
@@ -702,36 +726,36 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
   <section id="services" class="section" aria-labelledby="h-svc" tabindex="-1">
     <div class="wrap">
       <div class="sec-head">
-        <p class="kicker">سه خدمت، یک تجربه</p>
-        <h2 id="h-svc">مو، ناخن و مژه؛ هر کدام با انتخاب‌های خودش.</h2>
-        <p class="sub">در بالای صفحهٔ هر سالن یک کلید سه‌حالته هست. هر خدمت عکس، انتخاب‌ها و نتیجهٔ جداگانه دارد و با عوض‌کردن خدمت چیزی از دست نمی‌رود.</p>
+        <p class="kicker">مو، ناخن، مژه</p>
+        <h2 id="h-svc">سه خدمت، هر کدام با انتخاب‌های خودش.</h2>
+        <p class="sub">بالای صفحهٔ سالن شما یک کلید سه‌حالته است. مشتری بین مو، ناخن و مژه جابه‌جا می‌شود و هر کدام عکس، انتخاب و نتیجهٔ جدا دارد.</p>
       </div>
       <div class="cards3">
         <article class="svc">
           <div class="ico"><span><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4c-5 0-8 3.800-8 8.500V18c0 2 .8 3.600 2 4.800V28l3.200-2.400L16 28l2.800-2.400L22 28v-5.200c1.200-1.200 2-2.800 2-4.800v-5.500C24 7.800 21 4 16 4z"/><path d="M11 13c3 0 6-1.600 8-4 .8 2 2 3.200 3.800 3.800"/></svg></span></div>
           <h3>مدل و رنگ مو</h3>
-          <p>مدل آماده یا نمونه‌کار خود سالن را انتخاب کن، رنگ را از سواچ‌ها بردار یا خودت بنویس و اگر سالن شبیه‌سازی را فعال کرده باشد روی عکس خودت ببین. نمای ۳۶۰ درجه فقط برای مو است.</p>
+          <p>مشتری یکی از مدل‌های آماده یا نمونه‌کارهای خود شما را برمی‌دارد، رنگ را از سواچ‌ها انتخاب می‌کند یا می‌نویسد و اگر شبیه‌سازی برای سالن روشن باشد، نتیجه را روی عکس خودش می‌بیند. نمای ۳۶۰ درجه هم برای مو هست.</p>
           <ul class="picks"><li>ولف‌کات</li><li>پروانه‌ای</li><li>چتری پرده‌ای</li><li>آمبره</li></ul>
-          <a class="btn btn--ghost svc-try" data-try="hair" href="/s/demo?l=hair"><span>ساخت تصویر روی عکس خودم</span></a>
+          <a class="btn btn--ghost svc-try" data-try="hair" href="/s/demo?l=hair"><span>امتحان روی عکس خودم</span></a>
         </article>
         <article class="svc">
           <div class="ico"><span><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M12 28V14c0-4 1.600-8 4-10 2.400 2 4 6 4 10v14"/><path d="M12 18h8"/><path d="M8 28h16"/></svg></span></div>
           <h3>طرح ناخن</h3>
-          <p>از روی عکس دست، یکی از طرح‌های آماده را امتحان کن و فرم، طول و رنگ ناخن را انتخاب کن. به‌جای حدس‌زدن، همان را برای سالن می‌فرستی.</p>
+          <p>مشتری عکس دستش را می‌گذارد و از بین طرح‌های آماده، فرم، طول و رنگ ناخن را انتخاب می‌کند. به‌جای حدس زدن، همان را برای شما می‌فرستد.</p>
           <p class="count">۱۸ طرح آماده</p>
           <ul class="picks"><li>فرنچ</li><li>میکرو فرنچ</li><li>کروم</li><li>کت‌آی</li><li>مرواریدی</li></ul>
-          <a class="btn btn--ghost svc-try" data-try="nails" href="/s/demo?l=nails"><span>ساخت تصویر روی عکس خودم</span></a>
+          <a class="btn btn--ghost svc-try" data-try="nails" href="/s/demo?l=nails"><span>امتحان روی عکس خودم</span></a>
         </article>
         <article class="svc">
           <div class="ico"><span><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M3 19c3.500-5 8-7.500 13-7.500S25.500 14 29 19c-3.500 5-8 7.500-13 7.500S6.500 24 3 19z"/><circle cx="16" cy="19" r="3.600"/><path d="M5 11 7.500 14M11 7.500l1.200 3.500M16 6v4M21 7.500 19.800 11M27 11l-2.500 3"/></svg></span></div>
           <h3>مدل مژه</h3>
-          <p>از روی عکس نزدیک چشم، نوع مژه، حالت چیدمان و طول را انتخاب کن. مژه می‌تواند از همان عکس صورتی که برای مو دادی شروع شود.</p>
+          <p>با یک عکس نزدیک از چشم، نوع مژه، حالت و طول را انتخاب می‌کند و می‌بیند به او می‌آید یا نه. می‌تواند از همان عکس صورتی شروع کند که برای مو گذاشته است.</p>
           <p class="count">۹ نوع مژه</p>
           <ul class="picks"><li>کلاسیک</li><li>هیبریدی</li><li>والیوم</li><li>لیفت و لمینت</li><li>گربه‌ای</li></ul>
-          <a class="btn btn--ghost svc-try" data-try="lashes" href="/s/demo?l=lashes"><span>ساخت تصویر روی عکس خودم</span></a>
+          <a class="btn btn--ghost svc-try" data-try="lashes" href="/s/demo?l=lashes"><span>امتحان روی عکس خودم</span></a>
         </article>
       </div>
-      <p class="note-bar">آینه جایگزین مشاوره حضوری نیست؛ نتیجهٔ شبیه‌سازی تقریبی است و تصمیم نهایی، زمان و هزینه با سالن است.</p>
+      <p class="note-bar">آینه جایگزین مشاورهٔ حضوری نیست. نتیجه تقریبی است و تصمیم نهایی، زمان و هزینه با شماست.</p>
     </div>
   </section>
 
@@ -740,12 +764,12 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
     <div class="wrap">
       <div class="sec-head">
         <p class="kicker">نحوه کار</p>
-        <h2 id="h-how">سه قدم تا درخواست آماده.</h2>
+        <h2 id="h-how">از لینک تا درخواست کامل، سه قدم.</h2>
       </div>
       <ol class="steps">
-        <li class="step"><h3>عکس بده</h3><p>صفحهٔ سالن را از لینکی که سالن برایت فرستاده باز کن و عکس خودت را بگذار؛ از گالری یا با دوربین. برای مو سلفی، برای ناخن عکس دست و برای مژه عکس نزدیک چشم.</p></li>
-        <li class="step"><h3>مدل و رنگ را انتخاب کن</h3><p>از نمونه‌کارهای خود سالن، مدل‌های آماده یا عکس خودت انتخاب کن و رنگ را بردار. اگر سالن شبیه‌سازی را روشن کرده باشد، نتیجه را روی عکس خودت می‌بینی.</p></li>
-        <li class="step"><h3>برای سالن بفرست</h3><p>درخواستت با عکس‌ها و جزئیات به ربات سالن در تلگرام یا بله می‌رسد. سالن خودش با تو تماس می‌گیرد؛ آینه رزرو آنلاین ندارد.</p></li>
+        <li class="step"><h3>لینک را بدهید</h3><p>سالن شما یک صفحهٔ اختصاصی دارد. لینکش را در اینستاگرام، تلگرام یا همان چت با مشتری بگذارید.</p></li>
+        <li class="step"><h3>مشتری انتخاب می‌کند</h3><p>عکس خودش را می‌گذارد، مدل و رنگ (یا طرح ناخن و مژه) را انتخاب می‌کند و نتیجه را روی خودش می‌بیند.</p></li>
+        <li class="step"><h3>درخواست کامل به شما می‌رسد</h3><p>عکس‌ها، انتخاب‌ها و توضیح مشتری در ربات تلگرام یا بله می‌آید. خودتان تماس می‌گیرید و نوبت می‌دهید؛ آینه رزرو آنلاین ندارد.</p></li>
       </ol>
     </div>
   </section>
@@ -757,16 +781,16 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
         <div class="sec-head" style="margin-bottom:0">
           <p class="kicker">برای سالن‌ها</p>
           <h2 id="h-sal">مشتری با تصویر روشن می‌آید، نه با «همونی که تو اینستا دیدم».</h2>
-          <p class="sub">سالن پنل و نرم‌افزار جدیدی یاد نمی‌گیرد. همه‌چیز در همان پیام‌رسانی است که هر روز استفاده می‌کند.</p>
+          <p class="sub">شما پنل و نرم‌افزار تازه‌ای یاد نمی‌گیرید. همه‌چیز در همان پیام‌رسانی است که هر روز استفاده می‌کنید.</p>
         </div>
         <ul class="msgrs" aria-label="پیام‌رسان‌های پشتیبانی‌شده"><li>تلگرام</li><li>بله</li></ul>
-        <p class="no-list">بدون پنل وب جدا برای سالن و بدون رزرو آنلاین. نوبت‌دهی همان‌طور که تا حالا بوده، با خود سالن است.</p>
+        <p class="no-list">پنل وب جدا و رزرو آنلاین ندارد. نوبت دادن مثل همیشه دست خود شماست.</p>
       </div>
       <ul class="feat">
-        <li><span class="dot" aria-hidden="true"></span><div><strong>درخواست کامل در چت سالن</strong><span class="d">عکس‌ها، مدل، رنگ و توضیح مشتری یک‌جا می‌رسد؛ با دکمه‌های وضعیت مثل «تماس گرفتم» و «نوبت شد».</span></div></li>
-        <li><span class="dot" aria-hidden="true"></span><div><strong>نمونه‌کار با ارسال یک عکس</strong><span class="d">هر عکسی که برای ربات بفرستی روی صفحهٔ سالن به‌عنوان نمونه‌کار نمایش داده می‌شود.</span></div></li>
-        <li><span class="dot" aria-hidden="true"></span><div><strong>لینک شخصی برای هر آرایشگر</strong><span class="d">مشتری‌ای که با لینک یک نفر بیاید، درخواستش به همان نفر می‌رسد. مدیر سالن می‌تواند جابه‌جایش کند.</span></div></li>
-        <li><span class="dot" aria-hidden="true"></span><div><strong>یادآوری و گزارش</strong><span class="d">درخواست بی‌پاسخ یادآوری می‌شود و مشتری وضعیت درخواستش را در همان صفحه می‌بیند.</span></div></li>
+        <li><span class="dot" aria-hidden="true"></span><div><strong>درخواست کامل در چت سالن</strong><span class="d">عکس‌ها، مدل، رنگ و توضیح مشتری یک‌جا می‌رسد، با دکمه‌های وضعیت مثل «تماس گرفتم» و «نوبت شد».</span></div></li>
+        <li><span class="dot" aria-hidden="true"></span><div><strong>نمونه‌کار با ارسال یک عکس</strong><span class="d">هر عکسی که برای ربات بفرستید، روی صفحهٔ سالن به‌عنوان نمونه‌کار نشان داده می‌شود.</span></div></li>
+        <li><span class="dot" aria-hidden="true"></span><div><strong>لینک شخصی برای هر آرایشگر</strong><span class="d">مشتری‌ای که با لینک یک نفر بیاید، درخواستش به همان نفر می‌رسد. مدیر سالن می‌تواند آن را جابه‌جا کند.</span></div></li>
+        <li><span class="dot" aria-hidden="true"></span><div><strong>یادآوری و گزارش</strong><span class="d">درخواستی که بی‌پاسخ بماند یادآوری می‌شود و مشتری وضعیتش را در همان صفحه می‌بیند.</span></div></li>
       </ul>
     </div>
   </section>
@@ -777,23 +801,24 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
       <div class="trial-col">
         <div class="sec-head">
           <p class="kicker">صفحهٔ آزمایشی رایگان</p>
-          <h2 id="h-trial">صفحهٔ سالن خودت را قبل از خرید ببین.</h2>
-          <p class="sub">اسم سالن و رنگ برندت را بنویس و صفحه‌ات همان لحظه ساخته می‌شود. ۱۰ ساعت فرصت داری و می‌توانی ۵ تصویر بسازی تا ببینی مشتری‌هایت چه تجربه‌ای دارند.</p>
+          <h2 id="h-trial">صفحهٔ سالن خودتان را همین حالا بسازید.</h2>
+          <p class="sub">نام سالن و رنگ برندتان را بنویسید تا صفحه‌تان ساخته شود. ده ساعت وقت دارید و پنج تصویر، درست مثل مشتری‌هایتان. هیچ پولی نمی‌پردازید.</p>
         </div>
         <form class="path path--form" id="leadForm" novalidate aria-labelledby="h-lead">
-          <h3 id="h-lead">صفحهٔ آزمایشی سالن من را بساز</h3>
-          <p>چند ثانیه طول می‌کشد. صفحه ۱۰ ساعت فعال است، ۵ تصویر دارد و پرداختی لازم ندارد.</p>
+          <h3 id="h-lead">صفحهٔ آزمایشی سالن من</h3>
+          <p>فقط نام سالن و شمارهٔ موبایل را بنویسید. صفحه چند ثانیه بعد آماده است.</p>
           <div class="lf-grid">
-            <div class="lf-field"><label for="lf-name">نام شما</label><input id="lf-name" name="name" type="text" autocomplete="name" maxlength="60" required></div>
             <div class="lf-field"><label for="lf-salon">نام سالن</label><input id="lf-salon" name="salon" type="text" autocomplete="organization" maxlength="80" required></div>
-            <div class="lf-field"><label for="lf-city">شهر</label><input id="lf-city" name="city" type="text" autocomplete="address-level2" maxlength="40"></div>
             <div class="lf-field"><label for="lf-phone">شمارهٔ موبایل</label><input id="lf-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="۰۹۱۲۰۰۰۰۰۰۰" maxlength="20" required></div>
+            <div class="lf-field"><label for="lf-name">نام شما <span class="opt">(اختیاری)</span></label><input id="lf-name" name="name" type="text" autocomplete="name" maxlength="60"></div>
+            <div class="lf-field"><label for="lf-city">شهر <span class="opt">(اختیاری)</span></label><input id="lf-city" name="city" type="text" autocomplete="address-level2" maxlength="40"></div>
           </div>
-          <div class="lf-field"><label for="lf-note">توضیح (اختیاری)</label><textarea id="lf-note" name="note" rows="2" maxlength="300"></textarea></div>
+          <p class="lf-plan" id="lf-plan" hidden></p>
           <div class="lf-hp" aria-hidden="true"><label for="lf-web">وب‌سایت</label><input id="lf-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-          <label class="lf-check" for="lf-consent"><input id="lf-consent" name="consent" type="checkbox"><span>موافقم که آینه برای ادامه با من تماس بگیرد.</span></label>
+          <label class="lf-check" for="lf-consent"><input id="lf-consent" name="consent" type="checkbox"><span>موافقم که آینه بعد از امتحان صفحه، برای راهنمایی با من تماس بگیرد.</span></label>
           <p class="lf-err" id="lf-err" role="alert"></p>
           <button class="btn btn--lg" type="submit" id="lf-send"><span>صفحهٔ سالن مرا بساز</span><span class="arrow" aria-hidden="true">←</span></button>
+          <p class="lf-micro">۱۰ ساعت · ۵ تصویر · بدون پرداخت و کارت بانکی</p>
           <p class="lf-done" id="lf-done" role="status" hidden></p>
         </form>
 
@@ -811,13 +836,13 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
           <div class="sc-cover" aria-hidden="true"></div>
           <div class="sc-head">
             <span class="sc-logo" id="mockInit" aria-hidden="true">س</span>
-            <div><strong id="mockName">نام سالن شما</strong><small id="mockCity">آدرس اینترنتی اختصاصی برای مشتری‌ها</small></div>
+            <div><strong id="mockName">نام سالن شما</strong><small id="mockCity">لینک اختصاصی برای مشتری‌ها</small></div>
           </div>
           <ul class="sc-lines" aria-hidden="true"><li class="on">مو</li><li>ناخن</li><li>مژه</li></ul>
           <div class="sc-works" aria-hidden="true"><img data-k="s01" alt="" width="240" height="300"><img data-k="s03" alt="" width="240" height="300"><img data-k="s09" alt="" width="240" height="300"></div>
           <div class="sc-cta" aria-hidden="true">مدل و رنگ را انتخاب کن و برای سالن بفرست</div>
         </div>
-        <p class="mock-note">نمونهٔ نمایشی. نسخهٔ دائمی با لوگو و نمونه‌کار خودت ساخته می‌شود.</p>
+        <p class="mock-note">نمونهٔ نمایشی. نسخهٔ دائمی با لوگو و نمونه‌کار خودتان ساخته می‌شود.</p>
       </div>
     </div>
   </section>
@@ -827,49 +852,62 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
     <div class="wrap">
       <div class="sec-head">
         <p class="kicker">پلن‌ها</p>
-        <h2 id="h-plans">یک‌بار راه‌اندازی، بدون اشتراک ماهانه برای پلن.</h2>
-        <p class="sub">هزینهٔ پلن یک‌بار دریافت می‌شود. پلن‌ها در آموزش و تعداد کارکنانی که از آینه استفاده می‌کنند فرق دارند.</p>
+        <h2 id="h-plans">پلن یک‌بار پرداخت می‌شود، فقط ساخت تصویر شارژ ماهانه دارد.</h2>
+        <p class="sub">پلن‌ها در آموزش و تعداد کارکنانی که از آینه استفاده می‌کنند فرق دارند. پیشنهاد ما این است که اول صفحهٔ آزمایشی را امتحان کنید، بعد انتخاب کنید.</p>
       </div>
       <div class="plans">
         <article class="plan">
           <h3>Basic</h3>
           <p class="price num">۱۰ میلیون<small>تومان</small></p>
           <ul><li>تا ۲ نفر از کارکنان سالن</li><li>ویدئوهای آموزشی کار با آینه</li><li>صفحهٔ اختصاصی سالن با لینک</li></ul>
+          <a class="btn btn--ghost plan-cta" href="#start" data-plan="Basic"><span>شروع با صفحهٔ آزمایشی</span></a>
         </article>
         <article class="plan plan--pro">
           <span class="badge">پیشنهادی برای شروع</span>
           <h3>Pro</h3>
           <p class="price num">۲۰ میلیون<small>تومان</small></p>
           <ul><li>تا ۵ نفر از کارکنان سالن</li><li>ویدئوهای آموزشی و یک جلسهٔ آنلاین آموزش و پرسش‌وپاسخ</li><li>همهٔ امکانات Basic به‌علاوهٔ امتحان روی نمونه‌کار سالن و ثبت نمونه‌کار از ربات</li></ul>
+          <a class="btn btn--ghost plan-cta" href="#start" data-plan="Pro"><span>شروع با صفحهٔ آزمایشی</span></a>
         </article>
         <article class="plan">
           <h3>VIP</h3>
           <p class="price num"><small>از</small>۸۰ میلیون<small>تومان</small></p>
           <ul><li>تا ۲۰ نفر از کارکنان سالن</li><li>ویدئو، جلسهٔ آنلاین و جلسهٔ حضوری آموزش برای نیروهای سالن</li><li>دامنهٔ اختصاصی سالن و امکان سفارشی طبق نیاز</li></ul>
+          <a class="btn btn--ghost plan-cta" href="#start" data-plan="VIP"><span>شروع با صفحهٔ آزمایشی</span></a>
         </article>
       </div>
-      <p class="plan-note">علاوه بر پلن، برای ساخت تصویر یک شارژ ماهانهٔ جدا (۱ تا ۵ میلیون تومان، بسته به تعداد تصویر) در نظر گرفته شده است.</p>
+      <p class="plan-note">ساخت تصویر هزینهٔ جدا دارد: شارژ ماهانهٔ ۱ تا ۵ میلیون تومان، بسته به تعداد تصویر.</p>
     </div>
   </section>
 
   <!-- 7. FAQ -->
   <section id="faq" class="section" aria-labelledby="h-faq" tabindex="-1">
     <div class="wrap">
-      <div class="sec-head"><p class="kicker">پرسش‌های پرتکرار</p><h2 id="h-faq">قبل از شروع می‌پرسند…</h2></div>
+      <div class="sec-head"><p class="kicker">پرسش‌های پرتکرار</p><h2 id="h-faq">قبل از شروع، این‌ها را می‌پرسند</h2></div>
       <div class="faq">
-        <details><summary>صفحهٔ آزمایشی چیست؟</summary><p>صفحهٔ سالن خودت با نام و رنگ برندت، که همان لحظه می‌سازی و مثل مشتری‌هایت امتحانش می‌کنی. ۱۰ ساعت فعال است و در آن می‌توانی ۵ تصویر بسازی. هیچ هزینه‌ای ندارد.</p></details>
-        <details><summary>بعد از ثبت درخواست چه می‌شود؟</summary><p>همان لحظه لینک صفحهٔ سالنت ساخته می‌شود و درخواستت هم به ما می‌رسد. بعد از ۱۰ ساعت یا ۵ تصویر، صفحه بسته می‌شود و برای ادامه با شمارهٔ خودت با تو تماس می‌گیریم. پرداختی لازم نیست.</p></details>
-        <details><summary>آینه نوبت می‌دهد؟</summary><p>نه. آینه برای انتخاب مدل و رنگ و رساندن واضح درخواست به سالن است. زمان و هزینه را سالن با تو هماهنگ می‌کند.</p></details>
-        <details><summary>نتیجهٔ شبیه‌سازی دقیقاً همان چیزی است که می‌شود؟</summary><p>نه. شبیه‌سازی یک پیش‌نمایش پیشنهادی برای گفتگو با آرایشگر است و نتیجهٔ نهایی را تضمین نمی‌کند.</p></details>
-        <details><summary>شبیه‌سازی برای همهٔ سالن‌ها فعال است؟</summary><p>نه، هر سالن خودش تعیین می‌کند. اگر فعال نباشد، باز هم می‌توانی مدل و رنگ را انتخاب کنی و درخواستت را بفرستی.</p></details>
-        <details><summary>باید برنامه نصب کنم؟</summary><p>نه. آینه یک صفحهٔ وب است و با لینک سالن در مرورگر گوشی باز می‌شود.</p></details>
-        <details><summary>سالن از کجا درخواستم را می‌بیند؟</summary><p>در ربات تلگرام یا بله خودش. سالن پنل جداگانه‌ای ندارد.</p></details>
-        <details><summary>خدمت ناخن و مژه هم دارید؟</summary><p>بله. بالای صفحهٔ سالن می‌توانی بین مو، ناخن و مژه جابه‌جا شوی؛ برای هر کدام عکس و انتخاب‌های جدا داری.</p></details>
+        <details><summary>آینه دقیقاً چیست؟</summary><p>صفحه‌ای اینترنتی با نام و رنگ برند سالن شما. مشتری روی آن مدل مو، رنگ، طرح ناخن یا مژه را روی عکس خودش امتحان می‌کند و درخواستش را با عکس به تلگرام یا بله شما می‌فرستد.</p></details>
+        <details><summary>صفحهٔ آزمایشی چیست و چقدر طول می‌کشد؟</summary><p>نسخهٔ موقت همین صفحه با نام و رنگ سالن شما. ساختنش چند ثانیه طول می‌کشد، ۱۰ ساعت فعال است و ۵ تصویر دارد. رایگان است.</p></details>
+        <details><summary>بعد از ثبت درخواست چه می‌شود؟</summary><p>لینک صفحه‌تان همان لحظه ساخته می‌شود و درخواست شما به ما می‌رسد. بعد از ۱۰ ساعت یا ۵ تصویر، صفحه بسته می‌شود و برای ادامه با شمارهٔ خودتان تماس می‌گیریم. پرداختی لازم نیست.</p></details>
+        <details><summary>مشتری‌های من چطور وارد می‌شوند؟</summary><p>با یک لینک. آن را در اینستاگرام، تلگرام یا هر چتی با مشتری می‌گذارید. برنامه‌ای نصب نمی‌شود و صفحه در مرورگر گوشی باز می‌شود.</p></details>
+        <details><summary>درخواست مشتری را کجا می‌بینم؟</summary><p>در ربات تلگرام یا بله خودتان. پنل جداگانه‌ای ندارید.</p></details>
+        <details><summary>آینه نوبت می‌دهد؟</summary><p>نه. آینه فقط کمک می‌کند مشتری روشن بگوید چه می‌خواهد. نوبت، زمان و هزینه مثل همیشه با شماست.</p></details>
+        <details><summary>نتیجهٔ شبیه‌سازی دقیق است؟</summary><p>نه، تقریبی است. مثل یک عکس مرجع واضح به گفتگو با آرایشگر کمک می‌کند و نتیجهٔ نهایی را تضمین نمی‌کند.</p></details>
+        <details><summary>ناخن و مژه هم دارید؟</summary><p>بله. بالای صفحهٔ سالن بین مو، ناخن و مژه جابه‌جا می‌شوند و هر کدام عکس و انتخاب‌های خودش را دارد.</p></details>
+        <details><summary>شبیه‌سازی برای همهٔ سالن‌ها روشن است؟</summary><p>هر سالن خودش تعیین می‌کند. اگر خاموش باشد، مشتری باز هم مدل و رنگ را انتخاب می‌کند و درخواستش را می‌فرستد.</p></details>
       </div>
     </div>
   </section>
 
+  <section class="cta-band cta-band--final" aria-labelledby="h-cta2">
+    <div class="cta-band__in">
+      <h2 id="h-cta2">مشتری بعدی‌تان می‌تواند با تصویری روشن به سالن بیاید.</h2>
+      <p>ده ساعت وقت دارید که خودتان امتحانش کنید. رایگان است.</p>
+      <a class="btn btn--lg" href="#start" data-cta="final"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
+    </div>
+  </section>
+
 </main>
+<a class="sticky-cta" id="stickyCta" href="#start" hidden><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
 
 <footer class="site-footer">
   <div class="foot">
@@ -1032,7 +1070,7 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
  function pickStyle(i){st.style=i;mark(cards,i);mark(dItems,i);
   const n=String(i+1).padStart(2,'0');$('refImg').src=SRC('s'+n);$('refName').textContent=STYLES[i];$('ref').classList.add('on');
   const key=LOOK_OF[i];
-  $('refNote').textContent=SHAPED.includes(i)?'شکل مو روی مدل اعمال شد':'شکل این مدل با شبیه‌سازی روی عکس خودت دیده می‌شود';
+  $('refNote').textContent=SHAPED.includes(i)?'شکل مو روی مدل اعمال شد':'شکل این مدل روی عکس خود مشتری و با شبیه‌سازی دیده می‌شود';
   if(key!==st.look)setLook(key,()=>st.shown?paintColor(null,st.shown):paintScan(null));else paintScan(st.shown);
   summary()}
  function summary(){
@@ -1102,7 +1140,7 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
  addEventListener('ayneh:selection',e=>{sel=e.detail;render()});
  render();
  /* status buttons: one tap by the salon, shown to the customer */
- const TEXT={called:['وضعیت: تماس گرفتم','سالن با تو تماس گرفت یا به‌زودی تماس می‌گیرد.'],booked:['وضعیت: نوبت شد','نوبتت ثبت شد. جزئیات را سالن اعلام می‌کند.'],declined:['وضعیت: انجام نمی‌دهم','سالن این مدل را انجام نمی‌دهد؛ می‌توانی مدل دیگری بفرستی.']};
+ const TEXT={called:['وضعیت: تماس گرفتم','سالن با شما تماس گرفت یا به‌زودی تماس می‌گیرد.'],booked:['وضعیت: نوبت شد','نوبت شما ثبت شد. جزئیات را سالن اعلام می‌کند.'],declined:['وضعیت: انجام نمی‌دهم','سالن این مدل را انجام نمی‌دهد؛ می‌توانید مدل دیگری بفرستید.']};
  const btns=[...document.querySelectorAll('#s2acts button')];
  btns.forEach(b=>b.addEventListener('click',()=>{
   btns.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
@@ -1188,13 +1226,27 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
 
 </script>
 <script>
+/* Sticky CTA on phones: appears after the hero, hides while the trial form is on screen. */
+(()=>{
+ const bar=document.getElementById('stickyCta'),form=document.getElementById('start');if(!bar||!form)return;
+ let formIn=false,past=false;
+ const sync=()=>{const on=past&&!formIn;bar.hidden=!on;bar.classList.toggle('show',on)};
+ const seen=new Set();
+ new IntersectionObserver(es=>{es.forEach(e=>e.isIntersecting?seen.add(e.target):seen.delete(e.target));formIn=seen.size>0;sync()},{threshold:.15}).observe(form);
+ document.querySelectorAll('.cta-band').forEach(b=>new IntersectionObserver(es=>{es.forEach(e=>e.isIntersecting?seen.add(e.target):seen.delete(e.target));formIn=seen.size>0;sync()},{threshold:.2}).observe(b));
+ addEventListener('scroll',()=>{const p=scrollY>innerHeight*1.1;if(p!==past){past=p;sync()}},{passive:true});
+})();
+
+</script>
+<script>
 /* Salon lead form: POST /api/inquiry, which saves the request and sends it to the owner's Telegram/Bale chat. */
 (()=>{
  const $=id=>document.getElementById(id);
  const form=$('leadForm');if(!form)return;
  /* live mockup of the trial salon page: salon name and brand colour update the card */
  const mock=$('mock'),SRCI=(k)=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'/landing/')+k+'.webp');
- let brandName='',brandHex='#B9975B';
+ let brandName='',brandHex='#B9975B',planName='';
+ document.querySelectorAll('[data-plan]').forEach(a=>a.addEventListener('click',()=>{planName=a.dataset.plan;const p=$('lf-plan');if(p){p.textContent='پلن موردنظر شما: '+planName;p.hidden=false}}));
  if(mock){
   mock.querySelectorAll('img[data-k]').forEach(i=>{i.src=SRCI(i.dataset.k)});
   const nm=$('mockName'),ini=$('mockInit'),DEFAULT_NAME=nm.textContent;
@@ -1208,23 +1260,22 @@ h1{margin:0 0 16px;font-size:clamp(34px,3.5vw,52px);line-height:1.25;font-weight
  function fail(msg,field){err.textContent=msg;[...form.querySelectorAll('input,textarea')].forEach(i=>i.removeAttribute('aria-invalid'));if(field){field.setAttribute('aria-invalid','true');field.focus()}}
  form.addEventListener('submit',async e=>{
   e.preventDefault();err.textContent='';
-  const v={name:$('lf-name').value.trim(),salon:$('lf-salon').value.trim(),city:$('lf-city').value.trim(),phone:faDigits($('lf-phone').value).replace(/[\\s-]/g,''),note:$('lf-note').value.trim(),website:$('lf-web').value,consent:$('lf-consent').checked,brand:brandHex};
-  if(v.name.length<2)return fail('نام خودت را بنویس.',$('lf-name'));
-  if(v.salon.length<2)return fail('نام سالن را بنویس.',$('lf-salon'));
-  if(!/^(\\+98|0098|98|0)?9\\d{9}$/.test(v.phone))return fail('شمارهٔ موبایل را مثل ۰۹۱۲۰۰۰۰۰۰۰ بنویس.',$('lf-phone'));
-  if(!v.consent)return fail('برای ارسال، تأیید تماس لازم است.',$('lf-consent'));
-  const sel=window.__AYN_SEL||{};v.chosen=[sel.style,sel.color,brandName&&('برند '+brandName)].filter(Boolean).join(' · ');
+  const v={name:$('lf-name').value.trim(),salon:$('lf-salon').value.trim(),city:$('lf-city').value.trim(),phone:faDigits($('lf-phone').value).replace(/[\\s-]/g,''),website:$('lf-web').value,consent:$('lf-consent').checked,brand:brandHex};
+    if(v.salon.length<2)return fail('نام سالن را بنویسید.',$('lf-salon'));
+  if(!/^(\\+98|0098|98|0)?9\\d{9}$/.test(v.phone))return fail('شمارهٔ موبایل را مثل ۰۹۱۲۰۰۰۰۰۰۰ بنویسید.',$('lf-phone'));
+  if(!v.consent)return fail('برای ساخت صفحه، تیک تأیید تماس را بزنید.',$('lf-consent'));
+  const sel=window.__AYN_SEL||{};v.chosen=[sel.style,sel.color,brandName&&('برند '+brandName),planName&&('پلن '+planName)].filter(Boolean).join(' · ');
   send.disabled=true;send.setAttribute('aria-busy','true');
   try{
    if(PREVIEW){await new Promise(r=>setTimeout(r,700));done.textContent='پیش‌نمایش: این فرم روی سایت اصلی به ربات می‌رسد و در این نسخه چیزی ارسال نشد.'}
    else{
     const r=await fetch('/api/trial',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(v)});
     const j=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(j.error||'ارسال نشد. کمی بعد دوباره امتحان کن.');
-    done.textContent='صفحهٔ سالنت ساخته شد. ۱۰ ساعت و ۵ تصویر داری. ';const a=document.createElement('a');a.href=j.path;a.className='btn';a.textContent='صفحهٔ سالن مرا باز کن ←';a.style.marginTop='12px';a.style.display='inline-flex';done.append(a);
+    if(!r.ok)throw new Error(j.error||'ارسال نشد. کمی بعد دوباره امتحان کنید.');
+    done.textContent='صفحهٔ سالن شما آماده است. ۱۰ ساعت و ۵ تصویر دارید. ';const a=document.createElement('a');a.href=j.path;a.className='btn';a.textContent='باز کردن صفحهٔ سالن من ←';a.style.marginTop='12px';a.style.display='inline-flex';done.append(a);
    }
    done.hidden=false;form.querySelectorAll('input,textarea').forEach(i=>i.disabled=true);send.hidden=true;done.focus&&done.setAttribute('tabindex','-1');done.focus();
-  }catch(x){fail(x.message||'ارسال نشد. کمی بعد دوباره امتحان کن.')}
+  }catch(x){fail(x.message||'ارسال نشد. کمی بعد دوباره امتحان کنید.')}
   finally{send.disabled=false;send.removeAttribute('aria-busy')}
  });
 })();

@@ -434,7 +434,7 @@ function track(kind,meta,once){if(once){if(tracked[kind+meta])return;tracked[kin
  if(state.mine)state.pub.portfolio=(state.pub.portfolio||[]).slice().sort(function(a,b){return (b.maker===state.mine)-(a.maker===state.mine)});
  document.title=state.pub.salon.name+' | آینه';
  if(state.pub.trial)trialBar(state.pub.trial);
- if(state.pub.demo)document.body.prepend(el('div',{class:'trialbar',role:'status'},[document.createTextNode('نسخهٔ نمونهٔ آینه · روزی ۳ تصویر · '),el('a',{href:'/#start',style:'color:#fff;text-decoration:underline',text:'صفحهٔ سالن خودت را بساز'})]));
+ if(state.pub.demo)document.body.prepend(el('div',{class:'trialbar',role:'status'},[document.createTextNode('نسخهٔ نمونهٔ آینه · روزی ۳ تصویر · '),el('a',{href:'/#start',style:'color:#fff;text-decoration:underline',text:'صفحهٔ سالن خودتان را بسازید'})]));
  var lq=(location.search.match(/[?&]l=(hair|nails|lashes)/)||[])[1];var lm=null;try{lm=localStorage.getItem('ayneh-line-'+SLUG)}catch(e){}
  var pending=null;try{pending=sessionStorage.getItem('ayneh-job-'+SLUG)}catch(e){}
  var pm=pending&&pending.match(/^(hair|nails|lashes):(.+)$/);if(pm){lq=pm[1];pending=pm[2]}

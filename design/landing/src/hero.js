@@ -127,7 +127,7 @@
  function pickStyle(i){st.style=i;mark(cards,i);mark(dItems,i);
   const n=String(i+1).padStart(2,'0');$('refImg').src=SRC('s'+n);$('refName').textContent=STYLES[i];$('ref').classList.add('on');
   const key=LOOK_OF[i];
-  $('refNote').textContent=SHAPED.includes(i)?'شکل مو روی مدل اعمال شد':'شکل این مدل با شبیه‌سازی روی عکس خودت دیده می‌شود';
+  $('refNote').textContent=SHAPED.includes(i)?'شکل مو روی مدل اعمال شد':'شکل این مدل روی عکس خود مشتری و با شبیه‌سازی دیده می‌شود';
   if(key!==st.look)setLook(key,()=>st.shown?paintColor(null,st.shown):paintScan(null));else paintScan(st.shown);
   summary()}
  function summary(){

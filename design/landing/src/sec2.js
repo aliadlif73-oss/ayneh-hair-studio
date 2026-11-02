@@ -13,7 +13,7 @@
  addEventListener('ayneh:selection',e=>{sel=e.detail;render()});
  render();
  /* status buttons: one tap by the salon, shown to the customer */
- const TEXT={called:['وضعیت: تماس گرفتم','سالن با تو تماس گرفت یا به‌زودی تماس می‌گیرد.'],booked:['وضعیت: نوبت شد','نوبتت ثبت شد. جزئیات را سالن اعلام می‌کند.'],declined:['وضعیت: انجام نمی‌دهم','سالن این مدل را انجام نمی‌دهد؛ می‌توانی مدل دیگری بفرستی.']};
+ const TEXT={called:['وضعیت: تماس گرفتم','سالن با شما تماس گرفت یا به‌زودی تماس می‌گیرد.'],booked:['وضعیت: نوبت شد','نوبت شما ثبت شد. جزئیات را سالن اعلام می‌کند.'],declined:['وضعیت: انجام نمی‌دهم','سالن این مدل را انجام نمی‌دهد؛ می‌توانید مدل دیگری بفرستید.']};
  const btns=[...document.querySelectorAll('#s2acts button')];
  btns.forEach(b=>b.addEventListener('click',()=>{
   btns.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
