@@ -1100,26 +1100,8 @@ function sendNote(){
 }
 
 /* ---------- side: the salon's own work ---------- */
-function renderSide(){
- var side=$('#side');side.replaceChildren();
- var gallery=(state.pub.portfolio||[]).filter(function(x){return x.published&&(x.line||'hair')===state.line});
- if(!gallery.length){side.hidden=true;$('.layout').classList.add('layout--solo');return}
- side.hidden=false;$('.layout').classList.remove('layout--solo');
- var card=el('section',{class:'panel sidecard'},[h('h2',({hair:'کارهای ',color:'رنگ‌های ',nails:'کارهای ناخن ',lashes:'کارهای مژهٔ '}[state.line]||'کارهای ')+state.pub.salon.name),h('p','روی هر کار بزن تا روی عکس خودت امتحانش کنی.','sidecard__lead')]);
- var grid=el('div',{class:'gallery'});
- gallery.forEach(function(item){
-  var imgs=[];try{imgs=JSON.parse(item.images||'[]')}catch(e){}
-  if(!imgs.length)return;
-  var btn=el('button',{class:'pcard',type:'button','aria-label':'امتحان '+item.title+' روی عکس خودم'},[
-   el('span',{class:'mirror',style:'display:block'},[el('span',{class:'mirror__glass',style:'display:block'},[el('img',{src:media(imgs[0]),alt:item.title,loading:'lazy'})])]),
-   h('h3',item.title),(item.stylist||item.category)?el('p',{text:item.stylist?'کار '+item.stylist:item.category}):null
-  ]);
-  btn.addEventListener('click',function(){state.reference=imgs[0];state.refTitle=item.title;state.style=null;if(state.line==='color')state.color='';state.tab='salon';state.result=null;if(state.original)go(2);else{go(1);toast('«'+item.title+'» انتخاب شد؛ حالا عکس خودت را اضافه کن')}});
-  grid.append(btn);
- });
- card.append(grid);
- side.append(card);
-}
+// The salon's own work lives only in step 2, under «کارهای سالن»; nothing beside the flow.
+function renderSide(){var side=$('#side');if(side){side.replaceChildren();side.hidden=true}var l=$('.layout');if(l)l.classList.add('layout--solo')}
 function fa0(v){return String(v).replace(/^\+98/,'0').replace(/\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d]})}
 
 /* ---------- dock ---------- */
@@ -1381,7 +1363,7 @@ function tourView(line,step,tab,style){
  document.body.setAttribute('data-line',line);renderAll();
 }
 function tourSteps(){
- var gallery=$('#side .gallery'),mobile=window.matchMedia('(max-width:959px)').matches;
+ var mobile=window.matchMedia('(max-width:959px)').matches;
  var L=function(){return state.line};
  return [
   {el:'.linesw',title:'چهار بخش، یک عکس',text:'«مدل مو»: کوتاهی و فرم جدید. «رنگ مو»: فقط رنگ عوض می‌شود. «ناخن»: طرح، فرم و رنگ ناخن روی عکس دستت. «مژه»: مدل کاشت مژه. هر وقت خواستی بین‌شان جابه‌جا شو؛ چیزی پاک نمی‌شود.'},
@@ -1392,7 +1374,6 @@ function tourSteps(){
   {el:'#flow .upload--ref',enter:function(){tourView('color',2,'upload')},title:'۳. عکس مدلی که خودت داری',text:'عکسی از اینستاگرام یا گالری‌ات داری؟ اینجا بگذار. فقط رنگ یا مدلش برداشته می‌شود؛ صورت آن آدم نه.'},
   {el:'#flow .btn--build',enter:function(){tourView('color',2,'catalog',4)},title:'انتخاب کردی؟ «بساز»',text:'با یک دکمه ساخت شروع می‌شود و نتیجه را کنار عکس خودت می‌بینی. بعدش با یک دکمه برای '+'سالن می‌فرستی.'},
   {el:'#steps .steps__list',title:'همیشه می‌دانی کجایی',text:'عکس تو، انتخاب، نتیجه. روی هر قدم بزنی برمی‌گردی.'},
-  gallery?{el:'#side .gallery',title:'کارهای واقعی سالن',text:'اینجا هم کارهای سالن را می‌بینی؛ روی هر کدام بزن تا روی عکس خودت امتحان شود.'}:null,
   {el:'.about-btn',title:'همه‌چیز دربارهٔ سالن',text:'آدرس، شماره، ساعت کاری و صفحه‌های سالن اینجاست.'},
   {el:mobile?'#dock .dock__inner':'.hero__cta .btn',title:'شروع کنیم؟',text:'اول عکس خودت را بگذار. بعد از دیدن نتیجه، با یک دکمه برای سالن فرستاده می‌شود و خود سالن با تو تماس می‌گیرد.',last:true}
  ].filter(Boolean);
@@ -1724,10 +1705,10 @@ export const customerHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><h
 <header class="hero" id="head"><div class="wrap"><div class="hero__bar"><div class="skel" style="width:70px;height:22px"></div></div><div class="skel cover"></div><div class="hero__body"><div><div class="skel" style="width:70%;height:38px"></div><div class="skel" style="width:52%;height:14px;margin-top:14px"></div></div></div></div></header>
 <nav class="steps" id="steps" aria-label="مراحل" hidden></nav>
 <main class="wrap" id="main">
- <div class="layout">
+ <div class="layout layout--solo">
   <div class="flowcol"><section id="mine" aria-live="polite" hidden></section>
   <section id="flow" aria-live="polite"><div class="panel flow"><div class="skel" style="height:26px;width:46%"></div><div class="skel" style="width:min(100%,280px);aspect-ratio:3/4;margin:20px auto 0;border-radius:999px 999px 18px 18px"></div></div></section></div>
-  <aside class="side" id="side" aria-label="دربارهٔ سالن"></aside>
+  <aside class="side" id="side" hidden></aside>
  </div>
  <section id="invite" aria-label="معرفی به دوستان" hidden></section>
  <footer class="foot" id="foot" style="padding-bottom:130px">شبیه‌سازی پیشنهادی است و اجرای دقیق را تضمین نمی‌کند. عکس‌ها فقط برای همین سالن استفاده می‌شوند و نمایش عمومی ندارند.</footer>
