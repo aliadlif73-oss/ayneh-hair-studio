@@ -37,6 +37,8 @@ jobs:
           ONLY: ${{ inputs.only }}
         run: node scripts/generate-catalog.mjs
       - name: Commit photos
+        # Keep what was made even if the run stopped (e.g. KIE credit ran out).
+        if: always()
         run: |
           git add public/catalog
           if git diff --cached --quiet; then echo "No new photos."; exit 0; fi
