@@ -71,7 +71,16 @@ jobs:
                       TELEGRAM_BOT_USERNAME MELIPAYAMAK_TOKEN MELIPAYAMAK_BODY_ID MELIPAYAMAK_OTP_BODY_ID BALE_BOT_TOKEN BALE_BOT_USERNAME; do
             value="${!name:-}"
             if [ -n "$value" ]; then
-              printf '%s' "$value" | npx wrangler secret put "$name" >/dev/null
+              # Cloudflare's own git build can upload a newer version at the same moment, and then
+              # secrets cannot be edited ("latest version isn't deployed"): redeploy this code and retry.
+              ok=""
+              for try in 1 2 3 4; do
+                if printf '%s' "$value" | npx wrangler secret put "$name" >/dev/null 2>secret.err; then ok=1; break; fi
+                grep -q "isn't currently deployed" secret.err || { cat secret.err; exit 1; }
+                echo "secret $name: a newer version is not deployed yet; redeploying and retrying ($try)"
+                sleep 15; npx wrangler deploy >/dev/null 2>&1 || true
+              done
+              [ -n "$ok" ] || { cat secret.err; exit 1; }
               echo "secret set: $name"
             fi
           done
