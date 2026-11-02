@@ -32,12 +32,16 @@ const prompt=(s,i)=>'Photorealistic salon lookbook photograph of '+people[i%peop
  'Head and shoulders, three-quarter view so the cut, length and shape are clearly visible, hair fully in frame. Natural healthy '+shades[i%shades.length]+' hair. '+
  'Soft even studio light, seamless pale grey-green background, sharp focus on the hair, natural skin texture, light natural makeup, no heavy retouching. No text, no logo, no watermark.';
 
-async function kie(path,body){const r=await fetch('https://api.kie.ai'+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const d=await r.json();if(!r.ok||d.code!==200)throw new Error('KIE '+r.status+' '+(d.msg||JSON.stringify(d)).slice(0,200));return d.data}
+// Out of credit: stop the whole run at once (every further call would fail the same way).
+class NoCredit extends Error{}
+let lastCall=0;
+async function kie(path,body){
+ const wait=lastCall+1500-Date.now();if(wait>0)await sleep(wait);lastCall=Date.now();const r=await fetch('https://api.kie.ai'+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const d=await r.json();if(!r.ok||d.code!==200){const msg=(d.msg||JSON.stringify(d)).slice(0,200);if(/credit|balance|top up/i.test(msg))throw new NoCredit('KIE credit is used up: '+msg);throw new Error('KIE '+r.status+' '+msg)}return d.data}
 // Best model first; if the account does not have it, fall back once.
 async function generate(input){
  let task;
  try{task=await kie('/api/v1/jobs/createTask',{model:'nano-banana-pro',input})}
- catch(e){console.log('  nano-banana-pro rejected ('+e.message+'), using nano-banana-2');task=await kie('/api/v1/jobs/createTask',{model:'nano-banana-2',input})}
+ catch(e){if(e instanceof NoCredit)throw e;console.log('  nano-banana-pro rejected ('+e.message+'), using nano-banana-2');task=await kie('/api/v1/jobs/createTask',{model:'nano-banana-2',input})}
  for(let t=0;t<72;t++){await sleep(5000);const d=await kie('/api/v1/jobs/recordInfo?taskId='+encodeURIComponent(task.taskId));if(d.state==='success')return JSON.parse(d.resultJson).resultUrls?.[0];if(d.state==='fail')throw new Error('task failed: '+(d.failMsg||''))}
  throw new Error('timed out');
 }
@@ -49,7 +53,7 @@ for(const [i,s] of styles.entries()){
  if(only.length&&!only.includes(String(i+1)))continue;
  if(existsSync(file)&&!force){console.log(n,'exists, skipped');continue}
  try{await save(await generate({prompt:prompt(s,i),image_input:[],aspect_ratio:'4:5',resolution:'1K',output_format:'jpg'}),file,480,600);console.log(n,s[0],'✓');made++}
- catch(e){console.log(n,s[0],'failed:',e.message);failed++}
+ catch(e){if(e instanceof NoCredit){console.log(e.message+' — top up KIE and run this workflow again.');process.exit(1)}console.log(n,s[0],'failed:',e.message);failed++}
 }
 
 // Demo pair: an everyday selfie, then the same photo edited by the same pipeline customers use.
@@ -59,7 +63,7 @@ if((!existsSync(before)||!existsSync(after)||force)&&(!only.length||only.include
   const b=await generate({prompt:'Photorealistic casual smartphone selfie of an Iranian woman in her late twenties with olive skin, at home by a window in soft daylight, looking at the camera with a slight smile. Her hair is plain shoulder-length straight dark brown hair, no styling, visible and uncovered. Head and shoulders, vertical framing, plain light wall behind her. Natural skin, no filter, no text.',image_input:[],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
   const a=await generate({prompt:'Professional hair-salon consultation preview. Photo 1 is the client. Edit ONLY her hair. Keep her exact face, skin, expression, clothing, background, framing and lighting unchanged. HAIR: give her a butterfly haircut: long hair with short face-framing layers from the chin and long layers below, big bouncy blow-out volume, reaching past the shoulders. HAIR COLOR: hand-painted honey balayage on a darker brown base, soft blended root. Real strand detail, natural hairline, light matching the photo. One photorealistic photo, same composition. No text.',image_input:[b],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
   await save(b,before,450,600);await save(a,after,450,600);console.log('demo ✓');made+=2;
- }catch(e){console.log('demo failed:',e.message);failed++}
+ }catch(e){if(e instanceof NoCredit){console.log(e.message+' — top up KIE and run this workflow again.');process.exit(1)}console.log('demo failed:',e.message);failed++}
 }
 // Nails and lashes: close-ups of Iranian women's hands and eyes.
 const hands=['light-olive','fair','warm beige','medium olive','light-brown'];
@@ -73,7 +77,7 @@ for(const [line,list,shot] of [['nails',NAIL_STYLES,nailShot],['lashes',LASH_STY
   if(!want(line,i))continue;
   if(existsSync(file)&&!force){console.log(line,n,'exists, skipped');continue}
   try{await save(await generate({prompt:shot(s[3],i),image_input:[],aspect_ratio:'4:5',resolution:'1K',output_format:'jpg'}),file,480,600);console.log(line,n,s[0],'✓');made++}
-  catch(e){console.log(line,n,s[0],'failed:',e.message);failed++}
+  catch(e){if(e instanceof NoCredit){console.log(e.message+' — top up KIE and run this workflow again.');process.exit(1)}console.log(line,n,s[0],'failed:',e.message);failed++}
  }
  // Demo pair, edited by the same prompt customers get.
  const b1=dir+'/demo-before.webp',a1=dir+'/demo-after.webp';
@@ -85,7 +89,7 @@ for(const [line,list,shot] of [['nails',NAIL_STYLES,nailShot],['lashes',LASH_STY
    const prompt=line==='nails'?linePrompt('nails','catalog',NAIL_STYLES[1][3],{shape:4,length:1},''):linePrompt('lashes','catalog',LASH_STYLES[2][3],{map:1,length:1},'');
    const after=await generate({prompt,image_input:[before],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
    await save(before,b1,450,600);await save(after,a1,450,600);console.log(line,'demo ✓');made+=2;
-  }catch(e){console.log(line,'demo failed:',e.message);failed++}
+  }catch(e){if(e instanceof NoCredit){console.log(e.message+' — top up KIE and run this workflow again.');process.exit(1)}console.log(line,'demo failed:',e.message);failed++}
  }
 }
 console.log('done: '+made+' made, '+failed+' failed');
