@@ -107,7 +107,9 @@ export async function digest(env,now=Date.now()){
 }
 export async function sendDigest(env,chats,now=Date.now()){
  const text=await digest(env,now);
- for(const c of chats){if(!platformReady(env,c.platform))continue;try{await call(env,c.platform,'sendMessage',{chat_id:c.chat_id,text:text.slice(0,4000)})}catch(e){console.error('digest',e?.message)}}
+ // Telegram allows 4096 characters per message: many salons are split at line breaks.
+ const parts=[];let cur='';for(const line of text.split('\n')){if((cur+'\n'+line).length>3800){parts.push(cur);cur=line}else cur=cur?cur+'\n'+line:line}if(cur)parts.push(cur);
+ for(const c of chats){if(!platformReady(env,c.platform))continue;for(const part of parts){try{await call(env,c.platform,'sendMessage',{chat_id:c.chat_id,text:part})}catch(e){console.error('digest',e?.message)}}}
  return text;
 }
 export async function maybeDigest(env,now=Date.now()){

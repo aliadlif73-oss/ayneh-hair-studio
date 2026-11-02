@@ -16,8 +16,9 @@ const notFound='<!doctype html><html lang="fa" dir="rtl"><head><meta charset="ut
 const attr=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function salonPage(u,env){
  const slug=u.pathname.split('/')[2];let salon=null;
- try{salon=env.DB?await env.DB.prepare('SELECT slug,name,profile FROM salons WHERE slug=?').bind(slug).first():null}catch{}
- if(!salon)return customerHTML;
+ let failed=!env.DB;try{salon=env.DB?await env.DB.prepare('SELECT slug,name,profile FROM salons WHERE slug=?').bind(slug).first():null}catch{failed=true}
+ // A database hiccup still serves the page (it shows its own error); only a missing salon is a 404.
+ if(!salon)return failed?customerHTML:null;
  let p={};try{p=JSON.parse(salon.profile||'{}')}catch{}
  const origin=env.APP_ORIGIN||u.origin,url=origin+'/s/'+salon.slug;
  const title=salon.name+' | مو، ناخن و مژهٔ بعدی‌ات را روی عکس خودت ببین';
@@ -37,7 +38,7 @@ export default {
   if(u.pathname==='/favicon.svg')return new Response(favicon,{headers:{'Content-Type':'image/svg+xml','Cache-Control':'public,max-age=86400'}});
   if(u.pathname.startsWith('/fonts/')){const f=fontResponse(u.pathname.slice(7));if(f)return f;}
   if(!pages.some(r=>r.test(u.pathname)))return new Response(notFound,{status:404,headers:htmlHeaders});
-  if(/^\/s\/[a-z0-9-]{1,64}\/?$/.test(u.pathname))return new Response(await salonPage(u,env),{headers:htmlHeaders});
+  if(/^\/s\/[a-z0-9-]{1,64}\/?$/.test(u.pathname)){const html=await salonPage(u,env);return html?new Response(html,{headers:htmlHeaders}):new Response(notFound,{status:404,headers:htmlHeaders});}
   return new Response(appHTML,{headers:htmlHeaders});
  }catch(e){return errorResponse(e)}},
  async scheduled(event,env,ctx){ctx.waitUntil(tick(env,env.APP_ORIGIN||''))}

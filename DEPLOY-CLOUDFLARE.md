@@ -112,3 +112,8 @@ R2 لازم نیست. اگر روزی کارت اضافه کردی، بلوک R2
 - ورک‌فلوی `.github/workflows/messages.yml` (زمان‌بند GitHub) دیگر لازم نیست؛ Cron خودِ Cloudflare کار را می‌کند. اگر هر دو فعال باشند هم مشکلی نیست، چون صف idempotent است.
 - منطق امنیتی: کوکی مدیر با `SESSION_SECRET` امضا می‌شود، هفت روز اعتبار دارد، `HttpOnly` است و هر ۲۰ تلاش ناموفق ورود از یک IP محدود می‌شود.
 - اگر رمز را فراموش کردی، `OWNER_PASSWORD` را در GitHub عوض کن و ورک‌فلو را دوباره اجرا کن.
+
+
+## APP_ORIGIN
+
+If the `APP_ORIGIN` secret is not set, the deploy uses the address wrangler reports for the deployment (for example `https://ayneh-hair-studio.<account>.workers.dev`): it is stored as the worker's `APP_ORIGIN` and the Telegram/Bale webhooks are pointed at it. Set `APP_ORIGIN` yourself only for a custom domain.
