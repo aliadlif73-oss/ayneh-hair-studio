@@ -2,7 +2,10 @@ name: Demo salon
 # One-off: builds the fictional demo salon «سالن زیبایی آینه» (/s/ayneh) on the live site.
 # images: makes the logo, cover and manager portrait into demo/ayneh/ and commits them to this branch.
 # create: signs in as the owner and creates or updates the salon with those images and a full profile.
+# Runs on every push to the demo-salon branch; demo/ayneh/run.env sets MODE, ONLY and FORCE.
 on:
+  push:
+    branches: [demo-salon]
   workflow_dispatch:
     inputs:
       mode:
@@ -31,19 +34,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
+      - name: Settings
+        id: cfg
+        run: |
+          MODE='${{ inputs.mode }}'; ONLY='${{ inputs.only }}'; FORCE='${{ inputs.force && '1' || '0' }}'
+          if [ -f demo/ayneh/run.env ] && [ -z "$MODE" ]; then . demo/ayneh/run.env; fi
+          echo "mode=${MODE:-images}" >> "$GITHUB_OUTPUT"; echo "only=$ONLY" >> "$GITHUB_OUTPUT"; echo "force=${FORCE:-0}" >> "$GITHUB_OUTPUT"
       - run: npm install --no-save sharp@0.34
-        if: inputs.mode == 'images'
+        if: steps.cfg.outputs.mode == 'images'
       - name: Run
         env:
-          MODE: ${{ inputs.mode }}
-          ONLY: ${{ inputs.only }}
-          FORCE: ${{ inputs.force && '1' || '0' }}
+          MODE: ${{ steps.cfg.outputs.mode }}
+          ONLY: ${{ steps.cfg.outputs.only }}
+          FORCE: ${{ steps.cfg.outputs.force }}
           KIE_API_KEY: ${{ secrets.KIE_API_KEY }}
           APP_ORIGIN: ${{ secrets.APP_ORIGIN }}
           OWNER_PASSWORD: ${{ secrets.OWNER_PASSWORD }}
         run: node scripts/demo-salon.mjs
       - name: Commit images
-        if: always() && inputs.mode == 'images'
+        if: always() && steps.cfg.outputs.mode == 'images'
         run: |
           git add demo
           if git diff --cached --quiet; then echo "No new images."; exit 0; fi
