@@ -21,7 +21,8 @@ export async function sendPattern(env,to,bodyId,args){
  const vars=args.map(a=>String(a??'').replace(/;/g,'،').trim());
  if(vars.some(v=>LINKY.test(v)))return {ok:false,error:'link_in_variable'};
  try{
-  if(env.MELIPAYAMAK_TOKEN){
+  // The documented REST route (username + ApiKey) wins when configured; the console token is a fallback.
+  if(env.MELIPAYAMAK_TOKEN&&!(env.MELIPAYAMAK_USERNAME&&env.MELIPAYAMAK_PASSWORD)){
    const res=await fetch('https://console.melipayamak.com/api/send/shared/'+encodeURIComponent(env.MELIPAYAMAK_TOKEN),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({bodyId:Number(bodyId),to:local(to),args:vars}),signal:AbortSignal.timeout(15000)});
    const d=await res.json().catch(()=>({}));const id=String(d.recId??'');
    if(res.ok&&/^\d{8,}$/.test(id))return {ok:true,id};

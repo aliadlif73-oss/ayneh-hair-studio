@@ -51,7 +51,7 @@ test('OTP: five wrong guesses burn the code; rejected sends store nothing; netwo
  const g3=await guest(e,s);m=mock({offline:true});try{const r=await call(e,'/api/s/salon-a/otp/send',{name:'نگار احمدی',phone:'09191112233'},g3);assert.equal(r.status,200);assert.equal(e.DB.sql.prepare("SELECT status FROM sms_log WHERE phone=?").get('+989191112233').status,'unknown');}finally{m.restore()}
 });
 
-test('classic REST credentials send the pattern with ;-joined variables',async()=>{const e=fixture({MELIPAYAMAK_USERNAME:'u',MELIPAYAMAK_PASSWORD:'p',MELIPAYAMAK_OTP_BODY_ID:'77',SESSION_SECRET:'s'}),s=await salon(e),g=await guest(e,s),m=mock();
+test('classic REST credentials send the pattern with ;-joined variables',async()=>{const e=fixture({MELIPAYAMAK_USERNAME:'u',MELIPAYAMAK_PASSWORD:'p',MELIPAYAMAK_TOKEN:'also-set',MELIPAYAMAK_OTP_BODY_ID:'77',SESSION_SECRET:'s'}),s=await salon(e),g=await guest(e,s),m=mock();
  try{assert.equal((await call(e,'/api/s/salon-a/otp/send',{name:'سارا محمدی',phone:'09121234567'},g)).status,200);const c=m.calls.sms.at(-1);assert.match(c.url,/BaseServiceNumber$/);assert.equal(c.bodyId,'77');assert.equal(c.to,'09121234567');assert.match(c.text,/^\d{5}$/);}finally{m.restore()}
  const g2=await guest(e,s),bad=mock({reject:true});try{assert.equal((await call(e,'/api/s/salon-a/otp/send',{name:'مینا رضایی',phone:'09351112233'},g2)).status,502);assert.match(e.DB.sql.prepare("SELECT error FROM sms_log WHERE phone=?").get('+989351112233').error,/code_-110 .*ApiKey/);}finally{bad.restore()}});
 
