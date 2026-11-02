@@ -40,13 +40,17 @@ async function images(){
   console.log(name,'✓');
  }
 }
-async function create(){
+async function signIn(){
  const base=String(process.env.APP_ORIGIN||'').replace(/\/$/,'');if(!base){console.log('APP_ORIGIN is not set');process.exit(1)}
  if(!process.env.OWNER_PASSWORD){console.log('OWNER_PASSWORD secret is not set; cannot sign in');process.exit(1)}
  const login=await fetch(base+'/api/login',{method:'POST',headers:{'Content-Type':'application/json',Origin:base},body:JSON.stringify({password:process.env.OWNER_PASSWORD})});
  if(!login.ok){console.log('sign-in failed:',login.status,(await login.text()).slice(0,200));process.exit(1)}
  const cookie=login.headers.getSetCookie().map(c=>c.split(';')[0]).join('; ');
  const call=async(path,body,raw)=>{const r=await fetch(base+path,{method:body===undefined?'GET':'POST',headers:{Cookie:cookie,Origin:base,...(raw?{'Content-Type':'image/jpeg'}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:raw?body:JSON.stringify(body)})});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(path+' '+r.status+' '+(d.error||''));return d};
+ return {base,call};
+}
+async function create(){
+ const {base,call}=await signIn();
  let exists=true;try{await call('/api/s/'+SLUG+'/owner')}catch{exists=false}
  if(!exists){await call('/api/salons',{slug:SLUG,name:NAME});console.log('salon created: /s/'+SLUG)}else console.log('salon exists: /s/'+SLUG+' (updating its profile)');
  const ids={};for(const k of Object.keys(IMAGES)){ids[k]=(await call('/api/s/'+SLUG+'/upload?kind=brand',readFileSync(dir+'/'+k+'.jpg'),true)).id;console.log(k,'uploaded')}
@@ -55,4 +59,19 @@ async function create(){
  const o=await call('/api/s/'+SLUG+'/owner');console.log('telegram linked:',!!o.salon.telegram,'· portfolio items:',o.portfolio.length);
  console.log('Page: '+base+'/s/'+SLUG+' · Console: '+base+'/admin/'+SLUG);
 }
-if(mode==='images')await images();else if(mode==='create')await create();else{console.log('MODE must be images or create');process.exit(1)}
+// MODE=portfolio: adds demo/ayneh/portfolio/list.json ([{file,title,line,category}]) as the salon's
+// own work; a title already on the page is skipped, so reruns add only what is missing.
+async function portfolio(){
+ const {call}=await signIn();
+ const list=JSON.parse(readFileSync(dir+'/portfolio/list.json','utf8'));
+ const have=new Set((await call('/api/s/'+SLUG+'/owner')).portfolio.map(x=>x.title));
+ for(const it of list){
+  if(have.has(it.title)){console.log('exists:',it.line,it.title);continue}
+  const m=await call('/api/s/'+SLUG+'/upload?kind=portfolio',readFileSync(dir+'/portfolio/'+it.file),true);
+  await call('/api/s/'+SLUG+'/owner/portfolio/add',{media_id:m.id,title:it.title,line:it.line,category:it.category||''});
+  console.log('added:',it.line,it.title);
+ }
+ const pub=(await call('/api/s/'+SLUG+'/public')).portfolio;const by={};for(const x of pub)by[x.line]=(by[x.line]||0)+1;
+ console.log('on the page:',JSON.stringify(by));
+}
+if(mode==='images')await images();else if(mode==='create')await create();else if(mode==='portfolio')await portfolio();else{console.log('MODE must be images, create or portfolio');process.exit(1)}
