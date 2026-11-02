@@ -17,12 +17,15 @@ export const smsReady=env=>!!env?.MELIPAYAMAK_TOKEN;
 export const otpTextReady=env=>smsReady(env)&&/^\d+$/.test(String(env?.MELIPAYAMAK_OTP_BODY_ID||'').trim());
 export const inviteReady=env=>smsReady(env)&&/^\d+$/.test(String(env?.MELIPAYAMAK_BODY_ID||'').trim());
 const mock=env=>env.MELIPAYAMAK_TOKEN==='dev-mock';
+// The console shows the token inside a full address (…/api/send/otp/<token> or …/shared/<token>);
+// accept that whole address too, and ignore stray spaces or line breaks around it.
+export const consoleToken=env=>String(env.MELIPAYAMAK_TOKEN||'').trim().split(/[/?#\s]+/).filter(Boolean).pop()||'';
 // +989121234567 -> 09121234567, the form the console API expects.
 export const localNumber=p=>'0'+String(p).replace(/^\+98/,'');
 
 async function post(env,kind,payload){
  try{
-  const res=await fetch(BASE+kind+'/'+encodeURIComponent(env.MELIPAYAMAK_TOKEN),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(15000)});
+  const res=await fetch(BASE+kind+'/'+encodeURIComponent(consoleToken(env)),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(15000)});
   const d=await res.json().catch(()=>({}));
   return {ok:res.ok,d:d&&typeof d==='object'?d:{}};
  }catch{
