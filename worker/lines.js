@@ -63,15 +63,15 @@ export const NAIL_SHOTS=[
  'smoky cloud nails: every nail glossy with soft grey, white and charcoal swirls blended together like smoke; no other art; medium-length almond nails'
 ];
 export const LASH_SHOTS=[
- 'classic eyelash extensions: exactly one extension on each natural upper lash, about 10 mm, natural black, clearly separated individual lashes and a clean defined lash line, like perfect mascara; natural, not dramatic',
- 'hybrid eyelash extensions: a mix of separated individual lashes and soft thin fans, medium density with visible texture, fuller than mascara but still natural, about 11 mm',
- 'Russian volume eyelash extensions: soft fluffy fans of many very fine lashes, a full dense dark lash line with no gaps, about 11–12 mm, soft C curl, even natural mapping',
- 'mega volume eyelash extensions: an extremely dense, very dark, thick lash line that looks like eyeliner at the base, about 13 mm, dramatic and glamorous',
- 'wet-look eyelash extensions: glossy lashes grouped into closed, pointed spikes as if wet, the spikes clearly separated with small gaps, medium length',
- 'wispy "Kim K" eyelash extensions: a soft fluffy base with longer spikes sticking out at regular intervals, a textured, uneven spiky silhouette',
- 'anime-style eyelash extensions: thick, clearly separated spikes with visible gaps between them on the upper lashes, plus a few small spikes on the lower lash line, doll-like',
- 'a lash lift and tint on her own natural lashes only: her real lashes curled strongly upward from the root and tinted dark black, natural length, NO extensions, NO false lashes',
- 'black volume eyelash extensions with several bright coloured strands of violet and blue mixed in, mostly at the outer corners'
+ 'classic eyelash extensions: exactly one extension on each natural upper lash, about 10 mm, black; the lashes are clearly separated so individual lashes can be counted, with small even gaps between them; natural and light, like perfect mascara, NOT dense, NO fans',
+ 'hybrid eyelash extensions: a visible mix of single separated lashes and small soft fans of 2–3 fine lashes; medium density with texture and a few small gaps, clearly fuller than classic but lighter than volume, about 11 mm',
+ 'Russian volume eyelash extensions: soft fluffy fans of many very fine lashes forming a full, dense, dark lash line with no gaps at all, about 11–12 mm, soft even C curl, uniform smooth edge',
+ 'mega volume eyelash extensions: an extremely dense, very dark, thick lash line that looks like a black eyeliner band at the base, about 13–14 mm, heavy and dramatic',
+ 'wet-look eyelash extensions: shiny lashes grouped into closed, pointed, glossy spikes as if wet, the spikes clearly separated with small gaps between them, about 11 mm',
+ 'wispy "Kim K" eyelash extensions: a soft fluffy base of medium lashes with distinctly longer, thicker spikes standing out every few millimetres along the lash line, giving an uneven, textured, spiky top edge',
+ 'anime-style eyelash extensions: thick, separated, triangular spikes with clear gaps between them along the upper lashes, plus a few small spikes on the lower lash line, doll-like',
+ 'a lash lift and tint on her own short natural lashes only: her real lashes curled sharply straight up from the root and tinted dark black, natural short length, sparse as real lashes are, absolutely NO extensions and NO false lashes',
+ 'black volume eyelash extensions with several bright violet and blue coloured strands mixed in, mostly at the outer corners, clearly visible colour'
 ];
 
 // Extra choices shown as chips under the catalog. Index 0 of each list is never forced: no pick
