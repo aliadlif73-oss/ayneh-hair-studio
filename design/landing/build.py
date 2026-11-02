@@ -21,7 +21,9 @@ trial = R('src/trial.html').replace('<!--LEAD-->', R('src/lead.html'))
 assert '  <!-- 6. Plans -->' in h
 h = h.replace('  <!-- 6. Plans -->', trial + '  <!-- 6. Plans -->', 1)
 assert 'leadForm' in h and 'id="mock"' in h, 'trial section not inserted'
-scripts = ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/hero.js', 'src/sec2.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/lead.js'])
+# styles whose mirror render exists (assets/look-sNN.webp + mask-sNN.png): the hero shows their shape on the model
+LOOKS = sorted(int(m.group(1)) for f in os.listdir('assets') for m in [re.match(r'look-s(\d\d)\.webp$', f)] if m and os.path.exists('assets/mask-s%s.png' % m.group(1)))
+scripts = '<script>window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/hero.js', 'src/sec2.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/reveal.js', 'src/lead.js'])
 h = h.replace('</body>', scripts + '</body>')
 W('out/v2.html', h.replace('__ORIGIN__', ''))
 
@@ -38,9 +40,9 @@ imgmap = {('s%02d' % i): b64('s%02d.webp' % i, 'image/webp') for i in range(1, 2
 imgmap.update({('ic%d' % i): b64('ic%d.webp' % i, 'image/webp') for i in range(1, 5)})
 imgmap['hair-mask'] = b64('hair-mask.png', 'image/png')
 imgmap['hero'] = b64('hero.webp', 'image/webp')
-for n in ['lob', 'bob']:
-    imgmap['look-' + n] = b64('look-%s.webp' % n, 'image/webp')
-    imgmap['hair-mask-' + n] = b64('hair-mask-%s.png' % n, 'image/png')
+for n in LOOKS:
+    imgmap['look-s%02d' % n] = b64('look-s%02d.webp' % n, 'image/webp')
+    imgmap['mask-s%02d' % n] = b64('mask-s%02d.png' % n, 'image/png')
 frames = {k: [b64('f/%s/%03d.webp' % (k, i + 1), 'image/webp') for i in range(n)] for k, n in [('hair', 52), ('nails', 45), ('lashes', 43)]}
 marker = '<script>' + NL + '/* Film hero'
 assert marker in a

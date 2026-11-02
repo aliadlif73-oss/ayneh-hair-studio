@@ -12,7 +12,7 @@
   const ok=im=>im&&im.complete&&im.naturalWidth;
   function load(i){if(imgs[i])return;const im=new Image();im.decoding='async';im.onload=()=>paint();im.src=url(set,i);imgs[i]=im}
   function start(){if(started)return;started=true;load(0);load(n-1);for(let i=1;i<n-1;i++)setTimeout(()=>load(i),40+i*35)}
-  function size(){const r=canvas.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,1.5);cw=canvas.width=Math.max(2,Math.round(r.width*d));ch=canvas.height=Math.max(2,Math.round(r.height*d));paint()}
+  function size(){const r=canvas.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);cw=canvas.width=Math.max(2,Math.round(r.width*d));ch=canvas.height=Math.max(2,Math.round(r.height*d));paint()}
   function paint(){
    const f=Math.round(cl(prog)*(n-1));let im=null;if(started)load(f);
    for(let k=0;k<n&&!im;k++){if(ok(imgs[f-k]))im=imgs[f-k];else if(ok(imgs[f+k]))im=imgs[f+k]}

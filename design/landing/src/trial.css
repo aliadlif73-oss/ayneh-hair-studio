@@ -27,3 +27,6 @@
 .sc-cta{margin:8px 18px 18px;padding:12px 14px;border-radius:var(--r-pill);background:var(--brand);color:#fff;text-align:center;font-size:13.5px;font-weight:700;transition:background 320ms var(--ease)}
 .mock-note{font-size:13px;color:var(--muted);text-align:center;max-width:340px}
 @media (max-width:900px){.trial-grid{grid-template-columns:1fr}.trial-mock{position:static;order:-1}}
+
+@media (max-width:900px){.trial-mock{order:2}.trial-col{order:1}}
+@media (max-width:900px){.site-footer{padding-bottom:88px}}

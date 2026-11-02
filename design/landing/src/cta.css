@@ -13,3 +13,6 @@
 .sticky-cta.show{display:flex}
 @media (min-width:901px){.sticky-cta{display:none!important}}
 @media (prefers-reduced-motion:no-preference){.sticky-cta.show{animation:rise 400ms var(--ease) both}}
+/* section reveals (added by reveal.js only to content below the first screen) */
+.rv{opacity:0;transform:translateY(28px);transition:opacity 700ms var(--ease),transform 800ms var(--ease)}
+.rv.in{opacity:1;transform:none}

@@ -48,3 +48,38 @@ Scene 1 hero (done), scene 5 phone chat (done), scene 6 headlines, scene 7 live 
 
 ## After delivery
 I convert each video into 50 to 90 WebP frames, paint them on a canvas scrubbed by scroll (so iOS does not stutter), keep the first frame as the poster, and ship under 500 KB for the first paint.
+
+## A6: hairstyles on the hero mirror (so a picked style sits on the model)
+Why: the hero mirror can only show a style's shape when a render of the same scene with that style exists. Colour is applied in the browser, so every render keeps the **same warm auburn hair colour** as the hero photo; only the cut and styling change.
+
+How (ChatGPT image edit or Gemini, one image per style):
+- Upload the hero frame (`hero.webp`, the three-panel brass mirror on the fluted stone podium) and ask for an **edit, not a new image**.
+- Prompt: "Edit this exact photo. Keep everything identical: camera, framing, crop, lighting, the room, the three brass mirror panels, the podium, the woman's face, expression, skin, makeup and black top, and her warm auburn hair colour. Change only her hairstyle to: {STYLE}. The hairstyle must appear consistently in all three mirror reflections (front and both side profiles). Photorealistic, no text."
+- Output the same size and aspect as the original (1376 × 768 or larger, same ratio). If the tool changes the framing, discard and retry.
+- Name the files `look-s01.webp` … `look-s19.webp` (PNG is fine; it will be converted) and put them in the Drive folder.
+
+| # | {STYLE} |
+|---|---|
+| 01 | long layered haircut with soft face-framing layers |
+| 02 | butterfly haircut: short face-framing layers from the chin, long layers below, bouncy volume |
+| 03 | wolf cut: shaggy choppy layers at the crown, shoulder length |
+| 04 | hush cut: soft feathery layers, shoulder length, see-through bangs |
+| 05 | lob: collarbone-length bob with soft layers |
+| 06 | short chin-length blunt bob |
+| 07 | A-line bob, short at the back and longer at the front |
+| 08 | pixie cut with a soft side-swept fringe |
+| 09 | curtain bangs parted in the middle with medium-long hair |
+| 10 | butterfly bangs: long layered bangs sweeping outward |
+| 11 | long side-swept bangs with long layered hair |
+| 12 | long straight hair with thick blunt bangs at eyebrow level |
+| 13 | voluminous salon blowout with big round-brush volume |
+| 14 | sleek straight keratin-smooth long hair |
+| 15 | big soft glossy waves |
+| 16 | natural defined curls, shoulder length |
+| 17 | big spiral corkscrew curls |
+| 18 | messy high top bun with loose face-framing strands |
+| 19 | elegant low bun at the nape with soft tendrils |
+
+After delivery: `python tools/make_masks.py` (in `design/landing`) builds `mask-sNN.png` for each render and an overlay check image; the build then turns those styles on in the mirror automatically. Styles without a render keep the honest card: "this style is made on the customer's own photo".
+
+Also useful: a larger hero frame (2752 × 1536, same scene) so the mirror stays sharp on big screens, and the A3 to A5 videos exported at 1080p or 4K (they arrived at 1280 × 720, which is the sharpness limit of the scroll scenes today).
