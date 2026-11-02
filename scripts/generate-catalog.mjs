@@ -61,7 +61,7 @@ for(const [i,s] of styles.entries()){
 const before=out+'/demo-before.webp',after=out+'/demo-after.webp';
 if((!existsSync(before)||!existsSync(after)||force)&&(!only.length||only.includes('demo'))){
  try{
-  const b=await generate({prompt:'Photorealistic casual smartphone selfie of an Iranian woman in her late twenties with olive skin, at home by a window in soft daylight, looking at the camera with a slight smile. Her hair is plain shoulder-length straight dark brown hair, no styling, visible and uncovered. Head and shoulders, vertical framing, plain light wall behind her. Natural skin, no filter, no text.',image_input:[],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
+  const b=await generate({prompt:'Photorealistic casual smartphone selfie of an Iranian woman in her late twenties with olive skin, at home by a window in soft daylight, looking at the camera with a slight smile. She wears a modest crew-neck knit sweater in oatmeal beige, clearly visible. Her hair is long, straight, plain dark brown hair reaching well below her shoulders to mid-chest, no styling, visible and uncovered. Head and shoulders, vertical framing, both hands out of frame (the phone is not visible), plain light wall behind her. Natural skin, no filter, no text.',image_input:[],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
   // Hairstyle only: the same pipeline customers get, her own colour kept.
   const a=await generate({prompt:transferPrompt('catalog','Short bob',''),image_input:[b],aspect_ratio:'3:4',resolution:'1K',output_format:'jpg'});
   await save(b,before,450,600);await save(a,after,450,600);console.log('demo ✓');made+=2;
