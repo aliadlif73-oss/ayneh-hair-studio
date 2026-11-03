@@ -29,3 +29,12 @@ Created using the built-in image tool, editing the repository's `hero.webp`:
 58 existing server tests passed (after rebasing onto the latest main) with external fetch disabled in the test process. This safeguard prevents incomplete provider mocks from reaching KIE. Build and artifact validation passed. Desktop Chrome was used to verify the walkthrough, final invitation, replay/skip, real model changes and colour selection. Real-device mobile, Safari and screen-reader testing remain unverified.
 
 The configured Sites project returned `Sites project not found`; the connected account's Sites list was empty. No project identity was replaced, and no production deployment was attempted through an alternative host.
+
+
+## Fixed portrait and selection refinement
+
+The canonical original photograph supplies the face and room for every cut. `src/portrait.js` composes only the old/new hair region (including the exposed blouse area after removing long hair); fixed face guards also exclude facial features from recolouring. The selected colour is reapplied to the active cut. Thumbnail and reference previews are cropped from these same composed portraits, so they no longer introduce other catalog models into the compact picker. Image transitions keep the portrait opaque instead of briefly revealing the old cut beneath it.
+
+Selection decoration is inside the existing image frame and colour circle. A thin static brass edge becomes brighter when selected; a short gold dash travels around that same edge, with a subtle colour-swatch halo. Labels and whole button boxes get no selection rectangle. Keyboard focus stays visible on the actual image/circle; reduced motion uses static edges.
+
+Validation for this refinement: 61 offline tests passed, including three compositor regressions for immutable facial pixels, hair removal, and active-cut recolour masks. Desktop browser checks confirmed the same portrait thumbnails and a running `gold-orbit` animation on the selected edge.

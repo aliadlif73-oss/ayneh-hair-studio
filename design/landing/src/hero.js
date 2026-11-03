@@ -23,11 +23,12 @@
  const READY=new Set([1,...(window.__AYN_LOOKS||[])]);
  const st={style:null,color:null,look:'base'};
  const film=$('intro'),stage=$('stage'),studio=$('studio'),mirror=$('mirror'),plate=$('plate'),dock=$('dock'),palette=$('colors');
- const frame='<svg class="frame" aria-hidden="true"><rect pathLength="1"/></svg>';
+ const frame='<svg class="frame" aria-hidden="true"><rect class="edge"/><rect class="orbit" pathLength="100"/></svg>';
+ const ring='<svg class="frame" viewBox="0 0 48 48" aria-hidden="true"><circle class="edge" cx="24" cy="24" r="22"/><circle class="orbit" cx="24" cy="24" r="22" pathLength="100"/></svg>';
  const mobile=matchMedia('(max-width:900px)');
 
  /* ---------- build the three pickers ---------- */
- const make=(cls,html,onPick,box)=>{const b=document.createElement('button');b.type='button';b.className=cls;b.setAttribute('role','radio');b.setAttribute('aria-checked','false');b.innerHTML=html+frame;b.addEventListener('click',()=>{if(!b.closest('.hscroll')?.classList.contains('was-dragged'))onPick()});box.append(b);return b};
+ const make=(cls,html,onPick,box)=>{const b=document.createElement('button');b.type='button';b.className=cls;b.setAttribute('role','radio');b.setAttribute('aria-checked','false');b.innerHTML=html;(b.querySelector('.ic,.ph,.dot')||b).insertAdjacentHTML('beforeend',cls==='sw'?ring:frame);b.addEventListener('click',()=>{if(!b.closest('.hscroll')?.classList.contains('was-dragged'))onPick()});box.append(b);return b};
  const n2=i=>String(i+1).padStart(2,'0');
  const cards=STYLES.map((name,i)=>make('card','<span class="ph"><img src="'+SRC('s'+n2(i))+'" alt="" width="240" height="300" loading="lazy" draggable="false"></span><span class="nm">'+name+'</span>',()=>pickStyle(i),$('track')));
  const dItems=[];
@@ -98,18 +99,58 @@
  let px=null,rafId=0,lookTok=0;const preps={};
  const loadImg=src=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src});
  const lookAssets=key=>key==='base'?['hero','hair-mask']:['look-'+key,'mask-'+key];
+ let identitySource=null;
+ function canonical(){
+  if(identitySource)return identitySource;
+  identitySource=Promise.all([loadImg(SRC('hero')),loadImg(SRC('hair-mask','png'))]).then(([photo,mask])=>{
+   const c=document.createElement('canvas');c.width=1376;c.height=768;const g=c.getContext('2d',{willReadFrequently:true});
+   g.drawImage(photo,0,0);const original=g.getImageData(0,0,1376,768).data;
+   g.clearRect(0,0,1376,768);g.drawImage(mask,0,0);
+   // Include dark loose ends that the original colour-segmented mask misses on the blouse.
+   g.fillStyle='#fff';
+   const removal=[[[622,334],[653,334],[666,419],[651,441],[620,433],[618,389]],[[712,331],[748,331],[762,430],[729,441],[710,412],[705,368]],[[520,333],[582,333],[582,451],[515,450]],[[785,333],[863,333],[863,452],[785,452]]];
+   removal.forEach(points=>{g.beginPath();points.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fill()});
+   g.fillRect(610,240,148,106);g.fillRect(508,255,76,91);g.fillRect(786,255,75,91);
+   g.fillRect(606,346,154,125);g.fillRect(508,346,76,108);g.fillRect(786,346,75,108);
+   const oldHair=g.getImageData(0,0,1376,768).data;
+   g.clearRect(0,0,1376,768);g.fillStyle='#fff';
+   // Protect the same eyes, nose, lips and facial contours in all three reflections.
+   // The upper forehead remains available for bangs.
+   const faces=[[[660,298],[668,293],[699,293],[711,301],[711,325],[700,343],[682,350],[664,339],[654,323],[654,307]],[[522,291],[537,288],[547,301],[547,319],[549,333],[541,347],[526,347],[517,335],[513,323],[520,312]],[[825,288],[840,291],[843,308],[850,321],[846,335],[837,347],[823,347],[815,335],[816,315],[817,300]]];
+   faces.forEach(points=>{g.beginPath();points.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fill()});
+   const identity=g.getImageData(0,0,1376,768).data;
+   g.clearRect(0,0,1376,768);
+   const fullFaces=[[[676,267],[693,268],[704,280],[711,295],[713,314],[707,333],[697,344],[682,350],[665,339],[655,322],[653,302],[658,282]],[[523,280],[539,283],[548,300],[550,324],[542,347],[525,349],[513,328],[519,308]],[[828,280],[842,284],[844,307],[852,324],[840,348],[824,350],[814,332],[816,304]]];
+   fullFaces.forEach(points=>{g.beginPath();points.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fill()});
+   const face=g.getImageData(0,0,1376,768).data;
+   return {original,oldHair,identity,face};
+  }).catch(error=>{identitySource=null;throw error});
+  return identitySource;
+ }
  function prepare(key){
   if(preps[key])return preps[key];
   const [im,mk]=lookAssets(key);
-  return preps[key]=Promise.all([loadImg(SRC(im)),loadImg(SRC(mk,'png'))]).then(([a,m])=>{
+  return preps[key]=Promise.all([loadImg(SRC(im)),loadImg(SRC(mk,'png')),canonical()]).then(([a,m,person])=>{
    const W=1376,H=768,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d',{willReadFrequently:true});
-   g.drawImage(m,0,0,W,H);const full=g.getImageData(0,0,W,H).data;
+   g.drawImage(m,0,0,W,H);let full=g.getImageData(0,0,W,H).data;
+   g.clearRect(0,0,W,H);g.drawImage(a,0,0,W,H);let scene=g.getImageData(0,0,W,H);
+   // Source renders contribute hair/removal pixels only, never a replacement face or room.
+   const composed=window.__AYN_PORTRAIT.compose(person.original,scene.data,person.oldHair,full,person.identity,person.face);
+   scene.data.set(composed.scene);full=composed.mask;
+   g.putImageData(scene,0,0);
+   const src=key==='base'?a.src:c.toDataURL('image/png');
+   const thumbCanvas=document.createElement('canvas');thumbCanvas.width=240;thumbCanvas.height=300;
+   thumbCanvas.getContext('2d').drawImage(c,605,235,160,235,0,0,240,300);
+   const thumb=thumbCanvas.toDataURL('image/png'),index=key==='base'?0:Number(key.slice(1))-1;
+   [cards[index],dItems[index]].forEach(button=>{if(button)button.querySelector('img').src=thumb});
    let x0=W,y0=H,x1=0,y1=0;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(full[(y*W+x)*4]>6){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
-   if(x1<x0)return null;
-   const R={x:x0,y:y0,w:x1-x0+1,h:y1-y0+1};
-   const mkd=g.getImageData(R.x,R.y,R.w,R.h).data;g.clearRect(0,0,W,H);g.drawImage(a,0,0,W,H);const base=g.getImageData(R.x,R.y,R.w,R.h).data;
+   if(x1<x0)throw new Error('Empty hair mask');
+   const R={x:x0,y:y0,w:x1-x0+1,h:y1-y0+1},base=g.getImageData(R.x,R.y,R.w,R.h).data;
+   const mkd=new Uint8ClampedArray(R.w*R.h*4);
+   for(let y=0;y<R.h;y++)mkd.set(full.subarray(((R.y+y)*W+R.x)*4,((R.y+y)*W+R.x+R.w)*4),y*R.w*4);
    const idx=[];for(let i=0;i<R.w*R.h;i++)if(mkd[i*4]>6)idx.push(i);
-   return {src:a.src,R,base,mk:mkd,idx,out:ctx.createImageData(R.w,R.h)}}).catch(()=>{delete preps[key];return null});
+   return {src,thumb,R,base,mk:mkd,idx,out:ctx.createImageData(R.w,R.h)};
+  }).catch(()=>{delete preps[key];return null});
  }
  let transitionAnimation=null;
  const renderError=()=>{$('demoCaption').textContent='تصویر بارگیری نشد؛ دوباره انتخاب کنید.';stage.dataset.renderState='error'};
@@ -122,9 +163,10 @@
   // Commit the decoded image and its own mask together. No old timeout can restore a previous selection.
   const changed=st.look!==key;
   img.src=p.src;px=p;st.look=key;
+  if(st.style!=null)$('refImg').src=p.thumb;
   img2.classList.remove('show');
   draw(null,st.color!=null?COLORS[st.color]:null,1,-1);
-  if(changed&&!reduced)transitionAnimation=$('mirrorFront').animate([{filter:'blur(3px)',opacity:.35},{filter:'blur(0)',opacity:1}],{duration:650,easing:'cubic-bezier(.2,.7,.2,1)'});
+  if(changed&&!reduced)transitionAnimation=$('mirrorFront').animate([{filter:'brightness(1.05)'},{filter:'brightness(1)'}],{duration:650,easing:'cubic-bezier(.2,.7,.2,1)'});
   stage.dataset.renderState='ready';stage.dataset.look=key;
   return true;
  }
@@ -165,7 +207,7 @@
  async function pickStyle(i){
   showFront();
   st.style=i;mark(cards,i);mark(dItems,i);
-  $('refImg').src=SRC('s'+n2(i));$('refName').textContent=STYLES[i];$('ref').classList.add('on');
+  $('refImg').src=cards[i].querySelector('img').src;$('refName').textContent=STYLES[i];$('ref').classList.add('on');
   if(READY.has(i+1)){
    $('refNote').textContent='پیش‌نمایش این مدل روی چهرهٔ نمونه';
    await setLook(i===0?'base':'s'+n2(i));

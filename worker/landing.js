@@ -250,10 +250,15 @@ h1{margin:0 0 16px;font-size:clamp(30px,2.9vw,48px);line-height:1.3;font-weight:
 .glass{background:rgba(236,226,212,.78);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(185,151,91,.5);box-shadow:0 18px 44px rgba(40,26,12,.2)}
 @supports not (backdrop-filter:blur(1px)){.glass{background:#ECE2D4}}
 
-/* selection frame drawn around the chosen option */
-.frame rect{x:1px;y:1px;width:calc(100% - 2px);height:calc(100% - 2px);rx:16px;ry:16px;fill:none;stroke:#A57E34;stroke-width:2.4;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset 650ms var(--ease)}
-[aria-checked="true"] .frame rect{stroke-dashoffset:0}
+/* A static existing edge plus a small travelling glint, inside the image/circle only. */
 svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.frame rect{x:1px;y:1px;width:calc(100% - 2px);height:calc(100% - 2px);rx:9px;ry:9px}
+.frame rect,.frame circle{fill:none;vector-effect:non-scaling-stroke}
+.frame .edge{stroke:#B9975B;stroke-width:1;opacity:.4;transition:opacity 240ms,stroke 240ms}
+.frame .orbit{stroke:#F8D77C;stroke-width:1.4;stroke-linecap:round;stroke-dasharray:13 87;stroke-dashoffset:0;opacity:0;filter:drop-shadow(0 0 2px #E7BE58);animation:gold-orbit 4s linear infinite;animation-play-state:paused;transition:opacity 240ms}
+[aria-checked="true"] .frame .edge{opacity:1;stroke:#D9B966}
+[aria-checked="true"] .frame .orbit{opacity:.95;animation-play-state:running}
+@keyframes gold-orbit{to{stroke-dashoffset:-100}}
 
 /* podium dock: lives on the plate, so it always sits on the podium */
 .dock{--u:1;position:absolute;z-index:3;left:49.85%;top:64.6%;width:26%;padding:calc(6px * var(--u)) calc(8px * var(--u)) 0;border-radius:calc(18px * var(--u));transform:translateX(-50%);transition:opacity 360ms var(--ease),transform 360ms var(--ease),visibility 0s}
@@ -324,7 +329,7 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
 .card[aria-checked="true"]{transform:translateY(-6px)}
 .card[aria-checked="true"] .ph{box-shadow:0 0 0 3px #F6EFE5,0 0 0 4.5px #B9975B,0 18px 36px rgba(40,26,12,.34)}
 .card[aria-checked="true"] .nm{background:var(--espresso);color:var(--cream)}
-.card svg.frame{display:none}
+.card svg.frame{display:block}.card .frame rect{rx:16px;ry:16px}
 .rail-wrap .nav-btn{--u:1;width:44px;height:44px;font-size:26px;margin-top:-14px}
 .rail-wrap .nav-r{right:clamp(8px,2vw,28px)}.rail-wrap .nav-l{left:clamp(8px,2vw,28px)}
 
@@ -412,6 +417,28 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
 .mirror-flipped .reference,.mirror-flipped .result{opacity:0;pointer-events:none}
 .demo-file{overflow:hidden}.demo-file img{transform:scale(3.1);transform-origin:50% 40%;clip-path:inset(24% 33% 39% 33%)}
 .demo-file span{position:relative;z-index:1;background:#FCFAF6}
+
+/* Keep selection within the existing thumbnail frame; labels and button boxes stay quiet. */
+.d-item .ic,.card .ph{position:relative;overflow:visible;isolation:isolate}
+.d-item img,.d-item:hover img,.d-item[aria-checked="true"] img{transform:none}
+.d-item[aria-checked="true"]{background:none}
+.d-item .ic{box-shadow:inset 0 0 0 1px #B9975B50;transition:box-shadow 250ms}
+.d-item[aria-checked="true"] .ic{box-shadow:0 0 7px #E6C26726,inset 0 0 0 1px #D9B966}
+.card img{border-radius:16px}
+.card[aria-checked="true"]{transform:none}
+.card[aria-checked="true"] .ph{box-shadow:0 0 8px #E6C26730,0 12px 26px #281A0C26}
+.card[aria-checked="true"] .nm{background:rgba(246,239,229,.85);color:#241A12}
+.sw .dot{position:relative;isolation:isolate;transition:box-shadow 250ms}
+.sw:hover .dot,.sw[aria-checked="true"] .dot{transform:none}
+.sw[aria-checked="true"] .dot{box-shadow:0 0 7px 1px #EAC75D45,inset 0 0 0 1px #F6D98E,0 4px 9px #3C281216}
+.sw .frame .edge{opacity:0}
+.sw[aria-checked="true"] .frame .edge{opacity:.8;stroke-width:1}
+.sw .frame .orbit{stroke-width:1.2}
+.d-item:focus-visible,.card:focus-visible,.sw:focus-visible{outline:none}
+.d-item:focus-visible .ic,.card:focus-visible .ph,.sw:focus-visible .dot{outline:2px solid var(--focus);outline-offset:4px}
+.demo-highlight{outline:0}
+.demo-highlight .frame .orbit{opacity:.95;animation-play-state:running}
+@media(prefers-reduced-motion:reduce){.frame .orbit{animation:none;stroke-dasharray:none;opacity:0!important}}
 
 
 /* ---------- Section 2: request lands in the salon chat ---------- */
@@ -1007,6 +1034,24 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
 })();
 </script>
 <script>window.__AYN_ASSET_VERSION="778f7774969c";window.__AYN_LOOKS=[6, 12];</script>
+<script>
+/* Keep the original portrait immutable; replace only the union of the old/new hair. */
+(()=>{
+ function compose(original,render,oldHair,newHair,identity,face=identity){
+  const scene=new Uint8ClampedArray(original),mask=new Uint8ClampedArray(newHair);
+  for(let p=0;p<scene.length;p+=4){
+   const protect=identity[p]/255;
+   const alpha=Math.max(oldHair[p]*(1-face[p]/255),newHair[p])/255*(1-protect);
+   for(let c=0;c<3;c++)scene[p+c]=original[p+c]+(render[p+c]-original[p+c])*alpha;
+   const coverage=Math.round(newHair[p]*(1-protect));
+   mask[p]=mask[p+1]=mask[p+2]=coverage;mask[p+3]=255;
+  }
+  return {scene,mask};
+ }
+ window.__AYN_PORTRAIT={compose};
+})();
+
+</script>
 <script>window.__AYN_BASE='/landing/';</script>
 <script>
 /* Film hero. STYLES / COLORS are the only lists to extend.
@@ -1034,11 +1079,12 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
  const READY=new Set([1,...(window.__AYN_LOOKS||[])]);
  const st={style:null,color:null,look:'base'};
  const film=$('intro'),stage=$('stage'),studio=$('studio'),mirror=$('mirror'),plate=$('plate'),dock=$('dock'),palette=$('colors');
- const frame='<svg class="frame" aria-hidden="true"><rect pathLength="1"/></svg>';
+ const frame='<svg class="frame" aria-hidden="true"><rect class="edge"/><rect class="orbit" pathLength="100"/></svg>';
+ const ring='<svg class="frame" viewBox="0 0 48 48" aria-hidden="true"><circle class="edge" cx="24" cy="24" r="22"/><circle class="orbit" cx="24" cy="24" r="22" pathLength="100"/></svg>';
  const mobile=matchMedia('(max-width:900px)');
 
  /* ---------- build the three pickers ---------- */
- const make=(cls,html,onPick,box)=>{const b=document.createElement('button');b.type='button';b.className=cls;b.setAttribute('role','radio');b.setAttribute('aria-checked','false');b.innerHTML=html+frame;b.addEventListener('click',()=>{if(!b.closest('.hscroll')?.classList.contains('was-dragged'))onPick()});box.append(b);return b};
+ const make=(cls,html,onPick,box)=>{const b=document.createElement('button');b.type='button';b.className=cls;b.setAttribute('role','radio');b.setAttribute('aria-checked','false');b.innerHTML=html;(b.querySelector('.ic,.ph,.dot')||b).insertAdjacentHTML('beforeend',cls==='sw'?ring:frame);b.addEventListener('click',()=>{if(!b.closest('.hscroll')?.classList.contains('was-dragged'))onPick()});box.append(b);return b};
  const n2=i=>String(i+1).padStart(2,'0');
  const cards=STYLES.map((name,i)=>make('card','<span class="ph"><img src="'+SRC('s'+n2(i))+'" alt="" width="240" height="300" loading="lazy" draggable="false"></span><span class="nm">'+name+'</span>',()=>pickStyle(i),$('track')));
  const dItems=[];
@@ -1109,18 +1155,58 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
  let px=null,rafId=0,lookTok=0;const preps={};
  const loadImg=src=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src});
  const lookAssets=key=>key==='base'?['hero','hair-mask']:['look-'+key,'mask-'+key];
+ let identitySource=null;
+ function canonical(){
+  if(identitySource)return identitySource;
+  identitySource=Promise.all([loadImg(SRC('hero')),loadImg(SRC('hair-mask','png'))]).then(([photo,mask])=>{
+   const c=document.createElement('canvas');c.width=1376;c.height=768;const g=c.getContext('2d',{willReadFrequently:true});
+   g.drawImage(photo,0,0);const original=g.getImageData(0,0,1376,768).data;
+   g.clearRect(0,0,1376,768);g.drawImage(mask,0,0);
+   // Include dark loose ends that the original colour-segmented mask misses on the blouse.
+   g.fillStyle='#fff';
+   const removal=[[[622,334],[653,334],[666,419],[651,441],[620,433],[618,389]],[[712,331],[748,331],[762,430],[729,441],[710,412],[705,368]],[[520,333],[582,333],[582,451],[515,450]],[[785,333],[863,333],[863,452],[785,452]]];
+   removal.forEach(points=>{g.beginPath();points.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fill()});
+   g.fillRect(610,240,148,106);g.fillRect(508,255,76,91);g.fillRect(786,255,75,91);
+   g.fillRect(606,346,154,125);g.fillRect(508,346,76,108);g.fillRect(786,346,75,108);
+   const oldHair=g.getImageData(0,0,1376,768).data;
+   g.clearRect(0,0,1376,768);g.fillStyle='#fff';
+   // Protect the same eyes, nose, lips and facial contours in all three reflections.
+   // The upper forehead remains available for bangs.
+   const faces=[[[660,298],[668,293],[699,293],[711,301],[711,325],[700,343],[682,350],[664,339],[654,323],[654,307]],[[522,291],[537,288],[547,301],[547,319],[549,333],[541,347],[526,347],[517,335],[513,323],[520,312]],[[825,288],[840,291],[843,308],[850,321],[846,335],[837,347],[823,347],[815,335],[816,315],[817,300]]];
+   faces.forEach(points=>{g.beginPath();points.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fill()});
+   const identity=g.getImageData(0,0,1376,768).data;
+   g.clearRect(0,0,1376,768);
+   const fullFaces=[[[676,267],[693,268],[704,280],[711,295],[713,314],[707,333],[697,344],[682,350],[665,339],[655,322],[653,302],[658,282]],[[523,280],[539,283],[548,300],[550,324],[542,347],[525,349],[513,328],[519,308]],[[828,280],[842,284],[844,307],[852,324],[840,348],[824,350],[814,332],[816,304]]];
+   fullFaces.forEach(points=>{g.beginPath();points.forEach(([x,y],i)=>i?g.lineTo(x,y):g.moveTo(x,y));g.closePath();g.fill()});
+   const face=g.getImageData(0,0,1376,768).data;
+   return {original,oldHair,identity,face};
+  }).catch(error=>{identitySource=null;throw error});
+  return identitySource;
+ }
  function prepare(key){
   if(preps[key])return preps[key];
   const [im,mk]=lookAssets(key);
-  return preps[key]=Promise.all([loadImg(SRC(im)),loadImg(SRC(mk,'png'))]).then(([a,m])=>{
+  return preps[key]=Promise.all([loadImg(SRC(im)),loadImg(SRC(mk,'png')),canonical()]).then(([a,m,person])=>{
    const W=1376,H=768,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d',{willReadFrequently:true});
-   g.drawImage(m,0,0,W,H);const full=g.getImageData(0,0,W,H).data;
+   g.drawImage(m,0,0,W,H);let full=g.getImageData(0,0,W,H).data;
+   g.clearRect(0,0,W,H);g.drawImage(a,0,0,W,H);let scene=g.getImageData(0,0,W,H);
+   // Source renders contribute hair/removal pixels only, never a replacement face or room.
+   const composed=window.__AYN_PORTRAIT.compose(person.original,scene.data,person.oldHair,full,person.identity,person.face);
+   scene.data.set(composed.scene);full=composed.mask;
+   g.putImageData(scene,0,0);
+   const src=key==='base'?a.src:c.toDataURL('image/png');
+   const thumbCanvas=document.createElement('canvas');thumbCanvas.width=240;thumbCanvas.height=300;
+   thumbCanvas.getContext('2d').drawImage(c,605,235,160,235,0,0,240,300);
+   const thumb=thumbCanvas.toDataURL('image/png'),index=key==='base'?0:Number(key.slice(1))-1;
+   [cards[index],dItems[index]].forEach(button=>{if(button)button.querySelector('img').src=thumb});
    let x0=W,y0=H,x1=0,y1=0;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(full[(y*W+x)*4]>6){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
-   if(x1<x0)return null;
-   const R={x:x0,y:y0,w:x1-x0+1,h:y1-y0+1};
-   const mkd=g.getImageData(R.x,R.y,R.w,R.h).data;g.clearRect(0,0,W,H);g.drawImage(a,0,0,W,H);const base=g.getImageData(R.x,R.y,R.w,R.h).data;
+   if(x1<x0)throw new Error('Empty hair mask');
+   const R={x:x0,y:y0,w:x1-x0+1,h:y1-y0+1},base=g.getImageData(R.x,R.y,R.w,R.h).data;
+   const mkd=new Uint8ClampedArray(R.w*R.h*4);
+   for(let y=0;y<R.h;y++)mkd.set(full.subarray(((R.y+y)*W+R.x)*4,((R.y+y)*W+R.x+R.w)*4),y*R.w*4);
    const idx=[];for(let i=0;i<R.w*R.h;i++)if(mkd[i*4]>6)idx.push(i);
-   return {src:a.src,R,base,mk:mkd,idx,out:ctx.createImageData(R.w,R.h)}}).catch(()=>{delete preps[key];return null});
+   return {src,thumb,R,base,mk:mkd,idx,out:ctx.createImageData(R.w,R.h)};
+  }).catch(()=>{delete preps[key];return null});
  }
  let transitionAnimation=null;
  const renderError=()=>{$('demoCaption').textContent='تصویر بارگیری نشد؛ دوباره انتخاب کنید.';stage.dataset.renderState='error'};
@@ -1133,9 +1219,10 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
   // Commit the decoded image and its own mask together. No old timeout can restore a previous selection.
   const changed=st.look!==key;
   img.src=p.src;px=p;st.look=key;
+  if(st.style!=null)$('refImg').src=p.thumb;
   img2.classList.remove('show');
   draw(null,st.color!=null?COLORS[st.color]:null,1,-1);
-  if(changed&&!reduced)transitionAnimation=$('mirrorFront').animate([{filter:'blur(3px)',opacity:.35},{filter:'blur(0)',opacity:1}],{duration:650,easing:'cubic-bezier(.2,.7,.2,1)'});
+  if(changed&&!reduced)transitionAnimation=$('mirrorFront').animate([{filter:'brightness(1.05)'},{filter:'brightness(1)'}],{duration:650,easing:'cubic-bezier(.2,.7,.2,1)'});
   stage.dataset.renderState='ready';stage.dataset.look=key;
   return true;
  }
@@ -1176,7 +1263,7 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
  async function pickStyle(i){
   showFront();
   st.style=i;mark(cards,i);mark(dItems,i);
-  $('refImg').src=SRC('s'+n2(i));$('refName').textContent=STYLES[i];$('ref').classList.add('on');
+  $('refImg').src=cards[i].querySelector('img').src;$('refName').textContent=STYLES[i];$('ref').classList.add('on');
   if(READY.has(i+1)){
    $('refNote').textContent='پیش‌نمایش این مدل روی چهرهٔ نمونه';
    await setLook(i===0?'base':'s'+n2(i));

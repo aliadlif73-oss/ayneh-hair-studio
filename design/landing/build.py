@@ -30,7 +30,7 @@ assert 'leadForm' in h and 'id="mock"' in h, 'trial section not inserted'
 # styles whose mirror render exists (assets/look-sNN.webp + mask-sNN.png): the hero shows their shape on the model
 LOOKS = sorted(int(m.group(1)) for f in os.listdir('assets') for m in [re.match(r'look-s(\d\d)\.webp$', f)] if m and os.path.exists('assets/mask-s%s.png' % m.group(1)))
 asset_version = hashlib.sha256(b''.join(open('assets/' + f, 'rb').read() for f in sorted(os.listdir('assets')) if re.match(r'(hero\.webp|hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png)$', f))).hexdigest()[:12]
-scripts = '<script>window.__AYN_ASSET_VERSION=' + json.dumps(asset_version) + ';window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/hero.js', 'src/sec2.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/reveal.js', 'src/lead.js'])
+scripts = '<script>window.__AYN_ASSET_VERSION=' + json.dumps(asset_version) + ';window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/portrait.js', 'src/hero.js', 'src/sec2.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/reveal.js', 'src/lead.js'])
 h = h.replace('</body>', scripts + '</body>')
 W('out/v2.html', h.replace('__ORIGIN__', ''))
 
