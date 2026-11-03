@@ -369,6 +369,50 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
 /* touch targets: the dock arrows stay visually small inside the plate but get a 44px hit area */
 .nav-btn::before{content:"";position:absolute;inset:50% auto auto 50%;width:44px;height:44px;transform:translate(-50%,-50%);border-radius:50%}
 
+/* Interruptible walkthrough. Glass blanks cover only the three mirror interiors. */
+.plate{animation:none;--scene-scale:1}
+.plate>.room-backdrop{z-index:0}
+.empty-glass{position:absolute;inset:0;width:100%;height:100%;z-index:1;pointer-events:none}
+.mirror-front{position:absolute;inset:0;z-index:2;opacity:0;clip-path:polygon(35.9% 19.9%,63.7% 19.9%,63.7% 63.6%,35.9% 63.6%);transform-origin:49.8% 42%;transition:opacity 700ms var(--ease),transform 1000ms var(--ease);backface-visibility:hidden;pointer-events:none}
+.portrait-visible .mirror-front{opacity:1}
+#roomImg{z-index:0}#roomImg2{z-index:1}#hairCanvas{z-index:2;pointer-events:none}
+.mirror-flipped .mirror-front{transform:perspective(1400px) rotateY(180deg);opacity:0}
+.mirror-invite{position:absolute;z-index:3;left:43.9%;top:22.8%;width:11.2%;height:38.2%;padding:calc(12px * var(--scene-scale));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:calc(12px * var(--scene-scale));text-align:center;color:#F8F2EB;background:linear-gradient(150deg,#312319,#160D07);border:1px solid #B9975B;border-radius:48% 48% 2px 2px / 27% 27% 2px 2px;transform:perspective(1400px) rotateY(-180deg);opacity:0;pointer-events:none;transition:transform 1000ms var(--ease),opacity 600ms var(--ease);backface-visibility:hidden}
+.mirror-flipped .mirror-invite{transform:none;opacity:1;pointer-events:auto}
+.invite-mark{color:#D6BE8C;font-size:calc(24px * var(--scene-scale));line-height:1}
+.mirror-invite p{font-size:calc(24px * var(--scene-scale));line-height:1.6;font-weight:700;margin:0}
+.mirror-invite .btn{font-size:calc(12px * var(--scene-scale));line-height:1.8;min-height:44px;padding:calc(8px * var(--scene-scale));white-space:normal;border-color:#B9975B;background:#D6BE8C;color:#160D07;gap:4px}
+.mirror-invite button{font-size:calc(11px * var(--scene-scale));color:#F8F2EB;text-decoration:underline;text-underline-offset:4px;border:0;background:none;min-height:44px;cursor:pointer;padding:0}
+.dock{z-index:4}
+.d-item .ic{height:calc(62px * var(--u));overflow:hidden;border-radius:9px;width:calc(46px * var(--u))}
+.d-item img{position:static;width:100%;height:100%;max-width:none;object-fit:cover;filter:none;border-radius:9px}
+.preview-kind{display:block;font-size:11px;font-weight:500;margin-top:4px;color:#5C4A38}
+.demo-file{position:absolute;z-index:11;width:100px;padding:6px;border:1px solid #B9975B;border-radius:14px;background:#FCFAF6;box-shadow:0 14px 28px #160D0730;opacity:0;pointer-events:none;transform:rotate(-8deg) scale(.9);transition:opacity 250ms,transform 250ms}
+.demo-file.visible{opacity:1;transform:rotate(-8deg) scale(1)}
+.demo-file img{display:block;width:88px;height:74px;object-fit:cover;object-position:50% 40%;border-radius:8px}
+.demo-file span{display:block;font-size:11px;text-align:center;white-space:nowrap;color:#33261A;padding-top:4px}
+.demo-hand{position:absolute;z-index:12;width:34px;height:40px;fill:#fff;stroke:#20160D;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 4px 5px #160D0740);opacity:0;pointer-events:none;transform-origin:25% 15%;transition:opacity 200ms,transform 180ms}
+.demo-hand.visible{opacity:1}.demo-hand.press{transform:scale(.78)}
+.demo-caption{position:absolute;z-index:7;left:12%;top:18px;max-width:43%;padding:8px 16px;border:1px solid #B9975B60;background:#FCFAF6dd;backdrop-filter:blur(8px);border-radius:24px;font-size:13px;line-height:1.8;text-align:center;color:#4A3722;pointer-events:none}
+.demo-controls{position:absolute;z-index:7;left:14px;bottom:12px}
+.demo-controls button{min-height:44px;padding:0 14px;border:1px solid #B9975B80;border-radius:24px;background:#FCFAF6dd;color:#4A3722;font-size:12px;cursor:pointer}
+.demo-controls button[hidden]{display:none}
+.demo-highlight{outline:2px solid #A57E34;outline-offset:3px}
+.stage[data-demo="playing"] .reference,.stage[data-demo="playing"] .result{opacity:0;pointer-events:none}
+@media(min-width:901px) and (max-height:700px){.copy .lead{display:block;font-size:14px;line-height:1.8;margin-bottom:14px}.copy h1{font-size:30px}.copy .fineprint{display:block;font-size:11px}.copy .cta-row{gap:8px}.copy .cta-row .btn{font-size:13px;min-height:44px}}
+@media(max-width:900px){
+ .demo-caption{position:relative;left:auto;top:auto;max-width:none;margin:8px 20px 0;order:4;font-size:12px;min-height:40px}
+ .palette.mobile{order:5}.dock.mobile{order:6}.lead{order:7}.cta-row{order:8}.fineprint{order:9}
+ .demo-controls{position:relative;left:auto;bottom:auto;text-align:center;order:10;padding:0 16px 16px}
+ .demo-hand{display:none}.copy .cta-row .btn--ghost{font-size:14px}
+ .mirror-invite .btn{font-size:max(11px,calc(12px * var(--scene-scale)))}.mirror-invite button{font-size:max(11px,calc(11px * var(--scene-scale)))}.mirror-invite{padding:6px;gap:4px}
+}
+@media(prefers-reduced-motion:reduce){.mirror-front,.mirror-invite,.demo-hand,.demo-file{transition:none}.demo-file,.demo-hand{display:none}.mirror-front{opacity:1}.mirror-flipped .mirror-front{transform:none;opacity:1}.mirror-invite{display:none}}
+
+.mirror-flipped .reference,.mirror-flipped .result{opacity:0;pointer-events:none}
+.demo-file{overflow:hidden}.demo-file img{transform:scale(3.1);transform-origin:50% 40%;clip-path:inset(24% 33% 39% 33%)}
+.demo-file span{position:relative;z-index:1;background:#FCFAF6}
+
 
 /* ---------- Section 2: request lands in the salon chat ---------- */
 .s2{position:relative;background:radial-gradient(90% 70% at 22% 40%,#2a1a0e 0%,#160D07 62%);color:var(--cream);padding:var(--sec-y) var(--gut)}
@@ -569,29 +613,38 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
 <main id="main">
   <!-- 1. Hero: copy + the mirror studio. The photo, hair canvas and podium dock live on one plate so they never drift apart. -->
   <section id="intro" class="film" aria-labelledby="h1" tabindex="-1">
-    <div class="stage" id="stage">
+    <div class="stage" id="stage" data-demo="loading">
       <div class="copy" id="copy">
         <p class="eyebrow reveal">برای صاحبان سالن مو، ناخن و مژه</p>
-        <h1 id="h1" class="reveal">مشتری‌تان قبل از نشستن روی صندلی می‌داند چه می‌خواهد.</h1>
-        <p class="lead reveal">آینه یک صفحهٔ اینترنتی برای سالن شماست. مشتری عکسش را می‌گذارد، مدل مو، رنگ، طرح ناخن یا مژه را روی خودش می‌بیند و درخواستش را با عکس به تلگرام یا بله شما می‌فرستد.</p>
-        <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" data-try="hair" href="/s/demo?l=hair"><span>امتحان روی عکس خودم</span></a></div>
+        <h1 id="h1" class="reveal">مشتری‌تان اول روی خودش می‌بیند، بعد برای شما می‌فرستد.</h1>
+        <p class="lead reveal">مشتری عکس چهره یا دستش را بارگذاری می‌کند؛ مدل مو، رنگ مو، طرح ناخن یا مدل مژهٔ دلخواهش را روی خودش می‌بیند و انتخابی را که می‌پسندد، همراه تصویر برای سالن شما می‌فرستد. شما هم همان‌جا در تلگرام یا بله، درخواست را تأیید یا رد می‌کنید.</p>
+        <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" data-try="hair" href="/s/demo?l=hair"><span>همین حالا با تصویر خودتان امتحان کنید</span></a></div>
         <p class="fineprint reveal">رایگان و بدون کارت بانکی: ۱۰ ساعت و ۵ تصویر. شبیه‌سازی پیشنهادی است و نتیجه را تضمین نمی‌کند.</p>
       </div>
 
       <div class="studio" id="studio">
         <div class="mirror" id="mirror">
           <div class="plate" id="plate">
+            <img class="room-backdrop" src="/landing/hero.webp" width="1376" height="768" alt="" aria-hidden="true">
+            <svg class="empty-glass" viewBox="0 0 1376 768" aria-hidden="true"><defs><linearGradient id="mirrorGlass" x2=".7" y2="1"><stop stop-color="#A99C83"/><stop offset=".5" stop-color="#C6BAA3"/><stop offset="1" stop-color="#A99D86"/></linearGradient></defs><path fill="url(#mirrorGlass)" d="M605 471V240C605 137 761 137 761 240V471Z M506 455V272C506 193 585 193 585 272V455Z M782 455V272C782 193 863 193 863 272V455Z"/></svg>
+            <div class="mirror-front" id="mirrorFront">
             <img id="roomImg" fetchpriority="high" decoding="async" src="/landing/hero.webp" width="1376" height="768" alt="آینهٔ سه‌تکهٔ برنجی با تصویر یک مدل در آن، روی پایه‌ای از سنگ">
             <img id="roomImg2" class="alt" src="data:image/gif;base64,R0lGODlhAQABAAAAACw=" alt="" aria-hidden="true" width="1376" height="768">
             <canvas id="hairCanvas" width="1376" height="768" aria-hidden="true"></canvas>
+            </div>
+            <div class="mirror-invite" id="mirrorInvite" inert>
+              <span class="invite-mark" aria-hidden="true">✦</span><p>این بار،<br>تصویر خودتان.</p>
+              <a class="btn" data-try="hair" href="/s/demo?l=hair">با تصویر خودتان امتحان کنید <span aria-hidden="true">←</span></a>
+              <button type="button" id="backToMirror">بازگشت به آینه</button>
+            </div>
             <div class="dock glass" id="dock">
-              <h2 id="dock-h">مدل مو</h2>
+              <h2 id="dock-h">مدل مو · روی این چهره امتحان کنید</h2>
               <div class="dock-view">
                 <div class="dock-track hscroll" id="dockTrack" role="radiogroup" aria-labelledby="dock-h"></div>
                 <button type="button" class="nav-btn nav-r" id="dkPrev" aria-label="مدل‌های قبلی">›</button>
                 <button type="button" class="nav-btn nav-l" id="dkNext" aria-label="مدل‌های بعدی">‹</button>
               </div>
-              <button type="button" class="more" id="more" aria-expanded="false" aria-controls="styles"><span>همهٔ مدل‌ها با عکس</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7.5 10 12.5 15 7.5"/></svg></button>
+              <button type="button" class="more" id="more" aria-expanded="false" aria-controls="styles"><span>دیدن همهٔ مدل‌ها با عکس مرجع</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7.5 10 12.5 15 7.5"/></svg></button>
             </div>
           </div>
           <div class="palette glass" id="colors">
@@ -624,6 +677,11 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
           <button type="button" class="nav-btn nav-l" id="stNext" aria-label="مدل‌های بعدی">‹</button>
         </div>
       </div>
+      <div class="demo-file" id="demoFile" aria-hidden="true"><img src="/landing/hero.webp" alt=""><span>تصویر من.jpg</span></div>
+      <svg class="demo-hand" id="demoHand" viewBox="0 0 48 56" aria-hidden="true"><path d="M14 29V9a5 5 0 0 1 10 0v15-5a4 4 0 0 1 8 0v7-4a4 4 0 0 1 8 0v9-3a4 4 0 0 1 8 0v12c0 10-6 17-17 17h-2c-6 0-10-3-14-8L5 35c-4-5 2-11 6-7l7 7" transform="translate(-3,-2)"/></svg>
+      <div class="demo-caption" id="demoCaption" role="status" aria-live="polite">نمایش نحوهٔ کار آینه</div>
+      <div class="demo-controls"><button type="button" id="skipDemo">رد کردن نمایش</button><button type="button" id="replayDemo" hidden>پخش دوبارهٔ نمایش</button></div>
+      <noscript><style>.mirror-front{opacity:1!important}.demo-controls,.demo-caption{display:none}</style></noscript>
       <div class="fade" id="fade" aria-hidden="true"></div>
     </div>
   </section>
@@ -948,7 +1006,7 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
  compact.addEventListener('change',e=>{if(!e.matches&&!menu.hidden)setOpen(false)});
 })();
 </script>
-<script>window.__AYN_LOOKS=[];</script>
+<script>window.__AYN_ASSET_VERSION="778f7774969c";window.__AYN_LOOKS=[6, 12];</script>
 <script>window.__AYN_BASE='/landing/';</script>
 <script>
 /* Film hero. STYLES / COLORS are the only lists to extend.
@@ -961,7 +1019,7 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
 (()=>{
  const $=id=>document.getElementById(id);
  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
- const SRC=(k,e)=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'/landing/')+k+'.'+(e||'webp'));
+ const SRC=(k,e)=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'/landing/')+k+'.'+(e||'webp')+'?v='+(window.__AYN_ASSET_VERSION||'1'));
  const fa=n=>new Intl.NumberFormat('fa-IR').format(n);
  const STYLES=['لیر بلند','کوتاهی پروانه‌ای','ولف‌کات','هاش‌کات','لُب (باب بلند)','باب کوتاه','کوتاهی جلوبلند','پیکسی','چتری پرده‌ای','چتری پروانه‌ای','چتری کج','چتری صاف کامل','براشینگ حجیم','صاف و براق','ویو درشت','فر طبیعی','فر درشت لوله‌ای','مدل گوجه‌ای','شینیون پایین'];
  const COLORS=[
@@ -973,7 +1031,7 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
   {name:'بلوند پلاتینی',h:50,s:.2,l:.86,css:'linear-gradient(145deg,#F4EFE2,#CBC3AE)'},
   {name:'شرابی',h:343,s:.55,l:.27,css:'linear-gradient(145deg,#8E3050,#481327)'}
  ];
- const READY=new Set(window.__AYN_LOOKS||[]);
+ const READY=new Set([1,...(window.__AYN_LOOKS||[])]);
  const st={style:null,color:null,look:'base'};
  const film=$('intro'),stage=$('stage'),studio=$('studio'),mirror=$('mirror'),plate=$('plate'),dock=$('dock'),palette=$('colors');
  const frame='<svg class="frame" aria-hidden="true"><rect pathLength="1"/></svg>';
@@ -983,7 +1041,11 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
  const make=(cls,html,onPick,box)=>{const b=document.createElement('button');b.type='button';b.className=cls;b.setAttribute('role','radio');b.setAttribute('aria-checked','false');b.innerHTML=html+frame;b.addEventListener('click',()=>{if(!b.closest('.hscroll')?.classList.contains('was-dragged'))onPick()});box.append(b);return b};
  const n2=i=>String(i+1).padStart(2,'0');
  const cards=STYLES.map((name,i)=>make('card','<span class="ph"><img src="'+SRC('s'+n2(i))+'" alt="" width="240" height="300" loading="lazy" draggable="false"></span><span class="nm">'+name+'</span>',()=>pickStyle(i),$('track')));
- const dItems=STYLES.map((name,i)=>make('d-item','<span class="ic"><img src="'+SRC('ic'+(i%4+1))+'" alt=""'+((i%8)>=4?' style="transform:scaleX(-1)"':'')+' draggable="false"></span><span>'+name+'</span>',()=>pickStyle(i),$('dockTrack')));
+ const dItems=[];
+ STYLES.forEach((name,i)=>{if(READY.has(i+1)){
+  dItems[i]=make('d-item','<span class="ic"><img src="'+SRC('s'+n2(i))+'" alt="" draggable="false"></span><span>'+name+'</span>',()=>pickStyle(i),$('dockTrack'));
+ }});
+ cards.forEach((b,i)=>{const note=document.createElement('small');note.className='preview-kind';note.textContent=READY.has(i+1)?'پیش‌نمایش روی آینه':'عکس مرجع';b.append(note)});
  const sws=COLORS.map((c,i)=>make('sw','<span class="dot"><i style="background:'+c.css+'"></i></span><span>'+c.name+'</span>',()=>pickColor(i),$('colList')));
  $('styCount').textContent='· '+fa(STYLES.length)+' مدل';
 
@@ -994,6 +1056,7 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
   const s=Math.max(W/1376,H/768)*(mobile.matches?1.5:1),pw=1376*s,ph=768*s;
   const x=Math.min(0,Math.max(W-pw,W/2-FX*pw)),y=Math.min(0,Math.max(H-ph,H*.5-FY*ph));
   Object.assign(plate.style,{width:pw+'px',height:ph+'px',left:x+'px',top:y+'px'});
+  plate.style.setProperty('--scene-scale',s.toFixed(3));
   dock.style.setProperty('--u',mobile.matches?'1':Math.max(.62,Math.min(1.35,s/.84)).toFixed(3));
   // phones: the podium is too small for the dock, so it sits under the mirror instead
   // phones: colours and the style dock sit under the mirror, where thumbs can reach them
@@ -1026,7 +1089,7 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
  function syncArrows(){syncs.forEach(f=>f())}
 
  /* arrow keys move between options inside each radio group */
- [[cards,$('track')],[dItems,$('dockTrack')],[sws,$('colList')]].forEach(([list,box])=>box.addEventListener('keydown',e=>{
+ [[cards,$('track')],[dItems.filter(Boolean),$('dockTrack')],[sws,$('colList')]].forEach(([list,box])=>box.addEventListener('keydown',e=>{
   const i=list.indexOf(document.activeElement);if(i<0)return;
   const k=e.key,vertical=box.id==='colList';
   const dir=k==='ArrowDown'||(!vertical&&k==='ArrowLeft')?1:k==='ArrowUp'||(!vertical&&k==='ArrowRight')?-1:0;
@@ -1057,18 +1120,27 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
    const R={x:x0,y:y0,w:x1-x0+1,h:y1-y0+1};
    const mkd=g.getImageData(R.x,R.y,R.w,R.h).data;g.clearRect(0,0,W,H);g.drawImage(a,0,0,W,H);const base=g.getImageData(R.x,R.y,R.w,R.h).data;
    const idx=[];for(let i=0;i<R.w*R.h;i++)if(mkd[i*4]>6)idx.push(i);
-   return {src:a.src,R,base,mk:mkd,idx,out:ctx.createImageData(R.w,R.h)}}).catch(()=>null);
+   return {src:a.src,R,base,mk:mkd,idx,out:ctx.createImageData(R.w,R.h)}}).catch(()=>{delete preps[key];return null});
  }
- const startPrep=()=>prepare('base').then(p=>{if(st.look==='base'){px=p;if(st.color!=null)draw(null,COLORS[st.color],1,-1)}});
- if(img.complete)startPrep();else img.addEventListener('load',startPrep);
+ let transitionAnimation=null;
+ const renderError=()=>{$('demoCaption').textContent='تصویر بارگیری نشد؛ دوباره انتخاب کنید.';stage.dataset.renderState='error'};
  async function setLook(key){
-  if(key===st.look)return;
-  const my=++lookTok,p=await prepare(key);if(my!==lookTok||!p)return;
-  st.look=key;cancelAnimationFrame(rafId);
-  img2.src=p.src;try{await img2.decode()}catch(e){}
-  ctx.clearRect(0,0,1376,768);img2.classList.add('show');
-  setTimeout(()=>{if(my!==lookTok)return;img.src=p.src;const done=()=>{img2.style.transition='none';img2.classList.remove('show');void img2.offsetWidth;img2.style.transition='';px=p;st.color!=null?paintColor(null,COLORS[st.color]):paintScan(null)};img.decode?img.decode().then(done,done):done()},reduced?0:480);
+  const my=++lookTok;
+  stage.dataset.renderState='loading';
+  const p=await prepare(key);if(my!==lookTok)return false;
+  if(!p){renderError();return false}
+  transitionAnimation?.cancel();cancelAnimationFrame(rafId);
+  // Commit the decoded image and its own mask together. No old timeout can restore a previous selection.
+  const changed=st.look!==key;
+  img.src=p.src;px=p;st.look=key;
+  img2.classList.remove('show');
+  draw(null,st.color!=null?COLORS[st.color]:null,1,-1);
+  if(changed&&!reduced)transitionAnimation=$('mirrorFront').animate([{filter:'blur(3px)',opacity:.35},{filter:'blur(0)',opacity:1}],{duration:650,easing:'cubic-bezier(.2,.7,.2,1)'});
+  stage.dataset.renderState='ready';stage.dataset.look=key;
+  return true;
  }
+ const startPrep=()=>setLook('base');
+ startPrep();
  const cl=(v,a,b)=>v<a?a:v>b?b:v,sm=(a,b,x)=>{x=cl((x-a)/(b-a),0,1);return x*x*(3-2*x)};
  function hsl(h,s,l){const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));return[f(0)*255,f(8)*255,f(4)*255]}
  function tint(c,Y,yn){let l=c.ombre?.16+(.7-.16)*sm(.3,.85,yn):c.l;l=cl(l+(Y-.4)*1.2,.03,.96);const s=c.s*(1-cl((l-.72)*2.2,0,.8));return hsl(c.h,s,l)}
@@ -1094,29 +1166,113 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
  function paintScan(cur){run(900,x=>draw(cur,cur,1,x*1.3-.15),()=>draw(null,cur,1,-1))}
 
  /* ---------- selection ---------- */
- const mark=(list,idx)=>list.forEach((b,i)=>b.setAttribute('aria-checked',String(i===idx)));
- function pickColor(i){const prev=st.color!=null?COLORS[st.color]:null;st.color=i;mark(sws,i);paintColor(prev,COLORS[i]);summary()}
- function pickStyle(i){
+ const mark=(list,idx)=>list.forEach((b,i)=>b?.setAttribute('aria-checked',String(i===idx)));
+ async function pickColor(i){
+  const prev=st.color!=null?COLORS[st.color]:null;st.color=i;mark(sws,i);summary();
+  // A click made before the mask finishes loading is queued, rather than silently doing nothing.
+  if(!px){const p=await prepare(st.look);if(!p){renderError();return}if(!px)px=p}
+  if(st.color===i){paintColor(prev,COLORS[i]);stage.dataset.color=String(i)}
+ }
+ async function pickStyle(i){
+  showFront();
   st.style=i;mark(cards,i);mark(dItems,i);
   $('refImg').src=SRC('s'+n2(i));$('refName').textContent=STYLES[i];$('ref').classList.add('on');
-  const key='s'+n2(i);
-  if(READY.has(i+1)){$('refNote').textContent='شکل مو روی مدل نشست.';setLook(key)}
-  else{$('refNote').textContent='این مدل روی عکس خود مشتری ساخته می‌شود.';setLook('base');const cur=st.color!=null?COLORS[st.color]:null;if(st.look==='base')paintScan(cur)}
-  summary()}
+  if(READY.has(i+1)){
+   $('refNote').textContent='پیش‌نمایش این مدل روی چهرهٔ نمونه';
+   await setLook(i===0?'base':'s'+n2(i));
+  }else{
+   $('refNote').textContent='عکس مرجع؛ برای دیدن این مدل روی چهره، با تصویر خودتان امتحان کنید.';
+   // Do not replace the current hairstyle with an unrelated render.
+  }
+  summary();
+ }
  function summary(){
   const parts=[];if(st.style!=null)parts.push(STYLES[st.style]);if(st.color!=null)parts.push(COLORS[st.color].name);
   $('resultText').textContent=parts.join(' · ');$('result').classList.toggle('on',parts.length>0);
   const d={style:st.style!=null?STYLES[st.style]:null,styleIdx:st.style,color:st.color!=null?COLORS[st.color].name:null};window.__AYN_SEL=d;dispatchEvent(new CustomEvent('ayneh:selection',{detail:d}))}
 
- /* ---------- entrance: everything is visible without it; the motion only adds ---------- */
- function entrance(){
-  if(reduced)return;
-  dItems.forEach((c,i)=>c.animate([{transform:'translateX(-60px)',opacity:0},{transform:'none',opacity:1}],{duration:900,delay:500+i*45,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'}));
-  sws.forEach((c,i)=>c.animate([{transform:'translateY(24px)',opacity:0},{transform:'none',opacity:1}],{duration:700,delay:400+i*70,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'}));
-  setTimeout(()=>paintScan(null),1900);
+ /* ---------- one-shot walkthrough, after the page and hero assets are ready ---------- */
+ const hand=$('demoHand'),file=$('demoFile'),caption=$('demoCaption'),invite=$('mirrorInvite');
+ let demoController=null,demonstrating=false,played=false;
+ function showFront(){stage.classList.remove('mirror-flipped');invite.inert=true;}
+ function revealPortrait(){stage.classList.add('portrait-visible');}
+ function endDemo(message){
+  demoController?.abort();demoController=null;demonstrating=false;
+  stage.dataset.demo='idle';revealPortrait();
+  hand.getAnimations().forEach(a=>a.cancel());file.getAnimations().forEach(a=>a.cancel());
+  hand.classList.remove('visible','press');file.classList.remove('visible');
+  film.querySelectorAll('.demo-highlight').forEach(el=>el.classList.remove('demo-highlight'));
+  $('skipDemo').hidden=true;$('replayDemo').hidden=false;
+  if(message)caption.textContent=message;
  }
- setTimeout(entrance,300);
-
+ const delay=(ms,signal)=>new Promise((resolve,reject)=>{
+  if(signal.aborted){reject(new DOMException('Aborted','AbortError'));return}
+  const done=()=>{signal.removeEventListener('abort',abort);resolve()};
+  const timer=setTimeout(done,ms);
+  const abort=()=>{clearTimeout(timer);reject(new DOMException('Aborted','AbortError'))};
+  signal.addEventListener('abort',abort,{once:true});
+ });
+ function pointAt(el){const a=stage.getBoundingClientRect(),b=el.getBoundingClientRect();return {left:b.left-a.left+b.width*.55,top:b.top-a.top+b.height*.45}}
+ async function moveHand(el,signal){
+  const p=pointAt(el);hand.classList.add('visible');
+  const previous={left:hand.style.left||'60%',top:hand.style.top||'30%'};
+  hand.style.left=p.left+'px';hand.style.top=p.top+'px';
+  hand.animate([previous,{left:p.left+'px',top:p.top+'px'}],{duration:650,easing:'ease-in-out'});
+  await delay(700,signal);hand.classList.add('press');await delay(180,signal);hand.classList.remove('press');
+ }
+ async function walkthrough(){
+  if(demonstrating)return;
+  showFront();played=true;endDemo();
+  if(reduced){caption.textContent='مدل و رنگ دلخواهتان را روی آینه انتخاب کنید.';return}
+  const controller=new AbortController(),signal=controller.signal;demoController=controller;demonstrating=true;
+  stage.dataset.demo='playing';stage.classList.remove('portrait-visible');$('skipDemo').hidden=false;$('replayDemo').hidden=true;
+  st.color=null;st.style=null;mark(sws,-1);mark(cards,-1);mark(dItems,-1);$('ref').classList.remove('on');summary();
+  try{
+   const loaded=await setLook('base');if(signal.aborted)return;if(!loaded){endDemo();return}
+   caption.textContent='۱ · عکس چهره یا دستتان را بارگذاری کنید';
+   await delay(450,signal);
+   const m=mirror.getBoundingClientRect(),r=stage.getBoundingClientRect();
+   const dest={left:m.left-r.left+m.width*.48,top:m.top-r.top+m.height*.4};
+   const begin={left:Math.max(20,dest.left-130),top:Math.max(35,dest.top-160)};
+   file.style.left=begin.left+'px';file.style.top=begin.top+'px';file.classList.add('visible');
+   hand.style.left=(begin.left+60)+'px';hand.style.top=(begin.top+65)+'px';hand.classList.add('visible');
+   file.animate([begin,dest],{duration:1200,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
+   hand.animate([{left:(begin.left+60)+'px',top:(begin.top+65)+'px'},{left:(dest.left+60)+'px',top:(dest.top+65)+'px'}],{duration:1200,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
+   await delay(1250,signal);file.classList.remove('visible');file.getAnimations().forEach(a=>a.cancel());hand.getAnimations().forEach(a=>a.cancel());
+   hand.style.left=(dest.left+60)+'px';hand.style.top=(dest.top+65)+'px';revealPortrait();
+   await delay(1000,signal);
+   const demoStyle=dItems[5]?5:0;
+   caption.textContent='۲ · مدل دلخواهتان را روی چهرهٔ خود ببینید';
+   // On phones the dock is below the mirror: leave the viewport under the visitor's control.
+   if(!mobile.matches)await moveHand(dItems[demoStyle],signal);
+   else dItems[demoStyle].classList.add('demo-highlight');
+   await pickStyle(demoStyle);if(signal.aborted)return;
+   await delay(1100,signal);dItems[demoStyle].classList.remove('demo-highlight');
+   caption.textContent='۳ · رنگ مو را هم امتحان کنید';
+   if(!mobile.matches)await moveHand(sws[4],signal);else sws[4].classList.add('demo-highlight');
+   await pickColor(4);await delay(1300,signal);sws[4].classList.remove('demo-highlight');
+   hand.classList.remove('visible');
+   caption.textContent='انتخابتان را همراه تصویر برای تأیید یا رد به سالن بفرستید.';
+   await delay(1300,signal);
+   endDemo('همین حالا با تصویر خودتان امتحان کنید.');
+   stage.classList.add('mirror-flipped');invite.inert=false;
+  }catch(error){if(error.name!=='AbortError')endDemo('مدل و رنگ دلخواهتان را روی آینه انتخاب کنید.')}
+ }
+ $('skipDemo').addEventListener('click',()=>endDemo('حالا خودتان مدل و رنگ را انتخاب کنید.'));
+ $('replayDemo').addEventListener('click',walkthrough);
+ $('backToMirror').addEventListener('click',()=>{showFront();caption.textContent='مدل و رنگ دلخواهتان را انتخاب کنید.'});
+ // Human interaction always wins. No scripted cursor intercepts a real click or keyboard action.
+ const human=e=>{if(!e.isTrusted||e.target.closest('.demo-controls'))return;if(demonstrating)endDemo('حالا خودتان مدل و رنگ را انتخاب کنید.');if(e.target.closest('#dock,#colors,#styles')){revealPortrait();showFront()}};
+ film.addEventListener('pointerdown',human,true);film.addEventListener('keydown',human,true);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')});
+ const pageReady=new Promise(resolve=>{if(document.readyState==='complete')resolve();else addEventListener('load',resolve,{once:true})});
+ Promise.all([pageReady,document.fonts?.ready,prepare('base'),prepare('s06'),prepare('s12')]).then(()=>{
+  // Never steal attention back if the visitor started interacting or scrolled past the hero while loading.
+  const r=film.getBoundingClientRect();if(played||r.bottom<innerHeight*.5||r.top>innerHeight){endDemo();return}
+  walkthrough();
+ });
+ new IntersectionObserver(entries=>{if(!entries[0].isIntersecting&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')},{threshold:0}).observe(studio);
+ film.addEventListener('pointerdown',()=>{played=true},{once:true});
  /* ---------- scroll plays the scene (desktop pin only) ---------- */
  const hdr=document.querySelector('.site-header');let tick=false;
  function frameUpdate(){tick=false;

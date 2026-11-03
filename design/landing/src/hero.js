@@ -8,7 +8,7 @@
 (()=>{
  const $=id=>document.getElementById(id);
  const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches;
- const SRC=(k,e)=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'assets/')+k+'.'+(e||'webp'));
+ const SRC=(k,e)=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'assets/')+k+'.'+(e||'webp')+'?v='+(window.__AYN_ASSET_VERSION||'1'));
  const fa=n=>new Intl.NumberFormat('fa-IR').format(n);
  const STYLES=['لیر بلند','کوتاهی پروانه‌ای','ولف‌کات','هاش‌کات','لُب (باب بلند)','باب کوتاه','کوتاهی جلوبلند','پیکسی','چتری پرده‌ای','چتری پروانه‌ای','چتری کج','چتری صاف کامل','براشینگ حجیم','صاف و براق','ویو درشت','فر طبیعی','فر درشت لوله‌ای','مدل گوجه‌ای','شینیون پایین'];
  const COLORS=[
@@ -20,7 +20,7 @@
   {name:'بلوند پلاتینی',h:50,s:.2,l:.86,css:'linear-gradient(145deg,#F4EFE2,#CBC3AE)'},
   {name:'شرابی',h:343,s:.55,l:.27,css:'linear-gradient(145deg,#8E3050,#481327)'}
  ];
- const READY=new Set(window.__AYN_LOOKS||[]);
+ const READY=new Set([1,...(window.__AYN_LOOKS||[])]);
  const st={style:null,color:null,look:'base'};
  const film=$('intro'),stage=$('stage'),studio=$('studio'),mirror=$('mirror'),plate=$('plate'),dock=$('dock'),palette=$('colors');
  const frame='<svg class="frame" aria-hidden="true"><rect pathLength="1"/></svg>';
@@ -30,7 +30,11 @@
  const make=(cls,html,onPick,box)=>{const b=document.createElement('button');b.type='button';b.className=cls;b.setAttribute('role','radio');b.setAttribute('aria-checked','false');b.innerHTML=html+frame;b.addEventListener('click',()=>{if(!b.closest('.hscroll')?.classList.contains('was-dragged'))onPick()});box.append(b);return b};
  const n2=i=>String(i+1).padStart(2,'0');
  const cards=STYLES.map((name,i)=>make('card','<span class="ph"><img src="'+SRC('s'+n2(i))+'" alt="" width="240" height="300" loading="lazy" draggable="false"></span><span class="nm">'+name+'</span>',()=>pickStyle(i),$('track')));
- const dItems=STYLES.map((name,i)=>make('d-item','<span class="ic"><img src="'+SRC('ic'+(i%4+1))+'" alt=""'+((i%8)>=4?' style="transform:scaleX(-1)"':'')+' draggable="false"></span><span>'+name+'</span>',()=>pickStyle(i),$('dockTrack')));
+ const dItems=[];
+ STYLES.forEach((name,i)=>{if(READY.has(i+1)){
+  dItems[i]=make('d-item','<span class="ic"><img src="'+SRC('s'+n2(i))+'" alt="" draggable="false"></span><span>'+name+'</span>',()=>pickStyle(i),$('dockTrack'));
+ }});
+ cards.forEach((b,i)=>{const note=document.createElement('small');note.className='preview-kind';note.textContent=READY.has(i+1)?'پیش‌نمایش روی آینه':'عکس مرجع';b.append(note)});
  const sws=COLORS.map((c,i)=>make('sw','<span class="dot"><i style="background:'+c.css+'"></i></span><span>'+c.name+'</span>',()=>pickColor(i),$('colList')));
  $('styCount').textContent='· '+fa(STYLES.length)+' مدل';
 
@@ -41,6 +45,7 @@
   const s=Math.max(W/1376,H/768)*(mobile.matches?1.5:1),pw=1376*s,ph=768*s;
   const x=Math.min(0,Math.max(W-pw,W/2-FX*pw)),y=Math.min(0,Math.max(H-ph,H*.5-FY*ph));
   Object.assign(plate.style,{width:pw+'px',height:ph+'px',left:x+'px',top:y+'px'});
+  plate.style.setProperty('--scene-scale',s.toFixed(3));
   dock.style.setProperty('--u',mobile.matches?'1':Math.max(.62,Math.min(1.35,s/.84)).toFixed(3));
   // phones: the podium is too small for the dock, so it sits under the mirror instead
   // phones: colours and the style dock sit under the mirror, where thumbs can reach them
@@ -73,7 +78,7 @@
  function syncArrows(){syncs.forEach(f=>f())}
 
  /* arrow keys move between options inside each radio group */
- [[cards,$('track')],[dItems,$('dockTrack')],[sws,$('colList')]].forEach(([list,box])=>box.addEventListener('keydown',e=>{
+ [[cards,$('track')],[dItems.filter(Boolean),$('dockTrack')],[sws,$('colList')]].forEach(([list,box])=>box.addEventListener('keydown',e=>{
   const i=list.indexOf(document.activeElement);if(i<0)return;
   const k=e.key,vertical=box.id==='colList';
   const dir=k==='ArrowDown'||(!vertical&&k==='ArrowLeft')?1:k==='ArrowUp'||(!vertical&&k==='ArrowRight')?-1:0;
@@ -104,18 +109,27 @@
    const R={x:x0,y:y0,w:x1-x0+1,h:y1-y0+1};
    const mkd=g.getImageData(R.x,R.y,R.w,R.h).data;g.clearRect(0,0,W,H);g.drawImage(a,0,0,W,H);const base=g.getImageData(R.x,R.y,R.w,R.h).data;
    const idx=[];for(let i=0;i<R.w*R.h;i++)if(mkd[i*4]>6)idx.push(i);
-   return {src:a.src,R,base,mk:mkd,idx,out:ctx.createImageData(R.w,R.h)}}).catch(()=>null);
+   return {src:a.src,R,base,mk:mkd,idx,out:ctx.createImageData(R.w,R.h)}}).catch(()=>{delete preps[key];return null});
  }
- const startPrep=()=>prepare('base').then(p=>{if(st.look==='base'){px=p;if(st.color!=null)draw(null,COLORS[st.color],1,-1)}});
- if(img.complete)startPrep();else img.addEventListener('load',startPrep);
+ let transitionAnimation=null;
+ const renderError=()=>{$('demoCaption').textContent='تصویر بارگیری نشد؛ دوباره انتخاب کنید.';stage.dataset.renderState='error'};
  async function setLook(key){
-  if(key===st.look)return;
-  const my=++lookTok,p=await prepare(key);if(my!==lookTok||!p)return;
-  st.look=key;cancelAnimationFrame(rafId);
-  img2.src=p.src;try{await img2.decode()}catch(e){}
-  ctx.clearRect(0,0,1376,768);img2.classList.add('show');
-  setTimeout(()=>{if(my!==lookTok)return;img.src=p.src;const done=()=>{img2.style.transition='none';img2.classList.remove('show');void img2.offsetWidth;img2.style.transition='';px=p;st.color!=null?paintColor(null,COLORS[st.color]):paintScan(null)};img.decode?img.decode().then(done,done):done()},reduced?0:480);
+  const my=++lookTok;
+  stage.dataset.renderState='loading';
+  const p=await prepare(key);if(my!==lookTok)return false;
+  if(!p){renderError();return false}
+  transitionAnimation?.cancel();cancelAnimationFrame(rafId);
+  // Commit the decoded image and its own mask together. No old timeout can restore a previous selection.
+  const changed=st.look!==key;
+  img.src=p.src;px=p;st.look=key;
+  img2.classList.remove('show');
+  draw(null,st.color!=null?COLORS[st.color]:null,1,-1);
+  if(changed&&!reduced)transitionAnimation=$('mirrorFront').animate([{filter:'blur(3px)',opacity:.35},{filter:'blur(0)',opacity:1}],{duration:650,easing:'cubic-bezier(.2,.7,.2,1)'});
+  stage.dataset.renderState='ready';stage.dataset.look=key;
+  return true;
  }
+ const startPrep=()=>setLook('base');
+ startPrep();
  const cl=(v,a,b)=>v<a?a:v>b?b:v,sm=(a,b,x)=>{x=cl((x-a)/(b-a),0,1);return x*x*(3-2*x)};
  function hsl(h,s,l){const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));return[f(0)*255,f(8)*255,f(4)*255]}
  function tint(c,Y,yn){let l=c.ombre?.16+(.7-.16)*sm(.3,.85,yn):c.l;l=cl(l+(Y-.4)*1.2,.03,.96);const s=c.s*(1-cl((l-.72)*2.2,0,.8));return hsl(c.h,s,l)}
@@ -141,29 +155,113 @@
  function paintScan(cur){run(900,x=>draw(cur,cur,1,x*1.3-.15),()=>draw(null,cur,1,-1))}
 
  /* ---------- selection ---------- */
- const mark=(list,idx)=>list.forEach((b,i)=>b.setAttribute('aria-checked',String(i===idx)));
- function pickColor(i){const prev=st.color!=null?COLORS[st.color]:null;st.color=i;mark(sws,i);paintColor(prev,COLORS[i]);summary()}
- function pickStyle(i){
+ const mark=(list,idx)=>list.forEach((b,i)=>b?.setAttribute('aria-checked',String(i===idx)));
+ async function pickColor(i){
+  const prev=st.color!=null?COLORS[st.color]:null;st.color=i;mark(sws,i);summary();
+  // A click made before the mask finishes loading is queued, rather than silently doing nothing.
+  if(!px){const p=await prepare(st.look);if(!p){renderError();return}if(!px)px=p}
+  if(st.color===i){paintColor(prev,COLORS[i]);stage.dataset.color=String(i)}
+ }
+ async function pickStyle(i){
+  showFront();
   st.style=i;mark(cards,i);mark(dItems,i);
   $('refImg').src=SRC('s'+n2(i));$('refName').textContent=STYLES[i];$('ref').classList.add('on');
-  const key='s'+n2(i);
-  if(READY.has(i+1)){$('refNote').textContent='شکل مو روی مدل نشست.';setLook(key)}
-  else{$('refNote').textContent='این مدل روی عکس خود مشتری ساخته می‌شود.';setLook('base');const cur=st.color!=null?COLORS[st.color]:null;if(st.look==='base')paintScan(cur)}
-  summary()}
+  if(READY.has(i+1)){
+   $('refNote').textContent='پیش‌نمایش این مدل روی چهرهٔ نمونه';
+   await setLook(i===0?'base':'s'+n2(i));
+  }else{
+   $('refNote').textContent='عکس مرجع؛ برای دیدن این مدل روی چهره، با تصویر خودتان امتحان کنید.';
+   // Do not replace the current hairstyle with an unrelated render.
+  }
+  summary();
+ }
  function summary(){
   const parts=[];if(st.style!=null)parts.push(STYLES[st.style]);if(st.color!=null)parts.push(COLORS[st.color].name);
   $('resultText').textContent=parts.join(' · ');$('result').classList.toggle('on',parts.length>0);
   const d={style:st.style!=null?STYLES[st.style]:null,styleIdx:st.style,color:st.color!=null?COLORS[st.color].name:null};window.__AYN_SEL=d;dispatchEvent(new CustomEvent('ayneh:selection',{detail:d}))}
 
- /* ---------- entrance: everything is visible without it; the motion only adds ---------- */
- function entrance(){
-  if(reduced)return;
-  dItems.forEach((c,i)=>c.animate([{transform:'translateX(-60px)',opacity:0},{transform:'none',opacity:1}],{duration:900,delay:500+i*45,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'}));
-  sws.forEach((c,i)=>c.animate([{transform:'translateY(24px)',opacity:0},{transform:'none',opacity:1}],{duration:700,delay:400+i*70,easing:'cubic-bezier(.2,.7,.2,1)',fill:'backwards'}));
-  setTimeout(()=>paintScan(null),1900);
+ /* ---------- one-shot walkthrough, after the page and hero assets are ready ---------- */
+ const hand=$('demoHand'),file=$('demoFile'),caption=$('demoCaption'),invite=$('mirrorInvite');
+ let demoController=null,demonstrating=false,played=false;
+ function showFront(){stage.classList.remove('mirror-flipped');invite.inert=true;}
+ function revealPortrait(){stage.classList.add('portrait-visible');}
+ function endDemo(message){
+  demoController?.abort();demoController=null;demonstrating=false;
+  stage.dataset.demo='idle';revealPortrait();
+  hand.getAnimations().forEach(a=>a.cancel());file.getAnimations().forEach(a=>a.cancel());
+  hand.classList.remove('visible','press');file.classList.remove('visible');
+  film.querySelectorAll('.demo-highlight').forEach(el=>el.classList.remove('demo-highlight'));
+  $('skipDemo').hidden=true;$('replayDemo').hidden=false;
+  if(message)caption.textContent=message;
  }
- setTimeout(entrance,300);
-
+ const delay=(ms,signal)=>new Promise((resolve,reject)=>{
+  if(signal.aborted){reject(new DOMException('Aborted','AbortError'));return}
+  const done=()=>{signal.removeEventListener('abort',abort);resolve()};
+  const timer=setTimeout(done,ms);
+  const abort=()=>{clearTimeout(timer);reject(new DOMException('Aborted','AbortError'))};
+  signal.addEventListener('abort',abort,{once:true});
+ });
+ function pointAt(el){const a=stage.getBoundingClientRect(),b=el.getBoundingClientRect();return {left:b.left-a.left+b.width*.55,top:b.top-a.top+b.height*.45}}
+ async function moveHand(el,signal){
+  const p=pointAt(el);hand.classList.add('visible');
+  const previous={left:hand.style.left||'60%',top:hand.style.top||'30%'};
+  hand.style.left=p.left+'px';hand.style.top=p.top+'px';
+  hand.animate([previous,{left:p.left+'px',top:p.top+'px'}],{duration:650,easing:'ease-in-out'});
+  await delay(700,signal);hand.classList.add('press');await delay(180,signal);hand.classList.remove('press');
+ }
+ async function walkthrough(){
+  if(demonstrating)return;
+  showFront();played=true;endDemo();
+  if(reduced){caption.textContent='مدل و رنگ دلخواهتان را روی آینه انتخاب کنید.';return}
+  const controller=new AbortController(),signal=controller.signal;demoController=controller;demonstrating=true;
+  stage.dataset.demo='playing';stage.classList.remove('portrait-visible');$('skipDemo').hidden=false;$('replayDemo').hidden=true;
+  st.color=null;st.style=null;mark(sws,-1);mark(cards,-1);mark(dItems,-1);$('ref').classList.remove('on');summary();
+  try{
+   const loaded=await setLook('base');if(signal.aborted)return;if(!loaded){endDemo();return}
+   caption.textContent='۱ · عکس چهره یا دستتان را بارگذاری کنید';
+   await delay(450,signal);
+   const m=mirror.getBoundingClientRect(),r=stage.getBoundingClientRect();
+   const dest={left:m.left-r.left+m.width*.48,top:m.top-r.top+m.height*.4};
+   const begin={left:Math.max(20,dest.left-130),top:Math.max(35,dest.top-160)};
+   file.style.left=begin.left+'px';file.style.top=begin.top+'px';file.classList.add('visible');
+   hand.style.left=(begin.left+60)+'px';hand.style.top=(begin.top+65)+'px';hand.classList.add('visible');
+   file.animate([begin,dest],{duration:1200,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
+   hand.animate([{left:(begin.left+60)+'px',top:(begin.top+65)+'px'},{left:(dest.left+60)+'px',top:(dest.top+65)+'px'}],{duration:1200,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
+   await delay(1250,signal);file.classList.remove('visible');file.getAnimations().forEach(a=>a.cancel());hand.getAnimations().forEach(a=>a.cancel());
+   hand.style.left=(dest.left+60)+'px';hand.style.top=(dest.top+65)+'px';revealPortrait();
+   await delay(1000,signal);
+   const demoStyle=dItems[5]?5:0;
+   caption.textContent='۲ · مدل دلخواهتان را روی چهرهٔ خود ببینید';
+   // On phones the dock is below the mirror: leave the viewport under the visitor's control.
+   if(!mobile.matches)await moveHand(dItems[demoStyle],signal);
+   else dItems[demoStyle].classList.add('demo-highlight');
+   await pickStyle(demoStyle);if(signal.aborted)return;
+   await delay(1100,signal);dItems[demoStyle].classList.remove('demo-highlight');
+   caption.textContent='۳ · رنگ مو را هم امتحان کنید';
+   if(!mobile.matches)await moveHand(sws[4],signal);else sws[4].classList.add('demo-highlight');
+   await pickColor(4);await delay(1300,signal);sws[4].classList.remove('demo-highlight');
+   hand.classList.remove('visible');
+   caption.textContent='انتخابتان را همراه تصویر برای تأیید یا رد به سالن بفرستید.';
+   await delay(1300,signal);
+   endDemo('همین حالا با تصویر خودتان امتحان کنید.');
+   stage.classList.add('mirror-flipped');invite.inert=false;
+  }catch(error){if(error.name!=='AbortError')endDemo('مدل و رنگ دلخواهتان را روی آینه انتخاب کنید.')}
+ }
+ $('skipDemo').addEventListener('click',()=>endDemo('حالا خودتان مدل و رنگ را انتخاب کنید.'));
+ $('replayDemo').addEventListener('click',walkthrough);
+ $('backToMirror').addEventListener('click',()=>{showFront();caption.textContent='مدل و رنگ دلخواهتان را انتخاب کنید.'});
+ // Human interaction always wins. No scripted cursor intercepts a real click or keyboard action.
+ const human=e=>{if(!e.isTrusted||e.target.closest('.demo-controls'))return;if(demonstrating)endDemo('حالا خودتان مدل و رنگ را انتخاب کنید.');if(e.target.closest('#dock,#colors,#styles')){revealPortrait();showFront()}};
+ film.addEventListener('pointerdown',human,true);film.addEventListener('keydown',human,true);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')});
+ const pageReady=new Promise(resolve=>{if(document.readyState==='complete')resolve();else addEventListener('load',resolve,{once:true})});
+ Promise.all([pageReady,document.fonts?.ready,prepare('base'),prepare('s06'),prepare('s12')]).then(()=>{
+  // Never steal attention back if the visitor started interacting or scrolled past the hero while loading.
+  const r=film.getBoundingClientRect();if(played||r.bottom<innerHeight*.5||r.top>innerHeight){endDemo();return}
+  walkthrough();
+ });
+ new IntersectionObserver(entries=>{if(!entries[0].isIntersecting&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')},{threshold:0}).observe(studio);
+ film.addEventListener('pointerdown',()=>{played=true},{once:true});
  /* ---------- scroll plays the scene (desktop pin only) ---------- */
  const hdr=document.querySelector('.site-header');let tick=false;
  function frameUpdate(){tick=false;
