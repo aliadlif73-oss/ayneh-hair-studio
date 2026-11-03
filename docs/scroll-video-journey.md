@@ -23,3 +23,7 @@ Text stays live Persian HTML, with a CTA for each existing service. Films preser
 ## Validation
 
 Run the offline test suite with network disabled, regenerate the landing, run scripts/build.sh and scripts/validate-artifact.mjs. Inspect browser media readiness, forward/reverse seeking, breathing phase, bridge and all three service CTAs. Real-device Safari performance is not claimed.
+
+## Hosted-media loading fix
+
+The private static host returned HTTP 200 for a byte-range request. Films now explicitly preload and fetch the entire same-origin MP4 into a Blob URL before seeking, avoiding dependence on server range support and paused preload=none behavior. Poster images remain only as loading placeholders; loading failures are surfaced. Video requests and Blob URLs stay browser-local.

@@ -35,10 +35,22 @@
  const reduced=matchMedia('(prefers-reduced-motion:reduce), (max-height:500px)');
  const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
  const phases=[{key:'hair',from:0,to:.43},{key:'breath',from:.43,to:.50},{key:'lashes',from:.50,to:.74},{key:'bridge',from:.74,to:.85},{key:'nails',from:.85,to:1}];
- const state=videos.map(el=>({el,key:el.dataset.journeyFilm,target:0,loaded:false,error:false}));
+ const state=videos.map(el=>({el,key:el.dataset.journeyFilm,target:0,loaded:false,error:false,objectURL:null,received:false}));
  let scheduled=false,active='hair';
  function seek(s){const v=s.el;if(!s.loaded||v.seeking||!Number.isFinite(v.duration)||v.readyState<1||s.error)return;const t=clamp(s.target,0,Math.max(0,v.duration-.045));if(Math.abs(v.currentTime-t)>.035){try{v.currentTime=t}catch(_){}}}
- function load(s){if(s.loaded)return;s.loaded=true;s.el.src=(window.__AYN_BASE||'assets/')+s.el.dataset.src+'?v='+(window.__AYN_ASSET_VERSION||'1');s.el.load()}
+ async function load(s){
+  if(s.loaded)return;s.loaded=true;s.el.preload='auto';
+  const url=(window.__AYN_BASE||'assets/')+s.el.dataset.src+'?v='+(window.__AYN_ASSET_VERSION||'1');
+  try{
+   // Fetch the complete file first: private/static hosts can ignore Range requests.
+   // Blob URLs make subsequent paused seeks local and independent of HTTP streaming.
+   const response=await fetch(url,{credentials:'same-origin'});
+   if(!response.ok||!(response.headers.get('content-type')||'').includes('video/'))throw new Error('Invalid video response');
+   const blob=await response.blob();if(blob.size<1024)throw new Error('Empty video');
+   s.objectURL=URL.createObjectURL(blob);s.received=true;s.el.src=s.objectURL;s.el.load();schedule();
+  }catch(_){s.error=true;schedule()}
+ }
+
  state.forEach(s=>{s.el.addEventListener('loadedmetadata',()=>{seek(s);schedule()});s.el.addEventListener('loadeddata',()=>{seek(s);schedule()});s.el.addEventListener('seeked',()=>{seek(s);schedule()});s.el.addEventListener('canplay',schedule);s.el.addEventListener('error',()=>{s.error=true;schedule()})});
  function update(){
   scheduled=false;
@@ -55,7 +67,7 @@
    stone.style.opacity=String(clamp(q/.1)*(1-clamp((q-.90)/.1)));const y=mobile?30+q*31:48+q*35;stone.style.top=y+'%';stone.style.transform='translate(-50%,-50%) rotate('+(-4*Math.sin(q*Math.PI))+'deg) scale('+(1-q*.35)+')';bridgeText.style.opacity=String(clamp((q-.18)/.15)*(1-clamp((q-.65)/.15)));
    load(state[2]);
   }
-  const s=state.find(s=>s.key===active);status.textContent=s?.error?'بارگذاری فیلم انجام نشد؛ صفحه را دوباره باز کنید.':s&&(!s.loaded||s.el.readyState<2)?'در حال آماده‌سازی فیلم…':'';
+  const s=state.find(s=>s.key===active);status.textContent=s?.error?'بارگذاری فیلم انجام نشد؛ صفحه را دوباره باز کنید.':s&&(!s.received||s.el.readyState<2)?'در حال دریافت و آماده‌سازی فیلم…':'';
  }
  function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(update)}}
  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);reduced.addEventListener('change',schedule);
