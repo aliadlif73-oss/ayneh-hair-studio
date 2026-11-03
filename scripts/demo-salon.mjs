@@ -77,4 +77,11 @@ async function portfolio(){
  const pub=(await call('/api/s/'+SLUG+'/public')).portfolio;const by={};for(const x of pub)by[x.line]=(by[x.line]||0)+1;
  console.log('on the page:',JSON.stringify(by));
 }
-if(mode==='images')await images();else if(mode==='create')await create();else if(mode==='portfolio')await portfolio();else{console.log('MODE must be images, create or portfolio');process.exit(1)}
+// MODE=settings: sets the salon's daily image cap (DAILY_LIMIT, 0 = no cap), keeping its other settings.
+async function settings(){
+ const {call}=await signIn();const cur=(await call('/api/s/'+SLUG+'/owner')).salon.settings||{};
+ const lim=Number(process.env.DAILY_LIMIT??50);
+ await call('/api/s/'+SLUG+'/owner/settings',{generation_enabled:!!cur.generation_enabled,reference_verified:!!cur.reference_verified,image_model:cur.image_model||'pro',daily_limit:lim});
+ const now=(await call('/api/s/'+SLUG+'/owner')).salon.settings;console.log('daily_limit:',now.daily_limit,'· generation:',now.generation_enabled,'· model:',now.image_model);
+}
+if(mode==='settings')await settings();else if(mode==='images')await images();else if(mode==='create')await create();else if(mode==='portfolio')await portfolio();else{console.log('MODE must be images, create or portfolio');process.exit(1)}
