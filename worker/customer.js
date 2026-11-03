@@ -1144,31 +1144,42 @@ function saveName(id){
 function loadImg(src){return new Promise(function(res,rej){var i=new Image();i.decoding='async';i.onload=function(){res(i)};i.onerror=rej;i.src=src})}
 function brandedBlob(id){
  var s=state.pub.salon,p=s.profile||{};
- return Promise.all([loadImg(media(id)),p.logo?loadImg(media(p.logo)).catch(function(){return null}):Promise.resolve(null),document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()]).then(function(r){
+ return Promise.all([loadImg(media(id)),p.logo?loadImg(media(p.logo)).catch(function(){return null}):Promise.resolve(null)]).then(function(r){
   var img=r[0],logo=r[1],W=img.naturalWidth,H=img.naturalHeight,c=document.createElement('canvas');c.width=W;c.height=H;var g=c.getContext('2d');g.drawImage(img,0,0,W,H);
-  var u=Math.min(W,H),pad=Math.round(u*.03),d=Math.round(u*.085),fs=Math.round(d*.36),name=s.name||'';
-  g.font='800 '+fs+'px Estedad, Vazirmatn, sans-serif';var tw=Math.min(g.measureText(name).width,W*.5);
-  var bh=d+Math.round(d*.18),bw=bh+Math.round(fs*.5)+tw+Math.round(fs*.9),x=W-pad-bw,y=H-pad-bh,rad=bh/2;
-  g.save();g.shadowColor='rgba(0,0,0,.28)';g.shadowBlur=Math.round(u*.012);g.fillStyle='rgba(255,255,255,.92)';
-  g.beginPath();g.moveTo(x+rad,y);g.arcTo(x+bw,y,x+bw,y+bh,rad);g.arcTo(x+bw,y+bh,x,y+bh,rad);g.arcTo(x,y+bh,x,y,rad);g.arcTo(x,y,x+bw,y,rad);g.closePath();g.fill();g.restore();
-  var cx=x+bw-bh/2,cy=y+bh/2;
+  // Only the salon's round logo, bottom right, on a thin white ring.
+  var u=Math.min(W,H),pad=Math.round(u*.035),d=Math.round(u*.12),ring=Math.max(2,Math.round(d*.06)),cx=W-pad-d/2,cy=H-pad-d/2;
+  g.save();g.shadowColor='rgba(0,0,0,.3)';g.shadowBlur=Math.round(u*.015);g.fillStyle='#fff';g.beginPath();g.arc(cx,cy,d/2+ring,0,Math.PI*2);g.fill();g.restore();
   if(logo){g.save();g.beginPath();g.arc(cx,cy,d/2,0,Math.PI*2);g.clip();var lw=logo.naturalWidth,lh=logo.naturalHeight,k=Math.max(d/lw,d/lh);g.drawImage(logo,cx-lw*k/2,cy-lh*k/2,lw*k,lh*k);g.restore()}
-  else{g.fillStyle='#0c6b6b';g.beginPath();g.arc(cx,cy,d/2,0,Math.PI*2);g.fill();g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.fillText(name.trim().charAt(0)||'آ',cx,cy+fs*.06)}
-  g.fillStyle='#23170f';g.textAlign='right';g.textBaseline='middle';g.direction='rtl';g.fillText(name,cx-bh/2-Math.round(fs*.4),cy+fs*.06,W*.5);
+  else{g.fillStyle='#0c6b6b';g.beginPath();g.arc(cx,cy,d/2,0,Math.PI*2);g.fill();g.fillStyle='#fff';g.font='800 '+Math.round(d*.46)+'px Estedad, Vazirmatn, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText((s.name||'آ').trim().charAt(0),cx,cy+d*.03)}
   return new Promise(function(res){c.toBlob(function(b){res(b)},'image/jpeg',.92)});
  });
 }
-function saveBranded(id){
- var name=saveName(id);
- return brandedBlob(id).then(function(blob){
-  if(!blob)throw new Error('x');
-  var file=null;try{file=new File([blob],name,{type:'image/jpeg'})}catch(e){}
-  // On phones the share sheet goes straight to Instagram, Telegram or the gallery.
-  if(file&&navigator.canShare&&navigator.canShare({files:[file]})&&matchMedia('(pointer:coarse)').matches){track('save','share');return navigator.share({files:[file],title:state.pub.salon.name}).catch(function(){})}
-  var url=URL.createObjectURL(blob),a=el('a',{href:url,download:name});document.body.append(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},4000);track('save','file');
- }).catch(function(){var a=el('a',{href:media(id),download:name});document.body.append(a);a.click();a.remove()});
+// The logo version is made as soon as a result appears, so a tap downloads at once (phones block a
+// download or share that starts seconds after the tap).
+var branded={};
+function prepareBranded(id){
+ if(!id||branded[id])return branded[id]&&branded[id].p;
+ var rec=branded[id]={};
+ rec.p=brandedBlob(id).then(function(blob){if(!blob)throw new Error('x');rec.name=saveName(id);rec.url=URL.createObjectURL(blob);try{rec.file=new File([blob],rec.name,{type:'image/jpeg'})}catch(e){}
+  Array.prototype.forEach.call(document.querySelectorAll('a[data-dl="'+id+'"]'),function(a){a.href=rec.url;a.setAttribute('download',rec.name)});return rec}).catch(function(){rec.failed=true;return rec});
+ return rec.p;
 }
-function downloadLink(cls,label){var a=el('a',{class:cls,href:media(state.result),download:saveName(state.result),html:ICO.download+'<span>'+label+'</span>'});a.addEventListener('click',function(e){e.preventDefault();var id=state.result;a.classList.add('is-busy');saveBranded(id).then(function(){a.classList.remove('is-busy')})});return a}
+var IOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function downloadLink(cls,label){
+ var id=state.result,rec=branded[id];
+ var a=el('a',{class:cls,'data-dl':id,href:rec&&rec.url||media(id),download:rec&&rec.name||saveName(id),html:ICO.download+'<span>'+label+'</span>'});
+ a.addEventListener('click',function(e){
+  var r=branded[id];
+  // iPhone: the share sheet's «Save Image» puts it in Photos; elsewhere the link itself downloads.
+  if(r&&r.file&&IOS&&navigator.canShare&&navigator.canShare({files:[r.file]})){e.preventDefault();track('save','share');navigator.share({files:[r.file]}).catch(function(){});return}
+  if(r&&r.url){track('save','file');return}
+  if(r&&r.failed){track('save','plain');return}
+  e.preventDefault();toast('یک لحظه، دارم عکس را آماده می‌کنم…');
+  prepareBranded(id).then(function(x){if(x&&x.url){a.href=x.url;a.setAttribute('download',x.name)}a.click()});
+ });
+ prepareBranded(id);
+ return a;
+}
 function stepResult(){
  var box=el('div',{class:'panel flow'}),L=state.line;
  box.append(flowHead(state.result?({color:'خودت با رنگ جدید',nails:'ناخن‌هایت با طرح جدید',lashes:'خودت با مژهٔ جدید'}[L]||'خودت با مدل جدید'):state.busy?'دارم می‌سازم…':'نتیجه و ارسال','این تصویر یک شبیه‌سازی پیشنهادی است، نه تضمین اجرا. تصمیم نهایی با '+artist()+' است.'));
@@ -1184,12 +1195,12 @@ function stepResult(){
   box.append(compareBlock());
   box.append(el('div',{class:'result-actions'},[
    L==='hair'?el('button',{class:'btn btn--soft btn--sm',type:'button',onclick:openViews,html:ICO.orbit+'<span>نمای ۳۶۰ درجه</span>'}):null,
-   downloadLink('btn btn--ghost btn--sm','ذخیره / استوری'),
+   downloadLink('btn btn--ghost btn--sm','دانلود'),
    el('button',{class:'btn btn--ghost btn--sm',type:'button',onclick:function(){state.result=null;state.gen=null;state.idem=null;state.error='';state.busy=false;state.resultBase=null;go(2)},text:'یک مدل دیگر'})
   ]));
   // After a new hairstyle, the natural next step is its colour.
   if(L==='hair')box.append(el('button',{class:'next-line',type:'button',onclick:function(){track('color_on_hair');switchLine('color',{step:2,onHair:true,scroll:true})}},[el('span',{class:'next-line__ico',html:ICO.drop}),el('span',{},[el('b',{text:'رنگ مو را هم روی همین مدل امتحان کن'}),el('small',{text:'مدل همین می‌ماند و فقط رنگ عوض می‌شود.'})]),el('span',{class:'next-line__go',html:ICO.arrow})]));
-  box.append(h('p','عکسی که ذخیره یا استوری می‌کنی، گوشهٔ پایینش لوگوی «'+state.pub.salon.name+'» را دارد.','fine-print'));
+  box.append(h('p','عکسی که دانلود می‌کنی، گوشهٔ پایینش لوگوی «'+state.pub.salon.name+'» را دارد.','fine-print'));
   box.append(ratingBlock());
   box.append(el('div',{class:'flow__nav'},[sendButton()]));
   box.append(sendNote());
@@ -1673,7 +1684,7 @@ function openRequest(){
   if(p.phone)ways.append(el('a',{class:'btn btn--primary',href:'tel:'+p.phone,html:ICO.phone+'<span>تماس با سالن</span>'}));
   if(p.telegram)ways.append(el('a',{class:'btn btn--ghost',href:p.telegram,target:'_blank',rel:'noopener noreferrer',html:ICO.send+'<span>تلگرام سالن</span>'}));
   if(p.instagram)ways.append(el('a',{class:'btn btn--ghost',href:p.instagram,target:'_blank',rel:'noopener noreferrer',html:ICO.instagram+'<span>اینستاگرام</span>'}));
-  if(state.result)ways.append(downloadLink('btn btn--ghost','ذخیرهٔ نتیجه'));
+  if(state.result)ways.append(downloadLink('btn btn--ghost','دانلود'));
   panel.append(ways);openSheet(panel);return;
  }
  // What goes, and where: said plainly before anything is typed.
