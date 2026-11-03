@@ -68,10 +68,12 @@ async function portfolio(){
  const current=(await call('/api/s/'+SLUG+'/owner')).portfolio,replace=process.env.REPLACE==='1';
  for(const it of list){
   const old=current.filter(x=>x.title===it.title);
+  // LOOKS=1 only writes each work's look (the text the image model gets instead of the photo).
+  if(process.env.LOOKS==='1'){for(const o of old)await call('/api/s/'+SLUG+'/owner/portfolio/look',{id:o.id,look:it.look||''});console.log(old.length?'look set:':'not on page:',it.line,it.title);continue}
   if(old.length&&!replace){console.log('exists:',it.line,it.title);continue}
   for(const o of old)await call('/api/s/'+SLUG+'/owner/portfolio/delete',{id:o.id});
   const m=await call('/api/s/'+SLUG+'/upload?kind=portfolio',readFileSync(dir+'/portfolio/'+it.file),true);
-  await call('/api/s/'+SLUG+'/owner/portfolio/add',{media_id:m.id,title:it.title,line:it.line,category:it.category||''});
+  await call('/api/s/'+SLUG+'/owner/portfolio/add',{media_id:m.id,title:it.title,line:it.line,category:it.category||'',look:it.look||''});
   console.log(old.length?'replaced:':'added:',it.line,it.title);
  }
  const pub=(await call('/api/s/'+SLUG+'/public')).portfolio;const by={};for(const x of pub)by[x.line]=(by[x.line]||0)+1;

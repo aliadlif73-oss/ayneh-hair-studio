@@ -3,228 +3,266 @@
   "file": "color-01.jpg",
   "title": "بلوند سه‌بعدی لیر بلند",
   "line": "color",
-  "category": "رنگ"
+  "category": "رنگ",
+  "look": "dimensional blonde: a soft smoky light-brown root melting into creamy beige-blonde lengths, with brighter face-framing money pieces"
  },
  {
   "file": "color-02.jpg",
   "title": "هانی وانیلا فیس‌فریم",
   "line": "color",
-  "category": "رنگ"
+  "category": "رنگ",
+  "look": "honey-vanilla blonde balayage on a soft mushroom-brown root: warm honey and vanilla-blonde ribbons through the lengths and very bright face-framing front pieces"
  },
  {
   "file": "color-03.jpg",
   "title": "بالیاژ موکا بژ ویو کلاسیک",
   "line": "color",
-  "category": "بالیاژ"
+  "category": "بالیاژ",
+  "look": "mocha-beige balayage: a medium mocha-brown root and upper lengths with soft beige-blonde ribbons that get brighter toward the ends"
  },
  {
   "file": "color-04.jpg",
   "title": "بلوند صدفی ویوی حجیم",
   "line": "color",
-  "category": "رنگ"
+  "category": "رنگ",
+  "look": "pearl blonde: a very light, cool, pearly ivory blonde from root to ends with only a barely darker soft root and a slight silvery sheen"
  },
  {
   "file": "color-05.jpg",
   "title": "بالیاژ بروند شنی بیسکویتی",
   "line": "color",
-  "category": "بالیاژ"
+  "category": "بالیاژ",
+  "look": "sandy biscuit bronde balayage: a cool medium-brown root with sandy biscuit-beige blonde ribbons from mid-length down and brighter face-framing pieces"
  },
  {
   "file": "color-06.jpg",
   "title": "باب بلند بالیاژ دودی بژ",
   "line": "color",
-  "category": "بالیاژ"
+  "category": "بالیاژ",
+  "look": "smoky beige balayage: a dark ash-brown root fading into smoky beige-blonde lengths and ends, cool tones with no warmth"
  },
  {
   "file": "color-07.jpg",
   "title": "ویو بلند هانی وانیلا",
   "line": "color",
-  "category": "رنگ"
+  "category": "رنگ",
+  "look": "honey-vanilla blonde: a soft light-brown root melting quickly into golden honey and creamy vanilla-blonde lengths"
  },
  {
   "file": "color-08.jpg",
   "title": "آمبره عروسکی دودی بژ",
   "line": "color",
-  "category": "آمبره"
+  "category": "آمبره",
+  "look": "smoky beige ombré: an ash-brown root melting into light smoky beige-blonde mid-lengths and ends, soft and cool"
  },
  {
   "file": "color-09.jpg",
   "title": "آمبره شکلاتی کاراملی",
   "line": "color",
-  "category": "آمبره"
+  "category": "آمبره",
+  "look": "chocolate-caramel ombré: a deep chocolate-brown root and top with warm caramel-blonde ribbons starting around cheek level and getting brighter toward the ends"
  },
  {
   "file": "color-10.jpg",
   "title": "بلوند صدفی روشن",
   "line": "color",
-  "category": "رنگ"
+  "category": "رنگ",
+  "look": "light pearl blonde: a creamy light pearl-beige blonde with a soft taupe root and brighter face-framing pieces"
  },
  {
   "file": "nails-01.jpg",
   "title": "زرد کره‌ای با فرنچ صورتی، مربعی",
   "line": "nails",
-  "category": "فرنچ"
+  "category": "فرنچ",
+  "look": "a glossy butter-yellow gel manicure with a bubblegum-pink French tip on every nail, square shape, medium length"
  },
  {
   "file": "nails-02.jpg",
   "title": "آمبره شیری-مرجانی، کوفین",
   "line": "nails",
-  "category": "آمبره"
+  "category": "آمبره",
+  "look": "an ombré gel manicure fading from milky white at the cuticle to coral pink at the tip, glossy, coffin shape, long"
  },
  {
   "file": "nails-03.jpg",
   "title": "آمبره بنفش پاستلی، بادامی",
   "line": "nails",
-  "category": "آمبره"
+  "category": "آمبره",
+  "look": "an ombré gel manicure fading from milky white at the cuticle to bright pastel violet at the tip, glossy, almond shape, medium-long"
  },
  {
   "file": "nails-04.jpg",
   "title": "فرنچ سفید اکلیلی نقره‌ای، مربعی",
   "line": "nails",
-  "category": "فرنچ"
+  "category": "فرنچ",
+  "look": "a sheer nude base densely covered in fine silver glitter with a crisp opaque white French tip on every nail, square shape, medium length"
  },
  {
   "file": "nails-05.jpg",
   "title": "سفید شیری ساده، مربعی کوتاه",
   "line": "nails",
-  "category": "ساده"
+  "category": "ساده",
+  "look": "a solid glossy milky-white gel on every nail, short square shape"
  },
  {
   "file": "nails-06.jpg",
   "title": "زرشکی خال‌خالی با بیس صورتی، مربعی",
   "line": "nails",
-  "category": "طرح‌دار"
+  "category": "طرح‌دار",
+  "look": "alternating nails: some fully deep burgundy with tiny white polka dots, the others nude-pink with a burgundy polka-dot French tip; glossy, square shape, medium length"
  },
  {
   "file": "nails-07.jpg",
   "title": "آمبره آلبالویی-مشکی، استیلتو",
   "line": "nails",
-  "category": "آمبره"
+  "category": "آمبره",
+  "look": "an ombré gel manicure fading from cherry red at the cuticle to black at the tip, glossy, stiletto shape, long"
  },
  {
   "file": "nails-08.jpg",
   "title": "آمبره یاسی-شیری، بادامی",
   "line": "nails",
-  "category": "آمبره"
+  "category": "آمبره",
+  "look": "an ombré gel manicure fading from milky white at the cuticle to lilac at the tip, glossy, almond shape, long"
  },
  {
   "file": "nails-09.jpg",
   "title": "آمبره لیمویی-هلویی، بادامی",
   "line": "nails",
-  "category": "آمبره"
+  "category": "آمبره",
+  "look": "an ombré gel manicure fading from lemon yellow at the cuticle to peach-coral at the tip, glossy, almond shape, medium-long"
  },
  {
   "file": "nails-10.jpg",
   "title": "نود با فرنچ کلاسیک سفید، مربعی کوتاه",
   "line": "nails",
-  "category": "فرنچ"
+  "category": "فرنچ",
+  "look": "a sheer nude-pink base with a thin classic white French tip on every nail, short square shape"
  },
  {
   "file": "lashes-01.jpg",
   "title": "اکستنشن مژه عروسکی",
   "line": "lashes",
-  "category": "پرحجم"
+  "category": "پرحجم",
+  "look": "doll-eye eyelash extensions: wispy separated black spikes over a fluffy base, longest at the centre of the eye for an open, round look"
  },
  {
   "file": "lashes-02.jpg",
   "title": "لوکس‌لش شکلاتی",
   "line": "lashes",
-  "category": "طبیعی"
+  "category": "طبیعی",
+  "look": "soft natural classic-hybrid eyelash extensions in a dark chocolate-brown shade, fine and fluffy, medium length, natural even mapping"
  },
  {
   "file": "lashes-03.jpg",
   "title": "اکستنشن مژه اسپایکی",
   "line": "lashes",
-  "category": "پرحجم"
+  "category": "پرحجم",
+  "look": "spiky wispy eyelash extensions: clearly defined separated black spikes over a light fluffy base, medium-long"
  },
  {
   "file": "lashes-04.jpg",
   "title": "اکستنشن والیوم روسی",
   "line": "lashes",
-  "category": "پرحجم"
+  "category": "پرحجم",
+  "look": "Russian volume eyelash extensions: dense fluffy black fans forming a full dark lash line, medium-long, even C curl, slightly lifted outer corners"
  },
  {
   "file": "lashes-05.jpg",
   "title": "اکستنشن مگاوالیوم شکلاتی",
   "line": "lashes",
-  "category": "پرحجم"
+  "category": "پرحجم",
+  "look": "mega volume eyelash extensions: a very dense, dark lash line with a soft dark-brown tone, long and dramatic, cat-eye mapping"
  },
  {
   "file": "lashes-06.jpg",
   "title": "اکستنشن مژه هیبرید",
   "line": "lashes",
-  "category": "طبیعی"
+  "category": "طبیعی",
+  "look": "hybrid eyelash extensions: a mix of classic single lashes and light fans, textured medium density, natural mapping, black"
  },
  {
   "file": "lashes-07.jpg",
   "title": "اکستنشن مژه ویسپی",
   "line": "lashes",
-  "category": "پرحجم"
+  "category": "پرحجم",
+  "look": "wispy (Kim) eyelash extensions: longer textured black spikes mixed through a fluffy base, giving an uneven spiky top edge"
  },
  {
   "file": "lashes-08.jpg",
   "title": "اکستنشن مژه کت‌آی مشکی",
   "line": "lashes",
-  "category": "پرحجم"
+  "category": "پرحجم",
+  "look": "black cat-eye volume eyelash extensions: fluffy fans, longest at the outer corners, lifted and elongated"
  },
  {
   "file": "hair-01.jpg",
   "title": "چتری پرده‌ای لایه‌دار",
   "line": "hair",
-  "category": "چتری"
+  "category": "چتری",
+  "look": "long hair past the shoulders with soft curtain bangs parted in the middle and sweeping to both sides at cheekbone level, long face-framing layers and a voluminous blow-dried finish with the ends turned outward"
  },
  {
   "file": "hair-02.jpg",
   "title": "فر درشت مجلسی",
   "line": "hair",
-  "category": "فر"
+  "category": "فر",
+  "look": "formal long hair in big glossy sculpted curls and vintage waves from a deep side part, voluminous and swept over one shoulder, with a small pearl-and-crystal hair pin above one ear"
  },
  {
   "file": "hair-03.jpg",
   "title": "نیمه‌باز ویودار",
   "line": "hair",
-  "category": "شینیون"
+  "category": "شینیون",
+  "look": "a half-up, half-down style: the top section twisted and pinned back at the crown with volume, the rest long and loose in soft waves, a few loose face-framing strands"
  },
  {
   "file": "hair-04.jpg",
   "title": "ویو ساحلی لایه‌دار",
   "line": "hair",
-  "category": "کوتاهی"
+  "category": "کوتاهی",
+  "look": "long layered hair with loose tousled beach waves from mid-length, voluminous with soft movement, middle part"
  },
  {
   "file": "hair-05.jpg",
   "title": "باترفلای کات",
   "line": "hair",
-  "category": "کوتاهی"
+  "category": "کوتاهی",
+  "look": "a butterfly haircut: long hair with short face-framing layers starting at the chin and long layers below, big bouncy blow-out volume, side part"
  },
  {
   "file": "hair-06.jpg",
   "title": "لیر بلند صاف",
   "line": "hair",
-  "category": "کوتاهی"
+  "category": "کوتاهی",
+  "look": "long sleek straight hair falling well past the chest, long V-shaped layers with face-framing pieces starting at the chin, middle part, smooth glossy blow-dried finish"
  },
  {
   "file": "hair-07.jpg",
   "title": "ویو درشت هالیوودی",
   "line": "hair",
-  "category": "براشینگ"
+  "category": "براشینگ",
+  "look": "Hollywood glam waves: long hair from a deep side part in big glossy sculpted S-shaped waves, brushed out and swept to one side"
  },
  {
   "file": "hair-08.jpg",
   "title": "باب لایه‌دار براشینگ",
   "line": "hair",
-  "category": "کوتاهی"
+  "category": "کوتاهی",
+  "look": "a layered bob ending just above the shoulders, blow-dried with round-brush volume and softly flicked-out layered ends, deep side part, face-framing layers"
  },
  {
   "file": "hair-09.jpg",
   "title": "براشینگ حجم‌دار کنار",
   "line": "hair",
-  "category": "براشینگ"
+  "category": "براشینگ",
+  "look": "long hair from a deep side part in a big voluminous side-swept blowout with bouncy curled and flicked layers"
  },
  {
   "file": "hair-10.jpg",
   "title": "شینیون پایین مدرن",
   "line": "hair",
-  "category": "شینیون"
+  "category": "شینیون",
+  "look": "a modern low bun at the nape with soft twisted volume at the crown, a few loose face-framing tendrils, and a pearl-and-crystal hair pin on one side"
  }
 ]
