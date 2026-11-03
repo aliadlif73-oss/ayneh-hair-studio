@@ -881,3 +881,21 @@ test('a salon work with a written look is tried on from the text only: one photo
   assert.equal(captured.at(-1).input.image_input.length,2);assert.match(captured.at(-1).input.prompt,/DIFFERENT woman/);
  }finally{globalThis.fetch=previous}
 });
+test('the team\'s own verified mobiles (app_settings unlimited_phones) have no image limits',async()=>{
+ const e=fixture(),s=await salon(e);e.KIE_API_KEY='mock';
+ const previous=globalThis.fetch;let tasks=0;
+ globalThis.fetch=async(url)=>{if(String(url).includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(String(url).includes('createTask')){tasks++;return Response.json({code:200,data:{taskId:'t'+tasks}})}return new Response(png())};
+ try{
+  await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true,reference_verified:true,daily_limit:2},OWNER);
+  e.DB.sql.prepare("INSERT INTO app_settings(key,value,updated_at) VALUES('unlimited_phones',?,?)").run(JSON.stringify(['+989120000001']),Date.now());
+  const g=await guest(e,s),sid=e.DB.sql.prepare('SELECT id FROM sessions ORDER BY created_at DESC LIMIT 1').get().id;
+  e.DB.sql.prepare('UPDATE sessions SET verified_phone=? WHERE id=?').run('+989120000001',sid);
+  const o=await upload(e,s,g);
+  assert.equal((await call(e,'/api/s/salon-a/session',undefined,g)).data.quota,null);
+  for(let i=0;i<5;i++){const r=await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),line:'hair',original_id:o,style:0},g);assert.equal(r.status,200,JSON.stringify(r))}
+  // Anyone else still has the limits.
+  const g2=await guest(e,s),o2=await upload(e,s,g2);
+  const other=()=>call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),line:'hair',original_id:o2,style:0},g2);
+  assert.equal((await other()).status,200);assert.equal((await other()).status,200);assert.equal((await other()).status,429,'the daily cap of 2 still applies to others');
+ }finally{globalThis.fetch=previous}
+});
