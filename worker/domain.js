@@ -56,17 +56,18 @@ export function colorText(color){
 }
 export function transferPrompt(mode,style,color){
  const lock='Professional hair-salon consultation preview. Photo 1 is the client. Edit ONLY her hair.\n'+
-  'IDENTITY LOCK: keep her exact face and facial features, skin tone and texture, makeup, age, expression, head angle, ears, neck, clothing, jewelry, background, framing and lighting unchanged. It must be clearly the same person in the same photo. Do not beautify, retouch, slim or swap the face.\n'+
+  'IDENTITY LOCK: keep her exact face and facial features, skin tone and texture, makeup, age, expression, head angle, ears, neck, clothing, jewelry, background, framing and lighting unchanged. It must be clearly the same person in the same photo: do not redraw, regenerate or reshape her face; keep every facial feature exactly as in photo 1. Do not beautify, retouch, slim or swap the face.\n'+
   'If she wears a headscarf or hat, keep it exactly as it is and change only the hair that is visible.\n';
  const realism='\nREALISM: real hair density and individual strand detail, a natural hairline and parting that fit her head shape and face, believable volume and fall under gravity, light and shadow matching the original photo\'s light direction and color temperature, soft natural shadows where hair meets skin and clothing. Seamless edges, no halo, no wig look, no painted or plastic texture.\n'+
   'OUTPUT: one photorealistic photo with the same composition and aspect ratio as Photo 1, high detail. No text, watermark, border, collage or before/after split.';
- const ref='Photo 2 is ONLY a hair reference: ignore its face, skin, body, clothing and background completely. Photo 2 may carry an overlaid caption, label, frame, logo or watermark: ignore it and never copy any text, banner or frame into the result.\n';
+ const ref='Photo 2 is ONLY a hair reference and shows a DIFFERENT woman: never use her face, facial features, eyes, nose, lips, brows, skin, makeup, age, expression, body, clothing or background. The face in the result must stay exactly the face of photo 1. Photo 2 may carry an overlaid caption, label, frame, logo or watermark: ignore it and never copy any text, banner or frame into the result.\n';
  const tint=color?'\nHAIR COLOR: '+colorText(color)+'. This overrides any hair color in photo 2.':'';
- if(mode==='style')return lock+ref+'HAIR: copy ONLY the haircut, length, layers, texture and styling from photo 2.'+(color?tint:' Keep her original hair color from photo 1.')+realism;
+ if(mode==='style')return lock+ref+'HAIR: copy ONLY the haircut, length, layers, texture and styling from photo 2.'+(color?tint:'\nHAIR COLOR: ignore the hair colour of photo 2 completely. Keep her exact hair colour from photo 1: the same shade, roots, highlights and tone, unchanged.')+realism;
  if(mode==='color')return lock+ref+'HAIR: copy ONLY the hair color, tones, roots, highlights and color placement from photo 2. Keep her exact haircut, length, part and styling from photo 1.'+tint+realism;
  if(mode==='both')return lock+ref+'HAIR: transfer the hairstyle AND hair color from photo 2, adapted naturally to her head and face. Never take the face from photo 2.'+tint+realism;
- const detail=STYLE_DETAILS[style]||style;
- return lock+'HAIR: give her '+detail+' ('+style+').'+(color?'\nHAIR COLOR: '+colorText(color)+'.':'\nHAIR COLOR: keep her original hair color from photo 1.')+realism;
+ // A catalog name maps to its description; a salon work arrives already as a description.
+ const detail=STYLE_DETAILS[style]?STYLE_DETAILS[style]+' ('+style+')':style;
+ return lock+'HAIR: give her '+detail+'. Change only the cut, length, shape and styling of her hair.'+(color?'\nHAIR COLOR: '+colorText(color)+'.':'\nHAIR COLOR: keep her exact hair colour from photo 1: the same shade, roots, highlights and tone, unchanged.')+realism;
 }
 export const uid=()=>crypto.randomUUID();
 export const token=()=>{let a=crypto.getRandomValues(new Uint8Array(32));return Array.from(a,x=>x.toString(16).padStart(2,'0')).join('');};

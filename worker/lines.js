@@ -144,7 +144,7 @@ export function cleanOptions(line,opts){
 export function optionText(line,opts){return (LINE_OPTIONS[line]||[]).map(o=>Number.isInteger(opts?.[o.key])?o.items[opts[o.key]][0]:'').filter(Boolean).join('، ')}
 
 // Salon and Instagram photos often carry a caption banner or watermark; it must never reach the result.
-const NOTEXT=' Photo 2 may carry an overlaid caption, label, frame, logo or watermark: ignore it and never copy any text, banner or frame into the result.';
+const NOTEXT=' Photo 2 shows a DIFFERENT person: never use her face, facial features, skin, makeup or body; the result keeps the person of photo 1 exactly. Photo 2 may carry an overlaid caption, label, frame, logo or watermark: ignore it and never copy any text, banner or frame into the result.';
 const OUT='\nOUTPUT: one photorealistic photo with the same composition and aspect ratio as Photo 1, high detail. No text, watermark, border, collage or before/after split.';
 // mode: 'catalog' (style = English description) or 'reference' (photo 2 is the design reference).
 // Hair colour: 'catalog' (style = description), 'reference' (copy the colour of photo 2) or
@@ -153,7 +153,7 @@ export function colorPrompt(mode,style,color){
  const what=mode==='reference'?'Photo 2 is ONLY a hair-colour reference: ignore its face, skin, haircut, clothing and background completely.'+NOTEXT+'\nHAIR COLOR: copy ONLY the hair colour, tones, roots, highlights and colour placement from photo 2 onto her hair.'
   :mode==='text'?'HAIR COLOR: '+colorText(color)+'.':'HAIR COLOR: '+style+'.';
  return 'Professional hair-colour consultation preview. Photo 1 is the client. Change ONLY the colour of her hair.\n'+
-  'IDENTITY LOCK: keep her exact face and facial features, skin tone and texture, makeup, age, expression, head angle, ears, neck, clothing, jewelry, background, framing and lighting unchanged. It must be clearly the same person in the same photo. Do not beautify, retouch, slim or swap the face.\n'+
+  'IDENTITY LOCK: keep her exact face and facial features, skin tone and texture, makeup, age, expression, head angle, ears, neck, clothing, jewelry, background, framing and lighting unchanged. It must be clearly the same person in the same photo. Do not beautify, retouch, slim, redraw or swap the face; every facial feature stays exactly as in photo 1.\n'+
   'HAIRCUT LOCK: keep her exact haircut, length, layers, parting, volume, texture and styling from photo 1, strand for strand. Do not cut, lengthen, curl, straighten or restyle her hair. If she wears a headscarf or hat, keep it exactly as it is and recolour only the hair that is visible.\n'+
   what+
   '\nREALISM: salon-quality colour with natural dimension, believable roots and shine, the colour following every strand and wave, light and shadow matching the original photo\'s light direction and colour temperature. Keep brows and lashes their natural colour. Seamless edges, no halo, no wig look, no painted or plastic texture.'+OUT;
@@ -165,8 +165,8 @@ export function linePrompt(line,mode,style,opts,color){
   return 'Professional nail-salon consultation preview. Photo 1 is the client\'s hand. Edit ONLY her fingernails.\n'+
    'IDENTITY LOCK: keep the exact hand and fingers, skin tone and texture, pose, rings and jewellery, sleeves, background, framing and lighting unchanged. Do not change finger length or shape and never add or remove fingers. Keep the cuticles and nail beds natural.\n'+
    (mode==='reference'?'Photo 2 is ONLY a nail design reference: ignore its hand, skin, jewellery and background.'+NOTEXT+'\nNAILS: copy the nail design, finish and colours from photo 2 onto all of her visible nails.':'NAILS: '+style+' on all of her visible nails.')+
-   '\nNAIL SHAPE: '+(shape?shape+'. This exact shape on every nail'+(mode==='reference'?', overriding the shape in photo 2':''):(mode==='reference'?'as in photo 2, adapted to her fingers':'keep the shape of her own nails in photo 1'))+'.'+
-   '\nNAIL LENGTH: '+(len?len+'. Measure against her own fingertips in photo 1 and keep this exact length on every nail; never longer'+(mode==='reference'?', even if photo 2 shows longer nails':''):(mode==='reference'?'as in photo 2':'keep her own nail length from photo 1 exactly; do not lengthen'))+'.'+
+   '\nNAIL SHAPE: '+(shape?shape+'. This exact shape on every nail'+(mode==='reference'?', overriding the shape in photo 2':''):(mode==='reference'?'as in photo 2, adapted to her fingers':mode==='salon'?'exactly as described in NAILS above':'keep the shape of her own nails in photo 1'))+'.'+
+   '\nNAIL LENGTH: '+(len?len+'. Measure against her own fingertips in photo 1 and keep this exact length on every nail; never longer'+(mode==='reference'?', even if photo 2 shows longer nails':''):(mode==='reference'?'as in photo 2':mode==='salon'?'exactly as described in NAILS above, measured against her own fingertips':'keep her own nail length from photo 1 exactly; do not lengthen'))+'.'+
    (color?'\nNAIL COLOUR: '+colourEn('nails',color)+'.'+(mode==='reference'?' This overrides the colour in photo 2.':''):'')+
    '\nDo not add any nail art, glitter, gems or colours that are not described.'+
    '\nREALISM: real gel gloss and reflections matching the photo\'s light, each nail sitting naturally on its finger with correct perspective and curvature, clean edges along the cuticles and sidewalls, every visible nail done consistently.'+OUT;
@@ -174,7 +174,7 @@ export function linePrompt(line,mode,style,opts,color){
  if(line==='lashes'){
   const map=optEn('lashes','map',opts.map),len=optEn('lashes','length',opts.length);
   return 'Professional lash-studio consultation preview. Photo 1 is the client. Edit ONLY her upper eyelashes.\n'+
-   'IDENTITY LOCK: keep her exact face, eye shape and size, eye colour, eyelids, brows, skin, makeup, expression, head angle, hair, headscarf, clothing, background, framing and lighting unchanged. Do not enlarge the eyes, beautify or retouch.\n'+
+   'IDENTITY LOCK: keep her exact face, eye shape and size, eye colour, eyelids, brows, skin, makeup, expression, head angle, hair, headscarf, clothing, background, framing and lighting unchanged. Do not enlarge the eyes, beautify, retouch, redraw or regenerate her face; every facial feature stays exactly as in photo 1.\n'+
    (mode==='reference'?'Photo 2 is ONLY a lash reference: ignore its face, eyes, makeup and background.'+NOTEXT+'\nLASHES: copy the lash style, density, curl and mapping from photo 2 onto both of her eyes.':'LASHES: '+style+' on both eyes.')+
    (map?'\nLASH MAPPING: '+map+'.':'')+(len?'\nLASH LENGTH: '+len+'.':'')+
    (color?'\nLASH COLOUR: '+colourEn('lashes',color)+'.':'')+

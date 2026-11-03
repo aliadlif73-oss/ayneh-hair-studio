@@ -146,9 +146,10 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
    must(await one(db,"SELECT 1 FROM media WHERE id=? AND salon_id=? AND kind='portfolio'",media,salon.id),'عکس نمونه‌کار معتبر نیست');
    must(!await one(db,'SELECT 1 FROM portfolio WHERE salon_id=? AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)',salon.id,media),'این عکس قبلاً اضافه شده');
    const title=text(String(b.title||'').slice(0,150),150)||'نمونه‌کار',id=uid();
-   await run(db,'INSERT INTO portfolio(id,salon_id,title,category,description,stylist,images,published,try_on,permission,created_at,staff_id,media_group,line) VALUES(?,?,?,?,?,?,?,1,1,1,?,NULL,NULL,?)',id,salon.id,title,text(String(b.category||'').slice(0,60),60),text(String(b.description||'').slice(0,500),500),text(String(b.stylist||'').slice(0,80),80),JSON.stringify([media]),Date.now(),line);
+   await run(db,'INSERT INTO portfolio(id,salon_id,title,category,description,stylist,images,published,try_on,permission,created_at,staff_id,media_group,line,look) VALUES(?,?,?,?,?,?,?,1,1,1,?,NULL,NULL,?,?)',id,salon.id,title,text(String(b.category||'').slice(0,60),60),text(String(b.description||'').slice(0,500),500),text(String(b.stylist||'').slice(0,80),80),JSON.stringify([media]),Date.now(),line,text(String(b.look||'').slice(0,600),600));
    return J({id});
   }
+  if(r==='portfolio/look'){await run(db,'UPDATE portfolio SET look=? WHERE id=? AND salon_id=?',text(String(b.look||'').slice(0,600),600),String(b.id||''),salon.id);return J({ok:true});}
   if(r==='portfolio/line'){must(LINE_KEYS.includes(b.line),'خدمت معتبر نیست');await run(db,'UPDATE portfolio SET line=? WHERE id=? AND salon_id=?',b.line,b.id,salon.id);return J({ok:true});}
   if(r==='portfolio/delete'){await run(db,'DELETE FROM portfolio WHERE id=? AND salon_id=?',b.id,salon.id);return J({ok:true});}
   if(r==='leads/retry'){await run(db,"UPDATE leads SET status='retry',attempts=0 WHERE id=? AND salon_id=? AND status='failed'",b.id,salon.id);const l=await one(db,'SELECT * FROM leads WHERE id=? AND salon_id=?',b.id,salon.id);must(l,'درخواست یافت نشد',404);return J({delivered:await deliverLead(env,l)});}
@@ -232,7 +233,12 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   const original=await ownMedia(db,s,b.original_id);must(original.kind==='original','عکس چهره لازم است');
   const color=text(String(b.color||'').slice(0,120),120),opts=cleanOptions(line,b.opts),ratio=RATIOS.includes(b.ratio)?b.ratio:'3:4';
   let reference=null;
-  if(b.reference_id){must(refOn(cfg),'انتقال عکس مرجع برای این سالن خاموش است',503);reference=await ownMedia(db,s,b.reference_id);}
+  // A salon work with a written look is tried on from the text alone: one photo, hers.
+  let look='';
+  if(b.reference_id){
+   look=(await one(db,"SELECT look FROM portfolio WHERE salon_id=? AND published=1 AND line=? AND look<>'' AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)",salon.id,line,b.reference_id))?.look||'';
+   if(!look){must(refOn(cfg),'انتقال عکس مرجع برای این سالن خاموش است',503);reference=await ownMedia(db,s,b.reference_id);}
+  }
   else if(line==='color'&&!Number.isInteger(b.style))must(color.length>=2,'یک رنگ انتخاب کن یا اسمش را بنویس');
   else must(Number.isInteger(b.style)&&(line==='hair'?styles:lineStyles(line))[b.style],'مدل معتبر انتخاب کنید');
   // Hair colour can be tried on her new hairstyle: a hair result of this session made from the same photo.
@@ -245,11 +251,12 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   if(dailyLimit(cfg)>0)await limited(db,'generation:'+salon.id+':'+new Date().toISOString().slice(0,10),dailyLimit(cfg));if(demo)await limited(db,'demo:'+s.verified_phone,3,'امروز ۳ تصویر نمونه ساخته‌اید؛ فردا دوباره امتحان کنید یا صفحهٔ آزمایشی سالن خودتان را بسازید');await spendTrialImage(db,trial);
   const id=uid(),now=Date.now();
   // Hairstyle copies only the cut from a reference photo; colour only the colour.
-  const mode=line==='hair'?(reference?'style':'catalog'):(reference?'reference':(line==='color'&&!Number.isInteger(b.style)?'text':'catalog'));
+  const mode=look?'salon':line==='hair'?(reference?'style':'catalog'):(reference?'reference':(line==='color'&&!Number.isInteger(b.style)?'text':'catalog'));
   await run(db,'INSERT INTO generations(id,salon_id,session_id,idem,state,original_id,reference_id,style,transfer,color,created_at,updated_at,line,opts,base_id,visitor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',id,salon.id,s.id,b.idem,'creating',b.original_id,b.reference_id||null,reference?null:(Number.isInteger(b.style)?b.style:null),mode,color,now,now,line,JSON.stringify(opts),baseId,visitor);
   try{
    const images=[await uploadProvider(env,base)];if(reference)images.push(await uploadProvider(env,reference));
-   const prompt=line==='hair'?transferPrompt(reference?'style':'catalog',styles[b.style]?.[1]||'','')
+   const prompt=look?(line==='hair'?transferPrompt('catalog',look,''):line==='color'?linePrompt('color','catalog',look,{},''):linePrompt(line,line==='nails'?'salon':'catalog',look,opts,color))
+    :line==='hair'?transferPrompt(reference?'style':'catalog',styles[b.style]?.[1]||'','')
     :line==='color'?linePrompt('color',mode,mode==='catalog'?lineStyles('color')[b.style][3]:'',{},color)
     :linePrompt(line,reference?'reference':'catalog',reference?'':lineStyles(line)[b.style][3],opts,color);
    const job=await createImageTask(env,cfg,{prompt,image_input:images,aspect_ratio:ratio,resolution:'2K',output_format:'jpg'});
