@@ -380,6 +380,27 @@ body.is-touring{overflow:hidden}
 .looks .style-card.is-on .style-card__name{color:var(--accent-ink)}
 .looks .style-card.is-on::after{content:"";position:absolute;top:8px;inset-inline-start:8px;z-index:2;width:30px;height:30px;border-radius:50%;background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/18px no-repeat;box-shadow:0 0 0 3px #fff,0 4px 10px rgba(0,0,0,.25);animation:pop .35s var(--ease) both}
 @media (prefers-reduced-motion:reduce){.looks .style-card{transition:none}.looks .style-card.is-on{transform:none}.looks .style-card.is-on::after{animation:none}}
+/* ---------- sticky header: services above, a slim stepper below on its own strip ---------- */
+.steps{background:rgba(232,237,235,.94);border-bottom:0;box-shadow:0 8px 18px -16px rgba(35,23,15,.5)}
+.steps__top{padding:10px 0 10px}
+.steps__topin{display:flex;justify-content:center}
+.linesw{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0;background:transparent;box-shadow:none;border-radius:0;width:min(100%,520px)}
+.linesw__btn{min-height:46px;border:1.5px solid var(--line-2);border-radius:14px;background:var(--surface);color:var(--muted);box-shadow:0 1px 2px rgba(35,23,15,.05)}
+.linesw__btn:hover{color:var(--ink);border-color:var(--line)}
+.linesw__btn.is-on{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 8px 16px -10px rgba(7,76,77,.9)}
+.linesw__btn.is-on svg{color:#fff}
+.steps__bottom{background:var(--surface);border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
+.steps__list{display:flex;align-items:center;gap:8px;padding:6px 18px;grid-template-columns:none;max-width:560px;margin-inline:auto}
+.steps__item{flex:none;min-height:34px;padding:0 2px;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted);border-radius:10px}
+.steps__item::after{display:none}
+.steps__num{width:22px;height:22px;font-size:11.5px;border-width:1.5px}
+.steps__line{flex:1;height:2px;min-width:14px;border-radius:2px;background:var(--line)}
+.steps__line.is-done{background:var(--accent)}
+.steps__label{overflow:visible;white-space:nowrap}
+@media(max-width:479px){
+ .linesw{gap:6px}
+ .linesw__btn{min-height:54px;border-radius:14px}
+}
 /* ---------- toasts sit at the top, never over the choices or the dock; a tap closes them ---------- */
 .toast{top:calc(env(safe-area-inset-top,0px) + 10px);bottom:auto;transform:translateY(-12px);pointer-events:auto;cursor:pointer;font-size:13.5px;line-height:1.8}
 /* ---------- images that are still loading: a soft shimmer, then a fade-in ---------- */
@@ -687,20 +708,23 @@ function lineSwitch(){
  });
  return bar;
 }
+// Two clearly different things: which service (big, coloured tiles) and where you are (a slim
+// stepper on its own white strip).
 function renderSteps(){
  var bar=$('#steps');bar.hidden=false;
- var list=el('div',{class:'steps__list wrap'});
- [['عکس تو',1],['انتخاب مدل',2],['نتیجه',3]].forEach(function(x){
+ var list=el('div',{class:'steps__list wrap',role:'list','aria-label':'مراحل'});
+ [['عکس تو',1],['انتخاب',2],['نتیجه',3]].forEach(function(x,k){
   var n=x[1];
+  if(k)list.append(el('span',{class:'steps__line'+(state.step>=n?' is-done':''),'aria-hidden':'true'}));
   var cls='steps__item'+(state.step===n?' is-active':'')+(state.step>n?' is-done':'');
-  var b=el('button',{class:cls,type:'button','aria-current':state.step===n?'step':'false'},[
+  var b=el('button',{class:cls,type:'button',role:'listitem','aria-current':state.step===n?'step':'false'},[
    el('span',{class:'steps__num',html:state.step>n?'✓':fa(n)}),
    el('span',{class:'steps__label',text:x[0]})
   ]);
   b.addEventListener('click',function(){go(n)});
   list.append(b);
  });
- bar.replaceChildren(el('div',{class:'wrap steps__top'},[lineSwitch()]),list);
+ bar.replaceChildren(el('div',{class:'steps__top'},[el('div',{class:'wrap steps__topin'},[lineSwitch()])]),el('div',{class:'steps__bottom'},[list]));
 }
 function go(n,quiet){
  if(n===2&&!state.original){toast('اول عکس خودت را اضافه کن');return}
