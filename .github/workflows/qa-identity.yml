@@ -1,0 +1,26 @@
+name: QA identity
+on:
+  push:
+    branches: [qa-identity]
+    paths: [qa/**]
+permissions:
+  contents: write
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node qa/run.mjs
+        env:
+          KIE_API_KEY: ${{ secrets.KIE_API_KEY }}
+      - if: always()
+        run: |
+          git add qa/out
+          git diff --cached --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "QA results"
+          git push origin HEAD:qa-identity
