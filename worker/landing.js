@@ -741,6 +741,28 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
 .s2-demo img,.trial-mock img,.svc .ico{will-change:transform}
 @media (prefers-reduced-motion:reduce){.site-header{transition:none}}
 
+/* AYNEH / brass, ivory and arched reflections. Shared presentation finishing. */
+.brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none}.brand-symbol{display:inline-flex;width:45px;height:48px;color:#a47b39;flex:none}.brand-symbol svg{width:100%;height:100%}.brand-name{display:flex;flex-direction:column;align-items:center;line-height:1.2}.brand .brand-name small{font-size:10px;letter-spacing:.24em;direction:ltr;margin:5px 0 0;opacity:.65}.foot .brand-symbol{color:#d6b473}.loader-brand svg{width:55px;height:65px;color:#a47b39}
+.nav-btn,.cinema-arrows button{direction:ltr;unicode-bidi:isolate}.nav-btn svg,.cinema-arrows svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transform:none}
+/* A right chevron lives at the physical right edge; a left one at the left. */
+.cinema-arrows{inset:0;display:block;pointer-events:none;z-index:7}.cinema-arrows button{position:absolute;top:50%;transform:translateY(-50%);pointer-events:auto;width:48px;height:48px;background:#211811b8;backdrop-filter:blur(8px);display:grid;place-items:center;transition:background .2s,border-color .2s,box-shadow .2s}
+.cinema-arrows [data-slide-prev]{right:24px;left:auto}.cinema-arrows [data-slide-next]{left:24px;right:auto}.cinema-arrows button:hover{background:#3c2d1d;border-color:#d7b975;box-shadow:0 0 25px #d7b97520}
+.btn.orbit-cta{position:relative;isolation:isolate;overflow:hidden;border-color:#b9975b80;box-shadow:0 5px 20px #0002;transition:background .22s,box-shadow .22s,transform .22s}
+.btn.orbit-cta:hover{transform:translateY(-2px);box-shadow:0 9px 25px #b9975b30}.btn.orbit-cta:focus-visible,.nav-btn:focus-visible,.cinema-arrows button:focus-visible{outline:2px solid #d8b878;outline-offset:4px}
+.cta-ring{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}.cta-ring rect{x:1px;y:1px;width:calc(100% - 2px);height:calc(100% - 2px);rx:28px;fill:none;stroke:#f8d98c;stroke-width:1.35;stroke-dasharray:14 86;animation:gold-orbit 5s linear infinite;filter:drop-shadow(0 0 3px #d8b36d80)}
+.journey-actions{display:flex;flex-direction:column;gap:10px;margin-top:22px}.journey-copy .journey-actions .btn{display:inline-flex;justify-content:center;align-items:center;gap:18px;min-height:50px;width:100%;padding:12px 18px;border:1px solid #c8a86b88;border-radius:999px;background:#1a120d;color:#fff1d8;font:inherit;font-size:13px;font-weight:700;text-decoration:none;text-shadow:none;line-height:1.7}.journey-copy .journey-actions a span{margin:0}.journey-copy .journey-actions .salon-action{align-self:center;display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:44px;color:#edd5a4;font-size:11px;line-height:1.8;text-decoration:none;text-shadow:none;border-bottom:1px solid #c8a86b45;transition:color .2s,border-color .2s}.journey-copy .journey-actions .salon-action:hover{color:#fff3d9;border-color:#e2c180}
+/* All autoplay film cards share the same hierarchy and dimensions. */
+.auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{display:block;top:auto;bottom:80px;right:6%;left:auto;width:33%;max-width:400px;padding:26px;border:1px solid #d3b67e45;border-radius:20px;background:linear-gradient(140deg,#21170fe8,#21170fc9);backdrop-filter:blur(12px);box-shadow:0 20px 60px #0003}
+.auto-film .journey-copy h3,.auto-film .journey-copy[data-journey-copy=lashes] h3{font-size:clamp(26px,2.6vw,38px);margin:0 0 16px;line-height:1.6}.auto-film .journey-copy[data-journey-copy=lashes] h3 br{display:initial}.auto-film .journey-copy[data-journey-copy=lashes] .journey-kicker{margin:0 0 12px}.auto-film .journey-copy[data-journey-copy=lashes]>p:not(.journey-kicker){font-size:14px;margin:0 0 15px;max-width:35ch}.auto-film .journey-copy[data-journey-copy=lashes] a{margin-top:0}
+.salon-invite{padding:clamp(40px,7vw,100px) clamp(20px,6vw,90px);background:radial-gradient(ellipse at 75% 50%,#39291b60,transparent 65%),#17120e;color:#f8efe3;position:relative;isolation:isolate}.salon-invite-card{max-width:1180px;margin:auto;display:grid;grid-template-columns:1fr 1fr;direction:ltr;border:1px solid #b9975b66;border-radius:28px;overflow:hidden;background:linear-gradient(130deg,#38281c,#21180f);box-shadow:0 24px 65px #0003}.salon-invite-art{position:relative;min-height:460px;overflow:hidden}.salon-invite-art>img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:46% center;transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}.salon-invite-art:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#17110ebb,transparent 65%);pointer-events:none}.salon-invite-card:hover .salon-invite-art>img{transform:scale(1.035)}.invite-seal{position:absolute;bottom:28px;left:28px;z-index:1;display:flex;align-items:center;gap:14px;direction:rtl;color:#f0d5a2;line-height:1.8;font-size:14px}.invite-seal svg{width:47px;height:53px;flex:none}.salon-invite-copy{direction:rtl;align-self:center;padding:clamp(28px,4vw,60px)}.salon-invite-copy h2{font-size:clamp(32px,3.7vw,54px);line-height:1.6;margin:0 0 18px;color:#fff1da;letter-spacing:-.035em}.salon-invite-copy>p:not(.journey-kicker){font-size:16px;line-height:2;margin:0 0 16px}.salon-invite-copy>p.invite-detail{font-size:13px;color:#cfbda5}.salon-invite-copy .btn{width:100%;margin-top:14px;text-align:center;justify-content:center;line-height:1.8;white-space:normal}
+.type-wrap{position:relative}.type-reserve{display:block;visibility:hidden;pointer-events:none}.type-live{position:absolute;inset:0;display:block}.type-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.type-live.is-typing:after{content:"";display:inline-block;height:.85em;border-left:1px solid #e7c88e;margin-right:3px;vertical-align:-.05em;animation:typingCaret .7s steps(1) infinite}@keyframes typingCaret{50%{opacity:0}}
+.svc,.feat li,.faq details,.phone{transition:border-color .25s,box-shadow .25s,background .25s}.svc:hover,.feat li:hover,.faq details[open]{border-color:#b9975b70;box-shadow:0 14px 34px #30201412}.faq details[open] summary{color:#936b2f}.s2-points li{transition:border-color .25s,transform .25s}.s2-points li:hover{border-color:#d5b06c;transform:translateX(-3px)}.salon-invite-card.rv{transition:opacity .7s,transform .7s}
+@media(max-width:900px){.auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{width:40%;right:5%;padding:22px}.salon-invite-card{grid-template-columns:1fr}.salon-invite-art{min-height:320px}.salon-invite-copy{padding:30px}.salon-invite-copy h2 br{display:none}.salon-invite-copy h2{font-size:34px}.salon-invite-copy .btn{max-width:420px}}
+@media(max-width:600px){.brand{gap:6px}.brand-symbol{width:31px;height:35px}.brand .brand-name small{font-size:8px;margin-top:3px}.brand-name{font-size:20px}.cinema-arrows button{width:40px;height:40px}.cinema-arrows [data-slide-prev]{right:10px}.cinema-arrows [data-slide-next]{left:10px}.cinema-copy,.is-current .cinema-copy{right:62px;left:62px;width:auto;max-width:none}.auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{position:relative;inset:auto;width:auto;max-width:none;margin:18px 18px 0;padding:22px;border-radius:18px}.auto-film .journey-copy h3,.auto-film .journey-copy[data-journey-copy=lashes] h3{font-size:25px}.salon-invite{padding:38px 18px}.salon-invite-card{border-radius:22px}.salon-invite-art{min-height:260px}.salon-invite-copy{padding:25px}.salon-invite-copy h2{font-size:30px}.salon-invite-copy>p:not(.journey-kicker){font-size:14px}.salon-invite-copy .btn{font-size:12px}.journey-copy .journey-actions .btn{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.cta-ring rect{animation:none;stroke-dasharray:none;opacity:.5}.type-live:after{animation:none}.salon-invite-card:hover .salon-invite-art>img,.btn.orbit-cta:hover,.s2-points li:hover{transform:none}.svc,.feat li,.faq details,.phone{transition:none}}
+
+@media(max-width:600px){.rail-wrap .nav-btn{display:grid;width:36px;height:36px;margin-top:0}.rail-wrap .nav-r{right:6px}.rail-wrap .nav-l{left:6px}}
+
 .compare{margin-top:0}
 @media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}
 </style>
@@ -749,7 +771,7 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
 <a class="skip" href="#main">رفتن به محتوای اصلی</a>
 
 <header class="site-header">
-  <a class="brand" href="#intro" aria-label="آینه، بازگشت به ابتدای صفحه">آینه<small>| AYNEH</small></a>
+  <a class="brand" href="#intro" aria-label="آینه، بازگشت به ابتدای صفحه"><span class="brand-symbol"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M18 52V27a14 14 0 0 1 28 0v25H18Z" stroke="currentColor" stroke-width="2.5"/><path d="M13 51H8V32a10 10 0 0 1 6-9M51 51h5V32a10 10 0 0 0-6-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m25 43 14-18M26 32l8-10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".65"/><path d="M32 5v4M30 7h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><span class="brand-name">آینه<small>AYNEH</small></span></a>
   <nav class="nav" aria-label="ناوبری اصلی">
     <a href="#experience">تجربه آینه</a>
     <a href="#services">خدمات</a>
@@ -776,7 +798,7 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
 
 <main id="main">
 <noscript><style>.site-loader{display:none!important}html.hero-loading{overflow:auto}</style></noscript>
-<div id="siteLoader" class="site-loader" role="status" aria-label="آماده‌سازی آینه"><div class="loader-mirror"><span>آینه</span><i></i></div><p>انتخابی که به شما می‌آید.</p><div class="loader-track"><i id="loaderProgress"></i></div></div>
+<div id="siteLoader" class="site-loader" role="status" aria-label="آماده‌سازی آینه"><div class="loader-mirror"><span class="loader-brand"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M18 52V27a14 14 0 0 1 28 0v25H18Z" stroke="currentColor" stroke-width="2.5"/><path d="M13 51H8V32a10 10 0 0 1 6-9M51 51h5V32a10 10 0 0 0-6-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m25 43 14-18M26 32l8-10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".65"/><path d="M32 5v4M30 7h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><i></i></div><p>انتخابی که به شما می‌آید.</p><div class="loader-track"><i id="loaderProgress"></i></div></div>
   <!-- 1. Hero: copy + the mirror studio. The photo, hair canvas and podium dock live on one plate so they never drift apart. -->
   <section id="intro" class="film" aria-labelledby="h1" tabindex="-1">
     <div class="stage" id="stage" data-demo="loading">
@@ -807,8 +829,8 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
               <h2 id="dock-h">مدل مو · روی این چهره امتحان کنید</h2>
               <div class="dock-view">
                 <div class="dock-track hscroll" id="dockTrack" role="radiogroup" aria-labelledby="dock-h"></div>
-                <button type="button" class="nav-btn nav-r" id="dkPrev" aria-label="مدل‌های قبلی">›</button>
-                <button type="button" class="nav-btn nav-l" id="dkNext" aria-label="مدل‌های بعدی">‹</button>
+                <button type="button" class="nav-btn nav-r" id="dkPrev" aria-label="مدل‌های قبلی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+                <button type="button" class="nav-btn nav-l" id="dkNext" aria-label="مدل‌های بعدی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
               </div>
               <button type="button" class="more" id="more" aria-expanded="false" aria-controls="styles"><span>دیدن همهٔ مدل‌ها</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7.5 10 12.5 15 7.5"/></svg></button>
             </div>
@@ -839,8 +861,8 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
         </div>
         <div class="rail-wrap">
           <div class="track hscroll" id="track" role="radiogroup" aria-labelledby="styles-h"></div>
-          <button type="button" class="nav-btn nav-r" id="stPrev" aria-label="مدل‌های قبلی">›</button>
-          <button type="button" class="nav-btn nav-l" id="stNext" aria-label="مدل‌های بعدی">‹</button>
+          <button type="button" class="nav-btn nav-r" id="stPrev" aria-label="مدل‌های قبلی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
+          <button type="button" class="nav-btn nav-l" id="stNext" aria-label="مدل‌های بعدی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
         </div>
       </div>
       <div class="demo-file" id="demoFile" aria-hidden="true"><img src="/landing/hero.webp" alt=""><span>تصویر من.jpg</span></div>
@@ -859,52 +881,58 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
         <article class="cinema-shot is-current" data-cinema-shot="0" aria-labelledby="cinema-title-0">
           <img class="cinema-image" data-cinema-image="salon-film-01" src="/landing/salon-film-01.webp" loading="lazy" alt="مشتری در سالن تصویر مرجع را به آرایشگر نشان می‌دهد." width="1920" height="1080" decoding="async">
           <div class="cinema-shade" aria-hidden="true"></div>
-          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۱</span></p><h2 id="cinema-title-0">«اگر به من نیاید؟»</h2><p class="cinema-description">مشتری مدل را روی دیگری دیده؛ هنوز برای خودش مطمئن نیست.</p><p class="cinema-benefit"><span>با آینه</span><strong>انتخاب را روی تصویر خودش ببیند.</strong></p></div>
+          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۱</span></p><h2 id="cinema-title-0">قبل از تغییر، انتخاب را روی خودش ببیند.</h2><p class="cinema-description">مشتری می‌خواهد بداند مدل و رنگ دلخواهش به چهرهٔ خودش می‌آید یا نه.</p><p class="cinema-benefit"><span>با آینه</span><strong>مدل و رنگ را روی عکس خودش امتحان می‌کند.</strong></p></div>
         </article>
         <article class="cinema-shot" data-cinema-shot="1" aria-labelledby="cinema-title-1">
           <img class="cinema-image" data-cinema-image="salon-film-02" src="/landing/salon-film-02.webp" loading="lazy" alt="مشتری و آرایشگر با هم تصویر انتخاب‌شده را بررسی می‌کنند." width="1920" height="1080" decoding="async">
           <div class="cinema-shade" aria-hidden="true"></div>
-          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۲</span></p><h2 id="cinema-title-1">این بار، دربارهٔ یک تصویر حرف بزنید.</h2><p class="cinema-description">مدل مو، رنگ، ناخن یا مژه؛ انتخاب مشتری پیش از شروع کار قابل‌دیدن می‌شود.</p><p class="cinema-benefit"><span>با آینه</span><strong>مشاوره را از یک مرجع روشن شروع کنید.</strong></p></div>
+          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۲</span></p><h2 id="cinema-title-1">مشاوره را با یک تصویر روشن شروع کنید.</h2><p class="cinema-description">مشتری پیش از شروع کار، عکس انتخابش را برای سالن می‌فرستد.</p><p class="cinema-benefit"><span>با آینه</span><strong>شما و مشتری دربارهٔ یک انتخاب مشخص گفت‌وگو می‌کنید.</strong></p></div>
         </article>
         <article class="cinema-shot" data-cinema-shot="2" aria-labelledby="cinema-title-2">
           <img class="cinema-image" data-cinema-image="salon-film-03" src="/landing/salon-film-03.webp" loading="lazy" alt="آرایشگر نمونه‌کارهای سالن را کنار آینه به مشتری معرفی می‌کند." width="1920" height="1080" decoding="async">
           <div class="cinema-shade" aria-hidden="true"></div>
-          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۳</span></p><h2 id="cinema-title-2">کار شما، وارد انتخاب مشتری می‌شود.</h2><p class="cinema-description">نمونه‌کار را برای ربات بفرستید تا در صفحهٔ سالن دیده و از آن برای انتخاب استفاده شود.</p><p class="cinema-benefit"><span>با آینه</span><strong>برای معرفی خدمات، تصویر دارید.</strong></p></div>
+          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۳</span></p><h2 id="cinema-title-2">نمونه‌کارهای خودتان را وارد انتخاب مشتری کنید.</h2><p class="cinema-description">عکس نمونه‌کارتان را برای ربات بفرستید تا مشتری آن را در صفحهٔ سالن ببیند.</p><p class="cinema-benefit"><span>با آینه</span><strong>مشتری از بین کارهای خود سالن انتخاب می‌کند.</strong></p></div>
         </article>
         <article class="cinema-shot" data-cinema-shot="3" aria-labelledby="cinema-title-3">
           <img class="cinema-image" data-cinema-image="salon-film-04" src="/landing/salon-film-04.webp" loading="lazy" alt="مشتری در فضای آرام کنار سالن صفحهٔ اختصاصی سالن را روی گوشی می‌بیند." width="1920" height="1080" decoding="async">
           <div class="cinema-shade" aria-hidden="true"></div>
-          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۴</span></p><h2 id="cinema-title-3">قبل از مراجعه، گفت‌وگو را شروع کنید.</h2><p class="cinema-description">یک لینک از سالن شما؛ مشتری با عکس خودش انتخاب‌ها را امتحان می‌کند.</p><p class="cinema-benefit"><span>با آینه</span><strong>به‌جای یک توضیح دیگر، یک تجربه بدهید.</strong></p></div>
+          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۴</span></p><h2 id="cinema-title-3">قبل از مراجعه، گفت‌وگو را شروع کنید.</h2><p class="cinema-description">لینک صفحهٔ سالن را برای مشتری بفرستید تا مدل‌ها را روی عکس خودش امتحان کند.</p><p class="cinema-benefit"><span>با آینه</span><strong>گفت‌وگو پیش از مراجعه به سالن شروع می‌شود.</strong></p></div>
         </article>
         <article class="cinema-shot" data-cinema-shot="4" aria-labelledby="cinema-title-4">
           <img class="cinema-image" data-cinema-image="salon-film-05" src="/landing/salon-film-05.webp" loading="lazy" alt="آرایشگر در همان سالن درخواست تصویری مشتری را روی گوشی بررسی می‌کند." width="1920" height="1080" decoding="async">
           <div class="cinema-shade" aria-hidden="true"></div>
-          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۵</span></p><h2 id="cinema-title-4">انتخاب روشن. پاسخ روشن.</h2><p class="cinema-description">عکس و انتخاب مشتری به تلگرام یا بلهٔ سالن می‌رسد؛ وضعیت را همان‌جا مشخص می‌کنید.</p><p class="cinema-benefit"><span>با آینه</span><strong>درخواست کامل، در پیام‌رسانی که می‌شناسید.</strong></p><a class="cinema-next" href="#experience">نمونهٔ پاسخ سالن را ببینید ←</a></div>
+          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۵</span></p><h2 id="cinema-title-4">درخواست کامل را در پیام‌رسان دریافت کنید.</h2><p class="cinema-description">عکس، مدل و رنگ انتخابی مشتری در تلگرام یا بلهٔ سالن به دستتان می‌رسد.</p><p class="cinema-benefit"><span>با آینه</span><strong>درخواست را همان‌جا بررسی کنید و پاسخ بدهید.</strong></p><a class="cinema-next" href="#experience">نمونهٔ پاسخ سالن را ببینید ←</a></div>
         </article>
       </div>
       <div class="cinema-frame" aria-hidden="true"></div>
       <div class="cinema-topline"><span>یک روز در سالن. یک مسیر روشن‌تر.</span></div>
-      <div class="cinema-arrows"><button type="button" data-slide-prev aria-label="اسلاید قبلی">→</button><button type="button" data-slide-next aria-label="اسلاید بعدی">←</button></div><nav class="cinema-controls" aria-label="اسلایدهای روایت آینه">
+      <div class="cinema-arrows"><button type="button" data-slide-prev aria-label="اسلاید قبلی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button><button type="button" data-slide-next aria-label="اسلاید بعدی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button></div><nav class="cinema-controls" aria-label="اسلایدهای روایت آینه">
         <button type="button" data-cinema-go="0" aria-current="step"><span class="cinema-step">۰۱</span><span>تردید</span><i aria-hidden="true"></i></button>
         <button type="button" data-cinema-go="1"><span class="cinema-step">۰۲</span><span>مشاوره</span><i aria-hidden="true"></i></button>
         <button type="button" data-cinema-go="2"><span class="cinema-step">۰۳</span><span>نمونه‌کار</span><i aria-hidden="true"></i></button>
         <button type="button" data-cinema-go="3"><span class="cinema-step">۰۴</span><span>ارتباط</span><i aria-hidden="true"></i></button>
         <button type="button" data-cinema-go="4"><span class="cinema-step">۰۵</span><span>درخواست</span><i aria-hidden="true"></i></button>
       </nav>
-      <p class="cinema-footnote">صحنه‌های نمایشی ساخته‌شده با هوش مصنوعی · شبیه‌سازی، تضمین نتیجهٔ اجرا نیست.</p>
     </div>
   </section>
 
   <section id="transform" class="service-journey on-dark" aria-label="روی تصویر خودتان امتحان کنید">
-<article class="auto-film" data-auto-film="hair"><video class="journey-film is-active" data-journey-film="hair" data-src="video/hair.mp4" poster="/landing/hair-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ مو" controls><source src="/landing/video/hair.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy is-active" data-journey-copy="hair"><p class="journey-kicker">۰۱ / مدل و رنگ مو</p><h3>قبل از تغییر،<br>روی خودتان ببینید.</h3><p>عکس خودتان و مدل مو یا رنگ دلخواه‌تان را بگذارید؛ ببینید کدام انتخاب بیشتر به شما می‌آید.</p><a data-try="hair" href="#intro">روی عکس خودم امتحان کنم <span aria-hidden="true">←</span></a></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
-<article class="auto-film" data-auto-film="lashes"><video class="journey-film" data-journey-film="lashes" data-src="video/lashes.mp4" poster="/landing/lashes-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل مژه" controls><source src="/landing/video/lashes.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy" data-journey-copy="lashes"><p class="journey-kicker">۰۲ / مدل مژه</p><h3>نگاه شما.<br>انتخاب شما.</h3><p>عکس چهره یا چشم‌هایتان را بارگذاری کنید و مدل مژهٔ دلخواه را روی چشم‌های خودتان ببینید.</p><a data-try="lashes" href="#intro">مژهٔ دلخواهم را ببینم <span aria-hidden="true">←</span></a></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
+<article class="auto-film" data-auto-film="hair"><video class="journey-film is-active" data-journey-film="hair" data-src="video/hair.mp4" poster="/landing/hair-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ مو" controls><source src="/landing/video/hair.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy is-active" data-journey-copy="hair"><p class="journey-kicker">۰۱ / مدل و رنگ مو</p><h3>قبل از تغییر،<br>روی خودتان ببینید.</h3><p>عکس خودتان و مدل مو یا رنگ دلخواه‌تان را بگذارید؛ ببینید کدام انتخاب بیشتر به شما می‌آید.</p><div class="journey-actions"><a class="btn" data-try="hair" href="#intro">روی عکس خودم امتحان کنم <span aria-hidden="true">←</span></a><a class="salon-action" href="#start">درخواست فعال‌سازی برای سالن من <span aria-hidden="true">←</span></a></div></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
+
+<section class="salon-invite" aria-labelledby="salon-invite-title">
+ <div class="salon-invite-card">
+  <div class="salon-invite-art"><img src="/landing/salon-film-05.webp" alt="بررسی انتخاب مشتری در سالن زیبایی" width="1920" height="1080" loading="lazy"><span class="invite-seal"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M18 52V27a14 14 0 0 1 28 0v25H18Z" stroke="currentColor" stroke-width="2.5"/><path d="M13 51H8V32a10 10 0 0 1 6-9M51 51h5V32a10 10 0 0 0-6-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m25 43 14-18M26 32l8-10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".65"/><path d="M32 5v4M30 7h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>این تجربه،<br>با نام سالن شما.</span></span></div>
+  <div class="salon-invite-copy"><p class="journey-kicker">آینه برای سالن زیبایی شما</p><h2 id="salon-invite-title">آینهٔ اختصاصی<br>سالن شما.</h2><p>همین الان صفحهٔ اختصاصی سالن زیبایی خود را بسازید و این قابلیت را به مشتریانتان ارائه دهید.</p><p class="invite-detail">مشتری مدل مو، رنگ، مژه و ناخن را روی عکس خودش می‌بیند و انتخابش را برای شما می‌فرستد.</p><a class="btn btn--lg" href="#start"><span>درخواست ساخت صفحه اختصاصی سالن من</span><span class="arrow" aria-hidden="true">←</span></a></div>
+ </div>
+</section>
+<article class="auto-film" data-auto-film="lashes"><video class="journey-film" data-journey-film="lashes" data-src="video/lashes.mp4" poster="/landing/lashes-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل مژه" controls><source src="/landing/video/lashes.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy" data-journey-copy="lashes"><p class="journey-kicker">۰۲ / مدل مژه</p><h3>قبل از انتخاب مژه،<br>روی چشم خودتان ببینید.</h3><p>عکس چهره‌تان را بارگذاری کنید و مدل‌های مختلف مژه را روی چشم‌های خودتان ببینید.</p><div class="journey-actions"><a class="btn" data-try="lashes" href="#intro">مژهٔ دلخواهم را ببینم <span aria-hidden="true">←</span></a><a class="salon-action" href="#start">درخواست فعال‌سازی برای سالن من <span aria-hidden="true">←</span></a></div></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
 <section class="nail-journey" aria-label="طرح و رنگ ناخن"><div class="journey-stage"><video class="journey-film" data-journey-film="nails" data-src="video/nails.mp4" poster="/landing/nails-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ ناخن؛ با اسکرول جلو و عقب ببرید" controls><source src="/landing/video/nails.mp4" type="video/mp4"></video><div class="journey-bridge" aria-hidden="true">
 
         <div class="journey-bridge-space"></div>
 
         <img class="journey-stone" src="/landing/journey-stone.webp" alt="" width="900" height="800" loading="lazy">
         <p>حالا، نوبت دست‌های شماست.</p>
-      </div><div class="journey-copy" data-journey-copy="nails"><p class="journey-kicker">۰۳ / طرح و رنگ ناخن</p><h3>طرح بعدی را،<br>روی دست خودتان ببینید.</h3><p>عکس دستتان را بگذارید؛ فرم، رنگ و طرح ناخن را امتحان کنید و انتخاب دلخواه‌تان را برای سالن بفرستید.</p><a data-try="nails" href="#intro">روی دست خودم امتحان کنم <span aria-hidden="true">←</span></a></div><p class="journey-note">نمونهٔ نمایشی؛ نتیجهٔ اجرا ممکن است متفاوت باشد.</p></div></section></section>
+      </div><div class="journey-copy" data-journey-copy="nails"><p class="journey-kicker">۰۳ / طرح و رنگ ناخن</p><h3>طرح بعدی را،<br>روی دست خودتان ببینید.</h3><p>عکس دستتان را بگذارید؛ فرم، رنگ و طرح ناخن را امتحان کنید و انتخاب دلخواه‌تان را برای سالن بفرستید.</p><div class="journey-actions"><a class="btn" data-try="nails" href="#intro">روی دست خودم امتحان کنم <span aria-hidden="true">←</span></a><a class="salon-action" href="#start">درخواست فعال‌سازی برای سالن من <span aria-hidden="true">←</span></a></div></div></div></section></section>
 
   <section class="cta-band" aria-labelledby="h-cta1">
     <div class="cta-band__in">
@@ -919,16 +947,15 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
     <div class="s2-grid wrap">
       <div class="s2-copy">
         <p class="kicker">بعد از انتخاب مشتری</p>
-        <h2 id="h-exp">درخواست مشتری، با عکس و همهٔ جزئیات، در چت سالن می‌نشیند.</h2>
+        <h2 id="h-exp">عکس و انتخاب مشتری، مستقیم به پیام‌رسان سالن می‌رسد.</h2>
         <p class="sub">هر درخواست با عکس، مدل و رنگ انتخاب‌شده به ربات تلگرام یا بله شما می‌رسد. با یک ضربه وضعیتش را مشخص می‌کنید و مشتری همان را در صفحهٔ خودش می‌بیند.</p>
         <ul class="s2-points">
-          <li><strong>چیز تازه‌ای یاد نمی‌گیرید</strong><span>شما و همکارانتان همان پیام‌رسانی را باز می‌کنید که هر روز باز می‌کنید.</span></li>
-          <li><strong>وضعیت با یک ضربه</strong><span>«تماس گرفتم»، «نوبت شد» یا «انجام نمی‌دهم»؛ بدون تایپ کردن.</span></li>
-          <li><strong>مشتری بی‌خبر نمی‌ماند</strong><span>نتیجهٔ همان ضربه در صفحهٔ خود مشتری دیده می‌شود.</span></li>
+          <li><strong>درخواست‌ها را در تلگرام یا بله مدیریت کنید</strong><span>برای بررسی و پاسخ‌دادن، کافی است پیام‌رسان سالن را باز کنید؛ نیازی به پنل جداگانه نیست.</span></li>
+          <li><strong>وضعیت درخواست را با یک دکمه مشخص کنید</strong><span>«تماس گرفتم»، «نوبت شد» یا «انجام نمی‌دهم»؛ بدون تایپ کردن.</span></li>
+          <li><strong>مشتری پاسخ شما را در صفحهٔ خودش می‌بیند</strong><span>پاسخ شما در صفحهٔ مشتری نمایش داده می‌شود.</span></li>
         </ul>
         <div class="s2-cta">
           <a class="btn btn--lg" href="#start"><span>درخواست ساخت صفحه اختصاصی سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
-          <a class="btn btn--ghost" href="#start">درخواست صفحهٔ اختصاصی سالن</a>
         </div>
       </div>
 
@@ -995,7 +1022,6 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
           <a class="btn btn--ghost svc-try" data-try="lashes" href="/s/demo?l=lashes"><span>امتحان روی عکس خودم</span></a>
         </article>
       </div>
-      <p class="note-bar">آینه جایگزین مشاورهٔ حضوری نیست. نتیجه تقریبی است و تصمیم نهایی، زمان و هزینه با شماست.</p>
     </div>
   </section>
 
@@ -1118,12 +1144,12 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
 
 <footer class="site-footer">
   <div class="foot">
-    <a class="brand" href="#intro">آینه<small>| AYNEH</small></a>
+    <a class="brand" href="#intro"><span class="brand-symbol"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M18 52V27a14 14 0 0 1 28 0v25H18Z" stroke="currentColor" stroke-width="2.5"/><path d="M13 51H8V32a10 10 0 0 1 6-9M51 51h5V32a10 10 0 0 0-6-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m25 43 14-18M26 32l8-10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".65"/><path d="M32 5v4M30 7h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><span class="brand-name">آینه<small>AYNEH</small></span></a>
     <ul aria-label="پیوندهای پایین صفحه">
       <li><a href="#experience">تجربه آینه</a></li><li><a href="#services">خدمات</a></li><li><a href="#how">نحوه کار</a></li><li><a href="#salons">برای سالن‌ها</a></li><li><a href="#faq">پرسش‌ها</a></li><li><a href="/admin">ورود مدیر</a></li>
     </ul>
   </div>
-  <p class="legal">آینه، مشاورهٔ تصویری انتخاب مدل برای سالن‌های زیبایی. شبیه‌سازی‌ها پیشنهادی‌اند و نتیجهٔ نهایی را تضمین نمی‌کنند. سیاست حریم خصوصی و شرایط استفاده پس از نهایی‌شدن در همین بخش اضافه می‌شود.</p>
+  <p class="legal">آینه؛ مدل مو، رنگ مو، ناخن و مژهٔ دلخواهتان را روی تصویر خودتان ببینید.</p>
 </footer>
 
 <script>
@@ -1561,14 +1587,19 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
 
 </script>
 <script>
-/* A 2.5-second book carousel; hover, focus and a held touch pause its clock. */
+/* Type each page, hold it for two seconds, then turn it. Interaction holds the current page while typing continues. */
 (()=>{
  const root=document.querySelector('.cinema-story');if(!root)return;
  document.documentElement.classList.add('cinema-enabled');
  const shots=[...root.querySelectorAll('[data-cinema-shot]')],dots=[...root.querySelectorAll('[data-cinema-go]')];
- const reduced=matchMedia('(prefers-reduced-motion:reduce)');let current=0,visible=false,hover=false,held=false,focused=false,timer,turnTimer,turning=false,start=null,wheel=0,lastWheel=0;
- function restart(){clearTimeout(timer);if(visible&&!hover&&!held&&!focused&&!document.hidden&&!reduced.matches)timer=setTimeout(()=>show(current+1),2500)}
- function show(n){const next=(n+shots.length)%shots.length;if(next===current){restart();return}clearTimeout(turnTimer);const old=shots[current];shots.forEach(s=>s.classList.remove('is-leaving','turn-back'));old.classList.add('is-leaving');if(n<current)old.classList.add('turn-back');current=next;root.dataset.cinemaChapter=String(current);shots.forEach((s,i)=>{s.classList.toggle('is-current',i===current);s.inert=i!==current;s.setAttribute('aria-hidden',String(i!==current))});dots.forEach((d,i)=>i===current?d.setAttribute('aria-current','step'):d.removeAttribute('aria-current'));turning=true;turnTimer=setTimeout(()=>{old.classList.remove('is-leaving','turn-back');turning=false},650);restart()}
+ const reduced=matchMedia('(prefers-reduced-motion:reduce)');let current=0,visible=false,hover=false,held=false,focused=false,timer,typeTimer,turnTimer,turning=false,start=null,wheel=0,lastWheel=0,typed=0,total=0;
+ const segment=typeof Intl.Segmenter==='function'?new Intl.Segmenter('fa',{granularity:'grapheme'}):null;
+ const typing=shots.map(shot=>[...shot.querySelectorAll('.cinema-copy h2,.cinema-description,.cinema-benefit strong')].map(el=>{const text=el.textContent,chars=segment?[...segment.segment(text)].map(x=>x.segment):Array.from(text);el.classList.add('type-wrap');el.replaceChildren();const reserve=document.createElement('span'),live=document.createElement('span'),sr=document.createElement('span');reserve.className='type-reserve';reserve.textContent=text;reserve.setAttribute('aria-hidden','true');live.className='type-live';live.setAttribute('aria-hidden','true');sr.className='type-sr';sr.textContent=text;el.append(reserve,live,sr);return{chars,live}}));
+ function paintType(){let remaining=typed;for(const node of typing[current]){const count=Math.min(node.chars.length,Math.max(0,remaining));node.live.textContent=node.chars.slice(0,count).join('');node.live.classList.toggle('is-typing',remaining>=0&&remaining<node.chars.length&&typed<total);remaining-=node.chars.length}root.dataset.typeState=typed>=total?'complete':'typing'}
+ function beginType(){root.dataset.cinemaChapter=String(current);typed=0;total=typing[current].reduce((n,x)=>n+x.chars.length,0);if(reduced.matches)typed=total;paintType()}
+ function typeTick(){typed=Math.min(total,typed+2);paintType();restart()}
+ function restart(){clearTimeout(timer);clearTimeout(typeTimer);if(!visible||document.hidden||reduced.matches)return;if(typed<total)typeTimer=setTimeout(typeTick,28);else if(!hover&&!held&&!focused)timer=setTimeout(()=>show(current+1),2000)}
+ function show(n){const next=(n+shots.length)%shots.length;if(next===current){restart();return}clearTimeout(turnTimer);const old=shots[current];shots.forEach(s=>s.classList.remove('is-leaving','turn-back'));old.classList.add('is-leaving');if(n<current)old.classList.add('turn-back');current=next;root.dataset.cinemaChapter=String(current);shots.forEach((s,i)=>{s.classList.toggle('is-current',i===current);s.inert=i!==current;s.setAttribute('aria-hidden',String(i!==current))});dots.forEach((d,i)=>i===current?d.setAttribute('aria-current','step'):d.removeAttribute('aria-current'));beginType();turning=true;turnTimer=setTimeout(()=>{old.classList.remove('is-leaving','turn-back');turning=false},650);restart()}
  root.querySelector('[data-slide-prev]').onclick=()=>show(current-1);root.querySelector('[data-slide-next]').onclick=()=>show(current+1);dots.forEach((d,i)=>d.onclick=()=>show(i));
  root.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse'){hover=true;restart()}});root.addEventListener('pointerleave',()=>{hover=false;restart()});
  root.addEventListener('pointerdown',e=>{held=true;start={x:e.clientX,y:e.clientY};restart()});
@@ -1577,7 +1608,7 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
  root.addEventListener('wheel',e=>{if(Math.abs(e.deltaX)<=Math.abs(e.deltaY))return;e.preventDefault();if(Date.now()-lastWheel<650)return;wheel+=e.deltaX;if(Math.abs(wheel)>45){show(current+(wheel>0?1:-1));wheel=0;lastWheel=Date.now()}},{passive:false});
  root.addEventListener('focusin',()=>{focused=true;restart()});root.addEventListener('focusout',e=>{if(!root.contains(e.relatedTarget)){focused=false;restart()}});root.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();show(current+(e.key==='ArrowLeft'?1:-1))}});document.addEventListener('visibilitychange',restart);
  new IntersectionObserver(es=>{visible=es[0].isIntersecting;restart()},{threshold:.35}).observe(root);
- root.querySelectorAll('[data-cinema-image]').forEach(img=>{const k=img.dataset.cinemaImage;img.src=window.__AYN_IMG?.[k]||((window.__AYN_BASE||'/landing/')+k+'.webp')});shots.forEach((s,i)=>{s.inert=i!==0;s.setAttribute('aria-hidden',String(i!==0))});
+ root.querySelectorAll('[data-cinema-image]').forEach(img=>{const k=img.dataset.cinemaImage;img.src=window.__AYN_IMG?.[k]||((window.__AYN_BASE||'/landing/')+k+'.webp')});shots.forEach((s,i)=>{s.inert=i!==0;s.setAttribute('aria-hidden',String(i!==0))});beginType();
 })();
 
 /* First two films play on visibility. Only the stone and nails follow native scroll. */
@@ -1648,7 +1679,7 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
    already on screen at load is left alone. */
 (()=>{
  if(matchMedia('(prefers-reduced-motion:reduce)').matches||!('IntersectionObserver' in window))return;
- const sel='.sec-head,.svc,.step,.feat li,.plan,.faq details,.cta-band__in,.s2-copy,.s2-demo,.trial-mock,#leadForm,.selection-copy,.compare';
+ const sel='.sec-head,.svc,.step,.feat li,.plan,.faq details,.cta-band__in,.s2-copy,.s2-demo,.trial-mock,#leadForm,.selection-copy,.compare,.salon-invite-card';
  const els=[...document.querySelectorAll(sel)].filter(e=>e.getBoundingClientRect().top>innerHeight);
  const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const el=e.target;
   const sib=[...el.parentElement.children].filter(x=>x.classList.contains('rv'));el.style.transitionDelay=Math.min(sib.indexOf(el),5)*70+'ms';
@@ -1678,6 +1709,9 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -12% 0px'});
  heads.forEach(h=>{h.classList.add('wipe');io.observe(h)});
 })();
+
+/* Shared gold motion follows the button outline, keeping the label still. */
+(()=>{document.querySelectorAll('a.btn[href="#start"],.journey-actions a.btn').forEach(a=>{a.classList.add('orbit-cta');a.insertAdjacentHTML('beforeend','<svg class="cta-ring" aria-hidden="true"><rect pathLength="100"/></svg>')})})();
 
 </script>
 <script>

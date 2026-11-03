@@ -1,11 +1,16 @@
-/* A 2.5-second book carousel; hover, focus and a held touch pause its clock. */
+/* Type each page, hold it for two seconds, then turn it. Interaction holds the current page while typing continues. */
 (()=>{
  const root=document.querySelector('.cinema-story');if(!root)return;
  document.documentElement.classList.add('cinema-enabled');
  const shots=[...root.querySelectorAll('[data-cinema-shot]')],dots=[...root.querySelectorAll('[data-cinema-go]')];
- const reduced=matchMedia('(prefers-reduced-motion:reduce)');let current=0,visible=false,hover=false,held=false,focused=false,timer,turnTimer,turning=false,start=null,wheel=0,lastWheel=0;
- function restart(){clearTimeout(timer);if(visible&&!hover&&!held&&!focused&&!document.hidden&&!reduced.matches)timer=setTimeout(()=>show(current+1),2500)}
- function show(n){const next=(n+shots.length)%shots.length;if(next===current){restart();return}clearTimeout(turnTimer);const old=shots[current];shots.forEach(s=>s.classList.remove('is-leaving','turn-back'));old.classList.add('is-leaving');if(n<current)old.classList.add('turn-back');current=next;root.dataset.cinemaChapter=String(current);shots.forEach((s,i)=>{s.classList.toggle('is-current',i===current);s.inert=i!==current;s.setAttribute('aria-hidden',String(i!==current))});dots.forEach((d,i)=>i===current?d.setAttribute('aria-current','step'):d.removeAttribute('aria-current'));turning=true;turnTimer=setTimeout(()=>{old.classList.remove('is-leaving','turn-back');turning=false},650);restart()}
+ const reduced=matchMedia('(prefers-reduced-motion:reduce)');let current=0,visible=false,hover=false,held=false,focused=false,timer,typeTimer,turnTimer,turning=false,start=null,wheel=0,lastWheel=0,typed=0,total=0;
+ const segment=typeof Intl.Segmenter==='function'?new Intl.Segmenter('fa',{granularity:'grapheme'}):null;
+ const typing=shots.map(shot=>[...shot.querySelectorAll('.cinema-copy h2,.cinema-description,.cinema-benefit strong')].map(el=>{const text=el.textContent,chars=segment?[...segment.segment(text)].map(x=>x.segment):Array.from(text);el.classList.add('type-wrap');el.replaceChildren();const reserve=document.createElement('span'),live=document.createElement('span'),sr=document.createElement('span');reserve.className='type-reserve';reserve.textContent=text;reserve.setAttribute('aria-hidden','true');live.className='type-live';live.setAttribute('aria-hidden','true');sr.className='type-sr';sr.textContent=text;el.append(reserve,live,sr);return{chars,live}}));
+ function paintType(){let remaining=typed;for(const node of typing[current]){const count=Math.min(node.chars.length,Math.max(0,remaining));node.live.textContent=node.chars.slice(0,count).join('');node.live.classList.toggle('is-typing',remaining>=0&&remaining<node.chars.length&&typed<total);remaining-=node.chars.length}root.dataset.typeState=typed>=total?'complete':'typing'}
+ function beginType(){root.dataset.cinemaChapter=String(current);typed=0;total=typing[current].reduce((n,x)=>n+x.chars.length,0);if(reduced.matches)typed=total;paintType()}
+ function typeTick(){typed=Math.min(total,typed+2);paintType();restart()}
+ function restart(){clearTimeout(timer);clearTimeout(typeTimer);if(!visible||document.hidden||reduced.matches)return;if(typed<total)typeTimer=setTimeout(typeTick,28);else if(!hover&&!held&&!focused)timer=setTimeout(()=>show(current+1),2000)}
+ function show(n){const next=(n+shots.length)%shots.length;if(next===current){restart();return}clearTimeout(turnTimer);const old=shots[current];shots.forEach(s=>s.classList.remove('is-leaving','turn-back'));old.classList.add('is-leaving');if(n<current)old.classList.add('turn-back');current=next;root.dataset.cinemaChapter=String(current);shots.forEach((s,i)=>{s.classList.toggle('is-current',i===current);s.inert=i!==current;s.setAttribute('aria-hidden',String(i!==current))});dots.forEach((d,i)=>i===current?d.setAttribute('aria-current','step'):d.removeAttribute('aria-current'));beginType();turning=true;turnTimer=setTimeout(()=>{old.classList.remove('is-leaving','turn-back');turning=false},650);restart()}
  root.querySelector('[data-slide-prev]').onclick=()=>show(current-1);root.querySelector('[data-slide-next]').onclick=()=>show(current+1);dots.forEach((d,i)=>d.onclick=()=>show(i));
  root.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse'){hover=true;restart()}});root.addEventListener('pointerleave',()=>{hover=false;restart()});
  root.addEventListener('pointerdown',e=>{held=true;start={x:e.clientX,y:e.clientY};restart()});
@@ -14,7 +19,7 @@
  root.addEventListener('wheel',e=>{if(Math.abs(e.deltaX)<=Math.abs(e.deltaY))return;e.preventDefault();if(Date.now()-lastWheel<650)return;wheel+=e.deltaX;if(Math.abs(wheel)>45){show(current+(wheel>0?1:-1));wheel=0;lastWheel=Date.now()}},{passive:false});
  root.addEventListener('focusin',()=>{focused=true;restart()});root.addEventListener('focusout',e=>{if(!root.contains(e.relatedTarget)){focused=false;restart()}});root.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();show(current+(e.key==='ArrowLeft'?1:-1))}});document.addEventListener('visibilitychange',restart);
  new IntersectionObserver(es=>{visible=es[0].isIntersecting;restart()},{threshold:.35}).observe(root);
- root.querySelectorAll('[data-cinema-image]').forEach(img=>{const k=img.dataset.cinemaImage;img.src=window.__AYN_IMG?.[k]||((window.__AYN_BASE||'assets/')+k+'.webp')});shots.forEach((s,i)=>{s.inert=i!==0;s.setAttribute('aria-hidden',String(i!==0))});
+ root.querySelectorAll('[data-cinema-image]').forEach(img=>{const k=img.dataset.cinemaImage;img.src=window.__AYN_IMG?.[k]||((window.__AYN_BASE||'assets/')+k+'.webp')});shots.forEach((s,i)=>{s.inert=i!==0;s.setAttribute('aria-hidden',String(i!==0))});beginType();
 })();
 
 /* First two films play on visibility. Only the stone and nails follow native scroll. */

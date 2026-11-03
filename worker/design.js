@@ -126,5 +126,4 @@ img{display:block;max-width:100%}
 `;
 
 // Brand mark: an arched mirror with a single strand of hair across the glass.
-export const markSVG='<svg viewBox="0 0 32 40" fill="none" aria-hidden="true"><path d="M4 38V16a12 12 0 0 1 24 0v22z" fill="#0c6b6b"/><path d="M8 34V16.5a8 8 0 0 1 16 0V34z" fill="#e8edeb"/><path d="M11 33c3-6 1-11 5-17s6-3 7-1" stroke="#23170f" stroke-width="1.8" stroke-linecap="round"/></svg>';
-export const favicon='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 40"><path d="M4 38V16a12 12 0 0 1 24 0v22z" fill="#0c6b6b"/><path d="M8 34V16.5a8 8 0 0 1 16 0V34z" fill="#e8edeb"/><path d="M11 33c3-6 1-11 5-17s6-3 7-1" stroke="#23170f" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg>';
+export {brandMark as markSVG,favicon} from './brand.js';

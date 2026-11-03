@@ -5,15 +5,18 @@ import {resolve} from 'node:path';
 import {execFileSync} from 'node:child_process';
 const mediaRevision=execFileSync('git',['rev-parse','HEAD'],{cwd:new URL('..',import.meta.url),encoding:'utf8'}).trim();
 import {customerHTML} from '../worker/customer.js';
+import {favicon} from '../worker/brand.js';
 const target=resolve(process.argv[2]);
 const artifact=readFileSync(new URL('../design/landing/out/artifact.html',import.meta.url),'utf8');
 const split=artifact.indexOf('</style>')+8;
 const html='<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+artifact.slice(0,split)+'</head><body>'+artifact.slice(split)+'</body></html>';
 mkdirSync(target+'/worker',{recursive:true});mkdirSync(target+'/scripts',{recursive:true});
 writeFileSync(target+'/worker/index.js',`const landing=${JSON.stringify(html)},customer=${JSON.stringify(customerHTML)};
+const icon=${JSON.stringify(favicon)};
 const upstream='https://ayneh-salon.site';
 export default {async fetch(request){
  const u=new URL(request.url),p=u.pathname;
+ if(p==='/favicon.svg')return new Response(icon,{headers:{'Content-Type':'image/svg+xml','Cache-Control':'public,max-age=3600'}});
  if(p==='/'||p==='/s/demo')return new Response(p==='/'?landing:customer,{headers:{'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'SAMEORIGIN','Content-Security-Policy':"frame-ancestors 'self'"}});
  const api=/^\\/api\\/s\\/demo\\//.test(p)||['/api/inquiry','/api/trial'].includes(p);
  const asset=/^\\/(catalog|fonts|landing|assets)\\/[a-zA-Z0-9_./-]+$/.test(p);

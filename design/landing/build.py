@@ -20,6 +20,7 @@ css = st.group(1)
 drop = re.compile(r'^\s*(\.hero|\.swatch|\.style-dock|\.lines-row|\.lead\{|h1\{|\.eyebrow|\.fineprint|\.hero-copy)')
 css = NL.join(l for l in css.split(NL) if not drop.match(l))
 css += NL + R('src/hero.css') + NL + R('src/sec2.css') + NL + R('src/lead.css') + NL + R('src/trial.css') + NL + R('src/scenes.css') + NL + R('src/cta.css')
+css += NL + R('src/polish.css')
 css += NL + '.compare{margin-top:0}' + NL + '@media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}' + NL
 h = h.replace(st.group(0), '<style>' + css + '</style>')
 h = re.sub(r'  <!-- 1\. Hero -->.*?(?=  <!-- 2\. Experience -->)', lambda m: R('src/hero.html') + NL, h, flags=re.S)
@@ -28,6 +29,7 @@ h = re.sub(r'  <!-- 2\. Experience -->.*?(?=  <!-- 3\. Services -->)', lambda m:
 trial = R('src/trial.html').replace('<!--LEAD-->', R('src/lead.html'))
 assert '  <!-- 6. Plans -->' in h
 h = re.sub(r'  <!-- 6\. Plans -->.*?(?=  <!-- 7\. FAQ -->)', lambda m: trial, h, flags=re.S)
+h = h.replace('<!--AYNEH_MARK-->', R('assets/ayneh-mark.svg'))
 assert 'leadForm' in h and 'id="mock"' in h, 'trial section not inserted'
 # styles whose mirror render exists (assets/look-sNN.webp + mask-sNN.png): the hero shows their shape on the model
 LOOKS = sorted(int(m.group(1)) for f in os.listdir('assets') for m in [re.match(r'look-s(\d\d)\.webp$', f)] if m and os.path.exists('assets/mask-s%s.png' % m.group(1)))
@@ -62,6 +64,7 @@ a = a.replace(marker, '<script>window.__AYN_PREVIEW=true;window.__AYN_IMG=' + js
 a = re.sub(r'<link rel="preload"[^>]*>' + NL, '', a)
 a = re.sub(r'<meta name="robots"[^>]*>(<!--.*?-->)?' + NL, '', a)
 a = re.sub(r'<link rel="icon"[^>]*>' + NL, '', a)
+a = a.replace('</title>', '</title><link rel="icon" type="image/svg+xml" href="' + b64('ayneh-favicon.svg', 'image/svg+xml') + '">', 1)
 head = re.search(r'<title>.*?</style>', a, re.S).group(0).replace('.site-header{position:sticky;top:0;', '.site-header{position:sticky;top:env(safe-area-inset-top,0px);')
 body = re.search(r'<body>(.*)</body>', a, re.S).group(1)
 out = head + NL + '<div dir="rtl" lang="fa" class="page">' + body + '</div>' + NL

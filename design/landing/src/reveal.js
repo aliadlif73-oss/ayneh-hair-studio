@@ -2,7 +2,7 @@
    already on screen at load is left alone. */
 (()=>{
  if(matchMedia('(prefers-reduced-motion:reduce)').matches||!('IntersectionObserver' in window))return;
- const sel='.sec-head,.svc,.step,.feat li,.plan,.faq details,.cta-band__in,.s2-copy,.s2-demo,.trial-mock,#leadForm,.selection-copy,.compare';
+ const sel='.sec-head,.svc,.step,.feat li,.plan,.faq details,.cta-band__in,.s2-copy,.s2-demo,.trial-mock,#leadForm,.selection-copy,.compare,.salon-invite-card';
  const els=[...document.querySelectorAll(sel)].filter(e=>e.getBoundingClientRect().top>innerHeight);
  const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const el=e.target;
   const sib=[...el.parentElement.children].filter(x=>x.classList.contains('rv'));el.style.transitionDelay=Math.min(sib.indexOf(el),5)*70+'ms';
@@ -32,3 +32,6 @@
  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -12% 0px'});
  heads.forEach(h=>{h.classList.add('wipe');io.observe(h)});
 })();
+
+/* Shared gold motion follows the button outline, keeping the label still. */
+(()=>{document.querySelectorAll('a.btn[href="#start"],.journey-actions a.btn').forEach(a=>{a.classList.add('orbit-cta');a.insertAdjacentHTML('beforeend','<svg class="cta-ring" aria-hidden="true"><rect pathLength="100"/></svg>')})})();
