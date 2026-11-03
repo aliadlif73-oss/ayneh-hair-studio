@@ -1139,7 +1139,36 @@ function saveName(id){
  var stamp=(p.year||d.getFullYear())+(p.month||'')+(p.day||'')+'-'+String(p.hour||'').replace('24','00')+(p.minute||'')+(p.second||'');
  return ['ayneh',SLUG,{hair:'model-mo',color:'rang-mo',nails:'nakhon',lashes:'mozhe'}[state.line]||'mo',stamp,String(id||'').replace(/[^a-z0-9]/gi,'').slice(0,8)].join('-')+'.jpg';
 }
-function downloadLink(cls,label){var a=el('a',{class:cls,href:media(state.result),download:saveName(state.result),html:ICO.download+'<span>'+label+'</span>'});a.addEventListener('click',function(){a.setAttribute('download',saveName(state.result))});return a}
+// The saved or shared photo carries the salon's badge (logo and name) in the bottom-right corner,
+// so a story made from it is a small ad for the salon. Made in the browser; the original stays clean.
+function loadImg(src){return new Promise(function(res,rej){var i=new Image();i.decoding='async';i.onload=function(){res(i)};i.onerror=rej;i.src=src})}
+function brandedBlob(id){
+ var s=state.pub.salon,p=s.profile||{};
+ return Promise.all([loadImg(media(id)),p.logo?loadImg(media(p.logo)).catch(function(){return null}):Promise.resolve(null),document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()]).then(function(r){
+  var img=r[0],logo=r[1],W=img.naturalWidth,H=img.naturalHeight,c=document.createElement('canvas');c.width=W;c.height=H;var g=c.getContext('2d');g.drawImage(img,0,0,W,H);
+  var u=Math.min(W,H),pad=Math.round(u*.03),d=Math.round(u*.085),fs=Math.round(d*.36),name=s.name||'';
+  g.font='800 '+fs+'px Estedad, Vazirmatn, sans-serif';var tw=Math.min(g.measureText(name).width,W*.5);
+  var bh=d+Math.round(d*.18),bw=bh+Math.round(fs*.5)+tw+Math.round(fs*.9),x=W-pad-bw,y=H-pad-bh,rad=bh/2;
+  g.save();g.shadowColor='rgba(0,0,0,.28)';g.shadowBlur=Math.round(u*.012);g.fillStyle='rgba(255,255,255,.92)';
+  g.beginPath();g.moveTo(x+rad,y);g.arcTo(x+bw,y,x+bw,y+bh,rad);g.arcTo(x+bw,y+bh,x,y+bh,rad);g.arcTo(x,y+bh,x,y,rad);g.arcTo(x,y,x+bw,y,rad);g.closePath();g.fill();g.restore();
+  var cx=x+bw-bh/2,cy=y+bh/2;
+  if(logo){g.save();g.beginPath();g.arc(cx,cy,d/2,0,Math.PI*2);g.clip();var lw=logo.naturalWidth,lh=logo.naturalHeight,k=Math.max(d/lw,d/lh);g.drawImage(logo,cx-lw*k/2,cy-lh*k/2,lw*k,lh*k);g.restore()}
+  else{g.fillStyle='#0c6b6b';g.beginPath();g.arc(cx,cy,d/2,0,Math.PI*2);g.fill();g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.fillText(name.trim().charAt(0)||'آ',cx,cy+fs*.06)}
+  g.fillStyle='#23170f';g.textAlign='right';g.textBaseline='middle';g.direction='rtl';g.fillText(name,cx-bh/2-Math.round(fs*.4),cy+fs*.06,W*.5);
+  return new Promise(function(res){c.toBlob(function(b){res(b)},'image/jpeg',.92)});
+ });
+}
+function saveBranded(id){
+ var name=saveName(id);
+ return brandedBlob(id).then(function(blob){
+  if(!blob)throw new Error('x');
+  var file=null;try{file=new File([blob],name,{type:'image/jpeg'})}catch(e){}
+  // On phones the share sheet goes straight to Instagram, Telegram or the gallery.
+  if(file&&navigator.canShare&&navigator.canShare({files:[file]})&&matchMedia('(pointer:coarse)').matches){track('save','share');return navigator.share({files:[file],title:state.pub.salon.name}).catch(function(){})}
+  var url=URL.createObjectURL(blob),a=el('a',{href:url,download:name});document.body.append(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(url)},4000);track('save','file');
+ }).catch(function(){var a=el('a',{href:media(id),download:name});document.body.append(a);a.click();a.remove()});
+}
+function downloadLink(cls,label){var a=el('a',{class:cls,href:media(state.result),download:saveName(state.result),html:ICO.download+'<span>'+label+'</span>'});a.addEventListener('click',function(e){e.preventDefault();var id=state.result;a.classList.add('is-busy');saveBranded(id).then(function(){a.classList.remove('is-busy')})});return a}
 function stepResult(){
  var box=el('div',{class:'panel flow'}),L=state.line;
  box.append(flowHead(state.result?({color:'خودت با رنگ جدید',nails:'ناخن‌هایت با طرح جدید',lashes:'خودت با مژهٔ جدید'}[L]||'خودت با مدل جدید'):state.busy?'دارم می‌سازم…':'نتیجه و ارسال','این تصویر یک شبیه‌سازی پیشنهادی است، نه تضمین اجرا. تصمیم نهایی با '+artist()+' است.'));
@@ -1155,11 +1184,12 @@ function stepResult(){
   box.append(compareBlock());
   box.append(el('div',{class:'result-actions'},[
    L==='hair'?el('button',{class:'btn btn--soft btn--sm',type:'button',onclick:openViews,html:ICO.orbit+'<span>نمای ۳۶۰ درجه</span>'}):null,
-   downloadLink('btn btn--ghost btn--sm','ذخیرهٔ عکس'),
+   downloadLink('btn btn--ghost btn--sm','ذخیره / استوری'),
    el('button',{class:'btn btn--ghost btn--sm',type:'button',onclick:function(){state.result=null;state.gen=null;state.idem=null;state.error='';state.busy=false;state.resultBase=null;go(2)},text:'یک مدل دیگر'})
   ]));
   // After a new hairstyle, the natural next step is its colour.
   if(L==='hair')box.append(el('button',{class:'next-line',type:'button',onclick:function(){track('color_on_hair');switchLine('color',{step:2,onHair:true,scroll:true})}},[el('span',{class:'next-line__ico',html:ICO.drop}),el('span',{},[el('b',{text:'رنگ مو را هم روی همین مدل امتحان کن'}),el('small',{text:'مدل همین می‌ماند و فقط رنگ عوض می‌شود.'})]),el('span',{class:'next-line__go',html:ICO.arrow})]));
+  box.append(h('p','عکسی که ذخیره یا استوری می‌کنی، گوشهٔ پایینش لوگوی «'+state.pub.salon.name+'» را دارد.','fine-print'));
   box.append(ratingBlock());
   box.append(el('div',{class:'flow__nav'},[sendButton()]));
   box.append(sendNote());
