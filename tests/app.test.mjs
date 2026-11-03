@@ -847,3 +847,21 @@ test('each person gets 3 images per service: a new session in the same browser s
   assert.equal(tasks,5,'nothing paid beyond the quota');
  }finally{globalThis.fetch=previous}
 });
+test('salon daily image cap is an owner setting: 0 removes it, a number enforces it, other settings are kept',async()=>{
+ const e=fixture(),s=await salon(e),g=await guest(e,s);e.KIE_API_KEY='mock';
+ const previous=globalThis.fetch;let tasks=0;
+ globalThis.fetch=async(url)=>{if(String(url).includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(String(url).includes('createTask')){tasks++;return Response.json({code:200,data:{taskId:'t'+tasks}})}return new Response(png())};
+ try{
+  const o=await upload(e,s,g),gen=line=>call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),line,original_id:o,style:0},g);
+  assert.equal((await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true,reference_verified:true,daily_limit:2},OWNER)).status,200);
+  assert.equal((await gen('hair')).status,200);assert.equal((await gen('nails')).status,200);
+  const third=await gen('lashes');assert.equal(third.status,429);assert.match(third.data.error,/سقف استفادهٔ روزانه/);
+  assert.equal((await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true,reference_verified:true,daily_limit:0},OWNER)).status,200);
+  assert.equal((await gen('lashes')).status,200,'no cap');
+  const st=(await call(e,'/api/s/salon-a/owner',undefined,OWNER)).data.salon.settings;assert.equal(st.daily_limit,0);assert.equal(st.generation_enabled,true);
+  // Saving without the field keeps the cap; flags set elsewhere survive.
+  e.DB.sql.prepare("UPDATE salons SET settings=json_set(settings,'$.demo',json('true')) WHERE slug='salon-a'").run();
+  await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true,reference_verified:true},OWNER);
+  const st2=(await call(e,'/api/s/salon-a/owner',undefined,OWNER)).data.salon.settings;assert.equal(st2.daily_limit,0);assert.equal(st2.demo,true);
+ }finally{globalThis.fetch=previous}
+});
