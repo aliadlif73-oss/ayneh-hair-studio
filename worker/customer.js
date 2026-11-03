@@ -1,3 +1,4 @@
+import {draftScript} from './draft.js';
 import {styles} from './legacy.js';
 import {NAIL_STYLES,LASH_STYLES,COLOR_STYLES,COLOR_SWATCHES,LINE_OPTIONS,LINE_COLORS,LINE_POPULAR,LINE_FILTERS,LINE_PHOTO,LINE_LABEL} from './lines.js';
 const lineJSON=(line,list)=>({styles:list.map(x=>[x[0],x[1],x[2]]),filters:LINE_FILTERS[line],options:(LINE_OPTIONS[line]||[]).map(o=>({key:o.key,label:o.label,items:o.items.map(i=>i[0])})),colors:(LINE_COLORS[line]||[]).map(c=>[c[0],c[1]]),popular:LINE_POPULAR[line]||[]});
@@ -553,6 +554,7 @@ function track(kind,meta,once){if(once){if(tracked[kind+meta])return;tracked[kin
  // Open on the salon's own work for this line when it has some, otherwise on the ready-made looks.
  state.tab=hasLineWork(state.line)?'salon':'catalog';
  renderAll();
+ if(SLUG==='demo'&&/[?&]draft=1/.test(location.search)){try{var draft=await window.__AYN_DRAFT.take();if(draft&&draft.file){state.style=draft.selection&&draft.selection.styleIdx!=null?draft.selection.styleIdx:state.style;state.color=draft.selection&&draft.selection.color||state.color;handleFile(draft.file,'original')}}catch(e){toast('عکس را دوباره از گالری انتخاب کن','error')}}
  if(pending){state.gen=pending;state.step=3;state.busy=true;state.genT0=Date.now()-8000;renderFlow();renderDock();poll(pending,true)}
  track('view',refIn?'share':'',true);
  renderInvite();
@@ -794,7 +796,7 @@ function stepModel(){
   var fresh=state.justArrived;state.justArrived=false;
   box.append(el('div',{class:'selfie'+(fresh?' selfie--fresh':'')},[el('img',{src:state.preview||media(state.original),alt:''}),el('div',{},[el('b',{html:ICO.check+'<span>'+(fresh?'عکست ثبت شد':'عکست آماده است')+'</span>'}),el('span',{text:(L==='nails'?'طرح':L==='color'?'رنگ':'مدل')+' انتخابی روی همین عکس امتحان می‌شود.'})]),el('button',{class:'btn btn--ghost btn--sm',type:'button',onclick:function(){changePhoto();go(1)},text:'تغییر'})]));
  }
- box.append(flowHead(MODEL_HEAD[L][0],MODEL_HEAD[L][1]));
+ box.append(flowHead(MODEL_HEAD[L][0],L==='hair'&&state.pub.demo?'مدل مو و رنگ دلخواهت را انتخاب کن؛ هر دو روی همین عکس خودت ساخته می‌شوند.':MODEL_HEAD[L][1]));
  if(quotaLeft()===0&&!state.tourDemo)box.append(notice('warn',quotaOut()));
  if(L==='color'){var bc=baseChooser();if(bc)box.append(bc)}
  var seg=el('div',{class:'seg',role:'tablist'});
@@ -876,7 +878,7 @@ function stepModel(){
   box.append(el('div',{class:'opt'},[h('p',o.label+' (اختیاری)','lbl'),row]));
  });
  // Nails and lashes: a colour box for every way of choosing. Hair colour: a colour can also just be typed.
- if(L!=='hair')box.append(colorPicker());
+ if(L!=='hair'||state.pub.demo)box.append(colorPicker());
  if(state.reference&&!state.pub.reference&&state.pub.generation)box.append(notice('warn','ساخت تصویر از عکس مرجع یا کار سالن هنوز برای این سالن فعال نشده. می‌توانی از موارد آماده انتخاب کنی، یا همین را بدون شبیه‌سازی برای '+artist()+' بفرستی.'));
  var can=canGenerate()||!!state.tourDemo,ready=hasChoice()||!!state.tourDemo,left=quotaLeft();
  box.append(el('div',{class:'flow__nav'},[
@@ -1094,7 +1096,7 @@ function downloadLink(cls,label){var a=el('a',{class:cls,href:media(state.result
 function stepResult(){
  var box=el('div',{class:'panel flow'}),L=state.line;
  box.append(flowHead(state.result?({color:'خودت با رنگ جدید',nails:'ناخن‌هایت با طرح جدید',lashes:'خودت با مژهٔ جدید'}[L]||'خودت با مدل جدید'):state.busy?'دارم می‌سازم…':'نتیجه و ارسال','این تصویر یک شبیه‌سازی پیشنهادی است، نه تضمین اجرا. تصمیم نهایی با '+artist()+' است.'));
- var meta=L==='hair'?'رنگ موهایت همان می‌ماند':L==='color'?(baseId()?'روی مدل موی جدیدت':'روی عکس اصلی‌ات'):(state.color?'رنگ: '+state.color:'رنگ: هر چه به طرح بیاید');
+ var meta=L==='hair'?(state.pub.demo&&state.color?'رنگ: '+state.color:'رنگ موهایت همان می‌ماند'):L==='color'?(baseId()?'روی مدل موی جدیدت':'روی عکس اصلی‌ات'):(state.color?'رنگ: '+state.color:'رنگ: هر چه به طرح بیاید');
  box.append(el('div',{class:'summary'},[
   state.original?el('img',{src:media(state.original),alt:''}):null,
   el('div',{class:'grow'},[el('b',{text:(lookName()||'هنوز چیزی انتخاب نشده')}),el('div',{class:'summary__meta',text:meta})]),
@@ -1227,9 +1229,9 @@ function generate(){
  state.busy=true;state.error='';state.result=null;state.genT0=Date.now();state.genBase=baseId();renderFlow();renderDock();
  ensureSession().then(function(){
   state.idem=state.idem||uuid();
-  var col=state.line==='hair'?'':state.line==='color'?(typedColor()?state.color.trim():''):state.color;
+  var col=state.line==='hair'?(state.pub.demo?state.color:''):state.line==='color'?(typedColor()?state.color.trim():''):state.color;
   // The page's own note under «بساز» says the photo is sent for the simulation; no extra checkbox.
-  return api('generate',{v:VISITOR,image_consent:true,idem:state.idem,line:state.line,opts:state.opts,ratio:state.ratio||undefined,original_id:state.original,base_id:state.line==='color'?(state.genBase||undefined):undefined,reference_id:state.reference||undefined,style:state.reference?undefined:(state.style===null?undefined:state.style),color:col||undefined});
+  return api('generate',{apply_color:!!(state.pub.demo&&state.line==='hair'&&state.color),v:VISITOR,image_consent:true,idem:state.idem,line:state.line,opts:state.opts,ratio:state.ratio||undefined,original_id:state.original,base_id:state.line==='color'?(state.genBase||undefined):undefined,reference_id:state.reference||undefined,style:state.reference?undefined:(state.style===null?undefined:state.style),color:col||undefined});
  }).then(function(job){
   track('generate',state.reference?(state.refTitle?'salon':'upload'):'catalog');
   spentQuota(state.line);
@@ -1519,15 +1521,15 @@ function openOtp(next){
  var timer=null;
  function shut(){clearInterval(timer);closeSheet()}
  var panel=el('div',{class:'sheet__panel'});
- var head=el('div',{class:'sheet__head'},[h('h2','تأیید شمارهٔ موبایل'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:shut})]);
+ var head=el('div',{class:'sheet__head'},[h('h2','برای ساخت تصویر، ابتدا وارد شوید'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:shut})]);
  var me=state.me||{},bits=String(me.name||'').trim().split(/\s+/);
  var firstWrap=wrapField('otpFirst','نام','text',bits[0]||'','',{autocomplete:'given-name'});
  var lastWrap=wrapField('otpLast','نام خانوادگی','text',bits.slice(1).join(' '),'',{autocomplete:'family-name'});
  var phoneWrap=wrapField('otpPhone','شمارهٔ موبایل','tel',me.phone||'','۰۹۱۲۱۲۳۴۵۶۷',{inputmode:'tel',autocomplete:'tel'});
  var sendBtn=el('button',{class:'btn btn--primary btn--block',type:'submit',text:'ارسال کد تأیید'});
- var form=el('form',{novalidate:'true'},[firstWrap,lastWrap,phoneWrap,sendBtn]);
+ var form=el('form',{novalidate:'true'},state.pub.demo?[phoneWrap,sendBtn]:[firstWrap,lastWrap,phoneWrap,sendBtn]);
  var last=null;
- panel.append(head,h('p','برای ساخت شبیه‌سازی، اول شمارهٔ موبایلت را تأیید می‌کنیم. یک کد پیامکی برایت می‌فرستیم. نام و شماره‌ات فقط برای همین سالن و پیگیری درخواستت استفاده می‌شود و در سابقهٔ سالن می‌ماند.','muted'),form);
+ panel.append(head,h('p',state.pub.demo?'شمارهٔ موبایلت را وارد کن و کد پیامک‌شده را بزن. بعد از تأیید، همین تصویر با مدل و رنگ انتخابی‌ات ساخته می‌شود.':'برای ساخت شبیه‌سازی، اول شمارهٔ موبایلت را تأیید می‌کنیم. یک کد پیامکی برایت می‌فرستیم. نام و شماره‌ات فقط برای همین سالن و پیگیری درخواستت استفاده می‌شود و در سابقهٔ سالن می‌ماند.','muted'),form);
  function codeStep(){
   var codeWrap=wrapField('otpCode','کد پیامک‌شده','text','','',{autocomplete:'one-time-code',inputmode:'numeric'});
   codeWrap.querySelector('input').setAttribute('dir','ltr');
@@ -1564,7 +1566,7 @@ function openOtp(next){
  }
  form.addEventListener('submit',function(e){
   e.preventDefault();
-  var first=firstWrap.querySelector('input').value.trim(),lastName=lastWrap.querySelector('input').value.trim();
+  var first=state.pub.demo?'مشتری':firstWrap.querySelector('input').value.trim(),lastName=state.pub.demo?'آینه':lastWrap.querySelector('input').value.trim();
   var okFirst=validate(firstWrap,function(){return first.length>=2},'نام را بنویس');
   var okLast=validate(lastWrap,function(){return lastName.length>=2},'نام خانوادگی را بنویس');
   var num=normalizePhone(phoneWrap.querySelector('input').value);
@@ -1774,4 +1776,4 @@ export const customerHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><h
 <script>__JS__</script>
 </body></html>`
  .replace('__CSS__',()=>baseCSS+customerCSS)
- .replace('__JS__',()=>clientJS.replace('__STYLES__',()=>JSON.stringify(styles)).replace('__LINES__',()=>LINES_JSON).replace('__MARK__',()=>JSON.stringify(markSVG)));
+ .replace('__JS__',()=>draftScript+';'+clientJS.replace('__STYLES__',()=>JSON.stringify(styles)).replace('__LINES__',()=>LINES_JSON).replace('__MARK__',()=>JSON.stringify(markSVG)));

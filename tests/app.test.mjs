@@ -774,14 +774,16 @@ test('demo salon behind the landing: mobile confirmation first, 3 images a day p
  const e=tgEnv(fixture());e.KIE_API_KEY='mock';const s={slug:'demo'};
  const pub=await call(e,'/api/s/demo/public');assert.equal(pub.status,200);assert.equal(pub.data.demo,true);assert.equal(pub.data.generation,false,'no SMS configured: demo generation stays off');
  let g=await guest(e,s);const original=await upload(e,s,g);
- const gen=()=>call(e,'/api/s/demo/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:1},g);
+ const gen=(extra={})=>call(e,'/api/s/demo/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:1,...extra},g);
  assert.equal((await gen()).status,503,'without SMS nobody can spend paid images');
  smsEnv(e);assert.equal((await call(e,'/api/s/demo/public')).data.generation,true);
  const need=await gen();assert.equal(need.status,403);assert.match(need.data.error,/را تأیید کن/,'the page opens its mobile dialog on this message');
- const sms=mockSms(),net=globalThis.fetch;
- globalThis.fetch=async(url,opts)=>{const u=String(url);if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(u.includes('createTask'))return Response.json({code:200,data:{taskId:'t'+crypto.randomUUID()}});return net(url,opts)};
+ const sms=mockSms(),net=globalThis.fetch,prompts=[];
+ globalThis.fetch=async(url,opts)=>{const u=String(url);if(u.includes('createTask'))prompts.push(JSON.parse(opts.body).input.prompt);if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(u.includes('createTask'))return Response.json({code:200,data:{taskId:'t'+crypto.randomUUID()}});return net(url,opts)};
  try{assert.equal((await call(e,'/api/s/demo/otp/send',otpBody(),g)).status,200);assert.equal((await call(e,'/api/s/demo/otp/verify',{code:'48213'},g)).status,200);
-  for(let i=0;i<3;i++)assert.equal((await gen()).status,200);
+  assert.equal((await gen({apply_color:true,color:'شرابی'})).status,200);assert.match(prompts[0],/burgundy/i);
+  assert.equal((await gen()).status,200);assert.match(prompts[1],/original.*colou?r|colou?r.*original/i);
+  assert.equal((await gen()).status,200);
   const fourth=await gen();assert.equal(fourth.status,429);
   const v=await call(e,'/api/s/demo/views',{idem:crypto.randomUUID(),parent:'x'},g);assert.equal(v.status,400,'no 360 view in the demo');
  }finally{globalThis.fetch=net;sms.restore()}
@@ -793,8 +795,8 @@ test('customer page: four services, «بساز» starts building with no consent
  assert(!/id:'consent'|id:'dataConsent'|type:'checkbox'/.test(js),'no consent checkboxes');
  assert.match(js,/function build\(\)\{[\s\S]*?go\(3\);generate\(\)/);
  assert(!/download:'ayneh\.png'/.test(js));assert.match(js,/function saveName\(id\)/);
- // Hairstyle never sends a colour; hair colour carries its base photo.
- assert.match(js,/var col=state\.line==='hair'\?''/);assert.match(js,/base_id:state\.line==='color'/);
+ // Only the landing demo explicitly combines hairstyle and colour; salon hair keeps its original colour.
+ assert.match(js,/var col=state\.line==='hair'\?\(state\.pub\.demo\?state\.color:''\)/);assert.match(js,/base_id:state\.line==='color'/);
  // Every service has its building scene and stages.
  for(const l of ['hair','color','nails','lashes'])assert.match(js,new RegExp('\\n '+l+":\\{title:'"));
 });

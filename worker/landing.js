@@ -449,6 +449,8 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
  .hero-playground .dock h2{font-size:11px;margin-bottom:3px}.hero-playground .dock.mobile .d-item{flex:0 0 28%;font-size:10px}.hero-playground .more{min-height:34px;font-size:10px}
  .demo-caption,.demo-controls{display:none}.result{display:none}.eyebrow{font-size:12px;padding-top:14px}h1{font-size:25px;line-height:1.5}.lead{font-size:14px}.copy .cta-row .btn{font-size:14px}
 }
+/* The result action must never cover the model picker. */
+.result{display:none!important}.dock .more{position:relative;z-index:6;min-height:44px}.dock{padding-bottom:8px}.site-loader{position:fixed;inset:0;z-index:1000;background:#f4ecdf;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;transition:opacity .4s,visibility .4s}.site-loader.is-done{opacity:0;visibility:hidden;pointer-events:none}.hero-loading{overflow:hidden}.loader-mirror{position:relative;width:110px;height:150px;border:1px solid #b9975b;border-radius:60px 60px 7px 7px;display:grid;place-items:center;overflow:hidden;background:linear-gradient(145deg,#ece2d1,#fff8ec)}.loader-mirror span{font-size:25px;font-weight:800;color:#302116}.loader-mirror i{position:absolute;inset:-100%;background:linear-gradient(110deg,transparent 45%,#fff9 50%,transparent 55%);animation:mirrorShine 1.7s ease-in-out infinite}.site-loader p{font-size:13px;color:#786044;margin:0}.loader-track{height:2px;width:150px;background:#d7c9af;overflow:hidden}.loader-track i{display:block;height:100%;width:0;background:#b18a42;transition:width .2s}@keyframes mirrorShine{from{transform:translateX(-50%)}to{transform:translateX(50%)}}@media(prefers-reduced-motion:reduce){.loader-mirror i{animation:none}}
 
 
 /* ---------- Section 2: request lands in the salon chat ---------- */
@@ -692,6 +694,7 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
 .nail-journey{height:270svh;position:relative}.nail-journey .journey-stage{position:sticky}.nail-journey .journey-copy{transition:opacity .3s}.nail-journey .journey-bridge{visibility:visible;opacity:1}
 .nail-journey.is-static{height:auto}.nail-journey.is-static .journey-stage{height:auto;position:relative;padding:30px 15px}.nail-journey.is-static .journey-film{position:relative;inset:auto;width:100%;height:auto;aspect-ratio:16/9;opacity:1;visibility:visible;pointer-events:auto}.nail-journey.is-static .journey-copy{position:relative;inset:auto;width:auto;opacity:1;visibility:visible}.nail-journey.is-static .journey-bridge{display:none}
 @media(max-width:600px){html.cinema-enabled .cinema-stage{height:88svh;min-height:650px}.cinema-arrows{left:26px;top:26px}.cinema-topline{display:none}.cinema-copy,.is-current .cinema-copy{bottom:110px}.cinema-image{object-position:24% 20%}.auto-film{height:auto;min-height:0;padding:24px 0 95px}.auto-film .journey-film{position:relative;inset:auto;display:block;aspect-ratio:16/9;width:100%;height:auto}.auto-film .journey-wash{display:none}.auto-film .journey-copy{position:relative;inset:auto;width:auto;max-width:none;padding:25px 24px 0}.auto-film .journey-copy h3{font-size:26px}.auto-film .journey-copy p{font-size:14px}.film-toggle{bottom:25px;left:24px}.nail-journey{height:260svh}.nail-journey .journey-film{top:10%}.nail-journey .journey-copy{bottom:45px}.service-journey>.journey-gaze{height:38svh;min-height:260px}.journey-note{font-size:8px}}
+.auto-film{scroll-margin-top:var(--hh,65px)}
 
 /* CTA bands, sticky mobile CTA, plan buttons, form microcopy */
 .cta-band{padding:clamp(40px,6vw,72px) var(--gut);background:var(--espresso);color:var(--cream)}
@@ -755,6 +758,8 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
 </header>
 
 <main id="main">
+<noscript><style>.site-loader{display:none!important}html.hero-loading{overflow:auto}</style></noscript>
+<div id="siteLoader" class="site-loader" role="status" aria-label="آماده‌سازی آینه"><div class="loader-mirror"><span>آینه</span><i></i></div><p>انتخابی که به شما می‌آید.</p><div class="loader-track"><i id="loaderProgress"></i></div></div>
   <!-- 1. Hero: copy + the mirror studio. The photo, hair canvas and podium dock live on one plate so they never drift apart. -->
   <section id="intro" class="film" aria-labelledby="h1" tabindex="-1">
     <div class="stage" id="stage" data-demo="loading">
@@ -762,7 +767,7 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
         <p class="eyebrow reveal">برای صاحبان سالن مو، ناخن و مژه</p>
         <h1 id="h1" class="reveal">مشتری‌تان اول روی خودش می‌بیند، بعد برای شما می‌فرستد.</h1>
         <p class="lead reveal">مشتری عکس چهره یا دستش را بارگذاری می‌کند؛ مدل مو، رنگ مو، طرح ناخن یا مدل مژهٔ دلخواهش را روی خودش می‌بیند و انتخابی را که می‌پسندد، همراه تصویر برای سالن شما می‌فرستد. شما هم همان‌جا در تلگرام یا بله، درخواست را تأیید یا رد می‌کنید.</p>
-        <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" data-try="hair" href="/s/demo?l=hair"><span>همین حالا با تصویر خودتان امتحان کنید</span></a></div>
+        <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" data-try="hair" href="/s/demo?l=hair"><span>همین الان با تصویر خودم بساز</span></a></div>
         <p class="fineprint reveal">رایگان و بدون کارت بانکی: ۱۰ ساعت و ۵ تصویر. شبیه‌سازی پیشنهادی است و نتیجه را تضمین نمی‌کند.</p>
       </div>
 
@@ -788,7 +793,7 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
                 <button type="button" class="nav-btn nav-r" id="dkPrev" aria-label="مدل‌های قبلی">›</button>
                 <button type="button" class="nav-btn nav-l" id="dkNext" aria-label="مدل‌های بعدی">‹</button>
               </div>
-              <button type="button" class="more" id="more" aria-expanded="false" aria-controls="styles"><span>دیدن همهٔ مدل‌ها با عکس مرجع</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7.5 10 12.5 15 7.5"/></svg></button>
+              <button type="button" class="more" id="more" aria-expanded="false" aria-controls="styles"><span>دیدن همهٔ مدل‌ها</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7.5 10 12.5 15 7.5"/></svg></button>
             </div>
           </div>
           <div class="palette glass" id="colors">
@@ -805,7 +810,7 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
           </aside>
           <div class="result glass" id="result" role="status" aria-live="polite">
             <span id="resultText"></span>
-            <a class="btn" href="#start"><span>همین را برای سالنم بساز</span><span class="arrow" aria-hidden="true">←</span></a>
+            <a class="btn" data-try="hair" href="/s/demo?l=hair"><span>همین الان با تصویر خودم بساز</span><span class="arrow" aria-hidden="true">←</span></a>
           </div>
         </div>
       </div>
@@ -874,13 +879,12 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
   </section>
 
   <section id="transform" class="service-journey on-dark" aria-label="روی تصویر خودتان امتحان کنید">
-<article class="auto-film" data-auto-film="hair"><video class="journey-film is-active" data-journey-film="hair" data-src="video/hair.mp4" poster="/landing/hair-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ مو؛ با اسکرول جلو و عقب ببرید" controls><source src="/landing/video/hair.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy is-active" data-journey-copy="hair"><p class="journey-kicker">۰۱ / مدل و رنگ مو</p><h3>قبل از تغییر،<br>روی خودتان ببینید.</h3><p>عکس خودتان و مدل مو یا رنگ دلخواه‌تان را بگذارید؛ ببینید کدام انتخاب بیشتر به شما می‌آید.</p><a href="/s/demo?l=hair">روی عکس خودم امتحان کنم <span aria-hidden="true">←</span></a></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
-<div class="journey-breath journey-gaze" aria-hidden="true"><div class="journey-gaze-up"><img src="/landing/hair-end.webp" alt="" width="960" height="540"></div><div class="journey-gaze-down"><img src="/landing/lashes-poster.webp" alt="" width="960" height="540"></div><i class="journey-gaze-seam"></i></div>
-<article class="auto-film" data-auto-film="lashes"><video class="journey-film" data-journey-film="lashes" data-src="video/lashes.mp4" poster="/landing/lashes-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل مژه؛ با اسکرول جلو و عقب ببرید" controls><source src="/landing/video/lashes.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy" data-journey-copy="lashes"><p class="journey-kicker">۰۲ / مدل مژه</p><h3>نگاه شما.<br>انتخاب شما.</h3><p>عکس چهره یا چشم‌هایتان را بارگذاری کنید و مدل مژهٔ دلخواه را روی چشم‌های خودتان ببینید.</p><a href="/s/demo?l=lashes">مژهٔ دلخواهم را ببینم <span aria-hidden="true">←</span></a></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
+<article class="auto-film" data-auto-film="hair"><video class="journey-film is-active" data-journey-film="hair" data-src="video/hair.mp4" poster="/landing/hair-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ مو" controls><source src="/landing/video/hair.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy is-active" data-journey-copy="hair"><p class="journey-kicker">۰۱ / مدل و رنگ مو</p><h3>قبل از تغییر،<br>روی خودتان ببینید.</h3><p>عکس خودتان و مدل مو یا رنگ دلخواه‌تان را بگذارید؛ ببینید کدام انتخاب بیشتر به شما می‌آید.</p><a href="/s/demo?l=hair">روی عکس خودم امتحان کنم <span aria-hidden="true">←</span></a></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
+<article class="auto-film" data-auto-film="lashes"><video class="journey-film" data-journey-film="lashes" data-src="video/lashes.mp4" poster="/landing/lashes-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل مژه" controls><source src="/landing/video/lashes.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy" data-journey-copy="lashes"><p class="journey-kicker">۰۲ / مدل مژه</p><h3>نگاه شما.<br>انتخاب شما.</h3><p>عکس چهره یا چشم‌هایتان را بارگذاری کنید و مدل مژهٔ دلخواه را روی چشم‌های خودتان ببینید.</p><a href="/s/demo?l=lashes">مژهٔ دلخواهم را ببینم <span aria-hidden="true">←</span></a></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
 <section class="nail-journey" aria-label="طرح و رنگ ناخن"><div class="journey-stage"><video class="journey-film" data-journey-film="nails" data-src="video/nails.mp4" poster="/landing/nails-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ ناخن؛ با اسکرول جلو و عقب ببرید" controls><source src="/landing/video/nails.mp4" type="video/mp4"></video><div class="journey-bridge" aria-hidden="true">
-        <img class="journey-bridge-out" src="/landing/lashes-end.webp" alt="" width="960" height="540" loading="lazy">
+
         <div class="journey-bridge-space"></div>
-        <img class="journey-bridge-in" src="/landing/nails-poster.webp" alt="" width="960" height="540" loading="lazy">
+
         <img class="journey-stone" src="/landing/journey-stone.webp" alt="" width="900" height="800" loading="lazy">
         <p>حالا، نوبت دست‌های شماست.</p>
       </div><div class="journey-copy" data-journey-copy="nails"><p class="journey-kicker">۰۳ / طرح و رنگ ناخن</p><h3>طرح بعدی را،<br>روی دست خودتان ببینید.</h3><p>عکس دستتان را بگذارید؛ فرم، رنگ و طرح ناخن را امتحان کنید و انتخاب دلخواه‌تان را برای سالن بفرستید.</p><a href="/s/demo?l=nails">روی دست خودم امتحان کنم <span aria-hidden="true">←</span></a></div><p class="journey-note">نمونهٔ نمایشی؛ نتیجهٔ اجرا ممکن است متفاوت باشد.</p></div></section></section>
@@ -1159,7 +1163,16 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
  compact.addEventListener('change',e=>{if(!e.matches&&!menu.hidden)setOpen(false)});
 })();
 </script>
-<script>window.__AYN_ASSET_VERSION="ad2baa4a48f6";window.__AYN_LOOKS=[6, 12];</script>
+<script>window.__AYN_ASSET_VERSION="69b2349d469d";window.__AYN_LOOKS=[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];</script>
+<script>
+/* A short-lived browser-local photo handoff; no upload, analytics or phone is involved. */
+(()=>{
+ const db=()=>new Promise((resolve,reject)=>{const r=indexedDB.open('ayneh-photo-handoff',1);r.onupgradeneeded=()=>r.result.createObjectStore('drafts');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
+ async function transaction(mode,fn){const d=await db();return new Promise((resolve,reject)=>{const t=d.transaction('drafts',mode),r=fn(t.objectStore('drafts'));let result;r.onsuccess=()=>{result=r.result};t.oncomplete=()=>{d.close();resolve(result)};t.onerror=t.onabort=()=>{d.close();reject(t.error)}})}
+ window.__AYN_DRAFT={put:entry=>transaction('readwrite',s=>s.put({...entry,created:Date.now()},'current')),async take(){const e=await transaction('readwrite',s=>{const r=s.get('current');s.delete('current');return r});return e&&Date.now()-e.created<15*60*1000?e:null}};
+})();
+
+</script>
 <script>
 /* Keep the original portrait immutable; replace only the union of the old/new hair. */
 (()=>{
@@ -1214,9 +1227,9 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
  const n2=i=>String(i+1).padStart(2,'0');
  const cards=STYLES.map((name,i)=>make('card','<span class="ph"><img src="'+SRC('s'+n2(i))+'" alt="" width="240" height="300" loading="lazy" draggable="false"></span><span class="nm">'+name+'</span>',()=>pickStyle(i),$('track')));
  const dItems=[];
- STYLES.forEach((name,i)=>{if(READY.has(i+1)){
+ STYLES.forEach((name,i)=>{
   dItems[i]=make('d-item','<span class="ic"><img src="'+SRC('s'+n2(i))+'" alt="" draggable="false"></span><span>'+name+'</span>',()=>pickStyle(i),$('dockTrack'));
- }});
+ });
  cards.forEach((b,i)=>{const note=document.createElement('small');note.className='preview-kind';note.textContent=READY.has(i+1)?'پیش‌نمایش روی آینه':'عکس مرجع';b.append(note)});
  const sws=COLORS.map((c,i)=>make('sw','<span class="dot"><i style="background:'+c.css+'"></i></span><span>'+c.name+'</span>',()=>pickColor(i),$('colList')));
  $('styCount').textContent='· '+fa(STYLES.length)+' مدل';
@@ -1279,7 +1292,7 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
  /* ---------- hair recolour engine ---------- */
  const img=$('roomImg'),img2=$('roomImg2'),cv=$('hairCanvas'),ctx=cv.getContext('2d');
  let px=null,rafId=0,lookTok=0;const preps={};
- const loadImg=src=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src});
+ const imagePromises=new Map();const loadImg=src=>{if(!imagePromises.has(src))imagePromises.set(src,new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src}));return imagePromises.get(src)};
  const lookAssets=key=>key==='base'?['hero','hair-mask']:['look-'+key,'mask-'+key];
  let identitySource=null;
  function canonical(){
@@ -1479,10 +1492,10 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
  const human=e=>{if(!e.isTrusted||e.target.closest('.demo-controls'))return;if(demonstrating)endDemo('حالا خودتان مدل و رنگ را انتخاب کنید.');if(e.target.closest('#dock,#colors,#styles')){revealPortrait();showFront()}};
  film.addEventListener('pointerdown',human,true);film.addEventListener('keydown',human,true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')});
- window.__AYN_HERO_READY=Promise.all([prepare('base'),prepare('s06'),prepare('s12')]);
+ const heroFiles=[['hero'],['hair-mask','png'],...STYLES.map((_,i)=>['s'+n2(i)]),...[...(window.__AYN_LOOKS||[])].flatMap(n=>[['look-s'+String(n).padStart(2,'0')],['mask-s'+String(n).padStart(2,'0'),'png']])];let loadedFiles=0;document.documentElement.classList.add('hero-loading');
+ window.__AYN_HERO_READY=Promise.all(heroFiles.map(([k,e])=>loadImg(SRC(k,e)).catch(()=>null).finally(()=>{loadedFiles++;$('loaderProgress').style.width=(loadedFiles/heroFiles.length*100)+'%'}))).then(()=>Promise.all([prepare('base'),prepare('s06'),prepare('s12')])).finally(()=>{document.documentElement.classList.remove('hero-loading');$('siteLoader').classList.add('is-done');setTimeout(()=>$('siteLoader').remove(),450)});
  const pageReady=new Promise(resolve=>{if(document.readyState==='complete')resolve();else addEventListener('load',resolve,{once:true})});
  window.__AYN_HERO_READY.then(()=>{
-  if(mobile.matches){endDemo();revealPortrait();return}
   // Never steal attention back if the visitor started interacting or scrolled past the hero while loading.
   const r=film.getBoundingClientRect();if(played||r.bottom<innerHeight*.5||r.top>innerHeight){endDemo();return}
   walkthrough();
@@ -1501,7 +1514,7 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
  const req=()=>{if(!tick){tick=true;requestAnimationFrame(frameUpdate)}};
  addEventListener('scroll',req,{passive:true});
  new ResizeObserver(()=>{layout();req()}).observe(mirror);
- layout();frameUpdate();if(mobile.matches){revealPortrait();$('demoCaption').hidden=true;$('replayDemo').hidden=true}
+ layout();frameUpdate();if(mobile.matches){$('demoCaption').hidden=true}
 })();
 
 </script>
@@ -1553,16 +1566,16 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
  const root=document.querySelector('.service-journey');if(!root)return;document.documentElement.classList.add('journey-enabled');
  const reduced=matchMedia('(prefers-reduced-motion:reduce)'),cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
  const states=[...root.querySelectorAll('[data-journey-film]')].map(v=>({v,key:v.dataset.journeyFilm,target:0,visible:false,userPaused:false,loaded:false}));
- async function load(s){if(s.loaded)return;s.loaded=true;s.v.muted=true;s.v.preload='auto';try{const r=await fetch((window.__AYN_BASE||'/landing/')+s.v.dataset.src+'?v='+window.__AYN_ASSET_VERSION,{credentials:'same-origin',priority:'low'});if(!r.ok||!(r.headers.get('content-type')||'').includes('video/'))throw Error();s.v.src=URL.createObjectURL(await r.blob());s.v.load()}catch(_){s.v.controls=true}}
+ async function load(s){if(s.loaded)return;s.loaded=true;s.v.muted=true;s.v.preload='auto';if(s.key==='hair')s.v.defaultPlaybackRate=s.v.playbackRate=1.5;try{const r=await fetch((window.__AYN_BASE||'/landing/')+s.v.dataset.src+'?v='+window.__AYN_ASSET_VERSION,{credentials:'same-origin',priority:'low'});if(!r.ok||!(r.headers.get('content-type')||'').includes('video/'))throw Error('HTTP '+r.status+' '+r.headers.get('content-type'));s.v.src=URL.createObjectURL(await r.blob());s.v.load()}catch(e){console.warn('Video unavailable:',s.key,e.message);s.v.controls=true}}
  function playback(s){if(s.key==='nails')return;if(s.visible&&!s.userPaused&&!document.hidden&&!reduced.matches){if(s.v.ended)s.v.currentTime=0;s.v.play().catch(()=>{s.v.controls=true})}else s.v.pause()}
- states.forEach(s=>{s.v.controls=reduced.matches;s.v.addEventListener('loadeddata',()=>{playback(s);schedule()});if(s.key!=='nails'){const panel=s.v.closest('.auto-film'),button=panel.querySelector('.film-toggle');new IntersectionObserver(es=>{s.visible=es[0].intersectionRatio>=.4;playback(s)},{threshold:[0,.4,.7]}).observe(panel);button.onclick=()=>{s.userPaused=!s.v.paused;if(s.userPaused)s.v.pause();else{s.v.play().catch(()=>{s.v.controls=true})}button.textContent=s.userPaused?'▶':'Ⅱ';button.setAttribute('aria-label',s.userPaused?'پخش ویدئو':'توقف پخش ویدئو')};s.v.addEventListener('ended',()=>{button.textContent='↻';button.setAttribute('aria-label','پخش دوبارهٔ ویدئو')})}});
- document.addEventListener('visibilitychange',()=>states.forEach(playback));reduced.addEventListener('change',()=>{states.forEach(s=>{s.v.controls=reduced.matches;playback(s)});schedule()});
- const area=root.querySelector('.nail-journey'),stage=area.querySelector('.journey-stage'),s=states.find(s=>s.key==='nails'),bridge=area.querySelector('.journey-bridge'),stone=area.querySelector('.journey-stone'),out=area.querySelector('.journey-bridge-out'),incoming=area.querySelector('.journey-bridge-in'),space=area.querySelector('.journey-bridge-space'),copy=area.querySelector('.journey-copy');let pending=false,position=0,target=0;
+ states.forEach(s=>{s.v.addEventListener('loadedmetadata',()=>{s.v.playbackRate=s.key==='hair'?1.5:1});s.v.controls=reduced.matches;s.v.addEventListener('loadeddata',()=>{playback(s);schedule()});if(s.key!=='nails'){const panel=s.v.closest('.auto-film'),button=panel.querySelector('.film-toggle');new IntersectionObserver(es=>{s.visible=es[0].intersectionRatio>=.4;playback(s)},{threshold:[0,.4,.7]}).observe(panel);button.onclick=()=>{s.userPaused=!s.v.paused;if(s.userPaused)s.v.pause();else{s.v.play().catch(()=>{s.v.controls=true})}button.textContent=s.userPaused?'▶':'Ⅱ';button.setAttribute('aria-label',s.userPaused?'پخش ویدئو':'توقف پخش ویدئو')};s.v.addEventListener('ended',()=>{button.textContent='↻';button.setAttribute('aria-label','پخش دوبارهٔ ویدئو');if(s.key==='hair'&&s.visible&&!document.hidden){root.querySelector('[data-auto-film=lashes]').scrollIntoView({behavior:reduced.matches?'auto':'smooth',block:'start'})}})}});
+ document.addEventListener('visibilitychange',()=>states.forEach(playback));reduced.addEventListener('change',()=>{states.forEach(s=>{s.v.addEventListener('loadedmetadata',()=>{s.v.playbackRate=s.key==='hair'?1.5:1});s.v.controls=reduced.matches;playback(s)});schedule()});
+ const area=root.querySelector('.nail-journey'),stage=area.querySelector('.journey-stage'),s=states.find(s=>s.key==='nails'),bridge=area.querySelector('.journey-bridge'),stone=area.querySelector('.journey-stone'),space=area.querySelector('.journey-bridge-space'),copy=area.querySelector('.journey-copy');let pending=false,position=0,target=0;
  function seek(){if(s.v.seeking||s.v.readyState<1||!Number.isFinite(s.v.duration))return;const t=cl(s.target,0,s.v.duration-.05);if(Math.abs(s.v.currentTime-t)>.045)s.v.currentTime=t}s.v.addEventListener('seeked',seek);
  function update(){pending=false;area.classList.toggle('is-static',reduced.matches);if(reduced.matches){s.v.controls=true;bridge.hidden=true;return}bridge.hidden=false;
  const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||65;target=cl((hh-area.getBoundingClientRect().top)/Math.max(1,area.offsetHeight-stage.offsetHeight));position+= (target-position)*.18;if(Math.abs(target-position)<.0004)position=target;const p=position,q=cl(p/.27),n=cl((p-.27)/.73);
  area.dataset.phase=p<.27?'bridge':'nails';bridge.style.opacity=p<.27?'1':'0';bridge.style.visibility=p<.27?'visible':'hidden';s.v.classList.toggle('is-active',p>=.27);copy.classList.toggle('is-active',p>=.27);
- out.style.opacity=String(1-cl(q/.22));space.style.opacity=String(cl(q/.18)*(1-cl((q-.73)/.27)));incoming.style.opacity=String(cl((q-.76)/.24));stone.style.opacity=String(cl(q/.1)*(1-cl((q-.9)/.1)));stone.style.top=(40+q*43)+'%';stone.style.transform='translate(-50%,-50%) scale('+(1-q*.35)+')';bridge.querySelector('p').style.opacity=String(cl((q-.18)/.15)*(1-cl((q-.65)/.15)));if(Number.isFinite(s.v.duration)){s.target=n*(s.v.duration-.05);seek()}if(position!==target)schedule();
+ space.style.opacity=String(cl(q/.18)*(1-cl((q-.73)/.27)));stone.style.opacity=String(cl(q/.1)*(1-cl((q-.9)/.1)));stone.style.top=(40+q*43)+'%';stone.style.transform='translate(-50%,-50%) scale('+(1-q*.35)+')';bridge.querySelector('p').style.opacity=String(cl((q-.18)/.15)*(1-cl((q-.65)/.15)));if(Number.isFinite(s.v.duration)){s.target=n*(s.v.duration-.05);seek()}if(position!==target)schedule();
  }
  function schedule(){if(!pending){pending=true;requestAnimationFrame(update)}}addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);
  Promise.resolve(window.__AYN_HERO_READY).finally(()=>states.forEach(load));schedule();
@@ -1570,25 +1583,14 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
 
 </script>
 <script>
-/* "Make an image on my photo" links: open the demo salon on the line (and look) the visitor picked. */
+/* Select the photo first; authentication happens only after Build on the demo page. */
 (()=>{
  const links=[...document.querySelectorAll('[data-try]')];if(!links.length)return;
- const PREVIEW=!!window.__AYN_PREVIEW;
- function href(line){
-  const sel=window.__AYN_SEL||{};
-  // the salon page has separate hairstyle and hair-colour services: a picked style opens the first, a colour alone the second
-  if(line==='hair'&&sel.styleIdx==null&&sel.color)return '/s/demo?l=color&c='+encodeURIComponent(sel.color);
-  const q=['l='+line];if(line==='hair'&&sel.styleIdx!=null)q.push('s='+sel.styleIdx);
-  return '/s/demo?'+q.join('&');
- }
- function sync(){links.forEach(a=>{a.href=href(a.dataset.try)})}
- addEventListener('ayneh:selection',sync);sync();
- links.forEach(a=>a.addEventListener('click',e=>{
-  if(!PREVIEW)return;e.preventDefault();
-  let n=a.parentElement.querySelector('.try-note');
-  if(!n){n=document.createElement('small');n.className='try-note';a.after(n)}
-  n.textContent='در پیش‌نمایش کار نمی‌کند. روی سایت اصلی به صفحهٔ نمونه می‌رود و آنجا بعد از تأیید موبایل تصویر ساخته می‌شود.';
- }));
+ const input=document.createElement('input');input.type='file';input.accept='image/jpeg,image/png,image/webp';input.hidden=true;input.setAttribute('aria-label','انتخاب تصویر خودم');document.body.append(input);let line='hair';
+ function href(l){const sel=window.__AYN_SEL||{},q=new URLSearchParams({l});if(l==='hair'&&sel.styleIdx!=null)q.set('s',sel.styleIdx);if(l==='hair'&&sel.color)q.set('c',sel.color);return '/s/demo?'+q}
+ function sync(){links.forEach(a=>a.href=href(a.dataset.try))}addEventListener('ayneh:selection',sync);sync();
+ links.forEach(a=>a.addEventListener('click',e=>{e.preventDefault();line=a.dataset.try;input.value='';input.click()}));
+ input.addEventListener('change',async()=>{const file=input.files[0];if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>25*1024*1024){alert('یک تصویر JPG، PNG یا WebP با حجم کمتر از ۲۵ مگابایت انتخاب کنید.');return}try{await window.__AYN_DRAFT.put({file,line,selection:window.__AYN_SEL||{}});location.assign(href(line)+'&draft=1')}catch(_){alert('ذخیرهٔ موقت عکس در مرورگر ممکن نشد؛ در صفحهٔ بعد دوباره عکس را انتخاب کنید.');location.assign(href(line))}});
 })();
 
 </script>

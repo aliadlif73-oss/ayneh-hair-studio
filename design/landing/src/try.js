@@ -1,20 +1,9 @@
-/* "Make an image on my photo" links: open the demo salon on the line (and look) the visitor picked. */
+/* Select the photo first; authentication happens only after Build on the demo page. */
 (()=>{
  const links=[...document.querySelectorAll('[data-try]')];if(!links.length)return;
- const PREVIEW=!!window.__AYN_PREVIEW;
- function href(line){
-  const sel=window.__AYN_SEL||{};
-  // the salon page has separate hairstyle and hair-colour services: a picked style opens the first, a colour alone the second
-  if(line==='hair'&&sel.styleIdx==null&&sel.color)return '/s/demo?l=color&c='+encodeURIComponent(sel.color);
-  const q=['l='+line];if(line==='hair'&&sel.styleIdx!=null)q.push('s='+sel.styleIdx);
-  return '/s/demo?'+q.join('&');
- }
- function sync(){links.forEach(a=>{a.href=href(a.dataset.try)})}
- addEventListener('ayneh:selection',sync);sync();
- links.forEach(a=>a.addEventListener('click',e=>{
-  if(!PREVIEW)return;e.preventDefault();
-  let n=a.parentElement.querySelector('.try-note');
-  if(!n){n=document.createElement('small');n.className='try-note';a.after(n)}
-  n.textContent='در پیش‌نمایش کار نمی‌کند. روی سایت اصلی به صفحهٔ نمونه می‌رود و آنجا بعد از تأیید موبایل تصویر ساخته می‌شود.';
- }));
+ const input=document.createElement('input');input.type='file';input.accept='image/jpeg,image/png,image/webp';input.hidden=true;input.setAttribute('aria-label','انتخاب تصویر خودم');document.body.append(input);let line='hair';
+ function href(l){const sel=window.__AYN_SEL||{},q=new URLSearchParams({l});if(l==='hair'&&sel.styleIdx!=null)q.set('s',sel.styleIdx);if(l==='hair'&&sel.color)q.set('c',sel.color);return '/s/demo?'+q}
+ function sync(){links.forEach(a=>a.href=href(a.dataset.try))}addEventListener('ayneh:selection',sync);sync();
+ links.forEach(a=>a.addEventListener('click',e=>{e.preventDefault();line=a.dataset.try;input.value='';input.click()}));
+ input.addEventListener('change',async()=>{const file=input.files[0];if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>25*1024*1024){alert('یک تصویر JPG، PNG یا WebP با حجم کمتر از ۲۵ مگابایت انتخاب کنید.');return}try{await window.__AYN_DRAFT.put({file,line,selection:window.__AYN_SEL||{}});location.assign(href(line)+'&draft=1')}catch(_){alert('ذخیرهٔ موقت عکس در مرورگر ممکن نشد؛ در صفحهٔ بعد دوباره عکس را انتخاب کنید.');location.assign(href(line))}});
 })();

@@ -32,9 +32,9 @@
  const n2=i=>String(i+1).padStart(2,'0');
  const cards=STYLES.map((name,i)=>make('card','<span class="ph"><img src="'+SRC('s'+n2(i))+'" alt="" width="240" height="300" loading="lazy" draggable="false"></span><span class="nm">'+name+'</span>',()=>pickStyle(i),$('track')));
  const dItems=[];
- STYLES.forEach((name,i)=>{if(READY.has(i+1)){
+ STYLES.forEach((name,i)=>{
   dItems[i]=make('d-item','<span class="ic"><img src="'+SRC('s'+n2(i))+'" alt="" draggable="false"></span><span>'+name+'</span>',()=>pickStyle(i),$('dockTrack'));
- }});
+ });
  cards.forEach((b,i)=>{const note=document.createElement('small');note.className='preview-kind';note.textContent=READY.has(i+1)?'پیش‌نمایش روی آینه':'عکس مرجع';b.append(note)});
  const sws=COLORS.map((c,i)=>make('sw','<span class="dot"><i style="background:'+c.css+'"></i></span><span>'+c.name+'</span>',()=>pickColor(i),$('colList')));
  $('styCount').textContent='· '+fa(STYLES.length)+' مدل';
@@ -97,7 +97,7 @@
  /* ---------- hair recolour engine ---------- */
  const img=$('roomImg'),img2=$('roomImg2'),cv=$('hairCanvas'),ctx=cv.getContext('2d');
  let px=null,rafId=0,lookTok=0;const preps={};
- const loadImg=src=>new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src});
+ const imagePromises=new Map();const loadImg=src=>{if(!imagePromises.has(src))imagePromises.set(src,new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src}));return imagePromises.get(src)};
  const lookAssets=key=>key==='base'?['hero','hair-mask']:['look-'+key,'mask-'+key];
  let identitySource=null;
  function canonical(){
@@ -297,10 +297,10 @@
  const human=e=>{if(!e.isTrusted||e.target.closest('.demo-controls'))return;if(demonstrating)endDemo('حالا خودتان مدل و رنگ را انتخاب کنید.');if(e.target.closest('#dock,#colors,#styles')){revealPortrait();showFront()}};
  film.addEventListener('pointerdown',human,true);film.addEventListener('keydown',human,true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')});
- window.__AYN_HERO_READY=Promise.all([prepare('base'),prepare('s06'),prepare('s12')]);
+ const heroFiles=[['hero'],['hair-mask','png'],...STYLES.map((_,i)=>['s'+n2(i)]),...[...(window.__AYN_LOOKS||[])].flatMap(n=>[['look-s'+String(n).padStart(2,'0')],['mask-s'+String(n).padStart(2,'0'),'png']])];let loadedFiles=0;document.documentElement.classList.add('hero-loading');
+ window.__AYN_HERO_READY=Promise.all(heroFiles.map(([k,e])=>loadImg(SRC(k,e)).catch(()=>null).finally(()=>{loadedFiles++;$('loaderProgress').style.width=(loadedFiles/heroFiles.length*100)+'%'}))).then(()=>Promise.all([prepare('base'),prepare('s06'),prepare('s12')])).finally(()=>{document.documentElement.classList.remove('hero-loading');$('siteLoader').classList.add('is-done');setTimeout(()=>$('siteLoader').remove(),450)});
  const pageReady=new Promise(resolve=>{if(document.readyState==='complete')resolve();else addEventListener('load',resolve,{once:true})});
  window.__AYN_HERO_READY.then(()=>{
-  if(mobile.matches){endDemo();revealPortrait();return}
   // Never steal attention back if the visitor started interacting or scrolled past the hero while loading.
   const r=film.getBoundingClientRect();if(played||r.bottom<innerHeight*.5||r.top>innerHeight){endDemo();return}
   walkthrough();
@@ -319,5 +319,5 @@
  const req=()=>{if(!tick){tick=true;requestAnimationFrame(frameUpdate)}};
  addEventListener('scroll',req,{passive:true});
  new ResizeObserver(()=>{layout();req()}).observe(mirror);
- layout();frameUpdate();if(mobile.matches){revealPortrait();$('demoCaption').hidden=true;$('replayDemo').hidden=true}
+ layout();frameUpdate();if(mobile.matches){$('demoCaption').hidden=true}
 })();
