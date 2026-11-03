@@ -109,3 +109,11 @@ html:not(.journey-enabled) .journey-bridge,html:not(.journey-enabled) .journey-b
 .is-static .journey-note{position:relative;inset:auto;padding:20px}.is-static .journey-load{display:none}
 @media(min-width:601px){.journey-copy[data-journey-copy=nails]{top:75px;bottom:auto;width:29%;right:4%;max-width:340px}.journey-copy[data-journey-copy=nails] h3{font-size:clamp(23px,2.6vw,36px)}}
 @media(min-width:601px){.journey-copy[data-journey-copy=lashes]{width:86%;right:7%;max-width:none;bottom:105px;padding:14px 20px;display:grid;grid-template-columns:1fr 1fr;column-gap:40px;align-items:center}.journey-copy[data-journey-copy=lashes] .journey-kicker{grid-column:1;margin:0 0 4px}.journey-copy[data-journey-copy=lashes] h3{grid-column:1;font-size:28px;margin:0}.journey-copy[data-journey-copy=lashes] h3 br{display:none}.journey-copy[data-journey-copy=lashes]>p:not(.journey-kicker){grid-column:2;grid-row:1/3;max-width:none;font-size:14px;margin:0}.journey-copy[data-journey-copy=lashes] a{grid-column:1/3;margin-top:8px}}
+/* The outgoing downward gaze and incoming upward gaze share one moving frame. */
+.journey-gaze{display:block;padding:0;overflow:clip;background:#17120e}
+.journey-gaze-up,.journey-gaze-down{position:absolute;left:0;right:0;overflow:clip}
+.journey-gaze-up{top:0;height:var(--gaze-split)}.journey-gaze-down{bottom:0;height:calc(100% - var(--gaze-split))}
+.journey-gaze img{display:block;width:100%;height:100%;object-fit:cover;max-width:none}
+.journey-gaze-up img{object-position:62% 38%}.journey-gaze-down img{object-position:50% 14%}
+.journey-gaze .journey-gaze-seam{position:absolute;left:0;right:0;top:var(--gaze-split);width:100%;height:1px;background:#d4b37880;box-shadow:0 0 24px #d4b37850}
+@media(max-width:600px){.journey-gaze-up img{object-position:67% 38%}.journey-gaze-down img{object-position:50% 12%}}

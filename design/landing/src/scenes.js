@@ -30,7 +30,7 @@
 (()=>{
  const root=document.querySelector('.tryon-journey');if(!root)return;
  document.documentElement.classList.add('journey-enabled');
- const stage=root.querySelector('.journey-stage'),videos=[...root.querySelectorAll('[data-journey-film]')],copies=[...root.querySelectorAll('[data-journey-copy]')],buttons=[...root.querySelectorAll('[data-journey-go]')],status=root.querySelector('.journey-load');
+ const stage=root.querySelector('.journey-stage'),videos=[...root.querySelectorAll('[data-journey-film]')],copies=[...root.querySelectorAll('[data-journey-copy]')],buttons=[...root.querySelectorAll('[data-journey-go]')];
  const bridge=root.querySelector('.journey-bridge'),stone=bridge.querySelector('.journey-stone'),out=bridge.querySelector('.journey-bridge-out'),incoming=bridge.querySelector('.journey-bridge-in'),space=bridge.querySelector('.journey-bridge-space'),bridgeText=bridge.querySelector('p');
  const reduced=matchMedia('(prefers-reduced-motion:reduce), (max-height:500px)');
  const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
@@ -67,10 +67,11 @@
    stone.style.opacity=String(clamp(q/.1)*(1-clamp((q-.90)/.1)));const y=mobile?30+q*31:48+q*35;stone.style.top=y+'%';stone.style.transform='translate(-50%,-50%) rotate('+(-4*Math.sin(q*Math.PI))+'deg) scale('+(1-q*.35)+')';bridgeText.style.opacity=String(clamp((q-.18)/.15)*(1-clamp((q-.65)/.15)));
    load(state[2]);
   }
-  const s=state.find(s=>s.key===active);status.textContent=s?.error?'بارگذاری فیلم انجام نشد؛ صفحه را دوباره باز کنید.':s&&(!s.received||s.el.readyState<2)?'در حال دریافت و آماده‌سازی فیلم…':'';
+  if(active==='breath'){const split=q<.25?100-q*200:q>.75?50-(q-.75)*200:50;root.style.setProperty('--gaze-split',split.toFixed(3)+'%')}
  }
  function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(update)}}
  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);reduced.addEventListener('change',schedule);
  buttons.forEach(b=>b.addEventListener('click',()=>{const ph=phases.find(x=>x.key===b.dataset.journeyGo),hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;scrollTo({top:scrollY+root.getBoundingClientRect().top-hh+(root.offsetHeight-stage.offsetHeight)*(ph.from+.002),behavior:'smooth'})}));
- const near=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){load(state[0]);near.disconnect()}},{rootMargin:'100% 0px'});near.observe(root);update();
+ // Begin all three downloads on page entry, well before the film section.
+ state.forEach(s=>load(s));update();
 })();

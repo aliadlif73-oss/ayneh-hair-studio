@@ -27,3 +27,7 @@ Run the offline test suite with network disabled, regenerate the landing, run sc
 ## Hosted-media loading fix
 
 The private static host returned HTTP 200 for a byte-range request. Films now explicitly preload and fetch the entire same-origin MP4 into a Blob URL before seeking, avoiding dependence on server range support and paused preload=none behavior. Poster images remain only as loading placeholders; loading failures are surfaced. Video requests and Blob URLs stay browser-local.
+
+## Early preload and gaze handoff
+
+All three complete-file downloads now start immediately when the landing script runs, before visitors reach the service section. Removed visible scroll/loading instructions. The first bridge uses the actual final downward-looking hair frame above the upward-looking lash opening frame; a scroll-driven split holds the two gazes together before expanding the incoming shot. No claim of guaranteed readiness on an arbitrarily slow network is made.

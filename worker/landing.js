@@ -656,6 +656,14 @@ html:not(.journey-enabled) .journey-bridge,html:not(.journey-enabled) .journey-b
 .is-static .journey-note{position:relative;inset:auto;padding:20px}.is-static .journey-load{display:none}
 @media(min-width:601px){.journey-copy[data-journey-copy=nails]{top:75px;bottom:auto;width:29%;right:4%;max-width:340px}.journey-copy[data-journey-copy=nails] h3{font-size:clamp(23px,2.6vw,36px)}}
 @media(min-width:601px){.journey-copy[data-journey-copy=lashes]{width:86%;right:7%;max-width:none;bottom:105px;padding:14px 20px;display:grid;grid-template-columns:1fr 1fr;column-gap:40px;align-items:center}.journey-copy[data-journey-copy=lashes] .journey-kicker{grid-column:1;margin:0 0 4px}.journey-copy[data-journey-copy=lashes] h3{grid-column:1;font-size:28px;margin:0}.journey-copy[data-journey-copy=lashes] h3 br{display:none}.journey-copy[data-journey-copy=lashes]>p:not(.journey-kicker){grid-column:2;grid-row:1/3;max-width:none;font-size:14px;margin:0}.journey-copy[data-journey-copy=lashes] a{grid-column:1/3;margin-top:8px}}
+/* The outgoing downward gaze and incoming upward gaze share one moving frame. */
+.journey-gaze{display:block;padding:0;overflow:clip;background:#17120e}
+.journey-gaze-up,.journey-gaze-down{position:absolute;left:0;right:0;overflow:clip}
+.journey-gaze-up{top:0;height:var(--gaze-split)}.journey-gaze-down{bottom:0;height:calc(100% - var(--gaze-split))}
+.journey-gaze img{display:block;width:100%;height:100%;object-fit:cover;max-width:none}
+.journey-gaze-up img{object-position:62% 38%}.journey-gaze-down img{object-position:50% 14%}
+.journey-gaze .journey-gaze-seam{position:absolute;left:0;right:0;top:var(--gaze-split);width:100%;height:1px;background:#d4b37880;box-shadow:0 0 24px #d4b37850}
+@media(max-width:600px){.journey-gaze-up img{object-position:67% 38%}.journey-gaze-down img{object-position:50% 12%}}
 
 /* CTA bands, sticky mobile CTA, plan buttons, form microcopy */
 .cta-band{padding:clamp(40px,6vw,72px) var(--gut);background:var(--espresso);color:var(--cream)}
@@ -825,7 +833,7 @@ html:not(.journey-enabled) .journey-bridge,html:not(.journey-enabled) .journey-b
         </article>
       </div>
       <div class="cinema-frame" aria-hidden="true"></div>
-      <div class="cinema-topline"><span>یک روز در سالن. یک مسیر روشن‌تر.</span><span>برای ادامه اسکرول کنید ↓</span></div>
+      <div class="cinema-topline"><span>یک روز در سالن. یک مسیر روشن‌تر.</span></div>
       <nav class="cinema-controls" aria-label="اسلایدهای روایت آینه">
         <button type="button" data-cinema-go="0" aria-current="step"><span class="cinema-step">۰۱</span><span>تردید</span><i aria-hidden="true"></i></button>
         <button type="button" data-cinema-go="1"><span class="cinema-step">۰۲</span><span>مشاوره</span><i aria-hidden="true"></i></button>
@@ -846,7 +854,7 @@ html:not(.journey-enabled) .journey-bridge,html:not(.journey-enabled) .journey-b
         <video class="journey-film" data-journey-film="nails" data-src="video/nails.mp4" poster="/landing/nails-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ ناخن؛ با اسکرول جلو و عقب ببرید" controls><source src="/landing/video/nails.mp4" type="video/mp4"></video>
       </div>
       <div class="journey-wash" aria-hidden="true"></div>
-      <div class="journey-breath" aria-hidden="true"><span>انتخاب شما، تا کوچک‌ترین جزئیات.</span><i></i><small>از مو، به نگاه</small></div>
+      <div class="journey-breath journey-gaze" aria-hidden="true"><div class="journey-gaze-up"><img src="/landing/hair-end.webp" alt="" width="960" height="540"></div><div class="journey-gaze-down"><img src="/landing/lashes-poster.webp" alt="" width="960" height="540"></div><i class="journey-gaze-seam"></i></div>
       <div class="journey-bridge" aria-hidden="true">
         <img class="journey-bridge-out" src="/landing/lashes-end.webp" alt="" width="960" height="540" loading="lazy">
         <div class="journey-bridge-space"></div>
@@ -857,10 +865,9 @@ html:not(.journey-enabled) .journey-bridge,html:not(.journey-enabled) .journey-b
       <div class="journey-copy is-active" data-journey-copy="hair"><p class="journey-kicker">۰۱ / مدل و رنگ مو</p><h3>قبل از تغییر،<br>روی خودتان ببینید.</h3><p>عکس خودتان و مدل مو یا رنگ دلخواه‌تان را بگذارید؛ ببینید کدام انتخاب بیشتر به شما می‌آید.</p><a href="/s/demo?l=hair">روی عکس خودم امتحان کنم <span aria-hidden="true">←</span></a></div>
       <div class="journey-copy" data-journey-copy="lashes"><p class="journey-kicker">۰۲ / مدل مژه</p><h3>نگاه شما.<br>انتخاب شما.</h3><p>عکس چهره یا چشم‌هایتان را بارگذاری کنید و مدل مژهٔ دلخواه را روی چشم‌های خودتان ببینید.</p><a href="/s/demo?l=lashes">مژهٔ دلخواهم را ببینم <span aria-hidden="true">←</span></a></div>
       <div class="journey-copy" data-journey-copy="nails"><p class="journey-kicker">۰۳ / طرح و رنگ ناخن</p><h3>طرح بعدی را،<br>روی دست خودتان ببینید.</h3><p>عکس دستتان را بگذارید؛ فرم، رنگ و طرح ناخن را امتحان کنید و انتخاب دلخواه‌تان را برای سالن بفرستید.</p><a href="/s/demo?l=nails">روی دست خودم امتحان کنم <span aria-hidden="true">←</span></a></div>
-      <div class="journey-top"><span>اول ببینید. بعد انتخاب کنید.</span><span class="journey-scroll-hint">با اسکرول، فیلم را جلو و عقب ببرید ↓</span></div>
+      <div class="journey-top"><span>اول ببینید. بعد انتخاب کنید.</span></div>
       <nav class="journey-nav" aria-label="نمایش خدمات روی تصویر شما"><button type="button" data-journey-go="hair" aria-current="step">مو و رنگ <i></i></button><button type="button" data-journey-go="lashes">مژه <i></i></button><button type="button" data-journey-go="nails">ناخن <i></i></button></nav>
       <p class="journey-note">نمونهٔ نمایشی با هوش مصنوعی؛ شبیه‌سازی، تضمین نتیجهٔ اجرا نیست.</p>
-      <p class="journey-load" role="status"></p>
     </div>
     <noscript><p class="journey-nojs">برای کنترل فیلم‌ها با اسکرول، جاوااسکریپت را فعال کنید.</p></noscript>
   </section>
@@ -1542,7 +1549,7 @@ html:not(.journey-enabled) .journey-bridge,html:not(.journey-enabled) .journey-b
 (()=>{
  const root=document.querySelector('.tryon-journey');if(!root)return;
  document.documentElement.classList.add('journey-enabled');
- const stage=root.querySelector('.journey-stage'),videos=[...root.querySelectorAll('[data-journey-film]')],copies=[...root.querySelectorAll('[data-journey-copy]')],buttons=[...root.querySelectorAll('[data-journey-go]')],status=root.querySelector('.journey-load');
+ const stage=root.querySelector('.journey-stage'),videos=[...root.querySelectorAll('[data-journey-film]')],copies=[...root.querySelectorAll('[data-journey-copy]')],buttons=[...root.querySelectorAll('[data-journey-go]')];
  const bridge=root.querySelector('.journey-bridge'),stone=bridge.querySelector('.journey-stone'),out=bridge.querySelector('.journey-bridge-out'),incoming=bridge.querySelector('.journey-bridge-in'),space=bridge.querySelector('.journey-bridge-space'),bridgeText=bridge.querySelector('p');
  const reduced=matchMedia('(prefers-reduced-motion:reduce), (max-height:500px)');
  const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
@@ -1579,12 +1586,13 @@ html:not(.journey-enabled) .journey-bridge,html:not(.journey-enabled) .journey-b
    stone.style.opacity=String(clamp(q/.1)*(1-clamp((q-.90)/.1)));const y=mobile?30+q*31:48+q*35;stone.style.top=y+'%';stone.style.transform='translate(-50%,-50%) rotate('+(-4*Math.sin(q*Math.PI))+'deg) scale('+(1-q*.35)+')';bridgeText.style.opacity=String(clamp((q-.18)/.15)*(1-clamp((q-.65)/.15)));
    load(state[2]);
   }
-  const s=state.find(s=>s.key===active);status.textContent=s?.error?'بارگذاری فیلم انجام نشد؛ صفحه را دوباره باز کنید.':s&&(!s.received||s.el.readyState<2)?'در حال دریافت و آماده‌سازی فیلم…':'';
+  if(active==='breath'){const split=q<.25?100-q*200:q>.75?50-(q-.75)*200:50;root.style.setProperty('--gaze-split',split.toFixed(3)+'%')}
  }
  function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(update)}}
  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);reduced.addEventListener('change',schedule);
  buttons.forEach(b=>b.addEventListener('click',()=>{const ph=phases.find(x=>x.key===b.dataset.journeyGo),hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;scrollTo({top:scrollY+root.getBoundingClientRect().top-hh+(root.offsetHeight-stage.offsetHeight)*(ph.from+.002),behavior:'smooth'})}));
- const near=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){load(state[0]);near.disconnect()}},{rootMargin:'100% 0px'});near.observe(root);update();
+ // Begin all three downloads on page entry, well before the film section.
+ state.forEach(s=>load(s));update();
 })();
 
 </script>
