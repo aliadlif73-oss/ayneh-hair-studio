@@ -616,6 +616,47 @@ html:not(.cinema-enabled) .cinema-controls{display:none}
 
 @media(max-width:600px){html:not(.cinema-enabled) .cinema-copy{transform:none;bottom:55px}html:not(.cinema-enabled) .cinema-topline,html:not(.cinema-enabled) .cinema-frame{display:none}}
 
+/* Three user-supplied films share a native-scroll timeline and a DOM stone handoff. */
+.tryon-journey{height:1080svh;background:#17120e;color:#f8f0e5;position:relative;--film-progress:0}
+.journey-stage{position:sticky;top:var(--hh,76px);height:calc(100svh - var(--hh,76px));overflow:clip;isolation:isolate;background:#17120e}
+.journey-films,.journey-film,.journey-wash,.journey-bridge{position:absolute;inset:0;width:100%;height:100%}
+.journey-film{object-fit:contain;opacity:0;visibility:hidden;transition:opacity .4s;pointer-events:none;background:#17120e}
+.journey-film.is-active{opacity:1;visibility:visible}
+.journey-wash{pointer-events:none;background:linear-gradient(0deg,#100b08ed,transparent 40%,transparent 85%,#100b0870);z-index:2}
+.journey-copy{position:absolute;right:6%;bottom:115px;max-width:400px;width:34%;opacity:0;visibility:hidden;transform:translateY(14px);transition:opacity .35s,transform .45s;z-index:4;text-shadow:0 2px 16px #0008}
+.journey-copy.is-active{opacity:1;visibility:visible;transform:none}
+.journey-copy h3{font-size:clamp(26px,3.1vw,46px);line-height:1.5;margin:0 0 14px;letter-spacing:-.035em;color:#fff8ef}
+.journey-copy>p:not(.journey-kicker){font-size:clamp(13px,1.2vw,16px);line-height:1.95;color:#eee0ce;margin:0 0 15px;max-width:35ch}
+.journey-kicker{color:#e7c892;font-size:11px;margin:0 0 12px}
+.journey-copy a{font-size:12px;color:#ffe0a6;text-underline-offset:6px}.journey-copy a span{margin-right:16px}
+.journey-top{position:absolute;z-index:5;top:28px;left:6%;right:6%;display:flex;justify-content:space-between;font-size:10px;color:#eee0ca;gap:12px}
+.journey-nav{position:absolute;z-index:5;bottom:42px;left:6%;right:6%;display:flex;gap:24px}
+.journey-nav button{position:relative;flex:1;min-height:44px;border:0;border-bottom:1px solid #c8ac7e50;color:#b8a991;background:none;font:inherit;font-size:12px;text-align:right;cursor:pointer}
+.journey-nav button[aria-current]{color:#ffe2a6}.journey-nav i{position:absolute;bottom:-1px;right:0;width:100%;height:2px;background:#e7c58a;transform-origin:right;transform:scaleX(0)}.journey-nav button[aria-current] i{transform:scaleX(var(--film-progress))}
+.journey-note{position:absolute;bottom:13px;right:6%;left:6%;z-index:5;text-align:center;font-size:9px;color:#c2b29b;margin:0}
+.journey-breath{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:25px;background:#17120e;opacity:0;visibility:hidden;pointer-events:none;text-align:center;padding:30px}
+.journey-breath span{font-size:clamp(24px,3.5vw,45px);font-weight:600;line-height:1.8}.journey-breath small{font-size:12px;color:#c9ae7c}.journey-breath i{height:65px;width:1px;background:linear-gradient(transparent,#c9ae7c,transparent)}
+.journey-bridge{z-index:3;opacity:0;visibility:hidden;pointer-events:none;background:#17120e;--bridge-p:0}
+.journey-bridge-out,.journey-bridge-in{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.journey-bridge-space{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,#493a29,#17120e 70%)}
+.journey-stone{position:absolute;left:50%;top:50%;width:clamp(180px,28vw,400px);height:auto;max-width:none;filter:drop-shadow(0 35px 35px #0006);will-change:transform;transform:translate(-50%,-50%)}
+.journey-bridge p{position:absolute;top:12%;left:20px;right:20px;text-align:center;font-size:clamp(18px,2.5vw,32px);color:#f6e2bf}
+.journey-load{position:absolute;z-index:6;top:60px;left:6%;font-size:11px;color:#e3ca9e}.journey-nojs{padding:30px}
+.tryon-journey[data-phase=breath] .journey-breath{opacity:1;visibility:visible}.tryon-journey[data-phase=bridge] .journey-bridge{opacity:1;visibility:visible}
+@media(min-width:901px){.journey-copy{background:linear-gradient(270deg,#17120ed9,#17120e65);padding:20px 22px;border-right:1px solid #d3b67e60;border-radius:2px}}
+@media(max-width:900px){.journey-copy{width:43%;bottom:100px}.journey-copy h3{font-size:29px}.journey-copy>p:not(.journey-kicker){font-size:13px}}
+@media(max-width:600px){.tryon-journey{height:1150svh}.journey-film,.journey-bridge-out,.journey-bridge-in{height:auto;aspect-ratio:16/9;top:15%;object-fit:contain}.journey-wash{background:linear-gradient(0deg,#17120e 15%,#17120e00 70%)}.journey-copy{right:25px;left:25px;bottom:110px;max-width:none;width:auto}.journey-copy h3{font-size:27px;line-height:1.5;margin-bottom:10px}.journey-copy h3 br{display:none}.journey-copy>p:not(.journey-kicker){font-size:13px;max-width:38ch;margin-bottom:12px}.journey-kicker{font-size:10px;margin-bottom:8px}.journey-top{top:25px;left:25px;right:25px;font-size:9px}.journey-top>span:first-child{display:none}.journey-nav{left:25px;right:25px;bottom:39px;gap:14px}.journey-nav button{font-size:11px}.journey-note{font-size:8px;bottom:13px}.journey-stone{width:51vw}.journey-bridge p{top:10%;font-size:23px}.journey-load{top:48px}.journey-breath span{font-size:26px}}
+/* Accessible alternative: direct playback instead of forced scroll animation. */
+html:not(.journey-enabled) .tryon-journey,.tryon-journey.is-static{height:auto}
+html:not(.journey-enabled) .journey-stage,.is-static .journey-stage{position:relative;top:auto;height:auto;overflow:visible;padding:50px 20px}
+html:not(.journey-enabled) .journey-films,.is-static .journey-films{position:relative;display:grid;gap:25px}
+html:not(.journey-enabled) .journey-film,.is-static .journey-film{position:relative;inset:auto;width:100%;height:auto;aspect-ratio:16/9;opacity:1;visibility:visible;pointer-events:auto}
+html:not(.journey-enabled) .journey-copy,.is-static .journey-copy{position:relative;inset:auto;width:auto;max-width:650px;opacity:1;visibility:visible;transform:none;margin:30px auto;padding:20px}
+html:not(.journey-enabled) .journey-bridge,html:not(.journey-enabled) .journey-breath,html:not(.journey-enabled) .journey-wash,html:not(.journey-enabled) .journey-nav,html:not(.journey-enabled) .journey-top,.is-static .journey-bridge,.is-static .journey-breath,.is-static .journey-wash,.is-static .journey-nav,.is-static .journey-top{display:none}
+.is-static .journey-note{position:relative;inset:auto;padding:20px}.is-static .journey-load{display:none}
+@media(min-width:601px){.journey-copy[data-journey-copy=nails]{top:75px;bottom:auto;width:29%;right:4%;max-width:340px}.journey-copy[data-journey-copy=nails] h3{font-size:clamp(23px,2.6vw,36px)}}
+@media(min-width:601px){.journey-copy[data-journey-copy=lashes]{width:86%;right:7%;max-width:none;bottom:105px;padding:14px 20px;display:grid;grid-template-columns:1fr 1fr;column-gap:40px;align-items:center}.journey-copy[data-journey-copy=lashes] .journey-kicker{grid-column:1;margin:0 0 4px}.journey-copy[data-journey-copy=lashes] h3{grid-column:1;font-size:28px;margin:0}.journey-copy[data-journey-copy=lashes] h3 br{display:none}.journey-copy[data-journey-copy=lashes]>p:not(.journey-kicker){grid-column:2;grid-row:1/3;max-width:none;font-size:14px;margin:0}.journey-copy[data-journey-copy=lashes] a{grid-column:1/3;margin-top:8px}}
+
 /* CTA bands, sticky mobile CTA, plan buttons, form microcopy */
 .cta-band{padding:clamp(40px,6vw,72px) var(--gut);background:var(--espresso);color:var(--cream)}
 .cta-band--final{background:var(--espresso-2)}
@@ -796,35 +837,32 @@ html:not(.cinema-enabled) .cinema-controls{display:none}
     </div>
   </section>
 
-  <section id="transform" class="scene scene--dark on-dark" data-scene="transform" aria-labelledby="h-tr">
-    <div class="sstage">
-      <div class="scene-head">
-        <p class="kicker">با آینه</p>
-        <h2 id="h-tr">از یک عکس تا تصمیم، چند ثانیه.</h2>
+  <section id="transform" class="tryon-journey on-dark" aria-labelledby="journey-title">
+    <div class="journey-stage">
+      <h2 id="journey-title" class="sr-only">با تصویر خودتان، از مو تا مژه و ناخن</h2>
+      <div class="journey-films">
+        <video class="journey-film is-active" data-journey-film="hair" data-src="video/hair.mp4" poster="/landing/hair-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ مو؛ با اسکرول جلو و عقب ببرید" controls><source src="/landing/video/hair.mp4" type="video/mp4"></video>
+        <video class="journey-film" data-journey-film="lashes" data-src="video/lashes.mp4" poster="/landing/lashes-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل مژه؛ با اسکرول جلو و عقب ببرید" controls><source src="/landing/video/lashes.mp4" type="video/mp4"></video>
+        <video class="journey-film" data-journey-film="nails" data-src="video/nails.mp4" poster="/landing/nails-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ ناخن؛ با اسکرول جلو و عقب ببرید" controls><source src="/landing/video/nails.mp4" type="video/mp4"></video>
       </div>
-      <figure class="film-frame">
-        <canvas class="film-canvas" data-set="hair" data-n="52" data-fx=".5" role="img" aria-label="موی بلند و مسی یک مشتری که تدریجی به باب بلوند شامپاینی تبدیل می‌شود"></canvas>
-        <figcaption class="cap-row"><span class="cap is-on" data-from="0" data-to=".34">مشتری یک عکس از خودش می‌گذارد: موی بلند و مسی.</span><span class="cap" data-from=".34" data-to=".7">مدل و رنگ دلخواهش را انتخاب می‌کند.</span><span class="cap" data-still data-from=".7" data-to="1.01">نتیجه را روی خودش می‌بیند و با خیال راحت می‌آید.</span></figcaption>
-        <div class="rail" aria-hidden="true"><i id="railTr"></i></div>
-      </figure>
-      <p class="ai-note">نمونهٔ تصویری ساخته‌شده با هوش مصنوعی</p>
-    </div>
-  </section>
-
-  <section id="lines" class="scene scene--dark on-dark" data-scene="lines" aria-labelledby="h-ln">
-    <div class="sstage">
-      <div class="scene-head">
-        <p class="kicker">ناخن و مژه</p>
-        <h2 id="h-ln">برای ناخن و مژه هم همین‌طور.</h2>
+      <div class="journey-wash" aria-hidden="true"></div>
+      <div class="journey-breath" aria-hidden="true"><span>انتخاب شما، تا کوچک‌ترین جزئیات.</span><i></i><small>از مو، به نگاه</small></div>
+      <div class="journey-bridge" aria-hidden="true">
+        <img class="journey-bridge-out" src="/landing/lashes-end.webp" alt="" width="960" height="540" loading="lazy">
+        <div class="journey-bridge-space"></div>
+        <img class="journey-bridge-in" src="/landing/nails-poster.webp" alt="" width="960" height="540" loading="lazy">
+        <img class="journey-stone" src="/landing/journey-stone.webp" alt="" width="900" height="800" loading="lazy">
+        <p>حالا، نوبت دست‌های شماست.</p>
       </div>
-      <figure class="film-frame">
-        <canvas class="film-canvas" data-set="nails" data-n="45" data-fx=".5" role="img" aria-label="ناخن‌های ساده که به فرنچ بادامی با خط طلایی تبدیل می‌شوند"></canvas>
-        <canvas class="film-canvas film-canvas--b" data-set="lashes" data-n="43" data-fx=".42" role="img" aria-label="مژه‌های طبیعی که پرتر و حالت‌دارتر می‌شوند"></canvas>
-        <figcaption class="cap-row"><span class="cap is-on" data-still data-from="0" data-to=".5">طرح ناخن را قبل از لاک روی دست خودش می‌بیند.</span><span class="cap" data-from=".5" data-to="1.01">حالت مژه را قبل از اکستنشن می‌بیند.</span></figcaption>
-        <div class="rail" aria-hidden="true"><i id="railLn"></i></div>
-      </figure>
-      <p class="ai-note">نمونهٔ تصویری ساخته‌شده با هوش مصنوعی</p>
+      <div class="journey-copy is-active" data-journey-copy="hair"><p class="journey-kicker">۰۱ / مدل و رنگ مو</p><h3>قبل از تغییر،<br>روی خودتان ببینید.</h3><p>عکس خودتان و مدل مو یا رنگ دلخواه‌تان را بگذارید؛ ببینید کدام انتخاب بیشتر به شما می‌آید.</p><a href="/s/demo?l=hair">روی عکس خودم امتحان کنم <span aria-hidden="true">←</span></a></div>
+      <div class="journey-copy" data-journey-copy="lashes"><p class="journey-kicker">۰۲ / مدل مژه</p><h3>نگاه شما.<br>انتخاب شما.</h3><p>عکس چهره یا چشم‌هایتان را بارگذاری کنید و مدل مژهٔ دلخواه را روی چشم‌های خودتان ببینید.</p><a href="/s/demo?l=lashes">مژهٔ دلخواهم را ببینم <span aria-hidden="true">←</span></a></div>
+      <div class="journey-copy" data-journey-copy="nails"><p class="journey-kicker">۰۳ / طرح و رنگ ناخن</p><h3>طرح بعدی را،<br>روی دست خودتان ببینید.</h3><p>عکس دستتان را بگذارید؛ فرم، رنگ و طرح ناخن را امتحان کنید و انتخاب دلخواه‌تان را برای سالن بفرستید.</p><a href="/s/demo?l=nails">روی دست خودم امتحان کنم <span aria-hidden="true">←</span></a></div>
+      <div class="journey-top"><span>اول ببینید. بعد انتخاب کنید.</span><span class="journey-scroll-hint">با اسکرول، فیلم را جلو و عقب ببرید ↓</span></div>
+      <nav class="journey-nav" aria-label="نمایش خدمات روی تصویر شما"><button type="button" data-journey-go="hair" aria-current="step">مو و رنگ <i></i></button><button type="button" data-journey-go="lashes">مژه <i></i></button><button type="button" data-journey-go="nails">ناخن <i></i></button></nav>
+      <p class="journey-note">نمونهٔ نمایشی با هوش مصنوعی؛ شبیه‌سازی، تضمین نتیجهٔ اجرا نیست.</p>
+      <p class="journey-load" role="status"></p>
     </div>
+    <noscript><p class="journey-nojs">برای کنترل فیلم‌ها با اسکرول، جاوااسکریپت را فعال کنید.</p></noscript>
   </section>
 
   <section class="cta-band" aria-labelledby="h-cta1">
@@ -1101,7 +1139,7 @@ html:not(.cinema-enabled) .cinema-controls{display:none}
  compact.addEventListener('change',e=>{if(!e.matches&&!menu.hidden)setOpen(false)});
 })();
 </script>
-<script>window.__AYN_ASSET_VERSION="cb0d34cc2323";window.__AYN_LOOKS=[6, 12];</script>
+<script>window.__AYN_ASSET_VERSION="ad2baa4a48f6";window.__AYN_LOOKS=[6, 12];</script>
 <script>
 /* Keep the original portrait immutable; replace only the union of the old/new hair. */
 (()=>{
@@ -1472,57 +1510,6 @@ html:not(.cinema-enabled) .cinema-controls{display:none}
 
 </script>
 <script>
-/* Scenes: scroll scrubs a frame sequence painted on a canvas (video.currentTime stutters on iOS).
-   Frames load only when a scene is near the viewport; the first and last frame come first. */
-(()=>{
- const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
- const FR=window.__AYN_FRAMES,base=(window.__AYN_BASE||'/landing/')+'f/';
- const cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
- const url=(set,i)=>FR?FR[set][i]:base+set+'/'+String(i+1).padStart(3,'0')+'.webp';
-
- function seq(canvas){
-  const set=canvas.dataset.set,n=+canvas.dataset.n,fx=+canvas.dataset.fx||.5,imgs=new Array(n);
-  let started=false,prog=0,cw=0,ch=0;
-  const ok=im=>im&&im.complete&&im.naturalWidth;
-  function load(i){if(imgs[i])return;const im=new Image();im.decoding='async';im.onload=()=>paint();im.src=url(set,i);imgs[i]=im}
-  function start(){if(started)return;started=true;load(0);load(n-1);for(let i=1;i<n-1;i++)setTimeout(()=>load(i),40+i*35)}
-  function size(){const r=canvas.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);cw=canvas.width=Math.max(2,Math.round(r.width*d));ch=canvas.height=Math.max(2,Math.round(r.height*d));paint()}
-  function paint(){
-   const f=Math.round(cl(prog)*(n-1));let im=null;if(started)load(f);
-   for(let k=0;k<n&&!im;k++){if(ok(imgs[f-k]))im=imgs[f-k];else if(ok(imgs[f+k]))im=imgs[f+k]}
-   if(!im||!cw)return;
-   const s=Math.max(cw/im.naturalWidth,ch/im.naturalHeight),w=im.naturalWidth*s,h=im.naturalHeight*s;
-   canvas.getContext('2d').drawImage(im,(cw-w)*fx,(ch-h)/2,w,h);
-  }
-  return {start,size,set(p){prog=p;paint()},canvas};
- }
-
- const scenes=[...document.querySelectorAll('.scene[data-scene]')].map(el=>({el,kind:el.dataset.scene,seqs:[...el.querySelectorAll('.film-canvas')].map(seq),caps:[...el.querySelectorAll('.cap')],img:el.querySelector('#painImg'),rail:el.querySelector('.rail i')}));
- if(!scenes.length)return;
- const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){const s=scenes.find(x=>x.el===e.target);s.seqs.forEach(q=>q.start())}}),{rootMargin:'160% 0px'});
- scenes.forEach(s=>{io.observe(s.el);s.seqs.forEach(q=>q.size())});
- addEventListener('resize',()=>scenes.forEach(s=>s.seqs.forEach(q=>q.size())));
-
- function update(){
-  const vh=innerHeight;
-  for(const s of scenes){
-   const r=s.el.getBoundingClientRect();if(r.bottom<-vh||r.top>vh*2)continue;
-   const p=cl(-r.top/Math.max(1,r.height-vh));
-   s.caps.forEach(c=>c.classList.toggle('is-on',p>=+c.dataset.from&&p<+c.dataset.to));
-   if(s.rail)s.el.style.setProperty('--rp',p);
-   if(s.kind==='pain'&&s.img){const e=cl(p/.6);s.img.style.setProperty('--ps',1.14-.14*e);s.img.style.setProperty('--pr',(-2*(1-e))+'deg');s.img.style.setProperty('--po',.35+.65*e)}
-   else if(s.kind==='transform'){s.seqs[0].set(cl(p/.92))}
-   else if(s.kind==='lines'){
-    const [a,b]=s.seqs,pa=cl(p/.46),pb=cl((p-.54)/.46),mix=cl((p-.46)/.08);
-    a.set(pa);b.set(pb);a.canvas.style.opacity=1-mix;b.canvas.style.opacity=mix;
-   }
-  }
- }
- if(reduce){scenes.forEach(s=>{s.seqs.forEach(q=>{q.start();q.set(1)})});return}
- let tick=false;addEventListener('scroll',()=>{if(!tick){tick=true;requestAnimationFrame(()=>{tick=false;update()})}},{passive:true});
- update();
-})();
-
 /* Section two is a five-shot film: one dedicated image and a short caption per slide. */
 (()=>{
  const section=document.getElementById('pain');if(!section?.classList.contains('cinema-story'))return;
@@ -1549,6 +1536,43 @@ html:not(.cinema-enabled) .cinema-controls{display:none}
  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);staticMode.addEventListener('change',schedule);
  buttons.forEach((button,i)=>button.addEventListener('click',()=>{if(staticMode.matches)return;const header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;scrollTo({top:scrollY+section.getBoundingClientRect().top-header+(section.offsetHeight-stage.offsetHeight)*(i+.25)/shots.length,behavior:'smooth'})}));
  update();
+})();
+
+/* Native scroll controls paused HTML videos. Never intercept wheel/touch or autoplay. */
+(()=>{
+ const root=document.querySelector('.tryon-journey');if(!root)return;
+ document.documentElement.classList.add('journey-enabled');
+ const stage=root.querySelector('.journey-stage'),videos=[...root.querySelectorAll('[data-journey-film]')],copies=[...root.querySelectorAll('[data-journey-copy]')],buttons=[...root.querySelectorAll('[data-journey-go]')],status=root.querySelector('.journey-load');
+ const bridge=root.querySelector('.journey-bridge'),stone=bridge.querySelector('.journey-stone'),out=bridge.querySelector('.journey-bridge-out'),incoming=bridge.querySelector('.journey-bridge-in'),space=bridge.querySelector('.journey-bridge-space'),bridgeText=bridge.querySelector('p');
+ const reduced=matchMedia('(prefers-reduced-motion:reduce), (max-height:500px)');
+ const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+ const phases=[{key:'hair',from:0,to:.43},{key:'breath',from:.43,to:.50},{key:'lashes',from:.50,to:.74},{key:'bridge',from:.74,to:.85},{key:'nails',from:.85,to:1}];
+ const state=videos.map(el=>({el,key:el.dataset.journeyFilm,target:0,loaded:false,error:false}));
+ let scheduled=false,active='hair';
+ function seek(s){const v=s.el;if(!s.loaded||v.seeking||!Number.isFinite(v.duration)||v.readyState<1||s.error)return;const t=clamp(s.target,0,Math.max(0,v.duration-.045));if(Math.abs(v.currentTime-t)>.035){try{v.currentTime=t}catch(_){}}}
+ function load(s){if(s.loaded)return;s.loaded=true;s.el.src=(window.__AYN_BASE||'/landing/')+s.el.dataset.src+'?v='+(window.__AYN_ASSET_VERSION||'1');s.el.load()}
+ state.forEach(s=>{s.el.addEventListener('loadedmetadata',()=>{seek(s);schedule()});s.el.addEventListener('loadeddata',()=>{seek(s);schedule()});s.el.addEventListener('seeked',()=>{seek(s);schedule()});s.el.addEventListener('canplay',schedule);s.el.addEventListener('error',()=>{s.error=true;schedule()})});
+ function update(){
+  scheduled=false;
+  const isStatic=reduced.matches;root.classList.toggle('is-static',isStatic);
+  if(isStatic){state.forEach(s=>{load(s);s.el.controls=true;s.el.inert=false;s.el.removeAttribute('aria-hidden')});copies.forEach(c=>{c.inert=false;c.removeAttribute('aria-hidden')});return}
+  state.forEach(s=>{s.el.controls=false;s.el.pause()});
+  const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76,rect=root.getBoundingClientRect(),span=Math.max(1,root.offsetHeight-stage.offsetHeight),p=clamp((hh-rect.top)/span);
+  const phase=phases.find(x=>p<x.to)||phases[4],q=clamp((p-phase.from)/(phase.to-phase.from));active=phase.key;root.dataset.phase=active;root.dataset.progress=p.toFixed(4);root.style.setProperty('--film-progress',q.toFixed(4));
+  state.forEach((s,i)=>{const ph=phases.find(x=>x.key===s.key),local=clamp((p-ph.from)/(ph.to-ph.from));if(rect.top<innerHeight*2&&p>ph.from-.12)load(s);if(s.loaded&&Number.isFinite(s.el.duration)){s.target=local*(s.el.duration-.045);seek(s)}const shown=s.key===active;s.el.classList.toggle('is-active',shown);s.el.inert=!shown;s.el.setAttribute('aria-hidden',String(!shown))});
+  copies.forEach(c=>{const on=c.dataset.journeyCopy===active;c.classList.toggle('is-active',on);c.inert=!on;c.setAttribute('aria-hidden',String(!on))});
+  buttons.forEach(b=>{if(b.dataset.journeyGo===active)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current')});
+  if(active==='bridge'){
+   const mobile=innerWidth<=600;out.style.opacity=String(1-clamp(q/.22));space.style.opacity=String(clamp(q/.18)*(1-clamp((q-.73)/.27)));incoming.style.opacity=String(clamp((q-.76)/.24));
+   stone.style.opacity=String(clamp(q/.1)*(1-clamp((q-.90)/.1)));const y=mobile?30+q*31:48+q*35;stone.style.top=y+'%';stone.style.transform='translate(-50%,-50%) rotate('+(-4*Math.sin(q*Math.PI))+'deg) scale('+(1-q*.35)+')';bridgeText.style.opacity=String(clamp((q-.18)/.15)*(1-clamp((q-.65)/.15)));
+   load(state[2]);
+  }
+  const s=state.find(s=>s.key===active);status.textContent=s?.error?'بارگذاری فیلم انجام نشد؛ صفحه را دوباره باز کنید.':s&&(!s.loaded||s.el.readyState<2)?'در حال آماده‌سازی فیلم…':'';
+ }
+ function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(update)}}
+ addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);reduced.addEventListener('change',schedule);
+ buttons.forEach(b=>b.addEventListener('click',()=>{const ph=phases.find(x=>x.key===b.dataset.journeyGo),hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;scrollTo({top:scrollY+root.getBoundingClientRect().top-hh+(root.offsetHeight-stage.offsetHeight)*(ph.from+.002),behavior:'smooth'})}));
+ const near=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){load(state[0]);near.disconnect()}},{rootMargin:'100% 0px'});near.observe(root);update();
 })();
 
 </script>

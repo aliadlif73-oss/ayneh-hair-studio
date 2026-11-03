@@ -41,35 +41,32 @@
     </div>
   </section>
 
-  <section id="transform" class="scene scene--dark on-dark" data-scene="transform" aria-labelledby="h-tr">
-    <div class="sstage">
-      <div class="scene-head">
-        <p class="kicker">با آینه</p>
-        <h2 id="h-tr">از یک عکس تا تصمیم، چند ثانیه.</h2>
+  <section id="transform" class="tryon-journey on-dark" aria-labelledby="journey-title">
+    <div class="journey-stage">
+      <h2 id="journey-title" class="sr-only">با تصویر خودتان، از مو تا مژه و ناخن</h2>
+      <div class="journey-films">
+        <video class="journey-film is-active" data-journey-film="hair" data-src="video/hair.mp4" poster="assets/hair-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ مو؛ با اسکرول جلو و عقب ببرید" controls><source src="assets/video/hair.mp4" type="video/mp4"></video>
+        <video class="journey-film" data-journey-film="lashes" data-src="video/lashes.mp4" poster="assets/lashes-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل مژه؛ با اسکرول جلو و عقب ببرید" controls><source src="assets/video/lashes.mp4" type="video/mp4"></video>
+        <video class="journey-film" data-journey-film="nails" data-src="video/nails.mp4" poster="assets/nails-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ ناخن؛ با اسکرول جلو و عقب ببرید" controls><source src="assets/video/nails.mp4" type="video/mp4"></video>
       </div>
-      <figure class="film-frame">
-        <canvas class="film-canvas" data-set="hair" data-n="52" data-fx=".5" role="img" aria-label="موی بلند و مسی یک مشتری که تدریجی به باب بلوند شامپاینی تبدیل می‌شود"></canvas>
-        <figcaption class="cap-row"><span class="cap is-on" data-from="0" data-to=".34">مشتری یک عکس از خودش می‌گذارد: موی بلند و مسی.</span><span class="cap" data-from=".34" data-to=".7">مدل و رنگ دلخواهش را انتخاب می‌کند.</span><span class="cap" data-still data-from=".7" data-to="1.01">نتیجه را روی خودش می‌بیند و با خیال راحت می‌آید.</span></figcaption>
-        <div class="rail" aria-hidden="true"><i id="railTr"></i></div>
-      </figure>
-      <p class="ai-note">نمونهٔ تصویری ساخته‌شده با هوش مصنوعی</p>
-    </div>
-  </section>
-
-  <section id="lines" class="scene scene--dark on-dark" data-scene="lines" aria-labelledby="h-ln">
-    <div class="sstage">
-      <div class="scene-head">
-        <p class="kicker">ناخن و مژه</p>
-        <h2 id="h-ln">برای ناخن و مژه هم همین‌طور.</h2>
+      <div class="journey-wash" aria-hidden="true"></div>
+      <div class="journey-breath" aria-hidden="true"><span>انتخاب شما، تا کوچک‌ترین جزئیات.</span><i></i><small>از مو، به نگاه</small></div>
+      <div class="journey-bridge" aria-hidden="true">
+        <img class="journey-bridge-out" src="assets/lashes-end.webp" alt="" width="960" height="540" loading="lazy">
+        <div class="journey-bridge-space"></div>
+        <img class="journey-bridge-in" src="assets/nails-poster.webp" alt="" width="960" height="540" loading="lazy">
+        <img class="journey-stone" src="assets/journey-stone.webp" alt="" width="900" height="800" loading="lazy">
+        <p>حالا، نوبت دست‌های شماست.</p>
       </div>
-      <figure class="film-frame">
-        <canvas class="film-canvas" data-set="nails" data-n="45" data-fx=".5" role="img" aria-label="ناخن‌های ساده که به فرنچ بادامی با خط طلایی تبدیل می‌شوند"></canvas>
-        <canvas class="film-canvas film-canvas--b" data-set="lashes" data-n="43" data-fx=".42" role="img" aria-label="مژه‌های طبیعی که پرتر و حالت‌دارتر می‌شوند"></canvas>
-        <figcaption class="cap-row"><span class="cap is-on" data-still data-from="0" data-to=".5">طرح ناخن را قبل از لاک روی دست خودش می‌بیند.</span><span class="cap" data-from=".5" data-to="1.01">حالت مژه را قبل از اکستنشن می‌بیند.</span></figcaption>
-        <div class="rail" aria-hidden="true"><i id="railLn"></i></div>
-      </figure>
-      <p class="ai-note">نمونهٔ تصویری ساخته‌شده با هوش مصنوعی</p>
+      <div class="journey-copy is-active" data-journey-copy="hair"><p class="journey-kicker">۰۱ / مدل و رنگ مو</p><h3>قبل از تغییر،<br>روی خودتان ببینید.</h3><p>عکس خودتان و مدل مو یا رنگ دلخواه‌تان را بگذارید؛ ببینید کدام انتخاب بیشتر به شما می‌آید.</p><a href="/s/demo?l=hair">روی عکس خودم امتحان کنم <span aria-hidden="true">←</span></a></div>
+      <div class="journey-copy" data-journey-copy="lashes"><p class="journey-kicker">۰۲ / مدل مژه</p><h3>نگاه شما.<br>انتخاب شما.</h3><p>عکس چهره یا چشم‌هایتان را بارگذاری کنید و مدل مژهٔ دلخواه را روی چشم‌های خودتان ببینید.</p><a href="/s/demo?l=lashes">مژهٔ دلخواهم را ببینم <span aria-hidden="true">←</span></a></div>
+      <div class="journey-copy" data-journey-copy="nails"><p class="journey-kicker">۰۳ / طرح و رنگ ناخن</p><h3>طرح بعدی را،<br>روی دست خودتان ببینید.</h3><p>عکس دستتان را بگذارید؛ فرم، رنگ و طرح ناخن را امتحان کنید و انتخاب دلخواه‌تان را برای سالن بفرستید.</p><a href="/s/demo?l=nails">روی دست خودم امتحان کنم <span aria-hidden="true">←</span></a></div>
+      <div class="journey-top"><span>اول ببینید. بعد انتخاب کنید.</span><span class="journey-scroll-hint">با اسکرول، فیلم را جلو و عقب ببرید ↓</span></div>
+      <nav class="journey-nav" aria-label="نمایش خدمات روی تصویر شما"><button type="button" data-journey-go="hair" aria-current="step">مو و رنگ <i></i></button><button type="button" data-journey-go="lashes">مژه <i></i></button><button type="button" data-journey-go="nails">ناخن <i></i></button></nav>
+      <p class="journey-note">نمونهٔ نمایشی با هوش مصنوعی؛ شبیه‌سازی، تضمین نتیجهٔ اجرا نیست.</p>
+      <p class="journey-load" role="status"></p>
     </div>
+    <noscript><p class="journey-nojs">برای کنترل فیلم‌ها با اسکرول، جاوااسکریپت را فعال کنید.</p></noscript>
   </section>
 
   <section class="cta-band" aria-labelledby="h-cta1">

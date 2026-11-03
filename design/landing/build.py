@@ -8,7 +8,7 @@ W = lambda p, s: open(p, 'w', encoding='utf8').write(s)
 # Keep the shipped static assets synchronized with their design sources.
 import shutil
 for asset in os.listdir('assets'):
-    if re.match(r'(look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp)$', asset):
+    if re.match(r'(look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', asset):
         shutil.copyfile('assets/' + asset, '../../public/landing/' + asset)
 
 # ---------------- source assembly (relative asset paths) ----------------
@@ -29,7 +29,9 @@ h = h.replace('  <!-- 6. Plans -->', trial + '  <!-- 6. Plans -->', 1)
 assert 'leadForm' in h and 'id="mock"' in h, 'trial section not inserted'
 # styles whose mirror render exists (assets/look-sNN.webp + mask-sNN.png): the hero shows their shape on the model
 LOOKS = sorted(int(m.group(1)) for f in os.listdir('assets') for m in [re.match(r'look-s(\d\d)\.webp$', f)] if m and os.path.exists('assets/mask-s%s.png' % m.group(1)))
-asset_version = hashlib.sha256(b''.join(open('assets/' + f, 'rb').read() for f in sorted(os.listdir('assets')) if re.match(r'(hero\.webp|hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp)$', f))).hexdigest()[:12]
+asset_version = hashlib.sha256(b''.join(open('assets/' + f, 'rb').read() for f in sorted(os.listdir('assets')) if re.match(r'(hero\.webp|hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', f))).hexdigest()[:12]
+# Include film contents so unchanged poster frames cannot leave stale video URLs.
+asset_version = hashlib.sha256((asset_version + ''.join(hashlib.sha256(open('../../public/landing/video/' + n + '.mp4', 'rb').read()).hexdigest() for n in ['hair', 'lashes', 'nails'])).encode()).hexdigest()[:12]
 scripts = '<script>window.__AYN_ASSET_VERSION=' + json.dumps(asset_version) + ';window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/portrait.js', 'src/hero.js', 'src/sec2.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/reveal.js', 'src/lead.js'])
 h = h.replace('</body>', scripts + '</body>')
 W('out/v2.html', h.replace('__ORIGIN__', ''))
@@ -41,7 +43,7 @@ def b64(f, m):
 
 # ---------------- single-file artifact (everything inlined, preview flag on) ----------------
 a = h.replace('__ORIGIN__', '').replace('assets/estedad.woff2', b64('estedad.woff2', 'font/woff2'))
-for f in ['hero', 'compare', 'a2'] + ['salon-film-%02d' % i for i in range(1, 6)]:
+for f in ['hero', 'compare', 'a2'] + ['salon-film-%02d' % i for i in range(1, 6)] + [n + '-' + k for n in ['hair', 'lashes', 'nails'] for k in ['poster', 'end']] + ['journey-stone']:
     a = a.replace('assets/%s.webp' % f, b64(f + '.webp', 'image/webp'))
 imgmap = {('s%02d' % i): b64('s%02d.webp' % i, 'image/webp') for i in range(1, 20)}
 imgmap.update({('ic%d' % i): b64('ic%d.webp' % i, 'image/webp') for i in range(1, 5)})
@@ -51,7 +53,7 @@ imgmap['hero'] = b64('hero.webp', 'image/webp')
 for n in LOOKS:
     imgmap['look-s%02d' % n] = b64('look-s%02d.webp' % n, 'image/webp')
     imgmap['mask-s%02d' % n] = b64('mask-s%02d.png' % n, 'image/png')
-frames = {k: [b64('f/%s/%03d.webp' % (k, i + 1), 'image/webp') for i in range(n)] for k, n in [('hair', 52), ('nails', 45), ('lashes', 43)]}
+frames = {} # Scroll films are seekable MP4 assets, not the retired frame sequences.
 marker = '<script>' + NL + '/* Film hero'
 assert marker in a
 a = a.replace(marker, '<script>window.__AYN_PREVIEW=true;window.__AYN_IMG=' + json.dumps(imgmap) + ';window.__AYN_FRAMES=' + json.dumps(frames) + ';</script>' + NL + marker, 1)
