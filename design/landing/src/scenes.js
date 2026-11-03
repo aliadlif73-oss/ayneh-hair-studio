@@ -48,3 +48,48 @@
  let tick=false;addEventListener('scroll',()=>{if(!tick){tick=true;requestAnimationFrame(()=>{tick=false;update()})}},{passive:true});
  update();
 })();
+
+/* A continuous editorial stage: scroll position selects a chapter; scrolling stays native. */
+(()=>{
+ const section=document.getElementById('pain');if(!section?.classList.contains('value-story'))return;
+ const stage=section.querySelector('.value-stage'),world=section.querySelector('.value-world');
+ const chapters=[...section.querySelectorAll('[data-value-chapter]')],buttons=[...section.querySelectorAll('[data-value-go]')];
+ const staticMode=matchMedia('(prefers-reduced-motion:reduce), (max-height:640px)');
+ const source=k=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'assets/')+k+'.webp');
+ section.querySelectorAll('[data-value-asset]').forEach(img=>{img.src=source(img.dataset.valueAsset)});
+ let selectionTimer=0;
+ function selection(detail){
+  clearTimeout(selectionTimer);
+  // The hero colours hair on a separate canvas; copy the finished composition, not just its base image.
+  selectionTimer=setTimeout(()=>{
+   const photo=document.getElementById('roomImg'),hair=document.getElementById('hairCanvas');if(!photo?.complete||!photo.naturalWidth)return;
+   const canvas=document.createElement('canvas');canvas.width=1376;canvas.height=768;
+   const g=canvas.getContext('2d');g.drawImage(photo,0,0,1376,768);if(hair)g.drawImage(hair,0,0);
+   const image=canvas.toDataURL('image/png');document.getElementById('valuePortrait').src=image;document.getElementById('valueRequestPhoto').src=image;
+  },1000);
+  const selected=[detail?.style,detail?.color].filter(Boolean).join(' · ')||'مدل و رنگ دلخواه مشتری';
+  document.getElementById('valueChoiceText').textContent=selected;document.getElementById('valueRequestChoice').textContent=selected;
+ }
+ addEventListener('ayneh:selection',event=>selection(event.detail));selection(window.__AYN_SEL);
+ let queued=false,current=-1;
+ function update(){
+  queued=false;
+  if(staticMode.matches){chapters.forEach(c=>{c.inert=false;c.removeAttribute('aria-hidden')});current=-1;return}
+  const rect=section.getBoundingClientRect(),header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;
+  const span=Math.max(1,section.offsetHeight-stage.offsetHeight),p=Math.max(0,Math.min(1,(header-rect.top)/span));
+  section.style.setProperty('--value-p',p.toFixed(4));section.style.setProperty('--value-local',((p*chapters.length)%1).toFixed(4));
+  const index=Math.min(chapters.length-1,Math.floor(p*chapters.length));
+  if(index===current)return;current=index;world.dataset.valueState=String(index);section.dataset.valueChapter=String(index);
+  chapters.forEach((chapter,i)=>{const active=i===index;chapter.classList.toggle('is-current',active);chapter.inert=!active;chapter.setAttribute('aria-hidden',String(!active))});
+  buttons.forEach((button,i)=>{if(i===index)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current')});
+ }
+ const schedule=()=>{if(!queued){queued=true;requestAnimationFrame(update)}};
+ addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);staticMode.addEventListener('change',schedule);
+ buttons.forEach((button,i)=>button.addEventListener('click',()=>{
+  if(staticMode.matches)return;
+  const header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;
+  const span=section.offsetHeight-stage.offsetHeight,target=scrollY+section.getBoundingClientRect().top-header+span*((i+.25)/chapters.length);
+  scrollTo({top:target,behavior:'smooth'});
+ }));
+ update();
+})();
