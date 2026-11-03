@@ -797,6 +797,7 @@ test('customer page: four services, «بساز» starts building with no consent
  assert(!/download:'ayneh\.png'/.test(js));assert.match(js,/function saveName\(id\)/);
  // Only the landing demo explicitly combines hairstyle and colour; salon hair keeps its original colour.
  assert.match(js,/var col=state\.line==='hair'\?\(state\.pub\.demo\?state\.color:''\)/);assert.match(js,/base_id:state\.line==='color'/);
+ assert.match(js,/function maybeTour\(\)\{if\(SLUG==='demo'&&/,'gallery handoff is not interrupted by the welcome tour');
  // Every service has its building scene and stages.
  for(const l of ['hair','color','nails','lashes'])assert.match(js,new RegExp('\\n '+l+":\\{title:'"));
 });

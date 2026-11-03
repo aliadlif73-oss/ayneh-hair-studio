@@ -1426,7 +1426,7 @@ function tourSteps(){
   {el:mobile?'#dock .dock__inner':'.hero__cta .btn',title:'شروع کنیم؟',text:'اول عکس خودت را بگذار. بعد از دیدن نتیجه، با یک دکمه برای سالن فرستاده می‌شود و خود سالن با تو تماس می‌گیرد.',last:true}
  ].filter(Boolean);
 }
-function maybeTour(){try{if(localStorage.getItem(TOUR_KEY))return}catch(e){return}if(state.busy)return;setTimeout(startTour,700)}
+function maybeTour(){if(SLUG==='demo'&&/[?&]draft=1/.test(location.search))return;try{if(localStorage.getItem(TOUR_KEY))return}catch(e){return}if(state.busy)return;setTimeout(startTour,700)}
 function startTour(){
  if($('.tour'))return;
  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
