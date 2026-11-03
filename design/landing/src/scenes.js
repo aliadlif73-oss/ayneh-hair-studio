@@ -25,20 +25,31 @@
  async function load(s){if(s.loaded)return;s.loaded=true;s.v.muted=true;s.v.preload='auto';if(s.key==='hair')s.v.defaultPlaybackRate=s.v.playbackRate=1.5;try{const r=await fetch((window.__AYN_BASE||'assets/')+s.v.dataset.src+'?v='+window.__AYN_ASSET_VERSION,{credentials:'same-origin',priority:'low'});if(!r.ok||!(r.headers.get('content-type')||'').includes('video/'))throw Error('HTTP '+r.status+' '+r.headers.get('content-type'));s.v.src=URL.createObjectURL(await r.blob());s.v.load()}catch(e){console.warn('Video unavailable:',s.key,e.message);s.v.controls=true}}
  function playback(s){if(s.key==='nails')return;if(s.key==='hair')s.v.defaultPlaybackRate=s.v.playbackRate=1.5;if(s.visible&&!s.userPaused&&!document.hidden&&!reduced.matches){if(s.v.ended)s.v.currentTime=0;s.v.play().catch(()=>{s.v.controls=true})}else s.v.pause()}
  states.forEach(s=>{s.v.addEventListener('loadedmetadata',()=>{s.v.playbackRate=s.key==='hair'?1.5:1});s.v.controls=reduced.matches;s.v.addEventListener('loadeddata',()=>{playback(s);schedule()});if(s.key!=='nails'){const panel=s.v.closest('.auto-film'),button=panel.querySelector('.film-toggle');new IntersectionObserver(es=>{s.visible=es[0].intersectionRatio>=.4;playback(s)},{threshold:[0,.4,.7]}).observe(panel);button.onclick=()=>{s.userPaused=!s.v.paused;if(s.userPaused)s.v.pause();else{s.v.play().catch(()=>{s.v.controls=true})}button.textContent=s.userPaused?'▶':'Ⅱ';button.setAttribute('aria-label',s.userPaused?'پخش ویدئو':'توقف پخش ویدئو')};s.v.addEventListener('ended',()=>{button.textContent='↻';button.setAttribute('aria-label','پخش دوبارهٔ ویدئو');if(s.key==='lashes'&&s.visible&&!document.hidden)enterNails();if(s.key==='hair'&&s.visible&&!document.hidden){root.querySelector('[data-auto-film=lashes]').scrollIntoView({behavior:reduced.matches?'auto':'smooth',block:'start'})}})}});
- document.addEventListener('visibilitychange',()=>states.forEach(playback));reduced.addEventListener('change',()=>{states.forEach(s=>{s.v.addEventListener('loadedmetadata',()=>{s.v.playbackRate=s.key==='hair'?1.5:1});s.v.controls=reduced.matches;playback(s)});schedule()});
+ document.addEventListener('visibilitychange',()=>states.forEach(playback));reduced.addEventListener('change',()=>{states.forEach(s=>{s.v.controls=reduced.matches;playback(s)});schedule()});
  const area=root.querySelector('.nail-journey'),stage=area.querySelector('.journey-stage'),s=states.find(s=>s.key==='nails'),bridge=area.querySelector('.journey-bridge'),stone=area.querySelector('.journey-stone'),space=area.querySelector('.journey-bridge-space'),copy=area.querySelector('.journey-copy');let pending=false,position=0,target=0;
  function enterNails(){
-  const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||65,startY=scrollY,areaY=scrollY+area.getBoundingClientRect().top-hh;
-  const end=areaY+Math.max(1,area.offsetHeight-stage.offsetHeight)*.28;
+  if(!states.find(x=>x.key==='lashes').visible||document.hidden)return;
+  if(!Number.isFinite(s.v.duration)){s.v.addEventListener('loadedmetadata',enterNails,{once:true});return}
+  const timeline=window.__AYN_JOURNEY,stopTime=Math.min(3,s.v.duration-.05);
+  const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||65,startY=scrollY,areaY=scrollY+area.getBoundingClientRect().top-hh,span=Math.max(1,area.offsetHeight-stage.offsetHeight);
+  const bridgeY=areaY+span*timeline.bridge,endY=areaY+span*timeline.progressAt(stopTime,s.v.duration);
   if(reduced.matches){scrollTo({top:areaY,behavior:'auto'});return}
-  let frame=0,cancelled=false,t0=performance.now();const abort=()=>{cancelled=true;cancelAnimationFrame(frame);clean()};const events=['wheel','touchstart','pointerdown','keydown'];const clean=()=>events.forEach(n=>removeEventListener(n,abort));events.forEach(n=>addEventListener(n,abort,{once:true,passive:true}));
-  function step(now){if(cancelled)return;const t=Math.min(1,(now-t0)/2800),e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;scrollTo({top:startY+(end-startY)*e,behavior:'instant'});if(t<1)frame=requestAnimationFrame(step);else clean()}frame=requestAnimationFrame(step);
+  area.dataset.handoff='auto';area.dataset.handoffTime=String(stopTime);
+  let frame=0,cancelled=false,t0=performance.now();const clean=()=>events.forEach(n=>removeEventListener(n,abort));const abort=()=>{cancelled=true;cancelAnimationFrame(frame);area.dataset.handoff='manual';clean()};const events=['wheel','touchstart','pointerdown','keydown'];events.forEach(n=>addEventListener(n,abort,{once:true,passive:true}));
+  function step(now){if(cancelled)return;const elapsed=now-t0;let y;
+   if(elapsed<1900){const t=elapsed/1900,e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;y=startY+(bridgeY-startY)*e}
+   else{const t=Math.min(1,(elapsed-1900)/(stopTime*1000));y=bridgeY+(endY-bridgeY)*t}
+   scrollTo({top:y,behavior:'instant'});
+   if(elapsed<1900+stopTime*1000)frame=requestAnimationFrame(step);
+   else{position=target=timeline.progressAt(stopTime,s.v.duration);s.target=stopTime;seek();schedule();area.dataset.handoff='manual';clean()}
+  }frame=requestAnimationFrame(step);
  }
+
  function seek(){if(s.v.seeking||s.v.readyState<1||!Number.isFinite(s.v.duration))return;const t=cl(s.target,0,s.v.duration-.05);if(Math.abs(s.v.currentTime-t)>.045)s.v.currentTime=t}s.v.addEventListener('seeked',seek);
  function update(){pending=false;area.classList.toggle('is-static',reduced.matches);if(reduced.matches){s.v.controls=true;bridge.hidden=true;return}bridge.hidden=false;
  const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||65;target=cl((hh-area.getBoundingClientRect().top)/Math.max(1,area.offsetHeight-stage.offsetHeight));position+= (target-position)*.18;if(Math.abs(target-position)<.0004)position=target;const p=position,q=cl(p/.27),n=cl((p-.27)/.73);
  area.dataset.phase=p<.27?'bridge':'nails';bridge.style.opacity=p<.27?'1':'0';bridge.style.visibility=p<.27?'visible':'hidden';s.v.classList.toggle('is-active',p>=.27);copy.classList.toggle('is-active',p>=.27);
- space.style.opacity=String(cl(q/.18)*(1-cl((q-.73)/.27)));stone.style.opacity=String(cl(q/.1)*(1-cl((q-.9)/.1)));stone.style.top=(40+q*43)+'%';stone.style.transform='translate(-50%,-50%) scale('+(1-q*.35)+')';bridge.querySelector('p').style.opacity=String(cl((q-.18)/.15)*(1-cl((q-.65)/.15)));if(Number.isFinite(s.v.duration)){s.target=n*(s.v.duration-.05);seek()}if(position!==target)schedule();
+ space.style.opacity=String(cl(q/.18)*(1-cl((q-.73)/.27)));stone.style.opacity=String(cl(q/.1)*(1-cl((q-.9)/.1)));stone.style.top=(40+q*43)+'%';stone.style.transform='translate(-50%,-50%) scale('+(1-q*.35)+')';bridge.querySelector('p').style.opacity=String(cl((q-.18)/.15)*(1-cl((q-.65)/.15)));if(Number.isFinite(s.v.duration)){s.target=window.__AYN_JOURNEY.timeAt(p,s.v.duration);seek()}if(position!==target)schedule();
  }
  function schedule(){if(!pending){pending=true;requestAnimationFrame(update)}}addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);
  Promise.resolve(window.__AYN_HERO_READY).finally(()=>states.forEach(load));schedule();

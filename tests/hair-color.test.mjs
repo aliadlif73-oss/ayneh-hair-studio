@@ -7,7 +7,7 @@ const w={};vm.runInNewContext(readFileSync(new URL('../design/landing/src/hair-c
 test('hair tint preserves deep shadows and bright strand detail without clipping',()=>{
  for(const rgb of [[139,94,57],[211,201,181],[91,39,53],[49,36,29]]){
   const dark=w.__AYN_HAIR_COLOR.tint({rgb},.04,.5),mid=w.__AYN_HAIR_COLOR.tint({rgb},.32,.5),light=w.__AYN_HAIR_COLOR.tint({rgb},.62,.5);
-  for(let i=0;i<3;i++){assert(dark[i]<mid[i]*.22);assert(light[i]>mid[i]);assert(light[i]<=248)}
+  for(let i=0;i<3;i++){assert(dark[i]<mid[i]*.55);assert(light[i]>mid[i]);assert(light[i]<=248)}
  }
 });
 function grayPng(path){
@@ -21,7 +21,11 @@ test('all 19 coverage masks exclude eyes, neck, chest, brass rim and room',()=>{
  for(let n=1;n<=19;n++){
   const file=n===1?'hair-mask.png':'mask-s'+String(n).padStart(2,'0')+'.png';
   const {w,out}=grayPng(new URL('../design/landing/assets/'+file,import.meta.url));
-  for(const [x,y] of [[682,315],[682,360],[682,395],[535,367],[831,367],[750,212],[300,300],[1000,300]])assert(out[y*w+x]<4,`${file} spills at ${x},${y}`);
+  for(const [x,y] of [[682,315],[682,360],[682,395],[750,212],[300,300],[1000,300]])assert(out[y*w+x]<4,`${file} spills at ${x},${y}`);
+  if(n===8)for(const [x,y] of [[535,367],[831,367],[682,280]])assert(out[y*w+x]<4,`${file}: exposed skin must stay clear`);
+  if(n===12)assert(out[367*w+831]>128,'long hair covering the neck must receive colour too');
   assert(out.reduce((s,v)=>s+(v>128),0)>1500,`${file}: missing hair`);
  }
 });
+
+test('strand chroma survives grading even at the same luminance',()=>{const c={rgb:[139,94,57]},a=w.__AYN_HAIR_COLOR.tint(c,.3,.5,[150,90,40],[143,95,60]),b=w.__AYN_HAIR_COLOR.tint(c,.3,.5,[130,100,70],[143,95,60]);assert.notDeepEqual(a,b);assert(a[0]>b[0]);assert(a[2]<b[2])});

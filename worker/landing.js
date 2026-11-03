@@ -710,7 +710,7 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
 @keyframes pageTurn{to{transform:rotateY(-100deg);filter:brightness(.45);opacity:0}}
 @keyframes pageTurnBack{to{transform:rotateY(100deg);filter:brightness(.45);opacity:0}}
 .nail-journey{margin-top:clamp(48px,9svh,96px)}
-.auto-film[data-auto-film=lashes] .journey-film{max-width:1280px;left:50%;transform:translateX(-50%)}
+.auto-film[data-auto-film=lashes] .journey-film{inset:0;width:100%;max-width:none;margin:0;transform:none;object-position:50% 50%}
 @media(prefers-reduced-motion:reduce){html.cinema-enabled .cinema-shot.is-leaving{animation:none;visibility:hidden}}
 
 /* CTA bands, sticky mobile CTA, plan buttons, form microcopy */
@@ -1146,7 +1146,7 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
  compact.addEventListener('change',e=>{if(!e.matches&&!menu.hidden)setOpen(false)});
 })();
 </script>
-<script>window.__AYN_ASSET_VERSION="403340434efb";window.__AYN_LOOKS=[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];</script>
+<script>window.__AYN_ASSET_VERSION="990d3abd8e27";window.__AYN_LOOKS=[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];</script>
 <script>
 /* A short-lived browser-local photo handoff; no upload, analytics or phone is involved. */
 (()=>{
@@ -1175,17 +1175,20 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
 
 </script>
 <script>
-/* Preserve photographic contrast and neutral highlights instead of painting a flat hue. */
+/* Continuous photographic tone curves retain strand contrast without channel clipping. */
 (()=>{
  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
- function tint(c,Y,yn){
-  const target=c.rgb||[151,105,66],end=c.ombre?clamp((yn-.25)/.6,0,1):1;
-  const color=c.ombre?target.map((v,i)=>[48,32,24][i]*(1-end)+v*end):target;
-  const luminance=.2126*color[0]+.7152*color[1]+.0722*color[2];
-  // Shadows remain deep; the highlights retain individual strands and shine.
-  const exposure=Math.pow(clamp(Y/.32,.025,2.6),.88);
-  const highlight=clamp((Y-.48)/.35,0,.42);
-  return color.map(v=>clamp(v*exposure*(1-highlight)+luminance*exposure*highlight,0,248));
+ const luma=v=>(.2126*v[0]+.7152*v[1]+.0722*v[2])/255;
+ const logit=v=>Math.log(clamp(v,.001,.999)/(1-clamp(v,.001,.999)));
+ function tint(c,Y,yn,source,anchor){
+  source=source||[Y*255,Y*255,Y*255];anchor=anchor||[81.6,81.6,81.6];
+  const end=c.ombre?clamp((yn-.25)/.6,0,1):1;
+  const target=(c.rgb||[151,105,66]).map((v,i)=>c.ombre?[48,32,24][i]*(1-end)+v*end:v);
+  const ref=luma(anchor),dest=luma(target),L=1/(1+Math.exp(-(logit(dest)+logit(Y)-logit(ref))));
+  const chroma=1-clamp((L-.65)/.35,0,.85);
+  const rgb=source.map((v,i)=>255*L*(1+(target[i]/(255*dest)-1)*chroma+.24*(v/(255*Math.max(.01,Y))-anchor[i]/(255*ref))*chroma));
+  const ceiling=Math.max(248,...rgb),scale=248/ceiling;
+  return rgb.map(v=>clamp(v*scale,0,248));
  }
  window.__AYN_HAIR_COLOR={tint};
 })();
@@ -1344,7 +1347,8 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
    const mkd=new Uint8ClampedArray(R.w*R.h*4);
    for(let y=0;y<R.h;y++)mkd.set(full.subarray(((R.y+y)*W+R.x)*4,((R.y+y)*W+R.x+R.w)*4),y*R.w*4);
    const idx=[];for(let i=0;i<R.w*R.h;i++)if(mkd[i*4]>6)idx.push(i);
-   return {src,thumb,R,base,mk:mkd,idx,out:ctx.createImageData(R.w,R.h)};
+   const channels=[[],[],[]];for(const i of idx){const p=i*4,Y=(base[p]+base[p+1]+base[p+2])/765;if(mkd[p]>180&&Y>.15&&Y<.65)for(let c=0;c<3;c++)channels[c].push(base[p+c])}const anchor=channels.map((v,i)=>v.length?v.sort((a,b)=>a-b)[v.length>>1]:[143,95,60][i]);
+   return {src,thumb,R,base,mk:mkd,idx,anchor,out:ctx.createImageData(R.w,R.h)};
   }).catch(()=>{delete preps[key];return null});
  }
  let transitionAnimation=null;
@@ -1379,7 +1383,7 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
   for(let k=0;k<idx.length;k++){
    const i=idx[k],p=i*4,yr=(i/R.w)|0,yn=yr/R.h;
    const r0=base[p],g0=base[p+1],b0=base[p+2],Y=(.2126*r0+.7152*g0+.0722*b0)/255;
-   const A=from?tint(from,Y,yn):[r0,g0,b0],B=to?tint(to,Y,yn):[r0,g0,b0];
+   const A=from?tint(from,Y,yn,[r0,g0,b0],px.anchor):[r0,g0,b0],B=to?tint(to,Y,yn,[r0,g0,b0],px.anchor):[r0,g0,b0];
    let r=A[0]+(B[0]-A[0])*t,g=A[1]+(B[1]-A[1])*t,b=A[2]+(B[2]-A[2])*t;
    if(scan>=0){const d=yn-scan,w=Math.exp(-(d*d)/.0045)*.7;r+=(255-r)*w*.75+26*w;g+=(255-g)*w*.65+14*w;b+=(255-b)*w*.4}
    o[p]=cl(r,0,255);o[p+1]=cl(g,0,255);o[p+2]=cl(b,0,255);o[p+3]=mk[p];
@@ -1546,6 +1550,17 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
 
 </script>
 <script>
+/* One timeline shared by the automatic handoff and the user's native scroll. */
+(()=>{
+ const bridge=.27;
+ const duration=d=>Math.max(.05,Number.isFinite(d)?d-.05:7.95);
+ const progressAt=(time,d)=>bridge+(1-bridge)*Math.min(duration(d),Math.max(0,time))/duration(d);
+ const timeAt=(p,d)=>Math.max(0,Math.min(1,(p-bridge)/(1-bridge)))*duration(d);
+ window.__AYN_JOURNEY={bridge,progressAt,timeAt};
+})();
+
+</script>
+<script>
 /* A 2.5-second book carousel; hover, focus and a held touch pause its clock. */
 (()=>{
  const root=document.querySelector('.cinema-story');if(!root)return;
@@ -1573,20 +1588,31 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
  async function load(s){if(s.loaded)return;s.loaded=true;s.v.muted=true;s.v.preload='auto';if(s.key==='hair')s.v.defaultPlaybackRate=s.v.playbackRate=1.5;try{const r=await fetch((window.__AYN_BASE||'/landing/')+s.v.dataset.src+'?v='+window.__AYN_ASSET_VERSION,{credentials:'same-origin',priority:'low'});if(!r.ok||!(r.headers.get('content-type')||'').includes('video/'))throw Error('HTTP '+r.status+' '+r.headers.get('content-type'));s.v.src=URL.createObjectURL(await r.blob());s.v.load()}catch(e){console.warn('Video unavailable:',s.key,e.message);s.v.controls=true}}
  function playback(s){if(s.key==='nails')return;if(s.key==='hair')s.v.defaultPlaybackRate=s.v.playbackRate=1.5;if(s.visible&&!s.userPaused&&!document.hidden&&!reduced.matches){if(s.v.ended)s.v.currentTime=0;s.v.play().catch(()=>{s.v.controls=true})}else s.v.pause()}
  states.forEach(s=>{s.v.addEventListener('loadedmetadata',()=>{s.v.playbackRate=s.key==='hair'?1.5:1});s.v.controls=reduced.matches;s.v.addEventListener('loadeddata',()=>{playback(s);schedule()});if(s.key!=='nails'){const panel=s.v.closest('.auto-film'),button=panel.querySelector('.film-toggle');new IntersectionObserver(es=>{s.visible=es[0].intersectionRatio>=.4;playback(s)},{threshold:[0,.4,.7]}).observe(panel);button.onclick=()=>{s.userPaused=!s.v.paused;if(s.userPaused)s.v.pause();else{s.v.play().catch(()=>{s.v.controls=true})}button.textContent=s.userPaused?'▶':'Ⅱ';button.setAttribute('aria-label',s.userPaused?'پخش ویدئو':'توقف پخش ویدئو')};s.v.addEventListener('ended',()=>{button.textContent='↻';button.setAttribute('aria-label','پخش دوبارهٔ ویدئو');if(s.key==='lashes'&&s.visible&&!document.hidden)enterNails();if(s.key==='hair'&&s.visible&&!document.hidden){root.querySelector('[data-auto-film=lashes]').scrollIntoView({behavior:reduced.matches?'auto':'smooth',block:'start'})}})}});
- document.addEventListener('visibilitychange',()=>states.forEach(playback));reduced.addEventListener('change',()=>{states.forEach(s=>{s.v.addEventListener('loadedmetadata',()=>{s.v.playbackRate=s.key==='hair'?1.5:1});s.v.controls=reduced.matches;playback(s)});schedule()});
+ document.addEventListener('visibilitychange',()=>states.forEach(playback));reduced.addEventListener('change',()=>{states.forEach(s=>{s.v.controls=reduced.matches;playback(s)});schedule()});
  const area=root.querySelector('.nail-journey'),stage=area.querySelector('.journey-stage'),s=states.find(s=>s.key==='nails'),bridge=area.querySelector('.journey-bridge'),stone=area.querySelector('.journey-stone'),space=area.querySelector('.journey-bridge-space'),copy=area.querySelector('.journey-copy');let pending=false,position=0,target=0;
  function enterNails(){
-  const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||65,startY=scrollY,areaY=scrollY+area.getBoundingClientRect().top-hh;
-  const end=areaY+Math.max(1,area.offsetHeight-stage.offsetHeight)*.28;
+  if(!states.find(x=>x.key==='lashes').visible||document.hidden)return;
+  if(!Number.isFinite(s.v.duration)){s.v.addEventListener('loadedmetadata',enterNails,{once:true});return}
+  const timeline=window.__AYN_JOURNEY,stopTime=Math.min(3,s.v.duration-.05);
+  const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||65,startY=scrollY,areaY=scrollY+area.getBoundingClientRect().top-hh,span=Math.max(1,area.offsetHeight-stage.offsetHeight);
+  const bridgeY=areaY+span*timeline.bridge,endY=areaY+span*timeline.progressAt(stopTime,s.v.duration);
   if(reduced.matches){scrollTo({top:areaY,behavior:'auto'});return}
-  let frame=0,cancelled=false,t0=performance.now();const abort=()=>{cancelled=true;cancelAnimationFrame(frame);clean()};const events=['wheel','touchstart','pointerdown','keydown'];const clean=()=>events.forEach(n=>removeEventListener(n,abort));events.forEach(n=>addEventListener(n,abort,{once:true,passive:true}));
-  function step(now){if(cancelled)return;const t=Math.min(1,(now-t0)/2800),e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;scrollTo({top:startY+(end-startY)*e,behavior:'instant'});if(t<1)frame=requestAnimationFrame(step);else clean()}frame=requestAnimationFrame(step);
+  area.dataset.handoff='auto';area.dataset.handoffTime=String(stopTime);
+  let frame=0,cancelled=false,t0=performance.now();const clean=()=>events.forEach(n=>removeEventListener(n,abort));const abort=()=>{cancelled=true;cancelAnimationFrame(frame);area.dataset.handoff='manual';clean()};const events=['wheel','touchstart','pointerdown','keydown'];events.forEach(n=>addEventListener(n,abort,{once:true,passive:true}));
+  function step(now){if(cancelled)return;const elapsed=now-t0;let y;
+   if(elapsed<1900){const t=elapsed/1900,e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;y=startY+(bridgeY-startY)*e}
+   else{const t=Math.min(1,(elapsed-1900)/(stopTime*1000));y=bridgeY+(endY-bridgeY)*t}
+   scrollTo({top:y,behavior:'instant'});
+   if(elapsed<1900+stopTime*1000)frame=requestAnimationFrame(step);
+   else{position=target=timeline.progressAt(stopTime,s.v.duration);s.target=stopTime;seek();schedule();area.dataset.handoff='manual';clean()}
+  }frame=requestAnimationFrame(step);
  }
+
  function seek(){if(s.v.seeking||s.v.readyState<1||!Number.isFinite(s.v.duration))return;const t=cl(s.target,0,s.v.duration-.05);if(Math.abs(s.v.currentTime-t)>.045)s.v.currentTime=t}s.v.addEventListener('seeked',seek);
  function update(){pending=false;area.classList.toggle('is-static',reduced.matches);if(reduced.matches){s.v.controls=true;bridge.hidden=true;return}bridge.hidden=false;
  const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||65;target=cl((hh-area.getBoundingClientRect().top)/Math.max(1,area.offsetHeight-stage.offsetHeight));position+= (target-position)*.18;if(Math.abs(target-position)<.0004)position=target;const p=position,q=cl(p/.27),n=cl((p-.27)/.73);
  area.dataset.phase=p<.27?'bridge':'nails';bridge.style.opacity=p<.27?'1':'0';bridge.style.visibility=p<.27?'visible':'hidden';s.v.classList.toggle('is-active',p>=.27);copy.classList.toggle('is-active',p>=.27);
- space.style.opacity=String(cl(q/.18)*(1-cl((q-.73)/.27)));stone.style.opacity=String(cl(q/.1)*(1-cl((q-.9)/.1)));stone.style.top=(40+q*43)+'%';stone.style.transform='translate(-50%,-50%) scale('+(1-q*.35)+')';bridge.querySelector('p').style.opacity=String(cl((q-.18)/.15)*(1-cl((q-.65)/.15)));if(Number.isFinite(s.v.duration)){s.target=n*(s.v.duration-.05);seek()}if(position!==target)schedule();
+ space.style.opacity=String(cl(q/.18)*(1-cl((q-.73)/.27)));stone.style.opacity=String(cl(q/.1)*(1-cl((q-.9)/.1)));stone.style.top=(40+q*43)+'%';stone.style.transform='translate(-50%,-50%) scale('+(1-q*.35)+')';bridge.querySelector('p').style.opacity=String(cl((q-.18)/.15)*(1-cl((q-.65)/.15)));if(Number.isFinite(s.v.duration)){s.target=window.__AYN_JOURNEY.timeAt(p,s.v.duration);seek()}if(position!==target)schedule();
  }
  function schedule(){if(!pending){pending=true;requestAnimationFrame(update)}}addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);
  Promise.resolve(window.__AYN_HERO_READY).finally(()=>states.forEach(load));schedule();

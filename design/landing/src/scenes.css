@@ -147,5 +147,5 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
 @keyframes pageTurn{to{transform:rotateY(-100deg);filter:brightness(.45);opacity:0}}
 @keyframes pageTurnBack{to{transform:rotateY(100deg);filter:brightness(.45);opacity:0}}
 .nail-journey{margin-top:clamp(48px,9svh,96px)}
-.auto-film[data-auto-film=lashes] .journey-film{max-width:1280px;left:50%;transform:translateX(-50%)}
+.auto-film[data-auto-film=lashes] .journey-film{inset:0;width:100%;max-width:none;margin:0;transform:none;object-position:50% 50%}
 @media(prefers-reduced-motion:reduce){html.cinema-enabled .cinema-shot.is-leaving{animation:none;visibility:hidden}}
