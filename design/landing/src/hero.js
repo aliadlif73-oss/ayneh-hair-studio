@@ -12,13 +12,13 @@
  const fa=n=>new Intl.NumberFormat('fa-IR').format(n);
  const STYLES=['لیر بلند','کوتاهی پروانه‌ای','ولف‌کات','هاش‌کات','لُب (باب بلند)','باب کوتاه','کوتاهی جلوبلند','پیکسی','چتری پرده‌ای','چتری پروانه‌ای','چتری کج','چتری صاف کامل','براشینگ حجیم','صاف و براق','ویو درشت','فر طبیعی','فر درشت لوله‌ای','مدل گوجه‌ای','شینیون پایین'];
  const COLORS=[
-  {name:'بلوند شامپاینی',h:43,s:.36,l:.7,css:'linear-gradient(145deg,#F3E2B8,#D3B677)'},
-  {name:'کاراملی',h:28,s:.62,l:.46,css:'linear-gradient(145deg,#C98745,#8A5424)'},
-  {name:'اسپرسو',h:22,s:.42,l:.17,css:'linear-gradient(145deg,#4F3322,#1C110A)'},
-  {name:'آمبره',ombre:true,h:30,s:.5,l:.4,css:'linear-gradient(180deg,#2A1A10,#D6B27A)'},
-  {name:'مسی',h:16,s:.72,l:.43,css:'linear-gradient(145deg,#CF6C3C,#8C3D1B)'},
-  {name:'بلوند پلاتینی',h:50,s:.2,l:.86,css:'linear-gradient(145deg,#F4EFE2,#CBC3AE)'},
-  {name:'شرابی',h:343,s:.55,l:.27,css:'linear-gradient(145deg,#8E3050,#481327)'}
+  {name:'بلوند شامپاینی',rgb:[190, 166, 120],h:43,s:.36,l:.7,css:'linear-gradient(145deg,#F3E2B8,#D3B677)'},
+  {name:'کاراملی',rgb:[139, 94, 57],h:28,s:.62,l:.46,css:'linear-gradient(145deg,#C98745,#8A5424)'},
+  {name:'اسپرسو',rgb:[49, 36, 29],h:22,s:.42,l:.17,css:'linear-gradient(145deg,#4F3322,#1C110A)'},
+  {name:'آمبره',rgb:[180, 146, 99],ombre:true,h:30,s:.5,l:.4,css:'linear-gradient(180deg,#2A1A10,#D6B27A)'},
+  {name:'مسی',rgb:[150, 79, 47],h:16,s:.72,l:.43,css:'linear-gradient(145deg,#CF6C3C,#8C3D1B)'},
+  {name:'بلوند پلاتینی',rgb:[211, 201, 181],h:50,s:.2,l:.86,css:'linear-gradient(145deg,#F4EFE2,#CBC3AE)'},
+  {name:'شرابی',rgb:[91, 39, 53],h:343,s:.55,l:.27,css:'linear-gradient(145deg,#8E3050,#481327)'}
  ];
  const READY=new Set([1,...(window.__AYN_LOOKS||[])]);
  const st={style:null,color:null,look:'base'};
@@ -174,7 +174,7 @@
  startPrep();
  const cl=(v,a,b)=>v<a?a:v>b?b:v,sm=(a,b,x)=>{x=cl((x-a)/(b-a),0,1);return x*x*(3-2*x)};
  function hsl(h,s,l){const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));return[f(0)*255,f(8)*255,f(4)*255]}
- function tint(c,Y,yn){let l=c.ombre?.16+(.7-.16)*sm(.3,.85,yn):c.l;l=cl(l+(Y-.4)*.48,.03,.96);const s=c.s*(1-cl((l-.72)*2.2,0,.8));return hsl(c.h,s,l)}
+ const tint=window.__AYN_HAIR_COLOR.tint;
  /* from/to: colour objects or null (original); t: 0..1 blend; scan: -1 (off) or 0..1 sweep position */
  function draw(from,to,t,scan){
   if(!px)return;

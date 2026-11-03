@@ -8,7 +8,7 @@ W = lambda p, s: open(p, 'w', encoding='utf8').write(s)
 # Keep the shipped static assets synchronized with their design sources.
 import shutil
 for asset in os.listdir('assets'):
-    if re.match(r'(look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', asset):
+    if re.match(r'(hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', asset):
         shutil.copyfile('assets/' + asset, '../../public/landing/' + asset)
 
 W('../../worker/draft.js', 'export const draftScript=' + json.dumps(R('src/draft.js'), ensure_ascii=False) + ';' + NL)
@@ -27,14 +27,14 @@ h = re.sub(r'  <!-- 2\. Experience -->.*?(?=  <!-- 3\. Services -->)', lambda m:
 # the free-trial section (live mockup + lead form) goes right before the plans
 trial = R('src/trial.html').replace('<!--LEAD-->', R('src/lead.html'))
 assert '  <!-- 6. Plans -->' in h
-h = h.replace('  <!-- 6. Plans -->', trial + '  <!-- 6. Plans -->', 1)
+h = re.sub(r'  <!-- 6\. Plans -->.*?(?=  <!-- 7\. FAQ -->)', lambda m: trial, h, flags=re.S)
 assert 'leadForm' in h and 'id="mock"' in h, 'trial section not inserted'
 # styles whose mirror render exists (assets/look-sNN.webp + mask-sNN.png): the hero shows their shape on the model
 LOOKS = sorted(int(m.group(1)) for f in os.listdir('assets') for m in [re.match(r'look-s(\d\d)\.webp$', f)] if m and os.path.exists('assets/mask-s%s.png' % m.group(1)))
 asset_version = hashlib.sha256(b''.join(open('assets/' + f, 'rb').read() for f in sorted(os.listdir('assets')) if re.match(r'(hero\.webp|hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', f))).hexdigest()[:12]
 # Include film contents so unchanged poster frames cannot leave stale video URLs.
 asset_version = hashlib.sha256((asset_version + ''.join(hashlib.sha256(open('../../public/landing/video/' + n + '.mp4', 'rb').read()).hexdigest() for n in ['hair', 'lashes', 'nails'])).encode()).hexdigest()[:12]
-scripts = '<script>window.__AYN_ASSET_VERSION=' + json.dumps(asset_version) + ';window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/draft.js', 'src/portrait.js', 'src/hero.js', 'src/sec2.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/reveal.js', 'src/lead.js'])
+scripts = '<script>window.__AYN_ASSET_VERSION=' + json.dumps(asset_version) + ';window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/draft.js', 'src/portrait.js', 'src/hair-color.js', 'src/hero.js', 'src/sec2.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/reveal.js', 'src/lead.js'])
 h = h.replace('</body>', scripts + '</body>')
 W('out/v2.html', h.replace('__ORIGIN__', ''))
 

@@ -136,3 +136,16 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
 .nail-journey.is-static{height:auto}.nail-journey.is-static .journey-stage{height:auto;position:relative;padding:30px 15px}.nail-journey.is-static .journey-film{position:relative;inset:auto;width:100%;height:auto;aspect-ratio:16/9;opacity:1;visibility:visible;pointer-events:auto}.nail-journey.is-static .journey-copy{position:relative;inset:auto;width:auto;opacity:1;visibility:visible}.nail-journey.is-static .journey-bridge{display:none}
 @media(max-width:600px){html.cinema-enabled .cinema-stage{height:88svh;min-height:650px}.cinema-arrows{left:26px;top:26px}.cinema-topline{display:none}.cinema-copy,.is-current .cinema-copy{bottom:110px}.cinema-image{object-position:24% 20%}.auto-film{height:auto;min-height:0;padding:24px 0 95px}.auto-film .journey-film{position:relative;inset:auto;display:block;aspect-ratio:16/9;width:100%;height:auto}.auto-film .journey-wash{display:none}.auto-film .journey-copy{position:relative;inset:auto;width:auto;max-width:none;padding:25px 24px 0}.auto-film .journey-copy h3{font-size:26px}.auto-film .journey-copy p{font-size:14px}.film-toggle{bottom:25px;left:24px}.nail-journey{height:260svh}.nail-journey .journey-film{top:10%}.nail-journey .journey-copy{bottom:45px}.service-journey>.journey-gaze{height:38svh;min-height:260px}.journey-note{font-size:8px}}
 .auto-film{scroll-margin-top:var(--hh,65px)}
+
+/* One page peels away while the next remains on the shared film stage. */
+.cinema-stage{perspective:1800px;touch-action:pan-y}
+html.cinema-enabled .cinema-shot{backface-visibility:hidden;transform-origin:right center;transition:none}
+html.cinema-enabled .cinema-shot.is-current{z-index:1}
+html.cinema-enabled .cinema-shot.is-leaving{visibility:visible;opacity:1;z-index:2;pointer-events:none;animation:pageTurn .65s cubic-bezier(.4,0,.2,1) forwards;box-shadow:-25px 0 60px #0008}
+html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left center;animation-name:pageTurnBack}
+.cinema-arrows{direction:rtl}.cinema-controls button[aria-current] i{transition-duration:2.5s}
+@keyframes pageTurn{to{transform:rotateY(-100deg);filter:brightness(.45);opacity:0}}
+@keyframes pageTurnBack{to{transform:rotateY(100deg);filter:brightness(.45);opacity:0}}
+.nail-journey{margin-top:clamp(48px,9svh,96px)}
+.auto-film[data-auto-film=lashes] .journey-film{max-width:1280px;left:50%;transform:translateX(-50%)}
+@media(prefers-reduced-motion:reduce){html.cinema-enabled .cinema-shot.is-leaving{animation:none;visibility:hidden}}

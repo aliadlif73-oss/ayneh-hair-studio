@@ -17,5 +17,6 @@ test('review Site serves the real customer flow, restricts its proxy, and labels
   assert.equal((await app.fetch(new Request('https://review.example/api/login',{method:'POST'}))).status,404);
   assert.equal((await app.fetch(new Request('https://review.example/api/s/demo/otp/send',{method:'POST',headers:{Origin:'https://elsewhere.example'}}))).status,403);assert.equal(calls.length,1);
   await app.fetch(new Request('https://review.example/api/s/demo/public'));assert.equal(calls[1].url,'https://ayneh-salon.site/api/s/demo/public');
+  await app.fetch(new Request('https://review.example/api/s/demo/session',{method:'POST',headers:{Origin:'https://review.example','Content-Type':'application/json'},body:'{}'}));assert.equal(calls[2].options.headers.get('Origin'),'https://ayneh-salon.site','same-origin browser POST reaches the upstream CSRF check with its own origin');
  }finally{globalThis.fetch=net;rmSync(folder,{recursive:true,force:true})}
 });

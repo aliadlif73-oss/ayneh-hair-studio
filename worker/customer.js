@@ -475,6 +475,7 @@ const clientJS=String.raw`
 var STYLES=__STYLES__;
 var LINES=__LINES__;
 var MARK=__MARK__;
+var EMBED=/[?&]embed=1(?:&|$)/.test(location.search);if(EMBED)document.body.classList.add('embedded-demo');
 var SLUG=location.pathname.split('/').filter(Boolean)[1]||'';
 var ICO={
  camera:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.2a2 2 0 0 0 1.7-.9l.6-1a2 2 0 0 1 1.7-.9h2.6a2 2 0 0 1 1.7.9l.6 1a2 2 0 0 0 1.7.9h1.2A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg>',
@@ -554,7 +555,7 @@ function track(kind,meta,once){if(once){if(tracked[kind+meta])return;tracked[kin
  // Open on the salon's own work for this line when it has some, otherwise on the ready-made looks.
  state.tab=hasLineWork(state.line)?'salon':'catalog';
  renderAll();
- if(SLUG==='demo'&&/[?&]draft=1/.test(location.search)){try{var draft=await window.__AYN_DRAFT.take();if(draft&&draft.file){state.style=draft.selection&&draft.selection.styleIdx!=null?draft.selection.styleIdx:state.style;state.color=draft.selection&&draft.selection.color||state.color;handleFile(draft.file,'original')}}catch(e){toast('عکس را دوباره از گالری انتخاب کن','error')}}
+ if(SLUG==='demo'&&/[?&]draft=1/.test(location.search)){try{var draft=await window.__AYN_DRAFT.take();if(draft&&draft.file){state.style=draft.selection&&draft.selection.styleIdx!=null?draft.selection.styleIdx:state.style;state.color=draft.selection&&draft.selection.color||state.color;if(EMBED){state.preview=URL.createObjectURL(draft.file);renderFlow();var continuePhoto=async function(){await handleFile(draft.file,'original');if(state.original){clearTimeout(state.advT);state.justUploaded=false;go(3);generate()}};await ensureSession();if(state.verified)continuePhoto();else openOtp(continuePhoto)}else handleFile(draft.file,'original')}}catch(e){toast('عکس را دوباره از گالری انتخاب کن','error')}}
  if(pending){state.gen=pending;state.step=3;state.busy=true;state.genT0=Date.now()-8000;renderFlow();renderDock();poll(pending,true)}
  track('view',refIn?'share':'',true);
  renderInvite();
@@ -1176,7 +1177,7 @@ function handleFile(file,kind){
  if(['image/jpeg','image/png','image/webp'].indexOf(file.type)<0){toast('فقط JPG، PNG یا WebP','error');return}
  state.busy=true;renderDock();
  if(kind==='original'){try{if(state.preview)URL.revokeObjectURL(state.preview);state.preview=URL.createObjectURL(file)}catch(e){state.preview=null}state.original=null;state.justUploaded=false;clearTimeout(state.advT);if(state.step!==1){state.step=1;renderSteps()}renderFlow();focusFlow()}
- Promise.all([compress(file),ensureSession()]).then(function(r){
+ return Promise.all([compress(file),ensureSession()]).then(function(r){
   return api('upload?kind='+kind,r[0],true);
  }).then(function(d){
   if(kind==='original'){track('photo',state.line);state.original=d.id;state.ratio=compress.ratio||'';state.result=null;state.error='';state.idem=null;state.justUploaded=true;
@@ -1743,6 +1744,7 @@ document.addEventListener('click',function(e){
 });
 `;
 
+const embeddedCSS='.embedded-demo .head,.embedded-demo #steps,.embedded-demo #invite,.embedded-demo .trialbar,.embedded-demo footer{display:none!important}.embedded-demo main{padding-top:20px}.embedded-demo{background:#f6f0e7}.embedded-demo .panel{box-shadow:none}';
 export const customerHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -1775,5 +1777,5 @@ export const customerHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><h
 <dialog class="sheet" id="sheet" aria-label="پنجره"></dialog>
 <script>__JS__</script>
 </body></html>`
- .replace('__CSS__',()=>baseCSS+customerCSS)
+ .replace('__CSS__',()=>baseCSS+customerCSS+embeddedCSS)
  .replace('__JS__',()=>draftScript+';'+clientJS.replace('__STYLES__',()=>JSON.stringify(styles)).replace('__LINES__',()=>LINES_JSON).replace('__MARK__',()=>JSON.stringify(markSVG)));

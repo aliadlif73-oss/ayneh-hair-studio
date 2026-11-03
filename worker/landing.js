@@ -6,10 +6,10 @@ export const landingHTML=`<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>آینه | مشتری‌تان مدل مو، ناخن و مژه‌اش را قبل از آمدن می‌بیند</title>
-<meta name="description" content="صفحهٔ اینترنتی سالن شما: مشتری مدل مو، رنگ، طرح ناخن و مژه را روی عکس خودش امتحان می‌کند و درخواستش را با عکس به تلگرام یا بله شما می‌فرستد. صفحهٔ آزمایشی رایگان.">
+<meta name="description" content="صفحهٔ اینترنتی سالن شما: مشتری مدل مو، رنگ، طرح ناخن و مژه را روی عکس خودش امتحان می‌کند و درخواستش را با عکس به تلگرام یا بله شما می‌فرستد. درخواست صفحه اختصاصی سالن.">
 <meta name="theme-color" content="#F8F2EB">
 <meta property="og:title" content="آینه | مشتری‌تان قبل از نشستن روی صندلی می‌داند چه می‌خواهد">
-<meta property="og:description" content="صفحهٔ آزمایشی رایگان برای سالن‌های مو، ناخن و مژه. ۱۰ ساعت وقت دارید و ۵ تصویر.">
+<meta property="og:description" content="درخواست صفحه اختصاصی سالن برای سالن‌های مو، ناخن و مژه. مدل‌ها را همین‌جا امتحان کنید و صفحهٔ اختصاصی سالن خودتان را درخواست بدهید.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fa_IR">
 <meta property="og:image" content="__ORIGIN__/landing/og.jpg">
@@ -452,6 +452,10 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
 /* The result action must never cover the model picker. */
 .result{display:none!important}.dock .more{position:relative;z-index:6;min-height:44px}.dock{padding-bottom:8px}.site-loader{position:fixed;inset:0;z-index:1000;background:#f4ecdf;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;transition:opacity .4s,visibility .4s}.site-loader.is-done{opacity:0;visibility:hidden;pointer-events:none}.hero-loading{overflow:hidden}.loader-mirror{position:relative;width:110px;height:150px;border:1px solid #b9975b;border-radius:60px 60px 7px 7px;display:grid;place-items:center;overflow:hidden;background:linear-gradient(145deg,#ece2d1,#fff8ec)}.loader-mirror span{font-size:25px;font-weight:800;color:#302116}.loader-mirror i{position:absolute;inset:-100%;background:linear-gradient(110deg,transparent 45%,#fff9 50%,transparent 55%);animation:mirrorShine 1.7s ease-in-out infinite}.site-loader p{font-size:13px;color:#786044;margin:0}.loader-track{height:2px;width:150px;background:#d7c9af;overflow:hidden}.loader-track i{display:block;height:100%;width:0;background:#b18a42;transition:width .2s}@keyframes mirrorShine{from{transform:translateX(-50%)}to{transform:translateX(50%)}}@media(prefers-reduced-motion:reduce){.loader-mirror i{animation:none}}
 
+html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;border-radius:24px;background:#f6f0e7;color:#302116;width:min(900px,calc(100% - 24px));height:min(880px,calc(100svh - 32px));max-height:calc(100svh - 32px);overflow:hidden;box-shadow:0 30px 100px #0006}.personal-try::backdrop{background:#17110ec9;backdrop-filter:blur(8px)}.personal-head{height:64px;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #c8b48c55;direction:rtl}.personal-head button{width:42px;height:42px;border:1px solid #b9975b;border-radius:50%;font:inherit;font-size:25px;cursor:pointer;background:transparent;color:inherit}.personal-try iframe{display:block;width:100%;height:calc(100% - 64px);border:0;background:#f6f0e7}@media(max-width:600px){.personal-try{width:calc(100% - 12px);height:calc(100svh - 12px);max-height:calc(100svh - 12px);border-radius:18px}}
+
+.site-header .btn{max-width:280px;white-space:normal;text-align:center;line-height:1.6}@media(max-width:600px){.site-header .btn{max-width:185px;font-size:10px;padding:8px 14px;min-height:44px}}
+
 
 /* ---------- Section 2: request lands in the salon chat ---------- */
 .s2{position:relative;background:radial-gradient(90% 70% at 22% 40%,#2a1a0e 0%,#160D07 62%);color:var(--cream);padding:var(--sec-y) var(--gut)}
@@ -696,6 +700,19 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
 @media(max-width:600px){html.cinema-enabled .cinema-stage{height:88svh;min-height:650px}.cinema-arrows{left:26px;top:26px}.cinema-topline{display:none}.cinema-copy,.is-current .cinema-copy{bottom:110px}.cinema-image{object-position:24% 20%}.auto-film{height:auto;min-height:0;padding:24px 0 95px}.auto-film .journey-film{position:relative;inset:auto;display:block;aspect-ratio:16/9;width:100%;height:auto}.auto-film .journey-wash{display:none}.auto-film .journey-copy{position:relative;inset:auto;width:auto;max-width:none;padding:25px 24px 0}.auto-film .journey-copy h3{font-size:26px}.auto-film .journey-copy p{font-size:14px}.film-toggle{bottom:25px;left:24px}.nail-journey{height:260svh}.nail-journey .journey-film{top:10%}.nail-journey .journey-copy{bottom:45px}.service-journey>.journey-gaze{height:38svh;min-height:260px}.journey-note{font-size:8px}}
 .auto-film{scroll-margin-top:var(--hh,65px)}
 
+/* One page peels away while the next remains on the shared film stage. */
+.cinema-stage{perspective:1800px;touch-action:pan-y}
+html.cinema-enabled .cinema-shot{backface-visibility:hidden;transform-origin:right center;transition:none}
+html.cinema-enabled .cinema-shot.is-current{z-index:1}
+html.cinema-enabled .cinema-shot.is-leaving{visibility:visible;opacity:1;z-index:2;pointer-events:none;animation:pageTurn .65s cubic-bezier(.4,0,.2,1) forwards;box-shadow:-25px 0 60px #0008}
+html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left center;animation-name:pageTurnBack}
+.cinema-arrows{direction:rtl}.cinema-controls button[aria-current] i{transition-duration:2.5s}
+@keyframes pageTurn{to{transform:rotateY(-100deg);filter:brightness(.45);opacity:0}}
+@keyframes pageTurnBack{to{transform:rotateY(100deg);filter:brightness(.45);opacity:0}}
+.nail-journey{margin-top:clamp(48px,9svh,96px)}
+.auto-film[data-auto-film=lashes] .journey-film{max-width:1280px;left:50%;transform:translateX(-50%)}
+@media(prefers-reduced-motion:reduce){html.cinema-enabled .cinema-shot.is-leaving{animation:none;visibility:hidden}}
+
 /* CTA bands, sticky mobile CTA, plan buttons, form microcopy */
 .cta-band{padding:clamp(40px,6vw,72px) var(--gut);background:var(--espresso);color:var(--cream)}
 .cta-band--final{background:var(--espresso-2)}
@@ -741,7 +758,7 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
     <a href="#faq">پرسش‌ها</a>
   </nav>
   <div class="header-actions">
-    <a class="btn" href="#start"><span>صفحهٔ آزمایشی رایگان</span><span class="arrow" aria-hidden="true">←</span></a>
+    <a class="btn" href="#start"><span>درخواست صفحه اختصاصی سالن</span><span class="arrow" aria-hidden="true">←</span></a>
     <button type="button" class="menu-toggle" aria-expanded="false" aria-controls="mobile-menu" aria-label="باز کردن فهرست">
       <span class="menu-bars" aria-hidden="true"><i></i><i></i></span>
     </button>
@@ -752,7 +769,7 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
     <a class="menu-link" href="#services"><span>خدمات: مو، ناخن، مژه</span><span aria-hidden="true">↙</span></a>
     <a class="menu-link" href="#how"><span>نحوه کار</span><span aria-hidden="true">↙</span></a>
     <a class="menu-link" href="#salons"><span>برای سالن‌ها</span><span aria-hidden="true">↙</span></a>
-    <a class="menu-link" href="#plans"><span>پلن‌ها</span><span aria-hidden="true">↙</span></a>
+
     <a class="menu-link" href="#faq"><span>پرسش‌ها</span><span aria-hidden="true">↙</span></a>
   </nav>
 </header>
@@ -767,8 +784,8 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
         <p class="eyebrow reveal">برای صاحبان سالن مو، ناخن و مژه</p>
         <h1 id="h1" class="reveal">مشتری‌تان اول روی خودش می‌بیند، بعد برای شما می‌فرستد.</h1>
         <p class="lead reveal">مشتری عکس چهره یا دستش را بارگذاری می‌کند؛ مدل مو، رنگ مو، طرح ناخن یا مدل مژهٔ دلخواهش را روی خودش می‌بیند و انتخابی را که می‌پسندد، همراه تصویر برای سالن شما می‌فرستد. شما هم همان‌جا در تلگرام یا بله، درخواست را تأیید یا رد می‌کنید.</p>
-        <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" data-try="hair" href="/s/demo?l=hair"><span>همین الان با تصویر خودم بساز</span></a></div>
-        <p class="fineprint reveal">رایگان و بدون کارت بانکی: ۱۰ ساعت و ۵ تصویر. شبیه‌سازی پیشنهادی است و نتیجه را تضمین نمی‌کند.</p>
+        <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>درخواست ساخت صفحه اختصاصی سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" data-try="hair" href="/s/demo?l=hair"><span>همین الان با تصویر خودم بساز</span></a></div>
+        <p class="fineprint reveal">مدل و رنگ را روی تصویر خودتان امتحان کنید. شبیه‌سازی پیشنهادی است و نتیجهٔ اجرا ممکن است متفاوت باشد.</p>
       </div>
 
       <div class="studio" id="studio">
@@ -867,7 +884,7 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
       </div>
       <div class="cinema-frame" aria-hidden="true"></div>
       <div class="cinema-topline"><span>یک روز در سالن. یک مسیر روشن‌تر.</span></div>
-      <div class="cinema-arrows"><button type="button" data-slide-prev aria-label="اسلاید قبلی">→</button><button type="button" data-slide-toggle aria-label="توقف تعویض خودکار اسلایدها">Ⅱ</button><button type="button" data-slide-next aria-label="اسلاید بعدی">←</button></div><nav class="cinema-controls" aria-label="اسلایدهای روایت آینه">
+      <div class="cinema-arrows"><button type="button" data-slide-prev aria-label="اسلاید قبلی">→</button><button type="button" data-slide-next aria-label="اسلاید بعدی">←</button></div><nav class="cinema-controls" aria-label="اسلایدهای روایت آینه">
         <button type="button" data-cinema-go="0" aria-current="step"><span class="cinema-step">۰۱</span><span>تردید</span><i aria-hidden="true"></i></button>
         <button type="button" data-cinema-go="1"><span class="cinema-step">۰۲</span><span>مشاوره</span><i aria-hidden="true"></i></button>
         <button type="button" data-cinema-go="2"><span class="cinema-step">۰۳</span><span>نمونه‌کار</span><i aria-hidden="true"></i></button>
@@ -879,21 +896,21 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
   </section>
 
   <section id="transform" class="service-journey on-dark" aria-label="روی تصویر خودتان امتحان کنید">
-<article class="auto-film" data-auto-film="hair"><video class="journey-film is-active" data-journey-film="hair" data-src="video/hair.mp4" poster="/landing/hair-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ مو" controls><source src="/landing/video/hair.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy is-active" data-journey-copy="hair"><p class="journey-kicker">۰۱ / مدل و رنگ مو</p><h3>قبل از تغییر،<br>روی خودتان ببینید.</h3><p>عکس خودتان و مدل مو یا رنگ دلخواه‌تان را بگذارید؛ ببینید کدام انتخاب بیشتر به شما می‌آید.</p><a href="/s/demo?l=hair">روی عکس خودم امتحان کنم <span aria-hidden="true">←</span></a></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
-<article class="auto-film" data-auto-film="lashes"><video class="journey-film" data-journey-film="lashes" data-src="video/lashes.mp4" poster="/landing/lashes-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل مژه" controls><source src="/landing/video/lashes.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy" data-journey-copy="lashes"><p class="journey-kicker">۰۲ / مدل مژه</p><h3>نگاه شما.<br>انتخاب شما.</h3><p>عکس چهره یا چشم‌هایتان را بارگذاری کنید و مدل مژهٔ دلخواه را روی چشم‌های خودتان ببینید.</p><a href="/s/demo?l=lashes">مژهٔ دلخواهم را ببینم <span aria-hidden="true">←</span></a></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
+<article class="auto-film" data-auto-film="hair"><video class="journey-film is-active" data-journey-film="hair" data-src="video/hair.mp4" poster="/landing/hair-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ مو" controls><source src="/landing/video/hair.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy is-active" data-journey-copy="hair"><p class="journey-kicker">۰۱ / مدل و رنگ مو</p><h3>قبل از تغییر،<br>روی خودتان ببینید.</h3><p>عکس خودتان و مدل مو یا رنگ دلخواه‌تان را بگذارید؛ ببینید کدام انتخاب بیشتر به شما می‌آید.</p><a data-try="hair" href="#intro">روی عکس خودم امتحان کنم <span aria-hidden="true">←</span></a></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
+<article class="auto-film" data-auto-film="lashes"><video class="journey-film" data-journey-film="lashes" data-src="video/lashes.mp4" poster="/landing/lashes-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل مژه" controls><source src="/landing/video/lashes.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy" data-journey-copy="lashes"><p class="journey-kicker">۰۲ / مدل مژه</p><h3>نگاه شما.<br>انتخاب شما.</h3><p>عکس چهره یا چشم‌هایتان را بارگذاری کنید و مدل مژهٔ دلخواه را روی چشم‌های خودتان ببینید.</p><a data-try="lashes" href="#intro">مژهٔ دلخواهم را ببینم <span aria-hidden="true">←</span></a></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
 <section class="nail-journey" aria-label="طرح و رنگ ناخن"><div class="journey-stage"><video class="journey-film" data-journey-film="nails" data-src="video/nails.mp4" poster="/landing/nails-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ ناخن؛ با اسکرول جلو و عقب ببرید" controls><source src="/landing/video/nails.mp4" type="video/mp4"></video><div class="journey-bridge" aria-hidden="true">
 
         <div class="journey-bridge-space"></div>
 
         <img class="journey-stone" src="/landing/journey-stone.webp" alt="" width="900" height="800" loading="lazy">
         <p>حالا، نوبت دست‌های شماست.</p>
-      </div><div class="journey-copy" data-journey-copy="nails"><p class="journey-kicker">۰۳ / طرح و رنگ ناخن</p><h3>طرح بعدی را،<br>روی دست خودتان ببینید.</h3><p>عکس دستتان را بگذارید؛ فرم، رنگ و طرح ناخن را امتحان کنید و انتخاب دلخواه‌تان را برای سالن بفرستید.</p><a href="/s/demo?l=nails">روی دست خودم امتحان کنم <span aria-hidden="true">←</span></a></div><p class="journey-note">نمونهٔ نمایشی؛ نتیجهٔ اجرا ممکن است متفاوت باشد.</p></div></section></section>
+      </div><div class="journey-copy" data-journey-copy="nails"><p class="journey-kicker">۰۳ / طرح و رنگ ناخن</p><h3>طرح بعدی را،<br>روی دست خودتان ببینید.</h3><p>عکس دستتان را بگذارید؛ فرم، رنگ و طرح ناخن را امتحان کنید و انتخاب دلخواه‌تان را برای سالن بفرستید.</p><a data-try="nails" href="#intro">روی دست خودم امتحان کنم <span aria-hidden="true">←</span></a></div><p class="journey-note">نمونهٔ نمایشی؛ نتیجهٔ اجرا ممکن است متفاوت باشد.</p></div></section></section>
 
   <section class="cta-band" aria-labelledby="h-cta1">
     <div class="cta-band__in">
       <h2 id="h-cta1">دوست دارید مشتری‌های شما همین تجربه را داشته باشند؟</h2>
-      <p>صفحهٔ سالن خودتان را همین حالا بسازید و درست مثل یک مشتری امتحانش کنید. رایگان است و کارت بانکی نمی‌خواهد.</p>
-      <a class="btn btn--lg" href="#start" data-cta="mid"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
+      <p>تجربه را همین‌جا امتحان کنید؛ برای راه‌اندازی آینه با نام و نمونه‌کارهای سالن خودتان درخواست بدهید.</p>
+      <a class="btn btn--lg" href="#start" data-cta="mid"><span>درخواست ساخت صفحه اختصاصی سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
     </div>
   </section>
 
@@ -910,8 +927,8 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
           <li><strong>مشتری بی‌خبر نمی‌ماند</strong><span>نتیجهٔ همان ضربه در صفحهٔ خود مشتری دیده می‌شود.</span></li>
         </ul>
         <div class="s2-cta">
-          <a class="btn btn--lg" href="#start"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
-          <a class="btn btn--ghost" href="#plans">دیدن قیمت پلن‌ها</a>
+          <a class="btn btn--lg" href="#start"><span>درخواست ساخت صفحه اختصاصی سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
+          <a class="btn btn--ghost" href="#start">درخواست صفحهٔ اختصاصی سالن</a>
         </div>
       </div>
 
@@ -1023,26 +1040,25 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
     <div class="wrap trial-grid">
       <div class="trial-col">
         <div class="sec-head">
-          <p class="kicker">صفحهٔ آزمایشی رایگان</p>
-          <h2 id="h-trial">صفحهٔ سالن خودتان را همین حالا بسازید.</h2>
-          <p class="sub">نام سالن و رنگ برندتان را بنویسید تا صفحه‌تان ساخته شود. ده ساعت وقت دارید و پنج تصویر، درست مثل مشتری‌هایتان. هیچ پولی نمی‌پردازید.</p>
+          <p class="kicker">درخواست صفحه اختصاصی سالن</p>
+          <h2 id="h-trial">درخواست ساخت صفحهٔ اختصاصی سالن</h2>
+          <p class="sub">برای راه‌اندازی صفحهٔ اختصاصی سالن و استفاده از سرویس‌های آینه، مشخصاتتان را بفرستید تا با شما تماس بگیریم.</p>
         </div>
         <form class="path path--form" id="leadForm" novalidate aria-labelledby="h-lead">
-          <h3 id="h-lead">صفحهٔ آزمایشی سالن من</h3>
-          <p>فقط نام سالن و شمارهٔ موبایل را بنویسید. صفحه چند ثانیه بعد آماده است.</p>
+          <h3 id="h-lead">درخواست راه‌اندازی آینه برای سالن من</h3>
+          <p>نام و شمارهٔ تماس را ثبت کنید؛ برای راه‌اندازی و معرفی سرویس‌ها با شما تماس می‌گیریم.</p>
           <div class="lf-grid">
             <div class="lf-field"><label for="lf-salon">نام سالن</label><input id="lf-salon" name="salon" type="text" autocomplete="organization" maxlength="80" required></div>
             <div class="lf-field"><label for="lf-phone">شمارهٔ موبایل</label><input id="lf-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="۰۹۱۲۰۰۰۰۰۰۰" maxlength="20" required></div>
-            <div class="lf-field"><label for="lf-name">نام شما <span class="opt">(اختیاری)</span></label><input id="lf-name" name="name" type="text" autocomplete="name" maxlength="60"></div>
+            <div class="lf-field"><label for="lf-name">نام شما</label><input id="lf-name" name="name" type="text" autocomplete="name" maxlength="60"></div>
             <div class="lf-field"><label for="lf-city">شهر <span class="opt">(اختیاری)</span></label><input id="lf-city" name="city" type="text" autocomplete="address-level2" maxlength="40"></div>
           </div>
           <p class="lf-plan" id="lf-plan" hidden></p>
           <div class="lf-hp" aria-hidden="true"><label for="lf-web">وب‌سایت</label><input id="lf-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-          <label class="lf-check" for="lf-consent"><input id="lf-consent" name="consent" type="checkbox"><span>موافقم که آینه بعد از امتحان صفحه، برای راهنمایی با من تماس بگیرد.</span></label>
+          <label class="lf-check" for="lf-consent"><input id="lf-consent" name="consent" type="checkbox"><span>موافقم برای راه‌اندازی صفحهٔ سالن و معرفی سرویس‌ها با من تماس بگیرید.</span></label>
           <p class="lf-err" id="lf-err" role="alert"></p>
-          <div class="lf-field" id="lf-codebox" hidden><label for="lf-code">کد پیامک‌شده به موبایل شما</label><input id="lf-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" dir="ltr" maxlength="8" placeholder="- - - - -"><button type="button" class="lf-resend" id="lf-resend" disabled>ارسال دوبارهٔ کد</button></div>
-          <button class="btn btn--lg" type="submit" id="lf-send"><span>صفحهٔ سالن مرا بساز</span><span class="arrow" aria-hidden="true">←</span></button>
-          <p class="lf-micro">۱۰ ساعت · ۵ تصویر · بدون پرداخت و کارت بانکی</p>
+          <button class="btn btn--lg" type="submit" id="lf-send"><span>ارسال درخواست ساخت صفحهٔ سالن</span><span class="arrow" aria-hidden="true">←</span></button>
+          <p class="lf-micro">هماهنگی راه‌اندازی و معرفی سرویس‌ها پس از ثبت درخواست</p>
           <p class="lf-done" id="lf-done" role="status" hidden></p>
         </form>
 
@@ -1071,47 +1087,14 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
     </div>
   </section>
 
-  <!-- 6. Plans -->
-  <section id="plans" class="section section--sunken" aria-labelledby="h-plans" tabindex="-1">
-    <div class="wrap">
-      <div class="sec-head">
-        <p class="kicker">پلن‌ها</p>
-        <h2 id="h-plans">پلن یک‌بار پرداخت می‌شود، فقط ساخت تصویر شارژ ماهانه دارد.</h2>
-        <p class="sub">پلن‌ها در آموزش و تعداد کارکنانی که از آینه استفاده می‌کنند فرق دارند. پیشنهاد ما این است که اول صفحهٔ آزمایشی را امتحان کنید، بعد انتخاب کنید.</p>
-      </div>
-      <div class="plans">
-        <article class="plan">
-          <h3>Basic</h3>
-          <p class="price num">۱۰ میلیون<small>تومان</small></p>
-          <ul><li>تا ۲ نفر از کارکنان سالن</li><li>ویدئوهای آموزشی کار با آینه</li><li>صفحهٔ اختصاصی سالن با لینک</li></ul>
-          <a class="btn btn--ghost plan-cta" href="#start" data-plan="Basic"><span>شروع با صفحهٔ آزمایشی</span></a>
-        </article>
-        <article class="plan plan--pro">
-          <span class="badge">پیشنهادی برای شروع</span>
-          <h3>Pro</h3>
-          <p class="price num">۲۰ میلیون<small>تومان</small></p>
-          <ul><li>تا ۵ نفر از کارکنان سالن</li><li>ویدئوهای آموزشی و یک جلسهٔ آنلاین آموزش و پرسش‌وپاسخ</li><li>همهٔ امکانات Basic به‌علاوهٔ امتحان روی نمونه‌کار سالن و ثبت نمونه‌کار از ربات</li></ul>
-          <a class="btn btn--ghost plan-cta" href="#start" data-plan="Pro"><span>شروع با صفحهٔ آزمایشی</span></a>
-        </article>
-        <article class="plan">
-          <h3>VIP</h3>
-          <p class="price num"><small>از</small>۸۰ میلیون<small>تومان</small></p>
-          <ul><li>تا ۲۰ نفر از کارکنان سالن</li><li>ویدئو، جلسهٔ آنلاین و جلسهٔ حضوری آموزش برای نیروهای سالن</li><li>دامنهٔ اختصاصی سالن و امکان سفارشی طبق نیاز</li></ul>
-          <a class="btn btn--ghost plan-cta" href="#start" data-plan="VIP"><span>شروع با صفحهٔ آزمایشی</span></a>
-        </article>
-      </div>
-      <p class="plan-note">ساخت تصویر هزینهٔ جدا دارد: شارژ ماهانهٔ ۱ تا ۵ میلیون تومان، بسته به تعداد تصویر.</p>
-    </div>
-  </section>
-
   <!-- 7. FAQ -->
   <section id="faq" class="section" aria-labelledby="h-faq" tabindex="-1">
     <div class="wrap">
       <div class="sec-head"><p class="kicker">پرسش‌های پرتکرار</p><h2 id="h-faq">قبل از شروع، این‌ها را می‌پرسند</h2></div>
       <div class="faq">
         <details><summary>آینه دقیقاً چیست؟</summary><p>صفحه‌ای اینترنتی با نام و رنگ برند سالن شما. مشتری روی آن مدل مو، رنگ، طرح ناخن یا مژه را روی عکس خودش امتحان می‌کند و درخواستش را با عکس به تلگرام یا بله شما می‌فرستد.</p></details>
-        <details><summary>صفحهٔ آزمایشی چیست و چقدر طول می‌کشد؟</summary><p>نسخهٔ موقت همین صفحه با نام و رنگ سالن شما. ساختنش چند ثانیه طول می‌کشد، ۱۰ ساعت فعال است و ۵ تصویر دارد. رایگان است.</p></details>
-        <details><summary>بعد از ثبت درخواست چه می‌شود؟</summary><p>لینک صفحه‌تان همان لحظه ساخته می‌شود و درخواست شما به ما می‌رسد. بعد از ۱۰ ساعت یا ۵ تصویر، صفحه بسته می‌شود و برای ادامه با شمارهٔ خودتان تماس می‌گیریم. پرداختی لازم نیست.</p></details>
+        <details><summary>چطور سرویس‌ها را امتحان کنم؟</summary><p>بالای همین صفحه، عکس خودتان را انتخاب کنید و مدل مو، رنگ، مژه یا ناخن دلخواهتان را امتحان کنید.</p></details>
+        <details><summary>بعد از ثبت درخواست چه می‌شود؟</summary><p>درخواست راه‌اندازی برای تیم آینه فرستاده می‌شود. برای معرفی سرویس‌ها و هماهنگی ساخت صفحهٔ اختصاصی با شما تماس می‌گیریم.</p></details>
         <details><summary>مشتری‌های من چطور وارد می‌شوند؟</summary><p>با یک لینک. آن را در اینستاگرام، تلگرام یا هر چتی با مشتری می‌گذارید. برنامه‌ای نصب نمی‌شود و صفحه در مرورگر گوشی باز می‌شود.</p></details>
         <details><summary>درخواست مشتری را کجا می‌بینم؟</summary><p>در ربات تلگرام یا بله خودتان. پنل جداگانه‌ای ندارید.</p></details>
         <details><summary>آینه نوبت می‌دهد؟</summary><p>نه. آینه فقط کمک می‌کند مشتری روشن بگوید چه می‌خواهد. نوبت، زمان و هزینه مثل همیشه با شماست.</p></details>
@@ -1125,19 +1108,19 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
   <section class="cta-band cta-band--final" aria-labelledby="h-cta2">
     <div class="cta-band__in">
       <h2 id="h-cta2">مشتری بعدی‌تان می‌تواند با تصویری روشن به سالن بیاید.</h2>
-      <p>ده ساعت وقت دارید که خودتان امتحانش کنید. رایگان است.</p>
-      <a class="btn btn--lg" href="#start" data-cta="final"><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
+      <p>مدل‌ها را همین‌جا روی عکس خودتان امتحان کنید؛ برای سالن خودتان یک صفحهٔ اختصاصی درخواست بدهید.</p>
+      <a class="btn btn--lg" href="#start" data-cta="final"><span>درخواست ساخت صفحه اختصاصی سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
     </div>
   </section>
 
 </main>
-<a class="sticky-cta" id="stickyCta" href="#start" hidden><span>صفحهٔ آزمایشی رایگان سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
+<a class="sticky-cta" id="stickyCta" href="#start" hidden><span>درخواست ساخت صفحه اختصاصی سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
 
 <footer class="site-footer">
   <div class="foot">
     <a class="brand" href="#intro">آینه<small>| AYNEH</small></a>
     <ul aria-label="پیوندهای پایین صفحه">
-      <li><a href="#experience">تجربه آینه</a></li><li><a href="#services">خدمات</a></li><li><a href="#how">نحوه کار</a></li><li><a href="#salons">برای سالن‌ها</a></li><li><a href="#plans">پلن‌ها</a></li><li><a href="#faq">پرسش‌ها</a></li><li><a href="/admin">ورود مدیر</a></li>
+      <li><a href="#experience">تجربه آینه</a></li><li><a href="#services">خدمات</a></li><li><a href="#how">نحوه کار</a></li><li><a href="#salons">برای سالن‌ها</a></li><li><a href="#faq">پرسش‌ها</a></li><li><a href="/admin">ورود مدیر</a></li>
     </ul>
   </div>
   <p class="legal">آینه، مشاورهٔ تصویری انتخاب مدل برای سالن‌های زیبایی. شبیه‌سازی‌ها پیشنهادی‌اند و نتیجهٔ نهایی را تضمین نمی‌کنند. سیاست حریم خصوصی و شرایط استفاده پس از نهایی‌شدن در همین بخش اضافه می‌شود.</p>
@@ -1163,7 +1146,7 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
  compact.addEventListener('change',e=>{if(!e.matches&&!menu.hidden)setOpen(false)});
 })();
 </script>
-<script>window.__AYN_ASSET_VERSION="69b2349d469d";window.__AYN_LOOKS=[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];</script>
+<script>window.__AYN_ASSET_VERSION="403340434efb";window.__AYN_LOOKS=[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];</script>
 <script>
 /* A short-lived browser-local photo handoff; no upload, analytics or phone is involved. */
 (()=>{
@@ -1191,6 +1174,23 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
 })();
 
 </script>
+<script>
+/* Preserve photographic contrast and neutral highlights instead of painting a flat hue. */
+(()=>{
+ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ function tint(c,Y,yn){
+  const target=c.rgb||[151,105,66],end=c.ombre?clamp((yn-.25)/.6,0,1):1;
+  const color=c.ombre?target.map((v,i)=>[48,32,24][i]*(1-end)+v*end):target;
+  const luminance=.2126*color[0]+.7152*color[1]+.0722*color[2];
+  // Shadows remain deep; the highlights retain individual strands and shine.
+  const exposure=Math.pow(clamp(Y/.32,.025,2.6),.88);
+  const highlight=clamp((Y-.48)/.35,0,.42);
+  return color.map(v=>clamp(v*exposure*(1-highlight)+luminance*exposure*highlight,0,248));
+ }
+ window.__AYN_HAIR_COLOR={tint};
+})();
+
+</script>
 <script>window.__AYN_BASE='/landing/';</script>
 <script>
 /* Film hero. STYLES / COLORS are the only lists to extend.
@@ -1207,13 +1207,13 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
  const fa=n=>new Intl.NumberFormat('fa-IR').format(n);
  const STYLES=['لیر بلند','کوتاهی پروانه‌ای','ولف‌کات','هاش‌کات','لُب (باب بلند)','باب کوتاه','کوتاهی جلوبلند','پیکسی','چتری پرده‌ای','چتری پروانه‌ای','چتری کج','چتری صاف کامل','براشینگ حجیم','صاف و براق','ویو درشت','فر طبیعی','فر درشت لوله‌ای','مدل گوجه‌ای','شینیون پایین'];
  const COLORS=[
-  {name:'بلوند شامپاینی',h:43,s:.36,l:.7,css:'linear-gradient(145deg,#F3E2B8,#D3B677)'},
-  {name:'کاراملی',h:28,s:.62,l:.46,css:'linear-gradient(145deg,#C98745,#8A5424)'},
-  {name:'اسپرسو',h:22,s:.42,l:.17,css:'linear-gradient(145deg,#4F3322,#1C110A)'},
-  {name:'آمبره',ombre:true,h:30,s:.5,l:.4,css:'linear-gradient(180deg,#2A1A10,#D6B27A)'},
-  {name:'مسی',h:16,s:.72,l:.43,css:'linear-gradient(145deg,#CF6C3C,#8C3D1B)'},
-  {name:'بلوند پلاتینی',h:50,s:.2,l:.86,css:'linear-gradient(145deg,#F4EFE2,#CBC3AE)'},
-  {name:'شرابی',h:343,s:.55,l:.27,css:'linear-gradient(145deg,#8E3050,#481327)'}
+  {name:'بلوند شامپاینی',rgb:[190, 166, 120],h:43,s:.36,l:.7,css:'linear-gradient(145deg,#F3E2B8,#D3B677)'},
+  {name:'کاراملی',rgb:[139, 94, 57],h:28,s:.62,l:.46,css:'linear-gradient(145deg,#C98745,#8A5424)'},
+  {name:'اسپرسو',rgb:[49, 36, 29],h:22,s:.42,l:.17,css:'linear-gradient(145deg,#4F3322,#1C110A)'},
+  {name:'آمبره',rgb:[180, 146, 99],ombre:true,h:30,s:.5,l:.4,css:'linear-gradient(180deg,#2A1A10,#D6B27A)'},
+  {name:'مسی',rgb:[150, 79, 47],h:16,s:.72,l:.43,css:'linear-gradient(145deg,#CF6C3C,#8C3D1B)'},
+  {name:'بلوند پلاتینی',rgb:[211, 201, 181],h:50,s:.2,l:.86,css:'linear-gradient(145deg,#F4EFE2,#CBC3AE)'},
+  {name:'شرابی',rgb:[91, 39, 53],h:343,s:.55,l:.27,css:'linear-gradient(145deg,#8E3050,#481327)'}
  ];
  const READY=new Set([1,...(window.__AYN_LOOKS||[])]);
  const st={style:null,color:null,look:'base'};
@@ -1369,7 +1369,7 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
  startPrep();
  const cl=(v,a,b)=>v<a?a:v>b?b:v,sm=(a,b,x)=>{x=cl((x-a)/(b-a),0,1);return x*x*(3-2*x)};
  function hsl(h,s,l){const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));return[f(0)*255,f(8)*255,f(4)*255]}
- function tint(c,Y,yn){let l=c.ombre?.16+(.7-.16)*sm(.3,.85,yn):c.l;l=cl(l+(Y-.4)*.48,.03,.96);const s=c.s*(1-cl((l-.72)*2.2,0,.8));return hsl(c.h,s,l)}
+ const tint=window.__AYN_HAIR_COLOR.tint;
  /* from/to: colour objects or null (original); t: 0..1 blend; scan: -1 (off) or 0..1 sweep position */
  function draw(from,to,t,scan){
   if(!px)return;
@@ -1546,19 +1546,23 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
 
 </script>
 <script>
-/* Visible-only, four-second carousel; document scroll is never trapped. */
+/* A 2.5-second book carousel; hover, focus and a held touch pause its clock. */
 (()=>{
  const root=document.querySelector('.cinema-story');if(!root)return;
  document.documentElement.classList.add('cinema-enabled');
- const shots=[...root.querySelectorAll('[data-cinema-shot]')],dots=[...root.querySelectorAll('[data-cinema-go]')],toggle=root.querySelector('[data-slide-toggle]');
- const reduced=matchMedia('(prefers-reduced-motion:reduce)');let current=0,visible=false,paused=reduced.matches,timer;
- function show(n){current=(n+shots.length)%shots.length;root.dataset.cinemaChapter=String(current);shots.forEach((s,i)=>{s.classList.toggle('is-current',i===current);s.inert=i!==current;s.setAttribute('aria-hidden',String(i!==current))});dots.forEach((d,i)=>{if(i===current)d.setAttribute('aria-current','step');else d.removeAttribute('aria-current')});restart()}
- function restart(){clearTimeout(timer);if(visible&&!paused&&!document.hidden)timer=setTimeout(()=>show(current+1),4000)}
- root.querySelector('[data-slide-prev]').onclick=()=>show(current-1);root.querySelector('[data-slide-next]').onclick=()=>show(current+1);
- toggle.onclick=()=>{paused=!paused;toggle.textContent=paused?'▶':'Ⅱ';toggle.setAttribute('aria-label',paused?'پخش خودکار اسلایدها':'توقف تعویض خودکار اسلایدها');restart()};dots.forEach((d,i)=>d.onclick=()=>show(i));
- root.addEventListener('focusin',()=>{clearTimeout(timer)});root.addEventListener('focusout',restart);document.addEventListener('visibilitychange',restart);
+ const shots=[...root.querySelectorAll('[data-cinema-shot]')],dots=[...root.querySelectorAll('[data-cinema-go]')];
+ const reduced=matchMedia('(prefers-reduced-motion:reduce)');let current=0,visible=false,hover=false,held=false,focused=false,timer,turnTimer,turning=false,start=null,wheel=0,lastWheel=0;
+ function restart(){clearTimeout(timer);if(visible&&!hover&&!held&&!focused&&!document.hidden&&!reduced.matches)timer=setTimeout(()=>show(current+1),2500)}
+ function show(n){const next=(n+shots.length)%shots.length;if(next===current){restart();return}clearTimeout(turnTimer);const old=shots[current];shots.forEach(s=>s.classList.remove('is-leaving','turn-back'));old.classList.add('is-leaving');if(n<current)old.classList.add('turn-back');current=next;root.dataset.cinemaChapter=String(current);shots.forEach((s,i)=>{s.classList.toggle('is-current',i===current);s.inert=i!==current;s.setAttribute('aria-hidden',String(i!==current))});dots.forEach((d,i)=>i===current?d.setAttribute('aria-current','step'):d.removeAttribute('aria-current'));turning=true;turnTimer=setTimeout(()=>{old.classList.remove('is-leaving','turn-back');turning=false},650);restart()}
+ root.querySelector('[data-slide-prev]').onclick=()=>show(current-1);root.querySelector('[data-slide-next]').onclick=()=>show(current+1);dots.forEach((d,i)=>d.onclick=()=>show(i));
+ root.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse'){hover=true;restart()}});root.addEventListener('pointerleave',()=>{hover=false;restart()});
+ root.addEventListener('pointerdown',e=>{held=true;start={x:e.clientX,y:e.clientY};restart()});
+ function release(e){if(start&&e.type==='pointerup'){const dx=e.clientX-start.x,dy=e.clientY-start.y;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.3)show(current+(dx<0?1:-1))}held=false;start=null;restart()}
+ addEventListener('pointerup',release);addEventListener('pointercancel',release);
+ root.addEventListener('wheel',e=>{if(Math.abs(e.deltaX)<=Math.abs(e.deltaY))return;e.preventDefault();if(Date.now()-lastWheel<650)return;wheel+=e.deltaX;if(Math.abs(wheel)>45){show(current+(wheel>0?1:-1));wheel=0;lastWheel=Date.now()}},{passive:false});
+ root.addEventListener('focusin',()=>{focused=true;restart()});root.addEventListener('focusout',e=>{if(!root.contains(e.relatedTarget)){focused=false;restart()}});root.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();show(current+(e.key==='ArrowLeft'?1:-1))}});document.addEventListener('visibilitychange',restart);
  new IntersectionObserver(es=>{visible=es[0].isIntersecting;restart()},{threshold:.35}).observe(root);
- root.querySelectorAll('[data-cinema-image]').forEach(img=>{const k=img.dataset.cinemaImage;img.src=window.__AYN_IMG?.[k]||((window.__AYN_BASE||'/landing/')+k+'.webp')});show(0);
+ root.querySelectorAll('[data-cinema-image]').forEach(img=>{const k=img.dataset.cinemaImage;img.src=window.__AYN_IMG?.[k]||((window.__AYN_BASE||'/landing/')+k+'.webp')});shots.forEach((s,i)=>{s.inert=i!==0;s.setAttribute('aria-hidden',String(i!==0))});
 })();
 
 /* First two films play on visibility. Only the stone and nails follow native scroll. */
@@ -1567,10 +1571,17 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
  const reduced=matchMedia('(prefers-reduced-motion:reduce)'),cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
  const states=[...root.querySelectorAll('[data-journey-film]')].map(v=>({v,key:v.dataset.journeyFilm,target:0,visible:false,userPaused:false,loaded:false}));
  async function load(s){if(s.loaded)return;s.loaded=true;s.v.muted=true;s.v.preload='auto';if(s.key==='hair')s.v.defaultPlaybackRate=s.v.playbackRate=1.5;try{const r=await fetch((window.__AYN_BASE||'/landing/')+s.v.dataset.src+'?v='+window.__AYN_ASSET_VERSION,{credentials:'same-origin',priority:'low'});if(!r.ok||!(r.headers.get('content-type')||'').includes('video/'))throw Error('HTTP '+r.status+' '+r.headers.get('content-type'));s.v.src=URL.createObjectURL(await r.blob());s.v.load()}catch(e){console.warn('Video unavailable:',s.key,e.message);s.v.controls=true}}
- function playback(s){if(s.key==='nails')return;if(s.visible&&!s.userPaused&&!document.hidden&&!reduced.matches){if(s.v.ended)s.v.currentTime=0;s.v.play().catch(()=>{s.v.controls=true})}else s.v.pause()}
- states.forEach(s=>{s.v.addEventListener('loadedmetadata',()=>{s.v.playbackRate=s.key==='hair'?1.5:1});s.v.controls=reduced.matches;s.v.addEventListener('loadeddata',()=>{playback(s);schedule()});if(s.key!=='nails'){const panel=s.v.closest('.auto-film'),button=panel.querySelector('.film-toggle');new IntersectionObserver(es=>{s.visible=es[0].intersectionRatio>=.4;playback(s)},{threshold:[0,.4,.7]}).observe(panel);button.onclick=()=>{s.userPaused=!s.v.paused;if(s.userPaused)s.v.pause();else{s.v.play().catch(()=>{s.v.controls=true})}button.textContent=s.userPaused?'▶':'Ⅱ';button.setAttribute('aria-label',s.userPaused?'پخش ویدئو':'توقف پخش ویدئو')};s.v.addEventListener('ended',()=>{button.textContent='↻';button.setAttribute('aria-label','پخش دوبارهٔ ویدئو');if(s.key==='hair'&&s.visible&&!document.hidden){root.querySelector('[data-auto-film=lashes]').scrollIntoView({behavior:reduced.matches?'auto':'smooth',block:'start'})}})}});
+ function playback(s){if(s.key==='nails')return;if(s.key==='hair')s.v.defaultPlaybackRate=s.v.playbackRate=1.5;if(s.visible&&!s.userPaused&&!document.hidden&&!reduced.matches){if(s.v.ended)s.v.currentTime=0;s.v.play().catch(()=>{s.v.controls=true})}else s.v.pause()}
+ states.forEach(s=>{s.v.addEventListener('loadedmetadata',()=>{s.v.playbackRate=s.key==='hair'?1.5:1});s.v.controls=reduced.matches;s.v.addEventListener('loadeddata',()=>{playback(s);schedule()});if(s.key!=='nails'){const panel=s.v.closest('.auto-film'),button=panel.querySelector('.film-toggle');new IntersectionObserver(es=>{s.visible=es[0].intersectionRatio>=.4;playback(s)},{threshold:[0,.4,.7]}).observe(panel);button.onclick=()=>{s.userPaused=!s.v.paused;if(s.userPaused)s.v.pause();else{s.v.play().catch(()=>{s.v.controls=true})}button.textContent=s.userPaused?'▶':'Ⅱ';button.setAttribute('aria-label',s.userPaused?'پخش ویدئو':'توقف پخش ویدئو')};s.v.addEventListener('ended',()=>{button.textContent='↻';button.setAttribute('aria-label','پخش دوبارهٔ ویدئو');if(s.key==='lashes'&&s.visible&&!document.hidden)enterNails();if(s.key==='hair'&&s.visible&&!document.hidden){root.querySelector('[data-auto-film=lashes]').scrollIntoView({behavior:reduced.matches?'auto':'smooth',block:'start'})}})}});
  document.addEventListener('visibilitychange',()=>states.forEach(playback));reduced.addEventListener('change',()=>{states.forEach(s=>{s.v.addEventListener('loadedmetadata',()=>{s.v.playbackRate=s.key==='hair'?1.5:1});s.v.controls=reduced.matches;playback(s)});schedule()});
  const area=root.querySelector('.nail-journey'),stage=area.querySelector('.journey-stage'),s=states.find(s=>s.key==='nails'),bridge=area.querySelector('.journey-bridge'),stone=area.querySelector('.journey-stone'),space=area.querySelector('.journey-bridge-space'),copy=area.querySelector('.journey-copy');let pending=false,position=0,target=0;
+ function enterNails(){
+  const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||65,startY=scrollY,areaY=scrollY+area.getBoundingClientRect().top-hh;
+  const end=areaY+Math.max(1,area.offsetHeight-stage.offsetHeight)*.28;
+  if(reduced.matches){scrollTo({top:areaY,behavior:'auto'});return}
+  let frame=0,cancelled=false,t0=performance.now();const abort=()=>{cancelled=true;cancelAnimationFrame(frame);clean()};const events=['wheel','touchstart','pointerdown','keydown'];const clean=()=>events.forEach(n=>removeEventListener(n,abort));events.forEach(n=>addEventListener(n,abort,{once:true,passive:true}));
+  function step(now){if(cancelled)return;const t=Math.min(1,(now-t0)/2800),e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;scrollTo({top:startY+(end-startY)*e,behavior:'instant'});if(t<1)frame=requestAnimationFrame(step);else clean()}frame=requestAnimationFrame(step);
+ }
  function seek(){if(s.v.seeking||s.v.readyState<1||!Number.isFinite(s.v.duration))return;const t=cl(s.target,0,s.v.duration-.05);if(Math.abs(s.v.currentTime-t)>.045)s.v.currentTime=t}s.v.addEventListener('seeked',seek);
  function update(){pending=false;area.classList.toggle('is-static',reduced.matches);if(reduced.matches){s.v.controls=true;bridge.hidden=true;return}bridge.hidden=false;
  const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||65;target=cl((hh-area.getBoundingClientRect().top)/Math.max(1,area.offsetHeight-stage.offsetHeight));position+= (target-position)*.18;if(Math.abs(target-position)<.0004)position=target;const p=position,q=cl(p/.27),n=cl((p-.27)/.73);
@@ -1583,14 +1594,13 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
 
 </script>
 <script>
-/* Select the photo first; authentication happens only after Build on the demo page. */
+/* The gallery, phone verification and result stay inside this landing page. */
 (()=>{
  const links=[...document.querySelectorAll('[data-try]')];if(!links.length)return;
- const input=document.createElement('input');input.type='file';input.accept='image/jpeg,image/png,image/webp';input.hidden=true;input.setAttribute('aria-label','انتخاب تصویر خودم');document.body.append(input);let line='hair';
- function href(l){const sel=window.__AYN_SEL||{},q=new URLSearchParams({l});if(l==='hair'&&sel.styleIdx!=null)q.set('s',sel.styleIdx);if(l==='hair'&&sel.color)q.set('c',sel.color);return '/s/demo?'+q}
- function sync(){links.forEach(a=>a.href=href(a.dataset.try))}addEventListener('ayneh:selection',sync);sync();
- links.forEach(a=>a.addEventListener('click',e=>{e.preventDefault();line=a.dataset.try;input.value='';input.click()}));
- input.addEventListener('change',async()=>{const file=input.files[0];if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>25*1024*1024){alert('یک تصویر JPG، PNG یا WebP با حجم کمتر از ۲۵ مگابایت انتخاب کنید.');return}try{await window.__AYN_DRAFT.put({file,line,selection:window.__AYN_SEL||{}});location.assign(href(line)+'&draft=1')}catch(_){alert('ذخیرهٔ موقت عکس در مرورگر ممکن نشد؛ در صفحهٔ بعد دوباره عکس را انتخاب کنید.');location.assign(href(line))}});
+ const input=document.createElement('input');input.type='file';input.accept='image/jpeg,image/png,image/webp';input.hidden=true;input.setAttribute('aria-label','انتخاب تصویر خودم');document.body.append(input);let line='hair',opener;
+ const dialog=document.createElement('dialog');dialog.className='personal-try';dialog.setAttribute('aria-label','ساخت تصویر خودم');dialog.innerHTML='<div class="personal-head"><strong>این بار، تصویر خودتان.</strong><button type="button" aria-label="بستن تجربهٔ تصویر من">×</button></div><iframe title="عکس من، انتخاب من" allow="camera"></iframe>';document.body.append(dialog);const frame=dialog.querySelector('iframe');dialog.querySelector('button').onclick=()=>dialog.close();dialog.addEventListener('close',()=>{document.documentElement.classList.remove('try-open');opener?.focus({preventScroll:true})});
+ links.forEach(a=>{a.href='#intro';a.addEventListener('click',e=>{e.preventDefault();line=a.dataset.try;opener=a;input.value='';input.click()})});
+ input.addEventListener('change',async()=>{const file=input.files[0];if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>25*1024*1024){alert('یک تصویر JPG، PNG یا WebP با حجم کمتر از ۲۵ مگابایت انتخاب کنید.');return}try{const selection={...(window.__AYN_SEL||{})};await window.__AYN_DRAFT.put({file,line,selection});const q=new URLSearchParams({l:line,draft:'1',embed:'1'});if(line==='hair'){q.set('s',selection.styleIdx??0);if(selection.color)q.set('c',selection.color)}frame.src='/s/demo?'+q;dialog.showModal();document.documentElement.classList.add('try-open')}catch(_){alert('باز کردن تصویر ممکن نشد. دوباره انتخاب کنید.')}});
 })();
 
 </script>
@@ -1645,53 +1655,12 @@ html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
 
 </script>
 <script>
-/* Salon lead form: POST /api/inquiry, which saves the request and sends it to the owner's Telegram/Bale chat. */
+/* A salon setup request, saved by the existing inquiry endpoint. */
 (()=>{
- const $=id=>document.getElementById(id);
- const form=$('leadForm');if(!form)return;
- /* live mockup of the trial salon page: salon name and brand colour update the card */
- const mock=$('mock'),SRCI=(k)=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'/landing/')+k+'.webp');
- let brandName='',brandHex='#B9975B',planName='';
- document.querySelectorAll('[data-plan]').forEach(a=>a.addEventListener('click',()=>{planName=a.dataset.plan;const p=$('lf-plan');if(p){p.textContent='پلن موردنظر شما: '+planName;p.hidden=false}}));
- if(mock){
-  mock.querySelectorAll('img[data-k]').forEach(i=>{i.src=SRCI(i.dataset.k)});
-  const nm=$('mockName'),ini=$('mockInit'),DEFAULT_NAME=nm.textContent;
-  $('lf-salon').addEventListener('input',e=>{const t=e.target.value.trim();nm.textContent=t||DEFAULT_NAME;ini.textContent=t?[...t][0]:'س'});
-  const picks=[...document.querySelectorAll('.brand-pick button')];
-  picks.forEach(b=>b.addEventListener('click',()=>{picks.forEach(x=>x.setAttribute('aria-checked',String(x===b)));mock.style.setProperty('--brand',b.dataset.brand);brandName=b.getAttribute('aria-label');brandHex=b.dataset.brand}));
- }
- const PREVIEW=!!window.__AYN_PREVIEW;
- const err=$('lf-err'),done=$('lf-done'),send=$('lf-send');
- const code=$('lf-code'),codeBox=$('lf-codebox'),resend=$('lf-resend');let codeOn=false,tick=0;
- /* With SMS on, the server first texts a code; the same button then confirms it and builds the page. */
- function askCode(wait){codeOn=true;codeBox.hidden=false;$('lf-phone').readOnly=true;send.querySelector('span').textContent='تأیید کد و ساخت صفحه';err.textContent='کد به '+$('lf-phone').value+' پیامک شد.';code.value='';code.focus();
-  clearInterval(tick);let t=wait;resend.disabled=true;const show=()=>{resend.textContent=t>0?'ارسال دوباره تا '+t.toLocaleString('fa-IR')+' ثانیه':'ارسال دوبارهٔ کد'};show();
-  tick=setInterval(()=>{t--;show();if(t<=0){clearInterval(tick);resend.disabled=false}},1000)}
- resend&&resend.addEventListener('click',()=>{codeOn=false;code.value='';form.requestSubmit()});
- const faDigits=s=>String(s).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
- function fail(msg,field){err.textContent=msg;[...form.querySelectorAll('input,textarea')].forEach(i=>i.removeAttribute('aria-invalid'));if(field){field.setAttribute('aria-invalid','true');field.focus()}}
- form.addEventListener('submit',async e=>{
-  e.preventDefault();err.textContent='';
-  const v={name:$('lf-name').value.trim(),salon:$('lf-salon').value.trim(),city:$('lf-city').value.trim(),phone:faDigits($('lf-phone').value).replace(/[\\s-]/g,''),website:$('lf-web').value,consent:$('lf-consent').checked,brand:brandHex};
-    if(v.salon.length<2)return fail('نام سالن را بنویسید.',$('lf-salon'));
-  if(!/^(\\+98|0098|98|0)?9\\d{9}$/.test(v.phone))return fail('شمارهٔ موبایل را مثل ۰۹۱۲۰۰۰۰۰۰۰ بنویسید.',$('lf-phone'));
-  if(!v.consent)return fail('برای ساخت صفحه، تیک تأیید تماس را بزنید.',$('lf-consent'));
-  const sel=window.__AYN_SEL||{};v.chosen=[sel.style,sel.color,brandName&&('برند '+brandName),planName&&('پلن '+planName)].filter(Boolean).join(' · ');
-  send.disabled=true;send.setAttribute('aria-busy','true');
-  try{
-   if(PREVIEW){await new Promise(r=>setTimeout(r,700));done.textContent='پیش‌نمایش: این فرم روی سایت اصلی به ربات می‌رسد و در این نسخه چیزی ارسال نشد.'}
-   else{
-    if(codeOn){v.code=faDigits(code.value).replace(/\\D/g,'');if(v.code.length<3)throw new Error('کد پیامک‌شده را وارد کنید.')}
-    const r=await fetch('/api/trial',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(v)});
-    const j=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(j.error||'ارسال نشد. کمی بعد دوباره امتحان کنید.');
-    if(j.code_sent){askCode(j.resend_in||60);return}
-    done.textContent='صفحهٔ سالن شما آماده است. ۱۰ ساعت و ۵ تصویر دارید. ';const a=document.createElement('a');a.href=j.path;a.className='btn';a.textContent='باز کردن صفحهٔ سالن من ←';a.style.marginTop='12px';a.style.display='inline-flex';done.append(a);
-   }
-   done.hidden=false;form.querySelectorAll('input,textarea').forEach(i=>i.disabled=true);send.hidden=true;done.focus&&done.setAttribute('tabindex','-1');done.focus();
-  }catch(x){fail(x.message||'ارسال نشد. کمی بعد دوباره امتحان کنید.')}
-  finally{send.disabled=false;send.removeAttribute('aria-busy')}
- });
+ const $=id=>document.getElementById(id),form=$('leadForm');if(!form)return;
+ let brand='برنجی';const mock=$('mock');if(mock){const name=$('mockName'),initial=$('mockInit'),fallback=name.textContent;$('lf-salon').addEventListener('input',e=>{name.textContent=e.target.value.trim()||fallback;initial.textContent=e.target.value.trim()[0]||'س'});document.querySelectorAll('.brand-pick button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.brand-pick button').forEach(x=>x.setAttribute('aria-checked',String(x===b)));mock.style.setProperty('--brand',b.dataset.brand);brand=b.getAttribute('aria-label')});mock.querySelectorAll('img[data-k]').forEach(i=>i.src=window.__AYN_IMG?.[i.dataset.k]||((window.__AYN_BASE||'/landing/')+i.dataset.k+'.webp'))}
+ const digits=s=>s.replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+ form.addEventListener('submit',async e=>{e.preventDefault();const err=$('lf-err'),send=$('lf-send');err.textContent='';const data={name:$('lf-name').value.trim(),salon:$('lf-salon').value.trim(),phone:digits($('lf-phone').value).replace(/[\\s-]/g,''),city:$('lf-city').value.trim(),website:$('lf-web').value,consent:$('lf-consent').checked,chosen:'صفحه اختصاصی سالن · '+brand};if(data.name.length<2){err.textContent='نام خودتان را بنویسید.';return}if(data.salon.length<2){err.textContent='نام سالن را بنویسید.';return}if(!/^(\\+98|0098|98|0)?9\\d{9}$/.test(data.phone)){err.textContent='شمارهٔ موبایل درست را وارد کنید.';return}if(!data.consent){err.textContent='تأیید تماس را انتخاب کنید.';return}send.disabled=true;send.setAttribute('aria-busy','true');try{const response=await fetch('/api/inquiry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}),result=await response.json();if(!response.ok)throw Error(result.error||'ثبت درخواست ممکن نشد. دوباره تلاش کنید.');const done=$('lf-done');done.textContent='درخواست شما ثبت شد. برای راه‌اندازی صفحهٔ اختصاصی سالن و معرفی سرویس‌ها با شما تماس می‌گیریم.';done.hidden=false;done.setAttribute('tabindex','-1');done.focus();form.querySelectorAll('input').forEach(i=>i.disabled=true);send.hidden=true}catch(error){err.textContent=error.message}finally{send.disabled=false;send.removeAttribute('aria-busy')}});
 })();
 
 </script>

@@ -2,6 +2,8 @@
 // the owner's existing demo service; credentials and photos are never embedded.
 import {readFileSync,writeFileSync,mkdirSync,copyFileSync} from 'node:fs';
 import {resolve} from 'node:path';
+import {execFileSync} from 'node:child_process';
+const mediaRevision=execFileSync('git',['rev-parse','HEAD'],{cwd:new URL('..',import.meta.url),encoding:'utf8'}).trim();
 import {customerHTML} from '../worker/customer.js';
 const target=resolve(process.argv[2]);
 const artifact=readFileSync(new URL('../design/landing/out/artifact.html',import.meta.url),'utf8');
@@ -12,16 +14,17 @@ writeFileSync(target+'/worker/index.js',`const landing=${JSON.stringify(html)},c
 const upstream='https://ayneh-salon.site';
 export default {async fetch(request){
  const u=new URL(request.url),p=u.pathname;
- if(p==='/'||p==='/s/demo')return new Response(p==='/'?landing:customer,{headers:{'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin'}});
+ if(p==='/'||p==='/s/demo')return new Response(p==='/'?landing:customer,{headers:{'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'SAMEORIGIN','Content-Security-Policy':"frame-ancestors 'self'"}});
  const api=/^\\/api\\/s\\/demo\\//.test(p)||['/api/inquiry','/api/trial'].includes(p);
  const asset=/^\\/(catalog|fonts|landing|assets)\\/[a-zA-Z0-9_./-]+$/.test(p);
  if(!api&&!asset)return new Response('Not found',{status:404});
  if(request.method!=='GET'&&request.method!=='HEAD'&&(!api||!['POST','DELETE'].includes(request.method)))return new Response('Method not allowed',{status:405});
  const origin=request.headers.get('Origin');if(api&&origin&&origin!==u.origin)return new Response('Forbidden',{status:403});
  const headers=new Headers({'Accept-Encoding':'identity'});for(const k of ['Content-Type','Cookie','Range','Accept'])if(request.headers.has(k))headers.set(k,request.headers.get(k));
+ if(api)headers.set('Origin',upstream);
  const path=p.replace(/^\\/assets\\/video\\//,'/landing/video/');
  const isVideo=/^\\/landing\\/video\\/(hair|lashes|nails)\\.mp4$/.test(path);
- const source=isVideo?'https://raw.githubusercontent.com/aliadlif73-oss/ayneh-hair-studio/63b60ca0704296e2050f7c61105424d4bac5d706/public':upstream;
+ const source=isVideo?'https://raw.githubusercontent.com/aliadlif73-oss/ayneh-hair-studio/${mediaRevision}/public':upstream;
  const response=await fetch(source+path+u.search,{method:request.method,headers,body:['GET','HEAD'].includes(request.method)?undefined:request.body,redirect:'manual',duplex:'half'});
  const out=new Headers(response.headers);if(isVideo&&response.ok)out.set('Content-Type','video/mp4');out.delete('Access-Control-Allow-Origin');if(api)out.set('Cache-Control','private,no-store');
  return new Response(response.body,{status:response.status,headers:out});
