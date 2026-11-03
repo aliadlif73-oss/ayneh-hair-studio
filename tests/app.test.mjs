@@ -135,7 +135,7 @@ test('hairstyle copies only the cut and keeps her colour; hair colour keeps the 
   assert.match(input.prompt,/copy ONLY the haircut/);assert.match(input.prompt,/Keep her exact hair colour/);assert.match(input.prompt,/DIFFERENT woman/);assert.doesNotMatch(input.prompt,/burgundy/);
   assert.equal(captured.at(-1).model,'nano-banana-pro');assert.equal(input.resolution,'2K');assert.equal(input.output_format,'jpg');
   const hair=await call(e,'/api/s/salon-a/generation/'+a.data.id,undefined,g);assert.equal(hair.data.state,'success');assert.equal((await call(e,'/api/s/salon-a/media/'+hair.data.result_id,undefined,g)).status,200);
-  const v=await call(e,'/api/s/salon-a/views',{idem:crypto.randomUUID(),parent:a.data.id},g);assert.equal(v.status,200,JSON.stringify(v));assert.match(captured.at(-1).input.prompt,/360-degree/);
+  const v=await call(e,'/api/s/salon-a/views',{idem:crypto.randomUUID(),parent:a.data.id},g);assert.equal(v.status,200,JSON.stringify(v));assert.match(captured.at(-1).input.prompt,/Exactly 3 equal tiles[\s\S]*BACK of her head/);assert.equal(captured.at(-1).input.aspect_ratio,'16:9');
   const cat=await call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:0,color:'عسلی'},g);assert.equal(cat.status,200);
   assert.match(captured.at(-1).input.prompt,new RegExp(styles[0][1]));assert.match(captured.at(-1).input.prompt,/HAIR COLOR: keep her exact hair colour/);
   // Hair colour from the catalog, on the new hairstyle: the hair result is the photo sent.
