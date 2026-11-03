@@ -2,9 +2,9 @@
 
 Scope: replace only the old `#pain` single-image section. Hero, the subsequent transformation films, the existing request demonstration, plans and backend are unchanged.
 
-The new five-chapter scroll narrative covers customer hesitation, unclear consultations, making salon portfolio work visible, starting contact before a visit, and receiving a complete request in familiar messaging. The scattered references resolve into the customer's own portrait, then a portfolio explanation, a dedicated salon page and a sample bot request. The cream/espresso/brass system, Estedad and mirror motif continue the hero's visual language.
+The section is now a five-shot photographic slideshow: hesitation, shared consultation, salon portfolio, pre-visit contact and a clear request. Each slide has its own generated image, short headline and one benefit. The same customer, stylist, salon, cream/espresso/brass palette and golden window light connect the images as a single film sequence.
 
-Scroll remains native. Chapter buttons navigate to positions in the same story; no wheel or touch input is intercepted. The stage uses `overflow:clip` to prevent focus from creating a second inner scroll position. Reduced motion, short viewports and no JavaScript get all five chapters in normal document flow. No new app feature or API call was added. The preview visuals are labelled illustrative. The portrait copies the finished hero image and colour overlay together.
+Native scrolling advances the five full-bleed images inside one pinned stage, with crossfades, subtle image movement, a shared fine brass frame and chapter progress. Chapter buttons navigate within the same section; wheel and touch input are not intercepted. `overflow:clip` prevents a nested scroll position. Reduced motion, short viewports and no JavaScript show all five images in document flow. Generated scenes are labelled illustrative. No app feature or API was added.
 
 ## Claim audit of the supplied business-value notes
 

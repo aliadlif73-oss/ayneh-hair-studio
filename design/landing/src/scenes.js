@@ -49,47 +49,30 @@
  update();
 })();
 
-/* A continuous editorial stage: scroll position selects a chapter; scrolling stays native. */
+/* Section two is a five-shot film: one dedicated image and a short caption per slide. */
 (()=>{
- const section=document.getElementById('pain');if(!section?.classList.contains('value-story'))return;
- const stage=section.querySelector('.value-stage'),world=section.querySelector('.value-world');
- const chapters=[...section.querySelectorAll('[data-value-chapter]')],buttons=[...section.querySelectorAll('[data-value-go]')];
- const staticMode=matchMedia('(prefers-reduced-motion:reduce), (max-height:640px)');
- const source=k=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'assets/')+k+'.webp');
- section.querySelectorAll('[data-value-asset]').forEach(img=>{img.src=source(img.dataset.valueAsset)});
- let selectionTimer=0;
- function selection(detail){
-  clearTimeout(selectionTimer);
-  // The hero colours hair on a separate canvas; copy the finished composition, not just its base image.
-  selectionTimer=setTimeout(()=>{
-   const photo=document.getElementById('roomImg'),hair=document.getElementById('hairCanvas');if(!photo?.complete||!photo.naturalWidth)return;
-   const canvas=document.createElement('canvas');canvas.width=1376;canvas.height=768;
-   const g=canvas.getContext('2d');g.drawImage(photo,0,0,1376,768);if(hair)g.drawImage(hair,0,0);
-   const image=canvas.toDataURL('image/png');document.getElementById('valuePortrait').src=image;document.getElementById('valueRequestPhoto').src=image;
-  },1000);
-  const selected=[detail?.style,detail?.color].filter(Boolean).join(' · ')||'مدل و رنگ دلخواه مشتری';
-  document.getElementById('valueChoiceText').textContent=selected;document.getElementById('valueRequestChoice').textContent=selected;
- }
- addEventListener('ayneh:selection',event=>selection(event.detail));selection(window.__AYN_SEL);
- let queued=false,current=-1;
+ const section=document.getElementById('pain');if(!section?.classList.contains('cinema-story'))return;
+ document.documentElement.classList.add('cinema-enabled');
+ const stage=section.querySelector('.cinema-stage'),shots=[...section.querySelectorAll('[data-cinema-shot]')],buttons=[...section.querySelectorAll('[data-cinema-go]')];
+ const staticMode=matchMedia('(prefers-reduced-motion:reduce), (max-height:540px)');
+ const source=k=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'assets/')+k+'.webp?v='+(window.__AYN_ASSET_VERSION||'1'));
+ function load(i){const img=shots[i]?.querySelector('[data-cinema-image]');if(img&&!img.dataset.cinemaLoaded){img.src=source(img.dataset.cinemaImage);img.dataset.cinemaLoaded='1'}}
+ let current=-1,queued=false;
  function update(){
   queued=false;
-  if(staticMode.matches){chapters.forEach(c=>{c.inert=false;c.removeAttribute('aria-hidden')});current=-1;return}
-  const rect=section.getBoundingClientRect(),header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;
-  const span=Math.max(1,section.offsetHeight-stage.offsetHeight),p=Math.max(0,Math.min(1,(header-rect.top)/span));
-  section.style.setProperty('--value-p',p.toFixed(4));section.style.setProperty('--value-local',((p*chapters.length)%1).toFixed(4));
-  const index=Math.min(chapters.length-1,Math.floor(p*chapters.length));
-  if(index===current)return;current=index;world.dataset.valueState=String(index);section.dataset.valueChapter=String(index);
-  chapters.forEach((chapter,i)=>{const active=i===index;chapter.classList.toggle('is-current',active);chapter.inert=!active;chapter.setAttribute('aria-hidden',String(!active))});
-  buttons.forEach((button,i)=>{if(i===index)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current')});
+  if(staticMode.matches){shots.forEach((shot,i)=>{shot.inert=false;shot.removeAttribute('aria-hidden');load(i)});current=-1;return}
+  const header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;
+  const rect=section.getBoundingClientRect(),span=Math.max(1,section.offsetHeight-stage.offsetHeight);
+  const p=Math.max(0,Math.min(1,(header-rect.top)/span)),position=p*shots.length,index=Math.min(shots.length-1,Math.floor(position)),local=index===shots.length-1?Math.min(1,position-index):position-index;
+  section.style.setProperty('--cinema-local',local.toFixed(4));
+  if(index===current)return;
+  current=index;section.dataset.cinemaChapter=String(index);load(index);load(index+1);
+  shots.forEach((shot,i)=>{const active=i===index;shot.classList.toggle('is-current',active);shot.inert=!active;shot.setAttribute('aria-hidden',String(!active))});
+  buttons.forEach((button,i)=>{button.classList.toggle('is-past',i<index);if(i===index)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current')});
  }
  const schedule=()=>{if(!queued){queued=true;requestAnimationFrame(update)}};
+ const near=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){shots.forEach((_,i)=>load(i));near.disconnect()}},{rootMargin:'100% 0px'});near.observe(section);
  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);staticMode.addEventListener('change',schedule);
- buttons.forEach((button,i)=>button.addEventListener('click',()=>{
-  if(staticMode.matches)return;
-  const header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;
-  const span=section.offsetHeight-stage.offsetHeight,target=scrollY+section.getBoundingClientRect().top-header+span*((i+.25)/chapters.length);
-  scrollTo({top:target,behavior:'smooth'});
- }));
+ buttons.forEach((button,i)=>button.addEventListener('click',()=>{if(staticMode.matches)return;const header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;scrollTo({top:scrollY+section.getBoundingClientRect().top-header+(section.offsetHeight-stage.offsetHeight)*(i+.25)/shots.length,behavior:'smooth'})}));
  update();
 })();

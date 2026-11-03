@@ -576,76 +576,45 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
   .cap{position:static;opacity:1;transform:none;grid-area:auto}.cap-row{display:block}.cap:not([data-still]){display:none}
 }
 
-/* Section two: one continuous room, five scroll-driven chapters. */
-.value-story{position:relative;height:500svh;background:#160D07;color:#F8F2EB;isolation:isolate}
-.value-stage{position:sticky;top:var(--hh,76px);height:calc(100svh - var(--hh,76px));min-height:600px;display:flex;flex-direction:column;padding:24px clamp(22px,5vw,86px) 18px;overflow:hidden;background:radial-gradient(ellipse at 26% 47%,#B9975B16 0,transparent 62%),linear-gradient(180deg,#160D07,#1C110A 68%,#160D07)}
-.value-stage::after{content:"";position:absolute;width:55%;height:150%;left:12%;top:-35%;transform:rotate(-28deg) translateX(calc(var(--value-p,0)*80px));background:linear-gradient(90deg,transparent,#D6BE8C08,transparent);pointer-events:none;z-index:-1}
-.value-top{display:flex;justify-content:space-between;gap:20px;color:#D6BE8C;font-size:12px;letter-spacing:.03em}
-.value-scroll-hint{color:#C9BDB0}.value-scroll-hint span{display:inline-block;margin-right:8px}
-.value-layout{flex:1;min-height:0;display:grid;grid-template-columns:46% 54%;align-items:center;max-width:1440px;width:100%;margin:auto}
-.value-copy{position:relative;z-index:3;display:grid;padding-left:20px}
-.value-chapter{grid-area:1/1;opacity:0;visibility:hidden;transform:translateY(24px);transition:opacity 500ms ease,transform 650ms var(--ease),visibility 500ms;pointer-events:none}
-.value-chapter.is-current{opacity:1;visibility:visible;transform:none;pointer-events:auto}
-.value-eyebrow{color:#D6BE8C;font-size:13px;margin:0 0 14px}
-.value-chapter h2{font-size:clamp(29px,3.35vw,52px);font-weight:750;line-height:1.6;margin:0 0 18px;letter-spacing:-.04em;text-wrap:balance}
-.value-chapter h2 em{color:#E7C783;font-style:normal}
-.value-chapter>p:not(.value-eyebrow){max-width:43ch;color:#CFC2B4;font-size:clamp(14px,1.2vw,17px);line-height:2.05;margin:0 0 22px}
-.value-payoff{position:relative;border-right:2px solid #B9975B;padding:2px 17px 2px 0;max-width:42ch}
-.value-payoff>span{display:block;font-size:11px;color:#CDB791;margin-bottom:6px}
-.value-payoff strong{font-size:clamp(15px,1.4vw,19px);line-height:1.9;color:#F5E9D4;font-weight:650}
-.value-next{display:inline-block;margin-top:18px;color:#E7C783;font-size:13px;text-underline-offset:5px}
-.value-world{position:relative;isolation:isolate;width:100%;max-width:640px;height:min(55vw,530px);min-height:370px;justify-self:center;perspective:1200px}
-.value-light{position:absolute;inset:8% 6%;border-radius:50%;background:radial-gradient(ellipse,#B9975B20,transparent 65%);filter:blur(25px);transform:scale(calc(.8 + var(--value-p,0)*.4));pointer-events:none}
-.value-orbit{position:absolute;inset:10% 4%;border:1px solid #B9975B18;border-radius:50%;transform:rotate(-20deg) scaleY(.78);box-shadow:0 0 0 46px #B9975B04,0 0 0 93px #B9975B03}
-.value-ref{position:absolute;width:clamp(90px,10vw,139px);padding:6px 6px 10px;border:1px solid #D6BE8C55;background:#38291D;box-shadow:0 25px 45px #0006;transition:transform 1000ms var(--ease),opacity 700ms ease,filter 700ms;border-radius:12px}
-.value-ref img{display:block;width:100%;height:auto;aspect-ratio:4/5;object-fit:cover;border-radius:7px}
-.value-ref span{display:block;text-align:center;font-size:11px;color:#E7D7BF;padding-top:8px}
-.ref-a{left:2%;top:17%;transform:rotate(-17deg) translateY(calc(var(--value-local,0)*-16px))}
-.ref-b{left:36%;top:5%;transform:rotate(11deg) translateY(calc(var(--value-local,0)*12px))}
-.ref-c{right:1%;top:35%;transform:rotate(18deg) translateY(calc(var(--value-local,0)*-18px))}
-.value-portrait{position:absolute;width:36%;height:68%;left:32%;top:15%;padding:5px;border:1px solid #D6BE8CB3;border-radius:48% 48% 12px 12px / 31% 31% 12px 12px;background:linear-gradient(135deg,#E2C997,#79603C,#D6BE8C);box-shadow:0 30px 65px #0005;opacity:0;transform:translateY(35px) scale(.86);transition:transform 1000ms var(--ease),opacity 800ms ease;z-index:2}
-.value-portrait__glass{position:relative;width:100%;height:100%;overflow:hidden;border-radius:inherit;background:#B3A68D}
-.value-portrait__glass img{position:absolute;width:330%;max-width:none;height:auto;left:50%;top:45%;transform:translate(-50%,-43%)}
-.value-portrait__label{position:absolute;bottom:-38px;left:-25%;width:150%;text-align:center;font-size:12px;color:#D6BE8C;white-space:nowrap;transition:opacity 500ms}
-.value-choice{position:absolute;z-index:4;left:12%;bottom:10%;max-width:77%;display:flex;gap:12px;align-items:center;padding:13px 18px;background:#39291DEB;border:1px solid #B9975B70;border-radius:16px;backdrop-filter:blur(12px);opacity:0;transform:translateY(25px);transition:transform 700ms var(--ease),opacity 600ms}
-.value-choice__tick{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;border:1px solid #D6BE8C;color:#E7C783;font-size:17px}
-.value-choice small,.value-choice strong{display:block}.value-choice small{font-size:10px;color:#C9B9A3;margin-bottom:3px}.value-choice strong{font-size:13px;font-weight:600}
-.value-work{position:absolute;right:0;top:27%;width:52%;padding:22px;border-right:1px solid #B9975B66;background:linear-gradient(90deg,transparent,#332316E6);z-index:3;opacity:0;transform:translateX(24px);transition:transform 850ms var(--ease),opacity 650ms}
-.value-work>span{font-size:11px;color:#D6BE8C}.value-work strong{display:block;font-size:clamp(18px,2vw,27px);line-height:1.9;font-weight:600;margin:12px 0}.value-work small{font-size:10px;line-height:1.9;color:#C9B9A3}.value-work__line{height:1px;background:linear-gradient(90deg,transparent,#B9975B);margin:10px 0}
-.value-link{position:absolute;z-index:4;right:1%;top:23%;width:63%;padding:24px;border:1px solid #B9975B66;border-radius:24px;background:linear-gradient(145deg,#F7F0E5,#E7D9C4);color:#291A0E;box-shadow:0 30px 55px #0005;opacity:0;transform:translateY(40px) rotateY(-12deg);transition:transform 950ms var(--ease),opacity 650ms}
-.value-link__top{display:flex;justify-content:space-between;font-size:10px;border-bottom:1px solid #B9975B66;padding-bottom:12px}.value-link__top span:first-child{font-size:16px;font-weight:800}.value-link>strong{display:block;font-size:22px;margin:20px 0 10px;font-weight:700}.value-link__try{font-size:11px;color:#6C5945}.value-link__button{padding:10px 13px;background:#20140C;border:1px solid #B9975B;border-radius:22px;font-size:12px;margin:20px 0 12px;color:#F8F2EB;display:flex;justify-content:space-between}.value-link>small{font-size:10px;color:#6C5945}
-.value-request{position:absolute;left:6%;right:0;top:19%;z-index:5;border:1px solid #B9975B66;border-radius:24px;background:#302218F2;box-shadow:0 35px 80px #0008;backdrop-filter:blur(16px);padding:22px;opacity:0;transform:translateY(65px) scale(.93);transition:transform 950ms var(--ease),opacity 650ms}
-.value-request__head{display:flex;align-items:center;gap:10px;border-bottom:1px solid #B9975B33;padding-bottom:16px}.value-request__avatar{width:35px;height:35px;border:1px solid #B9975B88;border-radius:50%;display:grid;place-items:center;color:#E7C783}.value-request__head strong,.value-request__head small{display:block}.value-request__head strong{font-size:13px}.value-request__head small{font-size:10px;color:#C9B9A3}.value-request__badge{font-size:10px;color:#D6BE8C;margin-right:auto}
-.value-request__body{display:flex;gap:16px;align-items:center;padding:22px 0}.value-request__photo{position:relative;display:block;width:82px;height:100px;flex-shrink:0;overflow:hidden;border-radius:12px;background:#B3A68D}.value-request__photo img{position:absolute;width:400%;max-width:none;left:50%;top:45%;transform:translate(-50%,-43%)}.value-request__body small,.value-request__body strong,.value-request__body div>span{display:block}.value-request__body small{font-size:10px;color:#C9B9A3}.value-request__body strong{font-size:17px;margin:9px 0;line-height:1.6}.value-request__body div>span{font-size:11px;color:#C9B9A3}.value-request__statuses{display:flex;gap:6px}.value-request__statuses span{flex:1;text-align:center;font-size:10px;padding:7px 3px;border:1px solid #B9975B55;border-radius:8px;color:#E4D4B7}.value-request__reply{font-size:11px;color:#E7C783;text-align:center;margin-top:15px}
-.value-demo-label{position:absolute;bottom:-8px;left:0;right:0;text-align:center;font-size:10px;color:#B7A48D}
-.value-world[data-value-state="0"] .value-portrait{opacity:.18;filter:blur(2px);transform:scale(.85)}
-.value-world:not([data-value-state="0"]) .value-portrait{opacity:1;transform:none}
-.value-world:not([data-value-state="0"]) .ref-a{opacity:.15;transform:translate(-50px,-25px) rotate(-25deg) scale(.8)}
-.value-world:not([data-value-state="0"]) .ref-b{opacity:.12;transform:translateY(-25px) rotate(16deg) scale(.8)}
-.value-world:not([data-value-state="0"]) .ref-c{opacity:.12;transform:translate(35px,20px) rotate(25deg) scale(.8)}
-.value-world[data-value-state="1"] .value-choice{opacity:1;transform:none}
-.value-world[data-value-state="2"] .value-portrait{transform:translateX(-55%) scale(.85)}
-.value-world[data-value-state="2"] .value-work{opacity:1;transform:none}
-.value-world[data-value-state="2"] .value-portrait__label{opacity:0}
-.value-world[data-value-state="3"] .value-portrait{transform:translateX(-65%) scale(.72);opacity:.6}
-.value-world[data-value-state="3"] .value-link{opacity:1;transform:none}
-.value-world[data-value-state="3"] .value-portrait__label{opacity:0}
-.value-world[data-value-state="4"] .value-portrait{opacity:.1;transform:scale(.8)}
-.value-world[data-value-state="4"] .value-request{opacity:1;transform:none}
-.value-world[data-value-state="4"] .value-portrait__label{opacity:0}
-.value-bottom{position:relative;z-index:6;width:100%;max-width:1440px;margin:14px auto 0}
-.value-chapters{display:flex;gap:6px;justify-content:space-between}.value-chapters button{font:inherit;background:none;border:0;color:#998976;cursor:pointer;text-align:right;display:flex;align-items:center;gap:9px;font-size:12px;min-height:44px;padding:4px 8px;transition:color 250ms}.value-chapters button span{font-size:10px;color:#9D8359}.value-chapters button[aria-current="step"]{color:#F1DAAC}.value-chapters button[aria-current="step"] span{color:#E7C783}
-.value-progress{height:1px;background:#B9975B30}.value-progress i{display:block;width:100%;height:100%;background:#D6BE8C;transform:scaleX(var(--value-p,0));transform-origin:right}
-.value-bottom>p{margin:9px 0 0;font-size:10px;color:#A99883;text-align:center}
-@media(max-width:900px){.value-stage{padding:18px 20px 14px;min-height:0}.value-layout{display:flex;flex-direction:column;justify-content:center;gap:12px}.value-copy{width:100%;padding:0}.value-chapter h2{font-size:clamp(24px,6.5vw,34px);line-height:1.65;margin-bottom:10px}.value-chapter h2 br{display:none}.value-eyebrow{font-size:11px;margin-bottom:6px}.value-chapter>p:not(.value-eyebrow){font-size:13px;line-height:1.9;max-width:none;margin-bottom:12px}.value-payoff>span{display:none}.value-payoff strong{font-size:13px}.value-world{height:35svh;min-height:220px;max-height:340px;width:min(100%,440px);margin:0 auto}.value-portrait{width:30%;left:35%;height:80%;top:7%}.value-ref{width:80px;padding:4px 4px 6px}.value-ref span{font-size:9px}.value-demo-label{bottom:-4px;font-size:9px}.value-portrait__label{bottom:-22px;font-size:10px}.value-choice{padding:8px 12px;left:7%;bottom:0}.value-choice strong{font-size:11px}.value-choice small{font-size:9px}.value-work{top:15%;padding:15px}.value-work strong{font-size:17px;margin:6px 0}.value-work small{font-size:9px}.value-link{top:5%;padding:15px}.value-link>strong{font-size:18px;margin:12px 0 5px}.value-link__button{margin:10px 0 8px}.value-request{top:2%;padding:14px;left:4%}.value-request__body{padding:12px 0}.value-request__photo{width:54px;height:65px}.value-request__body strong{font-size:14px;margin:5px 0}.value-request__reply{font-size:10px;margin-top:10px}.value-top{font-size:10px}.value-scroll-hint{font-size:9px}.value-chapters{gap:0}.value-chapters button{font-size:10px;padding:3px 0;gap:4px}.value-chapters button span{font-size:8px}.value-bottom{margin-top:8px}.value-bottom>p{font-size:9px;line-height:1.7}.value-next{font-size:11px;margin-top:10px}}
-/* No pinning or hidden copy when motion is reduced or the screen is too short. */
-@media(prefers-reduced-motion:reduce),(max-height:640px){.value-story{height:auto}.value-stage{position:relative;top:auto;height:auto;min-height:0;padding-block:36px}.value-layout{display:block}.value-copy{display:block;padding:0}.value-chapter{opacity:1;visibility:visible;transform:none;pointer-events:auto;margin:0 auto 48px;max-width:760px;transition:none}.value-chapter:last-child{margin-bottom:20px}.value-world{display:none}.value-bottom{margin-top:0}.value-chapters,.value-progress,.value-scroll-hint{display:none}.value-top{margin-bottom:34px}}
-.value-portrait__glass img{width:800%}
-.value-request__photo img{width:800%}
-/* A clipped stage cannot become an inner scroll container when a chapter button receives focus. */
-.value-stage{overflow:clip}
+/* Five dedicated film stills share one full-bleed, scroll-driven cinematic frame. */
+.cinema-story{height:500svh;position:relative;background:#160D07;color:#F8F2EB}
+.cinema-stage{height:calc(100svh - var(--hh,76px));position:sticky;top:var(--hh,76px);isolation:isolate;overflow:clip;background:#160D07}
+.cinema-reel,.cinema-shot{position:absolute;inset:0}
+.cinema-shot{opacity:0;visibility:hidden;transition:opacity 850ms cubic-bezier(.22,.61,.36,1),visibility 850ms;pointer-events:none;overflow:clip}
+.cinema-shot.is-current{opacity:1;visibility:visible;pointer-events:auto;z-index:2}
+.cinema-image{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;object-position:38% 48%;transform:scale(calc(1.025 + var(--cinema-local,0)*.035)) translateX(calc(var(--cinema-local,0)*-8px));transition:transform 100ms linear;filter:saturate(.88) contrast(1.04)}
+.cinema-shade{position:absolute;inset:0;background:linear-gradient(270deg,rgba(16,10,6,.91),rgba(16,10,6,.66) 33%,rgba(16,10,6,.12) 62%,rgba(16,10,6,.04)),linear-gradient(0deg,rgba(16,10,6,.95),transparent 28%,transparent 75%,rgba(16,10,6,.48));pointer-events:none}
+.cinema-copy{position:absolute;z-index:2;right:7%;top:48%;width:39%;max-width:560px;transform:translateY(calc(-50% + 25px));opacity:0;transition:opacity 650ms ease 160ms,transform 850ms cubic-bezier(.22,.61,.36,1) 100ms}
+.is-current .cinema-copy{transform:translateY(-50%);opacity:1}
+.cinema-eyebrow{font-size:12px;color:#D6BE8C;margin:0 0 18px;letter-spacing:.02em}
+.cinema-eyebrow span{display:inline-block;margin-right:15px;color:#B8A489;direction:ltr}
+.cinema-copy h2{font-size:clamp(33px,3.7vw,58px);font-weight:750;line-height:1.55;letter-spacing:-.04em;text-wrap:balance;margin:0 0 24px;max-width:15ch;color:#FBF5EB}
+.cinema-description{font-size:clamp(14px,1.3vw,18px);line-height:2;max-width:36ch;margin:0 0 26px;color:#D3C8BA}
+.cinema-benefit{border-right:1px solid #D6BE8C90;padding:2px 16px 2px 0;margin:0;color:#E8D4AE;max-width:35ch}
+.cinema-benefit>span{display:block;font-size:10px;color:#B9A78A;margin-bottom:6px}.cinema-benefit strong{font-size:clamp(14px,1.4vw,19px);line-height:1.85;font-weight:600}
+.cinema-next{display:inline-block;font-size:12px;margin-top:18px;color:#E7C783;text-underline-offset:5px}
+.cinema-frame{position:absolute;inset:24px;z-index:4;border:1px solid #D6BE8C30;pointer-events:none}
+.cinema-frame::before,.cinema-frame::after{content:"";position:absolute;width:26px;height:26px;border-color:#E0C48A70;border-style:solid}.cinema-frame::before{left:-1px;top:-1px;border-width:1px 0 0 1px}.cinema-frame::after{right:-1px;bottom:-1px;border-width:0 1px 1px 0}
+.cinema-topline{position:absolute;top:40px;left:48px;right:48px;z-index:5;display:flex;justify-content:space-between;gap:20px;color:#D3C3A9;font-size:10px}
+.cinema-controls{position:absolute;z-index:5;left:7%;right:7%;bottom:48px;display:flex;gap:22px}
+.cinema-controls button{position:relative;flex:1;min-width:0;min-height:44px;padding:8px 0 15px;border:0;background:transparent;color:#AD9C85;font:inherit;font-size:12px;display:flex;align-items:center;gap:10px;text-align:right;cursor:pointer;transition:color 250ms}
+.cinema-controls button::after{content:"";position:absolute;bottom:0;right:0;left:0;height:1px;background:#D6BE8C45}
+.cinema-controls i{position:absolute;bottom:0;right:0;left:0;height:1px;background:#E4C681;transform-origin:right;transform:scaleX(0);z-index:1}
+.cinema-controls button[aria-current="step"]{color:#F1DCB5}.cinema-controls button[aria-current="step"] i{transform:scaleX(var(--cinema-local,0))}.cinema-controls button.is-past i{transform:scaleX(1);opacity:.55}
+.cinema-step{font-size:10px;color:#B9975B}
+.cinema-footnote{position:absolute;z-index:5;bottom:15px;right:7%;left:7%;text-align:center;color:#A7967F;font-size:9px;margin:0}
+@media(max-width:900px){.cinema-copy{right:7%;width:46%}.cinema-copy h2{font-size:clamp(29px,4.3vw,40px)}.cinema-description{font-size:14px}.cinema-controls{gap:12px}.cinema-controls button{font-size:11px}}
+@media(max-width:600px){.cinema-image{object-position:29% 42%}.cinema-shade{background:linear-gradient(0deg,#100A06F5,rgba(16,10,6,.88) 26%,rgba(16,10,6,.25) 65%,rgba(16,10,6,.1)),linear-gradient(180deg,#100A0655,transparent 25%)}.cinema-copy,.is-current .cinema-copy{top:auto;bottom:115px;right:28px;left:28px;width:auto;max-width:none;transform:none}.cinema-copy h2{font-size:clamp(25px,6.8vw,34px);line-height:1.55;max-width:19ch;margin-bottom:12px}.cinema-eyebrow{font-size:10px;margin-bottom:9px}.cinema-description{font-size:13px;line-height:1.9;max-width:36ch;margin-bottom:15px}.cinema-benefit strong{font-size:13px}.cinema-benefit>span{font-size:9px;margin-bottom:3px}.cinema-frame{inset:13px}.cinema-topline{top:27px;left:28px;right:28px;font-size:9px}.cinema-topline span:first-child{display:none}.cinema-controls{left:28px;right:28px;bottom:42px;gap:9px}.cinema-controls button{font-size:9px;gap:3px;flex-wrap:wrap;align-content:center;min-height:44px}.cinema-step{font-size:8px}.cinema-footnote{font-size:8px;left:25px;right:25px;bottom:19px;line-height:1.5}.cinema-next{font-size:11px;margin-top:12px}}
+@media(max-height:700px) and (min-width:601px){.cinema-copy h2{font-size:32px;margin-bottom:14px}.cinema-description{font-size:14px;margin-bottom:15px}.cinema-copy{top:45%}.cinema-benefit strong{font-size:14px}.cinema-controls{bottom:36px}.cinema-topline{top:29px}}
+@media(prefers-reduced-motion:reduce),(max-height:540px){.cinema-story{height:auto}.cinema-stage{position:relative;top:auto;height:auto;overflow:visible}.cinema-reel{position:relative}.cinema-shot{position:relative;min-height:620px;height:90svh;opacity:1;visibility:visible;pointer-events:auto;transition:none}.cinema-copy{opacity:1;transform:translateY(-50%);transition:none}.cinema-image{transform:none;transition:none}.cinema-topline,.cinema-controls,.cinema-frame{display:none}.cinema-footnote{position:relative;bottom:auto;padding:16px 0}.cinema-copy,.is-current .cinema-copy{opacity:1}@media(max-width:600px){.cinema-copy,.is-current .cinema-copy{transform:none;bottom:50px}.cinema-shot{min-height:680px}}}
+html:not(.cinema-enabled) .cinema-story{height:auto}
+html:not(.cinema-enabled) .cinema-stage{position:relative;top:auto;height:auto}
+html:not(.cinema-enabled) .cinema-reel{position:relative}
+html:not(.cinema-enabled) .cinema-shot{position:relative;height:90svh;min-height:650px;opacity:1;visibility:visible;pointer-events:auto}
+html:not(.cinema-enabled) .cinema-copy{opacity:1;transform:translateY(-50%)}
+html:not(.cinema-enabled) .cinema-controls{display:none}
 
-@media(max-width:900px) and (min-height:641px) and (max-height:780px){.value-world{height:26svh;min-height:170px}.value-chapter h2{font-size:23px;line-height:1.5}.value-chapter>p:not(.value-eyebrow){font-size:12px;line-height:1.85}.value-payoff strong{font-size:12px}.value-request__head{padding-bottom:9px}.value-request__body{padding:9px 0}.value-request__reply{margin-top:8px}}
+@media(max-width:600px){html:not(.cinema-enabled) .cinema-copy{transform:none;bottom:55px}html:not(.cinema-enabled) .cinema-topline,html:not(.cinema-enabled) .cinema-frame{display:none}}
 
 /* CTA bands, sticky mobile CTA, plan buttons, form microcopy */
 .cta-band{padding:clamp(40px,6vw,72px) var(--gut);background:var(--espresso);color:var(--cream)}
@@ -785,60 +754,45 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
   </section>
 
   <!-- Salon value narrative, followed by the existing transformation and service films. -->
-  <section id="pain" class="value-story on-dark" aria-label="از دغدغه‌های روزانهٔ سالن تا یک انتخاب روشن">
-    <noscript><style>.value-story{height:auto}.value-story .value-stage{position:static;height:auto;min-height:0}.value-story .value-layout,.value-story .value-copy{display:block}.value-story .value-chapter{opacity:1;visibility:visible;transform:none;pointer-events:auto;margin:40px 0}.value-story .value-world,.value-story .value-chapters,.value-story .value-progress,.value-story .value-scroll-hint{display:none}</style></noscript>
-    <div class="value-stage">
-      <div class="value-top"><span>آینه، در روزِ کاری شما</span><span class="value-scroll-hint">با اسکرول، داستان را دنبال کنید <span aria-hidden="true">↓</span></span></div>
-      <div class="value-layout">
-        <div class="value-copy">
-          <article class="value-chapter is-current" data-value-chapter="0" aria-labelledby="h-pain">
-            <p class="value-eyebrow">تردید مشتری، قبل از شروع کار</p>
-            <h2 id="h-pain">«دوستش دارم…<br>اما اگر <em>بهم نیاید؟</em>»</h2>
-            <p>مشتری مدل را روی چهرهٔ دیگری دیده؛ هنوز نمی‌داند برای خودش چه شکلی می‌شود. توضیح‌دادن همیشه این تردید را برطرف نمی‌کند.</p>
-            <div class="value-payoff"><span>با آینه</span><strong>انتخابش را روی تصویر خودش می‌بیند.</strong></div>
-          </article>
-          <article class="value-chapter" data-value-chapter="1" aria-labelledby="value-h1">
-            <p class="value-eyebrow">وقتی هر عکس، یک برداشت متفاوت است</p>
-            <h2 id="value-h1">قبل از صندلی،<br>به یک <em>تصویر مشترک</em> برسید.</h2>
-            <p>مشتری عکس خودش و مدل دلخواهش را انتخاب می‌کند. گفت‌وگو دربارهٔ مدل مو، رنگ، ناخن یا مژه از یک تصویر مشخص شروع می‌شود.</p>
-            <div class="value-payoff"><span>برای مشاوره</span><strong>به‌جای حدس‌زدن، دربارهٔ چیزی که می‌بینید حرف بزنید.</strong></div>
-          </article>
-          <article class="value-chapter" data-value-chapter="2" aria-labelledby="value-h2">
-            <p class="value-eyebrow">نمونه‌کاری که باید دیده شود</p>
-            <h2 id="value-h2">کارِ خودتان را<br>وارد <em>تصمیم مشتری</em> کنید.</h2>
-            <p>عکس نمونه‌کار را برای ربات بفرستید تا روی صفحهٔ سالن قرار بگیرد. مشتری می‌تواند از نمونه‌کارهای قابل‌آزمایش شما برای انتخابش استفاده کند.</p>
-            <div class="value-payoff"><span>برای معرفی خدمات</span><strong>تصویر دارید؛ نه فقط توضیح.</strong></div>
-          </article>
-          <article class="value-chapter" data-value-chapter="3" aria-labelledby="value-h3">
-            <p class="value-eyebrow">ارتباطی که از قبلِ مراجعه شروع می‌شود</p>
-            <h2 id="value-h3">یک لینک از سالن شما.<br>یک <em>شروع شخصی‌تر.</em></h2>
-            <p>لینک اختصاصی سالن را در اینستاگرام و پیام‌رسان‌ها بگذارید. مشتری وارد صفحهٔ شما می‌شود و با عکس خودش انتخاب‌ها را امتحان می‌کند.</p>
-            <div class="value-payoff"><span>برای معرفی سالن</span><strong>به‌جای یک توضیح دیگر، تجربه‌ای برای امتحان‌کردن بدهید.</strong></div>
-          </article>
-          <article class="value-chapter" data-value-chapter="4" aria-labelledby="value-h4">
-            <p class="value-eyebrow">درخواست کامل، بدون پنل تازه</p>
-            <h2 id="value-h4">مشتری با تصویر می‌فرستد.<br>شما <em>روشن پاسخ می‌دهید.</em></h2>
-            <p>عکس، انتخاب و توضیح مشتری در تلگرام یا بلهٔ سالن می‌رسد. وضعیت درخواست را همان‌جا مشخص می‌کنید؛ مشتری هم پاسخ را در صفحهٔ خودش می‌بیند.</p>
-            <div class="value-payoff"><span>برای ادامهٔ ارتباط</span><strong>یک درخواست قابل‌پیگیری، در همان پیام‌رسان آشنا.</strong></div>
-            <a class="value-next" href="#experience">نمونهٔ دریافت و پاسخ سالن را ببینید <span aria-hidden="true">←</span></a>
-          </article>
-        </div>
-        <div class="value-world" data-value-state="0" aria-label="روایت تصویری نمونه از انتخاب مشتری تا درخواست سالن">
-          <div class="value-orbit" aria-hidden="true"></div><div class="value-light" aria-hidden="true"></div>
-          <div class="value-references" aria-hidden="true">
-            <div class="value-ref ref-a"><img data-value-asset="s04" alt="" width="240" height="300" loading="lazy"><span>شبیه این بشود؟</span></div>
-            <div class="value-ref ref-b"><img data-value-asset="s09" alt="" width="240" height="300" loading="lazy"><span>یا این مدل؟</span></div>
-            <div class="value-ref ref-c"><img data-value-asset="s06" alt="" width="240" height="300" loading="lazy"><span>به من هم می‌آید؟</span></div>
-          </div>
-          <div class="value-portrait"><div class="value-portrait__glass"><img id="valuePortrait" src="/landing/hero.webp" alt="چهرهٔ نمونه در آینه؛ انتخاب مدل مو روی تصویر خود مشتری" width="1376" height="768"></div><span class="value-portrait__label">روی تصویر خودِ مشتری</span></div>
-          <div class="value-choice" aria-hidden="true"><span class="value-choice__tick">✓</span><div><small>انتخاب قابل‌دیدن</small><strong id="valueChoiceText">مدل و رنگ دلخواه مشتری</strong></div></div>
-          <div class="value-work" aria-hidden="true"><span>از نمونه‌کارِ سالن</span><strong>از یک عکسِ کار شما<br>تا انتخابِ مشتری</strong><div class="value-work__line"></div><small>ارسال عکس به ربات ← نمایش در صفحهٔ سالن</small></div>
-          <div class="value-link" aria-hidden="true"><div class="value-link__top"><span>آینه</span><span>صفحهٔ سالن شما</span></div><strong>اول روی خودت ببین.</strong><span class="value-link__try">مدل مو · رنگ مو · ناخن · مژه</span><div class="value-link__button">امتحان با تصویر خودم <span>←</span></div><small>لینکی که می‌توانید برای مشتری بفرستید</small></div>
-          <div class="value-request" aria-hidden="true"><div class="value-request__head"><span class="value-request__avatar">آ</span><div><strong>ربات سالن شما</strong><small>تلگرام یا بله</small></div><span class="value-request__badge">درخواست تازه</span></div><div class="value-request__body"><span class="value-request__photo"><img id="valueRequestPhoto" src="/landing/hero.webp" alt="" width="1376" height="768"></span><div><small>عکس و انتخاب مشتری، همراه هم</small><strong id="valueRequestChoice">درخواست مشاوره</strong><span>تصویر و توضیحات پیوست شد.</span></div></div><div class="value-request__statuses"><span>تماس گرفتم</span><span>نوبت شد</span><span>انجام نمی‌دهم</span></div><div class="value-request__reply">پاسخ سالن در صفحهٔ مشتری دیده می‌شود.</div></div>
-          <span class="value-demo-label">روایت نمایشیِ امکانات آینه</span>
-        </div>
+  <section id="pain" class="cinema-story on-dark" aria-label="پنج صحنه از روز کاری سالن با آینه">
+    <div class="cinema-stage">
+      <div class="cinema-reel">
+        <article class="cinema-shot is-current" data-cinema-shot="0" aria-labelledby="cinema-title-0">
+          <img class="cinema-image" data-cinema-image="salon-film-01" src="/landing/salon-film-01.webp" loading="lazy" alt="مشتری در سالن تصویر مرجع را به آرایشگر نشان می‌دهد." width="1920" height="1080" decoding="async">
+          <div class="cinema-shade" aria-hidden="true"></div>
+          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۱</span></p><h2 id="cinema-title-0">«اگر به من نیاید؟»</h2><p class="cinema-description">مشتری مدل را روی دیگری دیده؛ هنوز برای خودش مطمئن نیست.</p><p class="cinema-benefit"><span>با آینه</span><strong>انتخاب را روی تصویر خودش ببیند.</strong></p></div>
+        </article>
+        <article class="cinema-shot" data-cinema-shot="1" aria-labelledby="cinema-title-1">
+          <img class="cinema-image" data-cinema-image="salon-film-02" src="/landing/salon-film-02.webp" loading="lazy" alt="مشتری و آرایشگر با هم تصویر انتخاب‌شده را بررسی می‌کنند." width="1920" height="1080" decoding="async">
+          <div class="cinema-shade" aria-hidden="true"></div>
+          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۲</span></p><h2 id="cinema-title-1">این بار، دربارهٔ یک تصویر حرف بزنید.</h2><p class="cinema-description">مدل مو، رنگ، ناخن یا مژه؛ انتخاب مشتری پیش از شروع کار قابل‌دیدن می‌شود.</p><p class="cinema-benefit"><span>با آینه</span><strong>مشاوره را از یک مرجع روشن شروع کنید.</strong></p></div>
+        </article>
+        <article class="cinema-shot" data-cinema-shot="2" aria-labelledby="cinema-title-2">
+          <img class="cinema-image" data-cinema-image="salon-film-03" src="/landing/salon-film-03.webp" loading="lazy" alt="آرایشگر نمونه‌کارهای سالن را کنار آینه به مشتری معرفی می‌کند." width="1920" height="1080" decoding="async">
+          <div class="cinema-shade" aria-hidden="true"></div>
+          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۳</span></p><h2 id="cinema-title-2">کار شما، وارد انتخاب مشتری می‌شود.</h2><p class="cinema-description">نمونه‌کار را برای ربات بفرستید تا در صفحهٔ سالن دیده و از آن برای انتخاب استفاده شود.</p><p class="cinema-benefit"><span>با آینه</span><strong>برای معرفی خدمات، تصویر دارید.</strong></p></div>
+        </article>
+        <article class="cinema-shot" data-cinema-shot="3" aria-labelledby="cinema-title-3">
+          <img class="cinema-image" data-cinema-image="salon-film-04" src="/landing/salon-film-04.webp" loading="lazy" alt="مشتری در فضای آرام کنار سالن صفحهٔ اختصاصی سالن را روی گوشی می‌بیند." width="1920" height="1080" decoding="async">
+          <div class="cinema-shade" aria-hidden="true"></div>
+          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۴</span></p><h2 id="cinema-title-3">قبل از مراجعه، گفت‌وگو را شروع کنید.</h2><p class="cinema-description">یک لینک از سالن شما؛ مشتری با عکس خودش انتخاب‌ها را امتحان می‌کند.</p><p class="cinema-benefit"><span>با آینه</span><strong>به‌جای یک توضیح دیگر، یک تجربه بدهید.</strong></p></div>
+        </article>
+        <article class="cinema-shot" data-cinema-shot="4" aria-labelledby="cinema-title-4">
+          <img class="cinema-image" data-cinema-image="salon-film-05" src="/landing/salon-film-05.webp" loading="lazy" alt="آرایشگر در همان سالن درخواست تصویری مشتری را روی گوشی بررسی می‌کند." width="1920" height="1080" decoding="async">
+          <div class="cinema-shade" aria-hidden="true"></div>
+          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۵</span></p><h2 id="cinema-title-4">انتخاب روشن. پاسخ روشن.</h2><p class="cinema-description">عکس و انتخاب مشتری به تلگرام یا بلهٔ سالن می‌رسد؛ وضعیت را همان‌جا مشخص می‌کنید.</p><p class="cinema-benefit"><span>با آینه</span><strong>درخواست کامل، در پیام‌رسانی که می‌شناسید.</strong></p><a class="cinema-next" href="#experience">نمونهٔ پاسخ سالن را ببینید ←</a></div>
+        </article>
       </div>
-      <div class="value-bottom"><nav class="value-chapters" aria-label="بخش‌های روایت ارزش آینه"><button type="button" data-value-go="0" aria-current="step"><span>۰۱</span> تردید</button><button type="button" data-value-go="1"><span>۰۲</span> مشاوره</button><button type="button" data-value-go="2"><span>۰۳</span> نمونه‌کار</button><button type="button" data-value-go="3"><span>۰۴</span> ارتباط</button><button type="button" data-value-go="4"><span>۰۵</span> درخواست</button></nav><div class="value-progress" aria-hidden="true"><i></i></div><p>شبیه‌سازی یک پیشنهاد تصویری است؛ امکان اجرا، زمان و هزینه را سالن مشخص می‌کند.</p></div>
+      <div class="cinema-frame" aria-hidden="true"></div>
+      <div class="cinema-topline"><span>یک روز در سالن. یک مسیر روشن‌تر.</span><span>برای ادامه اسکرول کنید ↓</span></div>
+      <nav class="cinema-controls" aria-label="اسلایدهای روایت آینه">
+        <button type="button" data-cinema-go="0" aria-current="step"><span class="cinema-step">۰۱</span><span>تردید</span><i aria-hidden="true"></i></button>
+        <button type="button" data-cinema-go="1"><span class="cinema-step">۰۲</span><span>مشاوره</span><i aria-hidden="true"></i></button>
+        <button type="button" data-cinema-go="2"><span class="cinema-step">۰۳</span><span>نمونه‌کار</span><i aria-hidden="true"></i></button>
+        <button type="button" data-cinema-go="3"><span class="cinema-step">۰۴</span><span>ارتباط</span><i aria-hidden="true"></i></button>
+        <button type="button" data-cinema-go="4"><span class="cinema-step">۰۵</span><span>درخواست</span><i aria-hidden="true"></i></button>
+      </nav>
+      <p class="cinema-footnote">صحنه‌های نمایشی ساخته‌شده با هوش مصنوعی · شبیه‌سازی، تضمین نتیجهٔ اجرا نیست.</p>
     </div>
   </section>
 
@@ -1147,7 +1101,7 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
  compact.addEventListener('change',e=>{if(!e.matches&&!menu.hidden)setOpen(false)});
 })();
 </script>
-<script>window.__AYN_ASSET_VERSION="778f7774969c";window.__AYN_LOOKS=[6, 12];</script>
+<script>window.__AYN_ASSET_VERSION="cb0d34cc2323";window.__AYN_LOOKS=[6, 12];</script>
 <script>
 /* Keep the original portrait immutable; replace only the union of the old/new hair. */
 (()=>{
@@ -1569,48 +1523,31 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
  update();
 })();
 
-/* A continuous editorial stage: scroll position selects a chapter; scrolling stays native. */
+/* Section two is a five-shot film: one dedicated image and a short caption per slide. */
 (()=>{
- const section=document.getElementById('pain');if(!section?.classList.contains('value-story'))return;
- const stage=section.querySelector('.value-stage'),world=section.querySelector('.value-world');
- const chapters=[...section.querySelectorAll('[data-value-chapter]')],buttons=[...section.querySelectorAll('[data-value-go]')];
- const staticMode=matchMedia('(prefers-reduced-motion:reduce), (max-height:640px)');
- const source=k=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'/landing/')+k+'.webp');
- section.querySelectorAll('[data-value-asset]').forEach(img=>{img.src=source(img.dataset.valueAsset)});
- let selectionTimer=0;
- function selection(detail){
-  clearTimeout(selectionTimer);
-  // The hero colours hair on a separate canvas; copy the finished composition, not just its base image.
-  selectionTimer=setTimeout(()=>{
-   const photo=document.getElementById('roomImg'),hair=document.getElementById('hairCanvas');if(!photo?.complete||!photo.naturalWidth)return;
-   const canvas=document.createElement('canvas');canvas.width=1376;canvas.height=768;
-   const g=canvas.getContext('2d');g.drawImage(photo,0,0,1376,768);if(hair)g.drawImage(hair,0,0);
-   const image=canvas.toDataURL('image/png');document.getElementById('valuePortrait').src=image;document.getElementById('valueRequestPhoto').src=image;
-  },1000);
-  const selected=[detail?.style,detail?.color].filter(Boolean).join(' · ')||'مدل و رنگ دلخواه مشتری';
-  document.getElementById('valueChoiceText').textContent=selected;document.getElementById('valueRequestChoice').textContent=selected;
- }
- addEventListener('ayneh:selection',event=>selection(event.detail));selection(window.__AYN_SEL);
- let queued=false,current=-1;
+ const section=document.getElementById('pain');if(!section?.classList.contains('cinema-story'))return;
+ document.documentElement.classList.add('cinema-enabled');
+ const stage=section.querySelector('.cinema-stage'),shots=[...section.querySelectorAll('[data-cinema-shot]')],buttons=[...section.querySelectorAll('[data-cinema-go]')];
+ const staticMode=matchMedia('(prefers-reduced-motion:reduce), (max-height:540px)');
+ const source=k=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'/landing/')+k+'.webp?v='+(window.__AYN_ASSET_VERSION||'1'));
+ function load(i){const img=shots[i]?.querySelector('[data-cinema-image]');if(img&&!img.dataset.cinemaLoaded){img.src=source(img.dataset.cinemaImage);img.dataset.cinemaLoaded='1'}}
+ let current=-1,queued=false;
  function update(){
   queued=false;
-  if(staticMode.matches){chapters.forEach(c=>{c.inert=false;c.removeAttribute('aria-hidden')});current=-1;return}
-  const rect=section.getBoundingClientRect(),header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;
-  const span=Math.max(1,section.offsetHeight-stage.offsetHeight),p=Math.max(0,Math.min(1,(header-rect.top)/span));
-  section.style.setProperty('--value-p',p.toFixed(4));section.style.setProperty('--value-local',((p*chapters.length)%1).toFixed(4));
-  const index=Math.min(chapters.length-1,Math.floor(p*chapters.length));
-  if(index===current)return;current=index;world.dataset.valueState=String(index);section.dataset.valueChapter=String(index);
-  chapters.forEach((chapter,i)=>{const active=i===index;chapter.classList.toggle('is-current',active);chapter.inert=!active;chapter.setAttribute('aria-hidden',String(!active))});
-  buttons.forEach((button,i)=>{if(i===index)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current')});
+  if(staticMode.matches){shots.forEach((shot,i)=>{shot.inert=false;shot.removeAttribute('aria-hidden');load(i)});current=-1;return}
+  const header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;
+  const rect=section.getBoundingClientRect(),span=Math.max(1,section.offsetHeight-stage.offsetHeight);
+  const p=Math.max(0,Math.min(1,(header-rect.top)/span)),position=p*shots.length,index=Math.min(shots.length-1,Math.floor(position)),local=index===shots.length-1?Math.min(1,position-index):position-index;
+  section.style.setProperty('--cinema-local',local.toFixed(4));
+  if(index===current)return;
+  current=index;section.dataset.cinemaChapter=String(index);load(index);load(index+1);
+  shots.forEach((shot,i)=>{const active=i===index;shot.classList.toggle('is-current',active);shot.inert=!active;shot.setAttribute('aria-hidden',String(!active))});
+  buttons.forEach((button,i)=>{button.classList.toggle('is-past',i<index);if(i===index)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current')});
  }
  const schedule=()=>{if(!queued){queued=true;requestAnimationFrame(update)}};
+ const near=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){shots.forEach((_,i)=>load(i));near.disconnect()}},{rootMargin:'100% 0px'});near.observe(section);
  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);staticMode.addEventListener('change',schedule);
- buttons.forEach((button,i)=>button.addEventListener('click',()=>{
-  if(staticMode.matches)return;
-  const header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;
-  const span=section.offsetHeight-stage.offsetHeight,target=scrollY+section.getBoundingClientRect().top-header+span*((i+.25)/chapters.length);
-  scrollTo({top:target,behavior:'smooth'});
- }));
+ buttons.forEach((button,i)=>button.addEventListener('click',()=>{if(staticMode.matches)return;const header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;scrollTo({top:scrollY+section.getBoundingClientRect().top-header+(section.offsetHeight-stage.offsetHeight)*(i+.25)/shots.length,behavior:'smooth'})}));
  update();
 })();
 
