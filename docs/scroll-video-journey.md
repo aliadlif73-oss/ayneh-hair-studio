@@ -12,22 +12,18 @@ Approved scope: retain the five photographic salon-benefit slides. Replace only 
 
 The shipped MP4 copies have no audio, H.264/yuv420p, 960×540, fast-start metadata and short six-frame keyframe intervals for responsive seeking. Original source files remain untouched. Posters and bridge endpoint images are extracted from the supplied films. The transparent generated pedestal is used as a separate DOM element.
 
-## Interaction
+## Interaction and responsive UX
 
-Native document scrolling maps to a pinned stage: hair (0–43%), a breathing interval (43–50%), lashes (50–74%), a stone handoff (74–85%), nails (85–100%). Scroll reversal reverses the media. No wheel/touch interception, autoplay, timer-driven playback or external animation dependency is used. Navigation buttons jump to the three services. Videos load as their phases approach. A seek queue coalesces rapid input to the latest requested frame.
+Hair and lashes are now ordinary document-flow sections. Muted inline video playback starts at 40% visibility and pauses when the panel leaves view or the document is hidden. Each film has a play/pause/replay control; blocked autoplay exposes native controls. Reduced motion keeps playback under user control.
 
-The bridge uses the actual final lash frame and initial nail frame. A transparent DOM pedestal emerges into a shared warm background, moves downward with scroll, then dissolves into the incoming film. This is an authored visual transition, not object tracking or a claim that the original films share identical geometry.
+Only the pedestal handoff and nails remain pinned, over a compact 270svh desktop / 260svh mobile section. A requestAnimationFrame interpolation smooths the scroll target and a seek queue keeps only the newest requested nail frame. There is no wheel/touch interception. The transparent DOM pedestal and actual boundary frames connect the two supplied films.
 
-Text stays live Persian HTML, with a CTA for each existing service. Films preserve their full 16:9 compositions so eyes and all fingers remain visible. Small screens place text beneath the image. Reduced-motion and short viewports get normal-flow videos with native controls. With JavaScript disabled, source elements and native controls remain available.
+The five salon-benefit images now occupy one compact carousel, advancing every four seconds only while visible. Previous/next arrows, direct chapter buttons and a pause control allow manual navigation. Reduced motion starts the carousel paused.
+
+On mobile the hero mirror, all seven color swatches and the three renderable styles share one bounded playground. This keeps the result visible during selection. The introductory walkthrough is desktop-only; mobile immediately shows the portrait. Color selection draws one final masked tint instead of computing an 820ms pixel animation; seven hues use more restrained luminance adjustment. Prepared portrait/thumbnail encodings use WebP. Existing backend and salon features are unchanged.
+
+Film downloads wait for the small hero preparation promises, then buffer complete MP4s to local Blob URLs so seek behavior does not depend on server byte ranges. No technical loading or scroll instructions are displayed.
 
 ## Validation
 
-Run the offline test suite with network disabled, regenerate the landing, run scripts/build.sh and scripts/validate-artifact.mjs. Inspect browser media readiness, forward/reverse seeking, breathing phase, bridge and all three service CTAs. Real-device Safari performance is not claimed.
-
-## Hosted-media loading fix
-
-The private static host returned HTTP 200 for a byte-range request. Films now explicitly preload and fetch the entire same-origin MP4 into a Blob URL before seeking, avoiding dependence on server range support and paused preload=none behavior. Poster images remain only as loading placeholders; loading failures are surfaced. Video requests and Blob URLs stay browser-local.
-
-## Early preload and gaze handoff
-
-All three complete-file downloads now start immediately when the landing script runs, before visitors reach the service section. Removed visible scroll/loading instructions. The first bridge uses the actual final downward-looking hair frame above the upward-looking lash opening frame; a scroll-driven split holds the two gazes together before expanding the incoming shot. No claim of guaranteed readiness on an arbitrarily slow network is made.
+61 offline tests passed; landing regenerated; scripts/build.sh and scripts/validate-artifact.mjs passed. Browser checks in a real 390px iframe viewport verified all seven color selections, visible recoloring, compact mirror/control layout, no horizontal overflow and visible-triggered film playback. This is a responsive browser check, not a claim of testing physical iOS or Android hardware.

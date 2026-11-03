@@ -1,77 +1,34 @@
-/* Section two is a five-shot film: one dedicated image and a short caption per slide. */
+/* Visible-only, four-second carousel; document scroll is never trapped. */
 (()=>{
- const section=document.getElementById('pain');if(!section?.classList.contains('cinema-story'))return;
+ const root=document.querySelector('.cinema-story');if(!root)return;
  document.documentElement.classList.add('cinema-enabled');
- const stage=section.querySelector('.cinema-stage'),shots=[...section.querySelectorAll('[data-cinema-shot]')],buttons=[...section.querySelectorAll('[data-cinema-go]')];
- const staticMode=matchMedia('(prefers-reduced-motion:reduce), (max-height:540px)');
- const source=k=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'assets/')+k+'.webp?v='+(window.__AYN_ASSET_VERSION||'1'));
- function load(i){const img=shots[i]?.querySelector('[data-cinema-image]');if(img&&!img.dataset.cinemaLoaded){img.src=source(img.dataset.cinemaImage);img.dataset.cinemaLoaded='1'}}
- let current=-1,queued=false;
- function update(){
-  queued=false;
-  if(staticMode.matches){shots.forEach((shot,i)=>{shot.inert=false;shot.removeAttribute('aria-hidden');load(i)});current=-1;return}
-  const header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;
-  const rect=section.getBoundingClientRect(),span=Math.max(1,section.offsetHeight-stage.offsetHeight);
-  const p=Math.max(0,Math.min(1,(header-rect.top)/span)),position=p*shots.length,index=Math.min(shots.length-1,Math.floor(position)),local=index===shots.length-1?Math.min(1,position-index):position-index;
-  section.style.setProperty('--cinema-local',local.toFixed(4));
-  if(index===current)return;
-  current=index;section.dataset.cinemaChapter=String(index);load(index);load(index+1);
-  shots.forEach((shot,i)=>{const active=i===index;shot.classList.toggle('is-current',active);shot.inert=!active;shot.setAttribute('aria-hidden',String(!active))});
-  buttons.forEach((button,i)=>{button.classList.toggle('is-past',i<index);if(i===index)button.setAttribute('aria-current','step');else button.removeAttribute('aria-current')});
- }
- const schedule=()=>{if(!queued){queued=true;requestAnimationFrame(update)}};
- const near=new IntersectionObserver(entries=>{if(entries.some(e=>e.isIntersecting)){shots.forEach((_,i)=>load(i));near.disconnect()}},{rootMargin:'100% 0px'});near.observe(section);
- addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);staticMode.addEventListener('change',schedule);
- buttons.forEach((button,i)=>button.addEventListener('click',()=>{if(staticMode.matches)return;const header=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;scrollTo({top:scrollY+section.getBoundingClientRect().top-header+(section.offsetHeight-stage.offsetHeight)*(i+.25)/shots.length,behavior:'smooth'})}));
- update();
+ const shots=[...root.querySelectorAll('[data-cinema-shot]')],dots=[...root.querySelectorAll('[data-cinema-go]')],toggle=root.querySelector('[data-slide-toggle]');
+ const reduced=matchMedia('(prefers-reduced-motion:reduce)');let current=0,visible=false,paused=reduced.matches,timer;
+ function show(n){current=(n+shots.length)%shots.length;root.dataset.cinemaChapter=String(current);shots.forEach((s,i)=>{s.classList.toggle('is-current',i===current);s.inert=i!==current;s.setAttribute('aria-hidden',String(i!==current))});dots.forEach((d,i)=>{if(i===current)d.setAttribute('aria-current','step');else d.removeAttribute('aria-current')});restart()}
+ function restart(){clearTimeout(timer);if(visible&&!paused&&!document.hidden)timer=setTimeout(()=>show(current+1),4000)}
+ root.querySelector('[data-slide-prev]').onclick=()=>show(current-1);root.querySelector('[data-slide-next]').onclick=()=>show(current+1);
+ toggle.onclick=()=>{paused=!paused;toggle.textContent=paused?'▶':'Ⅱ';toggle.setAttribute('aria-label',paused?'پخش خودکار اسلایدها':'توقف تعویض خودکار اسلایدها');restart()};dots.forEach((d,i)=>d.onclick=()=>show(i));
+ root.addEventListener('focusin',()=>{clearTimeout(timer)});root.addEventListener('focusout',restart);document.addEventListener('visibilitychange',restart);
+ new IntersectionObserver(es=>{visible=es[0].isIntersecting;restart()},{threshold:.35}).observe(root);
+ root.querySelectorAll('[data-cinema-image]').forEach(img=>{const k=img.dataset.cinemaImage;img.src=window.__AYN_IMG?.[k]||((window.__AYN_BASE||'assets/')+k+'.webp')});show(0);
 })();
 
-/* Native scroll controls paused HTML videos. Never intercept wheel/touch or autoplay. */
+/* First two films play on visibility. Only the stone and nails follow native scroll. */
 (()=>{
- const root=document.querySelector('.tryon-journey');if(!root)return;
- document.documentElement.classList.add('journey-enabled');
- const stage=root.querySelector('.journey-stage'),videos=[...root.querySelectorAll('[data-journey-film]')],copies=[...root.querySelectorAll('[data-journey-copy]')],buttons=[...root.querySelectorAll('[data-journey-go]')];
- const bridge=root.querySelector('.journey-bridge'),stone=bridge.querySelector('.journey-stone'),out=bridge.querySelector('.journey-bridge-out'),incoming=bridge.querySelector('.journey-bridge-in'),space=bridge.querySelector('.journey-bridge-space'),bridgeText=bridge.querySelector('p');
- const reduced=matchMedia('(prefers-reduced-motion:reduce), (max-height:500px)');
- const clamp=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
- const phases=[{key:'hair',from:0,to:.43},{key:'breath',from:.43,to:.50},{key:'lashes',from:.50,to:.74},{key:'bridge',from:.74,to:.85},{key:'nails',from:.85,to:1}];
- const state=videos.map(el=>({el,key:el.dataset.journeyFilm,target:0,loaded:false,error:false,objectURL:null,received:false}));
- let scheduled=false,active='hair';
- function seek(s){const v=s.el;if(!s.loaded||v.seeking||!Number.isFinite(v.duration)||v.readyState<1||s.error)return;const t=clamp(s.target,0,Math.max(0,v.duration-.045));if(Math.abs(v.currentTime-t)>.035){try{v.currentTime=t}catch(_){}}}
- async function load(s){
-  if(s.loaded)return;s.loaded=true;s.el.preload='auto';
-  const url=(window.__AYN_BASE||'assets/')+s.el.dataset.src+'?v='+(window.__AYN_ASSET_VERSION||'1');
-  try{
-   // Fetch the complete file first: private/static hosts can ignore Range requests.
-   // Blob URLs make subsequent paused seeks local and independent of HTTP streaming.
-   const response=await fetch(url,{credentials:'same-origin'});
-   if(!response.ok||!(response.headers.get('content-type')||'').includes('video/'))throw new Error('Invalid video response');
-   const blob=await response.blob();if(blob.size<1024)throw new Error('Empty video');
-   s.objectURL=URL.createObjectURL(blob);s.received=true;s.el.src=s.objectURL;s.el.load();schedule();
-  }catch(_){s.error=true;schedule()}
+ const root=document.querySelector('.service-journey');if(!root)return;document.documentElement.classList.add('journey-enabled');
+ const reduced=matchMedia('(prefers-reduced-motion:reduce)'),cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+ const states=[...root.querySelectorAll('[data-journey-film]')].map(v=>({v,key:v.dataset.journeyFilm,target:0,visible:false,userPaused:false,loaded:false}));
+ async function load(s){if(s.loaded)return;s.loaded=true;s.v.muted=true;s.v.preload='auto';try{const r=await fetch((window.__AYN_BASE||'assets/')+s.v.dataset.src+'?v='+window.__AYN_ASSET_VERSION,{credentials:'same-origin',priority:'low'});if(!r.ok||!(r.headers.get('content-type')||'').includes('video/'))throw Error();s.v.src=URL.createObjectURL(await r.blob());s.v.load()}catch(_){s.v.controls=true}}
+ function playback(s){if(s.key==='nails')return;if(s.visible&&!s.userPaused&&!document.hidden&&!reduced.matches){if(s.v.ended)s.v.currentTime=0;s.v.play().catch(()=>{s.v.controls=true})}else s.v.pause()}
+ states.forEach(s=>{s.v.controls=reduced.matches;s.v.addEventListener('loadeddata',()=>{playback(s);schedule()});if(s.key!=='nails'){const panel=s.v.closest('.auto-film'),button=panel.querySelector('.film-toggle');new IntersectionObserver(es=>{s.visible=es[0].intersectionRatio>=.4;playback(s)},{threshold:[0,.4,.7]}).observe(panel);button.onclick=()=>{s.userPaused=!s.v.paused;if(s.userPaused)s.v.pause();else{s.v.play().catch(()=>{s.v.controls=true})}button.textContent=s.userPaused?'▶':'Ⅱ';button.setAttribute('aria-label',s.userPaused?'پخش ویدئو':'توقف پخش ویدئو')};s.v.addEventListener('ended',()=>{button.textContent='↻';button.setAttribute('aria-label','پخش دوبارهٔ ویدئو')})}});
+ document.addEventListener('visibilitychange',()=>states.forEach(playback));reduced.addEventListener('change',()=>{states.forEach(s=>{s.v.controls=reduced.matches;playback(s)});schedule()});
+ const area=root.querySelector('.nail-journey'),stage=area.querySelector('.journey-stage'),s=states.find(s=>s.key==='nails'),bridge=area.querySelector('.journey-bridge'),stone=area.querySelector('.journey-stone'),out=area.querySelector('.journey-bridge-out'),incoming=area.querySelector('.journey-bridge-in'),space=area.querySelector('.journey-bridge-space'),copy=area.querySelector('.journey-copy');let pending=false,position=0,target=0;
+ function seek(){if(s.v.seeking||s.v.readyState<1||!Number.isFinite(s.v.duration))return;const t=cl(s.target,0,s.v.duration-.05);if(Math.abs(s.v.currentTime-t)>.045)s.v.currentTime=t}s.v.addEventListener('seeked',seek);
+ function update(){pending=false;area.classList.toggle('is-static',reduced.matches);if(reduced.matches){s.v.controls=true;bridge.hidden=true;return}bridge.hidden=false;
+ const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||65;target=cl((hh-area.getBoundingClientRect().top)/Math.max(1,area.offsetHeight-stage.offsetHeight));position+= (target-position)*.18;if(Math.abs(target-position)<.0004)position=target;const p=position,q=cl(p/.27),n=cl((p-.27)/.73);
+ area.dataset.phase=p<.27?'bridge':'nails';bridge.style.opacity=p<.27?'1':'0';bridge.style.visibility=p<.27?'visible':'hidden';s.v.classList.toggle('is-active',p>=.27);copy.classList.toggle('is-active',p>=.27);
+ out.style.opacity=String(1-cl(q/.22));space.style.opacity=String(cl(q/.18)*(1-cl((q-.73)/.27)));incoming.style.opacity=String(cl((q-.76)/.24));stone.style.opacity=String(cl(q/.1)*(1-cl((q-.9)/.1)));stone.style.top=(40+q*43)+'%';stone.style.transform='translate(-50%,-50%) scale('+(1-q*.35)+')';bridge.querySelector('p').style.opacity=String(cl((q-.18)/.15)*(1-cl((q-.65)/.15)));if(Number.isFinite(s.v.duration)){s.target=n*(s.v.duration-.05);seek()}if(position!==target)schedule();
  }
-
- state.forEach(s=>{s.el.addEventListener('loadedmetadata',()=>{seek(s);schedule()});s.el.addEventListener('loadeddata',()=>{seek(s);schedule()});s.el.addEventListener('seeked',()=>{seek(s);schedule()});s.el.addEventListener('canplay',schedule);s.el.addEventListener('error',()=>{s.error=true;schedule()})});
- function update(){
-  scheduled=false;
-  const isStatic=reduced.matches;root.classList.toggle('is-static',isStatic);
-  if(isStatic){state.forEach(s=>{load(s);s.el.controls=true;s.el.inert=false;s.el.removeAttribute('aria-hidden')});copies.forEach(c=>{c.inert=false;c.removeAttribute('aria-hidden')});return}
-  state.forEach(s=>{s.el.controls=false;s.el.pause()});
-  const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76,rect=root.getBoundingClientRect(),span=Math.max(1,root.offsetHeight-stage.offsetHeight),p=clamp((hh-rect.top)/span);
-  const phase=phases.find(x=>p<x.to)||phases[4],q=clamp((p-phase.from)/(phase.to-phase.from));active=phase.key;root.dataset.phase=active;root.dataset.progress=p.toFixed(4);root.style.setProperty('--film-progress',q.toFixed(4));
-  state.forEach((s,i)=>{const ph=phases.find(x=>x.key===s.key),local=clamp((p-ph.from)/(ph.to-ph.from));if(rect.top<innerHeight*2&&p>ph.from-.12)load(s);if(s.loaded&&Number.isFinite(s.el.duration)){s.target=local*(s.el.duration-.045);seek(s)}const shown=s.key===active;s.el.classList.toggle('is-active',shown);s.el.inert=!shown;s.el.setAttribute('aria-hidden',String(!shown))});
-  copies.forEach(c=>{const on=c.dataset.journeyCopy===active;c.classList.toggle('is-active',on);c.inert=!on;c.setAttribute('aria-hidden',String(!on))});
-  buttons.forEach(b=>{if(b.dataset.journeyGo===active)b.setAttribute('aria-current','step');else b.removeAttribute('aria-current')});
-  if(active==='bridge'){
-   const mobile=innerWidth<=600;out.style.opacity=String(1-clamp(q/.22));space.style.opacity=String(clamp(q/.18)*(1-clamp((q-.73)/.27)));incoming.style.opacity=String(clamp((q-.76)/.24));
-   stone.style.opacity=String(clamp(q/.1)*(1-clamp((q-.90)/.1)));const y=mobile?30+q*31:48+q*35;stone.style.top=y+'%';stone.style.transform='translate(-50%,-50%) rotate('+(-4*Math.sin(q*Math.PI))+'deg) scale('+(1-q*.35)+')';bridgeText.style.opacity=String(clamp((q-.18)/.15)*(1-clamp((q-.65)/.15)));
-   load(state[2]);
-  }
-  if(active==='breath'){const split=q<.25?100-q*200:q>.75?50-(q-.75)*200:50;root.style.setProperty('--gaze-split',split.toFixed(3)+'%')}
- }
- function schedule(){if(!scheduled){scheduled=true;requestAnimationFrame(update)}}
- addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);reduced.addEventListener('change',schedule);
- buttons.forEach(b=>b.addEventListener('click',()=>{const ph=phases.find(x=>x.key===b.dataset.journeyGo),hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||76;scrollTo({top:scrollY+root.getBoundingClientRect().top-hh+(root.offsetHeight-stage.offsetHeight)*(ph.from+.002),behavior:'smooth'})}));
- // Begin all three downloads on page entry, well before the film section.
- state.forEach(s=>load(s));update();
+ function schedule(){if(!pending){pending=true;requestAnimationFrame(update)}}addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);
+ Promise.resolve(window.__AYN_HERO_READY).finally(()=>states.forEach(load));schedule();
 })();

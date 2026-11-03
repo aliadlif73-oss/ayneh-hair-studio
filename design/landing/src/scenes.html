@@ -30,7 +30,7 @@
       </div>
       <div class="cinema-frame" aria-hidden="true"></div>
       <div class="cinema-topline"><span>یک روز در سالن. یک مسیر روشن‌تر.</span></div>
-      <nav class="cinema-controls" aria-label="اسلایدهای روایت آینه">
+      <div class="cinema-arrows"><button type="button" data-slide-prev aria-label="اسلاید قبلی">→</button><button type="button" data-slide-toggle aria-label="توقف تعویض خودکار اسلایدها">Ⅱ</button><button type="button" data-slide-next aria-label="اسلاید بعدی">←</button></div><nav class="cinema-controls" aria-label="اسلایدهای روایت آینه">
         <button type="button" data-cinema-go="0" aria-current="step"><span class="cinema-step">۰۱</span><span>تردید</span><i aria-hidden="true"></i></button>
         <button type="button" data-cinema-go="1"><span class="cinema-step">۰۲</span><span>مشاوره</span><i aria-hidden="true"></i></button>
         <button type="button" data-cinema-go="2"><span class="cinema-step">۰۳</span><span>نمونه‌کار</span><i aria-hidden="true"></i></button>
@@ -41,32 +41,17 @@
     </div>
   </section>
 
-  <section id="transform" class="tryon-journey on-dark" aria-labelledby="journey-title">
-    <div class="journey-stage">
-      <h2 id="journey-title" class="sr-only">با تصویر خودتان، از مو تا مژه و ناخن</h2>
-      <div class="journey-films">
-        <video class="journey-film is-active" data-journey-film="hair" data-src="video/hair.mp4" poster="assets/hair-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ مو؛ با اسکرول جلو و عقب ببرید" controls><source src="assets/video/hair.mp4" type="video/mp4"></video>
-        <video class="journey-film" data-journey-film="lashes" data-src="video/lashes.mp4" poster="assets/lashes-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل مژه؛ با اسکرول جلو و عقب ببرید" controls><source src="assets/video/lashes.mp4" type="video/mp4"></video>
-        <video class="journey-film" data-journey-film="nails" data-src="video/nails.mp4" poster="assets/nails-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ ناخن؛ با اسکرول جلو و عقب ببرید" controls><source src="assets/video/nails.mp4" type="video/mp4"></video>
-      </div>
-      <div class="journey-wash" aria-hidden="true"></div>
-      <div class="journey-breath journey-gaze" aria-hidden="true"><div class="journey-gaze-up"><img src="assets/hair-end.webp" alt="" width="960" height="540"></div><div class="journey-gaze-down"><img src="assets/lashes-poster.webp" alt="" width="960" height="540"></div><i class="journey-gaze-seam"></i></div>
-      <div class="journey-bridge" aria-hidden="true">
+  <section id="transform" class="service-journey on-dark" aria-label="روی تصویر خودتان امتحان کنید">
+<article class="auto-film" data-auto-film="hair"><video class="journey-film is-active" data-journey-film="hair" data-src="video/hair.mp4" poster="assets/hair-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ مو؛ با اسکرول جلو و عقب ببرید" controls><source src="assets/video/hair.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy is-active" data-journey-copy="hair"><p class="journey-kicker">۰۱ / مدل و رنگ مو</p><h3>قبل از تغییر،<br>روی خودتان ببینید.</h3><p>عکس خودتان و مدل مو یا رنگ دلخواه‌تان را بگذارید؛ ببینید کدام انتخاب بیشتر به شما می‌آید.</p><a href="/s/demo?l=hair">روی عکس خودم امتحان کنم <span aria-hidden="true">←</span></a></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
+<div class="journey-breath journey-gaze" aria-hidden="true"><div class="journey-gaze-up"><img src="assets/hair-end.webp" alt="" width="960" height="540"></div><div class="journey-gaze-down"><img src="assets/lashes-poster.webp" alt="" width="960" height="540"></div><i class="journey-gaze-seam"></i></div>
+<article class="auto-film" data-auto-film="lashes"><video class="journey-film" data-journey-film="lashes" data-src="video/lashes.mp4" poster="assets/lashes-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل مژه؛ با اسکرول جلو و عقب ببرید" controls><source src="assets/video/lashes.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy" data-journey-copy="lashes"><p class="journey-kicker">۰۲ / مدل مژه</p><h3>نگاه شما.<br>انتخاب شما.</h3><p>عکس چهره یا چشم‌هایتان را بارگذاری کنید و مدل مژهٔ دلخواه را روی چشم‌های خودتان ببینید.</p><a href="/s/demo?l=lashes">مژهٔ دلخواهم را ببینم <span aria-hidden="true">←</span></a></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
+<section class="nail-journey" aria-label="طرح و رنگ ناخن"><div class="journey-stage"><video class="journey-film" data-journey-film="nails" data-src="video/nails.mp4" poster="assets/nails-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ ناخن؛ با اسکرول جلو و عقب ببرید" controls><source src="assets/video/nails.mp4" type="video/mp4"></video><div class="journey-bridge" aria-hidden="true">
         <img class="journey-bridge-out" src="assets/lashes-end.webp" alt="" width="960" height="540" loading="lazy">
         <div class="journey-bridge-space"></div>
         <img class="journey-bridge-in" src="assets/nails-poster.webp" alt="" width="960" height="540" loading="lazy">
         <img class="journey-stone" src="assets/journey-stone.webp" alt="" width="900" height="800" loading="lazy">
         <p>حالا، نوبت دست‌های شماست.</p>
-      </div>
-      <div class="journey-copy is-active" data-journey-copy="hair"><p class="journey-kicker">۰۱ / مدل و رنگ مو</p><h3>قبل از تغییر،<br>روی خودتان ببینید.</h3><p>عکس خودتان و مدل مو یا رنگ دلخواه‌تان را بگذارید؛ ببینید کدام انتخاب بیشتر به شما می‌آید.</p><a href="/s/demo?l=hair">روی عکس خودم امتحان کنم <span aria-hidden="true">←</span></a></div>
-      <div class="journey-copy" data-journey-copy="lashes"><p class="journey-kicker">۰۲ / مدل مژه</p><h3>نگاه شما.<br>انتخاب شما.</h3><p>عکس چهره یا چشم‌هایتان را بارگذاری کنید و مدل مژهٔ دلخواه را روی چشم‌های خودتان ببینید.</p><a href="/s/demo?l=lashes">مژهٔ دلخواهم را ببینم <span aria-hidden="true">←</span></a></div>
-      <div class="journey-copy" data-journey-copy="nails"><p class="journey-kicker">۰۳ / طرح و رنگ ناخن</p><h3>طرح بعدی را،<br>روی دست خودتان ببینید.</h3><p>عکس دستتان را بگذارید؛ فرم، رنگ و طرح ناخن را امتحان کنید و انتخاب دلخواه‌تان را برای سالن بفرستید.</p><a href="/s/demo?l=nails">روی دست خودم امتحان کنم <span aria-hidden="true">←</span></a></div>
-      <div class="journey-top"><span>اول ببینید. بعد انتخاب کنید.</span></div>
-      <nav class="journey-nav" aria-label="نمایش خدمات روی تصویر شما"><button type="button" data-journey-go="hair" aria-current="step">مو و رنگ <i></i></button><button type="button" data-journey-go="lashes">مژه <i></i></button><button type="button" data-journey-go="nails">ناخن <i></i></button></nav>
-      <p class="journey-note">نمونهٔ نمایشی با هوش مصنوعی؛ شبیه‌سازی، تضمین نتیجهٔ اجرا نیست.</p>
-    </div>
-    <noscript><p class="journey-nojs">برای کنترل فیلم‌ها با اسکرول، جاوااسکریپت را فعال کنید.</p></noscript>
-  </section>
+      </div><div class="journey-copy" data-journey-copy="nails"><p class="journey-kicker">۰۳ / طرح و رنگ ناخن</p><h3>طرح بعدی را،<br>روی دست خودتان ببینید.</h3><p>عکس دستتان را بگذارید؛ فرم، رنگ و طرح ناخن را امتحان کنید و انتخاب دلخواه‌تان را برای سالن بفرستید.</p><a href="/s/demo?l=nails">روی دست خودم امتحان کنم <span aria-hidden="true">←</span></a></div><p class="journey-note">نمونهٔ نمایشی؛ نتیجهٔ اجرا ممکن است متفاوت باشد.</p></div></section></section>
 
   <section class="cta-band" aria-labelledby="h-cta1">
     <div class="cta-band__in">

@@ -50,8 +50,8 @@
   dock.style.setProperty('--u',mobile.matches?'1':Math.max(.62,Math.min(1.35,s/.84)).toFixed(3));
   // phones: the podium is too small for the dock, so it sits under the mirror instead
   // phones: colours and the style dock sit under the mirror, where thumbs can reach them
-  if(mobile.matches){if(dock.parentElement===plate){studio.after(palette);palette.after(dock);dock.classList.add('mobile');palette.classList.add('mobile')}}
-  else if(dock.parentElement!==plate){plate.append(dock);mirror.append(palette);dock.classList.remove('mobile');palette.classList.remove('mobile')}
+  if(mobile.matches){let lab=$('heroPlayground');if(!lab){lab=document.createElement('div');lab.id='heroPlayground';lab.className='hero-playground';studio.before(lab)}lab.append(studio,palette,dock);dock.classList.add('mobile');palette.classList.add('mobile')}
+  else if(dock.parentElement!==plate){const lab=$('heroPlayground');if(lab){lab.before(studio);lab.remove()}plate.append(dock);mirror.append(palette);dock.classList.remove('mobile');palette.classList.remove('mobile')}
   syncArrows();
  }
 
@@ -138,10 +138,10 @@
    const composed=window.__AYN_PORTRAIT.compose(person.original,scene.data,person.oldHair,full,person.identity,person.face);
    scene.data.set(composed.scene);full=composed.mask;
    g.putImageData(scene,0,0);
-   const src=key==='base'?a.src:c.toDataURL('image/png');
+   const src=key==='base'?a.src:c.toDataURL('image/webp',.92);
    const thumbCanvas=document.createElement('canvas');thumbCanvas.width=240;thumbCanvas.height=300;
    thumbCanvas.getContext('2d').drawImage(c,605,235,160,235,0,0,240,300);
-   const thumb=thumbCanvas.toDataURL('image/png'),index=key==='base'?0:Number(key.slice(1))-1;
+   const thumb=thumbCanvas.toDataURL('image/webp',.85),index=key==='base'?0:Number(key.slice(1))-1;
    [cards[index],dItems[index]].forEach(button=>{if(button)button.querySelector('img').src=thumb});
    let x0=W,y0=H,x1=0,y1=0;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(full[(y*W+x)*4]>6){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
    if(x1<x0)throw new Error('Empty hair mask');
@@ -174,7 +174,7 @@
  startPrep();
  const cl=(v,a,b)=>v<a?a:v>b?b:v,sm=(a,b,x)=>{x=cl((x-a)/(b-a),0,1);return x*x*(3-2*x)};
  function hsl(h,s,l){const k=n=>(n+h/30)%12,a=s*Math.min(l,1-l),f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1)));return[f(0)*255,f(8)*255,f(4)*255]}
- function tint(c,Y,yn){let l=c.ombre?.16+(.7-.16)*sm(.3,.85,yn):c.l;l=cl(l+(Y-.4)*1.2,.03,.96);const s=c.s*(1-cl((l-.72)*2.2,0,.8));return hsl(c.h,s,l)}
+ function tint(c,Y,yn){let l=c.ombre?.16+(.7-.16)*sm(.3,.85,yn):c.l;l=cl(l+(Y-.4)*.48,.03,.96);const s=c.s*(1-cl((l-.72)*2.2,0,.8));return hsl(c.h,s,l)}
  /* from/to: colour objects or null (original); t: 0..1 blend; scan: -1 (off) or 0..1 sweep position */
  function draw(from,to,t,scan){
   if(!px)return;
@@ -193,12 +193,13 @@
  }
  function run(dur,fn,done){cancelAnimationFrame(rafId);if(reduced){fn(1);done&&done();return}const t0=performance.now();(function f(now){const x=cl((now-t0)/dur,0,1);fn(x);if(x<1)rafId=requestAnimationFrame(f);else done&&done()})(t0)}
  const ease=x=>1-Math.pow(1-x,3);
- function paintColor(prev,next){run(820,x=>draw(prev,next,ease(x),x*1.3-.15),()=>draw(null,next,1,-1))}
+ function paintColor(prev,next){cancelAnimationFrame(rafId);draw(null,next,1,-1);if(!reduced)cv.animate([{opacity:.65},{opacity:1}],{duration:180})}
  function paintScan(cur){run(900,x=>draw(cur,cur,1,x*1.3-.15),()=>draw(null,cur,1,-1))}
 
  /* ---------- selection ---------- */
  const mark=(list,idx)=>list.forEach((b,i)=>b?.setAttribute('aria-checked',String(i===idx)));
  async function pickColor(i){
+  showFront();revealPortrait();
   const prev=st.color!=null?COLORS[st.color]:null;st.color=i;mark(sws,i);summary();
   // A click made before the mask finishes loading is queued, rather than silently doing nothing.
   if(!px){const p=await prepare(st.look);if(!p){renderError();return}if(!px)px=p}
@@ -296,8 +297,10 @@
  const human=e=>{if(!e.isTrusted||e.target.closest('.demo-controls'))return;if(demonstrating)endDemo('حالا خودتان مدل و رنگ را انتخاب کنید.');if(e.target.closest('#dock,#colors,#styles')){revealPortrait();showFront()}};
  film.addEventListener('pointerdown',human,true);film.addEventListener('keydown',human,true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')});
+ window.__AYN_HERO_READY=Promise.all([prepare('base'),prepare('s06'),prepare('s12')]);
  const pageReady=new Promise(resolve=>{if(document.readyState==='complete')resolve();else addEventListener('load',resolve,{once:true})});
- Promise.all([pageReady,document.fonts?.ready,prepare('base'),prepare('s06'),prepare('s12')]).then(()=>{
+ window.__AYN_HERO_READY.then(()=>{
+  if(mobile.matches){endDemo();revealPortrait();return}
   // Never steal attention back if the visitor started interacting or scrolled past the hero while loading.
   const r=film.getBoundingClientRect();if(played||r.bottom<innerHeight*.5||r.top>innerHeight){endDemo();return}
   walkthrough();
@@ -316,5 +319,5 @@
  const req=()=>{if(!tick){tick=true;requestAnimationFrame(frameUpdate)}};
  addEventListener('scroll',req,{passive:true});
  new ResizeObserver(()=>{layout();req()}).observe(mirror);
- layout();frameUpdate();
+ layout();frameUpdate();if(mobile.matches){revealPortrait();$('demoCaption').hidden=true;$('replayDemo').hidden=true}
 })();

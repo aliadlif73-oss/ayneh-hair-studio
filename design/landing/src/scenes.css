@@ -117,3 +117,21 @@ html:not(.journey-enabled) .journey-bridge,html:not(.journey-enabled) .journey-b
 .journey-gaze-up img{object-position:62% 38%}.journey-gaze-down img{object-position:50% 14%}
 .journey-gaze .journey-gaze-seam{position:absolute;left:0;right:0;top:var(--gaze-split);width:100%;height:1px;background:#d4b37880;box-shadow:0 0 24px #d4b37850}
 @media(max-width:600px){.journey-gaze-up img{object-position:67% 38%}.journey-gaze-down img{object-position:50% 12%}}
+/* Compact carousel and normal-flow films replace the long pinned sequences. */
+html.cinema-enabled .cinema-story{height:auto}
+html.cinema-enabled .cinema-stage{position:relative;top:auto;height:88svh;min-height:650px;max-height:900px}
+html.cinema-enabled .cinema-reel{position:absolute;inset:0}
+html.cinema-enabled .cinema-shot{position:absolute;inset:0;height:100%;min-height:0;opacity:0;visibility:hidden}
+html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
+.cinema-arrows{position:absolute;z-index:6;left:7%;top:65px;display:flex;gap:8px;direction:ltr}
+.cinema-arrows button{width:44px;height:44px;border:1px solid #d7bb8055;border-radius:50%;background:#17110c88;color:#f2ddba;font:inherit;font-size:20px;cursor:pointer}
+.cinema-arrows [data-slide-toggle]{font-size:14px}.cinema-controls button[aria-current] i{transform:scaleX(1)}
+.service-journey{background:#17120e;color:#f8efe4}
+.auto-film{position:relative;min-height:650px;height:90svh;max-height:950px;overflow:clip;background:#17120e}
+.auto-film .journey-film{opacity:1;visibility:visible;object-fit:contain;pointer-events:auto}
+.auto-film .journey-copy{opacity:1;visibility:visible;transform:none}
+.film-toggle{position:absolute;z-index:6;left:6%;bottom:35px;width:44px;height:44px;background:#17120eaa;color:#f2d9b0;border:1px solid #d6bc8055;border-radius:50%;cursor:pointer;font-size:17px}
+.service-journey>.journey-gaze{position:relative;inset:auto;height:40svh;min-height:280px;max-height:450px;opacity:1;visibility:visible;--gaze-split:50%}
+.nail-journey{height:270svh;position:relative}.nail-journey .journey-stage{position:sticky}.nail-journey .journey-copy{transition:opacity .3s}.nail-journey .journey-bridge{visibility:visible;opacity:1}
+.nail-journey.is-static{height:auto}.nail-journey.is-static .journey-stage{height:auto;position:relative;padding:30px 15px}.nail-journey.is-static .journey-film{position:relative;inset:auto;width:100%;height:auto;aspect-ratio:16/9;opacity:1;visibility:visible;pointer-events:auto}.nail-journey.is-static .journey-copy{position:relative;inset:auto;width:auto;opacity:1;visibility:visible}.nail-journey.is-static .journey-bridge{display:none}
+@media(max-width:600px){html.cinema-enabled .cinema-stage{height:88svh;min-height:650px}.cinema-arrows{left:26px;top:26px}.cinema-topline{display:none}.cinema-copy,.is-current .cinema-copy{bottom:110px}.cinema-image{object-position:24% 20%}.auto-film{height:auto;min-height:0;padding:24px 0 95px}.auto-film .journey-film{position:relative;inset:auto;display:block;aspect-ratio:16/9;width:100%;height:auto}.auto-film .journey-wash{display:none}.auto-film .journey-copy{position:relative;inset:auto;width:auto;max-width:none;padding:25px 24px 0}.auto-film .journey-copy h3{font-size:26px}.auto-film .journey-copy p{font-size:14px}.film-toggle{bottom:25px;left:24px}.nail-journey{height:260svh}.nail-journey .journey-film{top:10%}.nail-journey .journey-copy{bottom:45px}.service-journey>.journey-gaze{height:38svh;min-height:260px}.journey-note{font-size:8px}}
