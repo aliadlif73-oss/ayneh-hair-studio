@@ -1,6 +1,7 @@
 name = "ayneh-specialist-color"
 main = "../../editions-dist/color/worker/edition-entry.js"
 compatibility_date = "2026-11-05"
+routes = [{ pattern = "color.ayneh-salon.site", custom_domain = true }]
 [vars]
 APP_ORIGIN = "https://color.ayneh-salon.site"
 TRUST_PLATFORM_IDENTITY = "false"

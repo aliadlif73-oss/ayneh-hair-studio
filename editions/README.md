@@ -12,7 +12,7 @@ All work is on the `specialist-editions` branch. Do not merge it into main just 
 
 The specialist entrypoint rejects other service lines on the server, isolates private media and sessions, and preserves the existing specialist page, portfolio, upload/reference, simulation, status and Telegram/Bale flow.
 
-The deployment workflow targets only `ayneh-specialist-*`; it copies the owner's configured login and KIE secret through GitHub Actions without exposing them. It generates fresh per-instance secrets once and preserves them on later deployments. It never copies the original bot/SMS credentials.
+The deployment workflow targets only `ayneh-specialist-*`; it copies the owner's configured login and KIE secret through GitHub Actions without exposing them. It generates fresh per-instance secrets once and preserves them on later deployments. It also copies the SMS key and the one-time-code template (`MELIPAYAMAK_TOKEN`, `MELIPAYAMAK_OTP_BODY_ID`) so free demos and trial pages require a verified mobile; without them demo generation stays off and trials could be created without limit. It never copies the original bot tokens or the invitation SMS template, whose text names the main host.
 
 ## Initial operation
 
@@ -23,6 +23,6 @@ The deployment workflow targets only `ayneh-specialist-*`; it copies the owner's
 5. The specialist opens that link in her own chat. Portfolio uploads and customer requests use that chat.
 6. Perform a permitted real image and message test before treating the integration as verified. Reference quality starts unverified and needs owner acceptance.
 
-Keys added in `/admin/integrations` are encrypted with AES-GCM in the edition's own D1 database. They are never returned by the settings API. Empty input preserves the stored key. SMS remains optional and off until independently configured; any invitation template must use this edition's host.
+Keys added in `/admin/integrations` are encrypted with AES-GCM in the edition's own D1 database. They are never returned by the settings API. Empty input preserves the stored key. A key entered there replaces the copied SMS key for that edition; any invitation template must use this edition's host.
 
 The one-time bootstrap route is available for an installation with no owner password, but requires an explicitly provisioned token hash and expiry; no public default password exists.

@@ -42,3 +42,14 @@ test('encrypted provider setup, no secret readback, and existing bot webhook is 
 test('fresh specialist instance keeps baseline source and public catalog assets unchanged',()=>{
  const cfg=readFileSync(new URL('../wrangler.toml',import.meta.url),'utf8');assert.match(cfg,/name = "ayneh-hair-studio"/);assert(!cfg.includes('specialist'));assert(!readFileSync(new URL('../worker/index.js',import.meta.url),'utf8').includes('editionEnv'));
 });
+test('each edition owns its subdomain and its landing can start a trial page',async()=>{
+ const {editionLanding}=await import('../worker/edition.js');
+ for(const line of ['hair','color','nails','lashes']){
+  const toml=readFileSync('editions/'+line+'/wrangler.toml','utf8');
+  assert.match(toml,new RegExp('pattern = "'+line+'\\.ayneh-salon\\.site", custom_domain = true'));
+  const html=editionLanding({SERVICE_LINE:line,APP_ORIGIN:'https://'+line+'.ayneh-salon.site'});
+  assert.match(html,/id="start"[^]*<form id="trial"/);assert.match(html,/\/api\/trial/);
+ }
+ const flow=readFileSync('.github/workflows/deploy-specialists.yml','utf8');
+ assert.match(flow,/MELIPAYAMAK_OTP_BODY_ID/);assert.doesNotMatch(flow,/MELIPAYAMAK_BODY_ID/);
+});
