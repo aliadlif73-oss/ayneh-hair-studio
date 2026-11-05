@@ -28,8 +28,8 @@ id = "0bfbd0a59f3b43d68463a8194900e9bb"
 # bucket_name = "ayneh-mezon-media"
 
 # Telegram delivery retries and retention cleanup run automatically; no GitHub cron needed.
-[triggers]
-crons = ["*/10 * * * *"]
+# The account is at the Workers Free limit of 5 cron triggers, so none is set here.
+# Re-add `[triggers] crons = ["*/10 * * * *"]` once a cron slot is free (or on Workers Paid).
 
 # Catalog style photos (public/catalog/NN.webp) are served as static files before the worker.
 # The custom domain mezon.ayneh-salon.site is attached in the Cloudflare dashboard
