@@ -3,7 +3,7 @@ on:
   push:
     branches: [media-export]
 permissions:
-  contents: read
+  contents: write
 jobs:
   export:
     runs-on: ubuntu-latest
@@ -14,6 +14,8 @@ jobs:
           A: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           DB: d1f05be3-2420-4f72-b541-60ac5f5853c4
           NS: ded9d8ee91da4d3ebb2a5f220ef90df2
+          PW: ${{ secrets.OWNER_PASSWORD }}
+          SITE: https://ayneh-salon.site
         run: |
           set -euo pipefail
           API=https://api.cloudflare.com/client/v4/accounts/$A
@@ -22,13 +24,17 @@ jobs:
           node -e '
             const r=require("./list.json").result[0].results,ext={"image/jpeg":"jpg","image/png":"png","image/webp":"webp","image/gif":"gif"};
             const lines=r.map(x=>{const d=new Date(x.t+12600000).toISOString().slice(0,16).replace("T","_").replace(":","");
-              return [x.k, x.slug+"/"+x.kind+"/"+d+"_"+x.sid.slice(0,8)+"_"+x.id.slice(0,8)+"."+(ext[x.mime]||"bin")].join("\t")});
+              return [x.slug, x.id, x.slug+"/"+x.kind+"/"+d+"_"+x.sid.slice(0,8)+"_"+x.id.slice(0,8)+"."+(ext[x.mime]||"bin")].join("\t")});
             require("fs").writeFileSync("plan.tsv",lines.join("\n")+"\n");console.log(r.length+" images")'
+          node -e 'process.stdout.write(JSON.stringify({password:process.env.PW}))' > pw.json
+          code=$(curl -sS -c jar -o login.txt -w '%{http_code}' -X POST "$SITE/api/login" -H 'Content-Type: application/json' -H "Origin: $SITE" --data @pw.json); rm pw.json
+          echo "login=$code"; [ "$code" = 200 ] || { cat login.txt; exit 1; }
           mkdir out; ok=0; miss=0
-          while IFS=$'\t' read -r key name; do
+          while IFS=$'\t' read -r slug id name; do
             mkdir -p "out/$(dirname "$name")"
-            if curl -fsS "$API/storage/kv/namespaces/$NS/values/$(node -p 'encodeURIComponent(process.argv[1])' "$key")" -H "Authorization: Bearer $T" -o "out/$name"; then ok=$((ok+1)); else miss=$((miss+1)); rm -f "out/$name"; fi
+            if curl -fsS -b jar "$SITE/api/s/$slug/media/$id" -o "out/$name"; then ok=$((ok+1)); else miss=$((miss+1)); rm -f "out/$name"; fi
           done < plan.tsv
+          rm -f jar login.txt
           echo "downloaded=$ok missing=$miss"; du -sh out
           tar -C out -cf media.tar . && rm -rf out list.json
           openssl rand -hex 32 > k.txt
@@ -51,10 +57,7 @@ jobs:
           PEM
           openssl pkeyutl -encrypt -pubin -inkey pub.pem -pkeyopt rsa_padding_mode:oaep -in k.txt -out key.enc && rm k.txt
           ls -la media.tar.enc key.enc
-      - uses: actions/upload-artifact@v4
-        with:
-          name: media-export
-          path: |
-            media.tar.enc
-            key.enc
-          retention-days: 1
+      - name: Publish the encrypted bundle as a short-lived release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create media-export-${{ github.run_id }} media.tar.enc key.enc --repo ${{ github.repository }} --target media-export --prerelease --title "encrypted export (temporary)" --notes "Encrypted; deleted after download."
