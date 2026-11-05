@@ -1,0 +1,21 @@
+name = "ayneh-specialist-lashes"
+main = "../../editions-dist/lashes/worker/edition-entry.js"
+compatibility_date = "2026-11-05"
+[vars]
+APP_ORIGIN = "https://lashes.ayneh-salon.site"
+TRUST_PLATFORM_IDENTITY = "false"
+[observability]
+enabled = true
+redact_query_string = true
+[observability.traces]
+enabled = true
+[[d1_databases]]
+binding = "DB"
+database_name = "ayneh-specialist-lashes"
+database_id = "fae9d935-7070-4615-ba3a-a97f6ce90284"
+migrations_dir = "../../drizzle"
+[[kv_namespaces]]
+binding = "KV"
+id = "d68b2c3f0371430e9f46f321b1d1474d"
+[triggers]
+crons = ["*/10 * * * *"]

@@ -1,0 +1,21 @@
+name = "ayneh-specialist-nails"
+main = "../../editions-dist/nails/worker/edition-entry.js"
+compatibility_date = "2026-11-05"
+[vars]
+APP_ORIGIN = "https://nails.ayneh-salon.site"
+TRUST_PLATFORM_IDENTITY = "false"
+[observability]
+enabled = true
+redact_query_string = true
+[observability.traces]
+enabled = true
+[[d1_databases]]
+binding = "DB"
+database_name = "ayneh-specialist-nails"
+database_id = "6837dede-f51b-4e79-8bb7-3dfff1273a96"
+migrations_dir = "../../drizzle"
+[[kv_namespaces]]
+binding = "KV"
+id = "be97cdb74c624fb3afae8166c3510d9f"
+[triggers]
+crons = ["*/10 * * * *"]

@@ -1,0 +1,21 @@
+name = "ayneh-specialist-color"
+main = "../../editions-dist/color/worker/edition-entry.js"
+compatibility_date = "2026-11-05"
+[vars]
+APP_ORIGIN = "https://color.ayneh-salon.site"
+TRUST_PLATFORM_IDENTITY = "false"
+[observability]
+enabled = true
+redact_query_string = true
+[observability.traces]
+enabled = true
+[[d1_databases]]
+binding = "DB"
+database_name = "ayneh-specialist-color"
+database_id = "e46c296c-353f-4319-a590-cc594f5892bc"
+migrations_dir = "../../drizzle"
+[[kv_namespaces]]
+binding = "KV"
+id = "ffadfdf0f5ac48458e02ea0626e902a6"
+[triggers]
+crons = ["*/10 * * * *"]

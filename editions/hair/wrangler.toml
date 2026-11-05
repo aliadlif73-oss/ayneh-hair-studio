@@ -1,0 +1,21 @@
+name = "ayneh-specialist-hair"
+main = "../../editions-dist/hair/worker/edition-entry.js"
+compatibility_date = "2026-11-05"
+[vars]
+APP_ORIGIN = "https://hair.ayneh-salon.site"
+TRUST_PLATFORM_IDENTITY = "false"
+[observability]
+enabled = true
+redact_query_string = true
+[observability.traces]
+enabled = true
+[[d1_databases]]
+binding = "DB"
+database_name = "ayneh-specialist-hair"
+database_id = "33f9ba13-e087-4513-b60f-f888bc764a14"
+migrations_dir = "../../drizzle"
+[[kv_namespaces]]
+binding = "KV"
+id = "82b009091add46259869969b2e71aaeb"
+[triggers]
+crons = ["*/10 * * * *"]
