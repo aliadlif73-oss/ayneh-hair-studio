@@ -32,9 +32,8 @@ id = "0bfbd0a59f3b43d68463a8194900e9bb"
 crons = ["*/10 * * * *"]
 
 # Catalog style photos (public/catalog/NN.webp) are served as static files before the worker.
-[[routes]]
-pattern = "mezon.ayneh-salon.site"
-custom_domain = true
+# The custom domain mezon.ayneh-salon.site is attached in the Cloudflare dashboard
+# (Workers & Pages > ayneh-mezon > Settings > Domains & Routes), because the deploy token cannot edit zone routes.
 
 [assets]
 directory = "./public"
