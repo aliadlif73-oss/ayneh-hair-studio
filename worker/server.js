@@ -1,3 +1,4 @@
+import {saveActivation,activationAsset} from './activation.js';
 import {Problem,must,phone,text,safeLink,transferPrompt,uid,token,hash,digits,limited} from './domain.js';
 import {styles} from './legacy.js';
 import {identity,issueCookie,clearCookie,same,passwordLoginEnabled} from './auth.js';
@@ -83,6 +84,27 @@ async function uploadProvider(env,m){const object=await bucketFor(env).get(m.obj
 
 export async function api(req,env){const u=new URL(req.url),path=u.pathname;must(env.DB,'پایگاه داده هنوز آماده نیست',503);const db=env.DB;
  if(req.method!=='GET'){must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
+ if(path==='/api/activation'&&req.method==='GET'){
+  must(await one(db,"SELECT 1 FROM sqlite_master WHERE type='table' AND name='salon_activations'"),'ثبت فعال‌سازی هنوز در این محیط راه‌اندازی نشده است.',503);
+  return J({ok:true});
+ }
+ if(path==='/api/activation'&&req.method==='POST'){
+  const demo=await one(db,"SELECT id FROM salons WHERE slug='demo' AND owner_id='system'");
+  must(demo,'ابتدا شمارهٔ موبایل را تأیید کنید.',401);
+  const verified=await session(req,db,demo);
+  await limited(db,'activation:'+verified.id,12);
+  return J(await saveActivation(req,db,verified));
+ }
+ if(path==='/api/owner/activations'&&req.method==='GET'){
+  await owner(req,env);
+  const before=Number(u.searchParams.get('before')||Date.now()+1);
+  return J({requests:(await all(db,'SELECT * FROM salon_activations WHERE created_at<? ORDER BY created_at DESC LIMIT 30',before)).map(row=>({...row,draft:parse(row.draft)}))});
+ }
+ const activationMedia=path.match(/^\/api\/owner\/activations\/([a-f0-9-]{36})\/(logo|cover|portrait|work-[0-5])$/);
+ if(activationMedia&&req.method==='GET'){
+  await owner(req,env);
+  return activationAsset(db,activationMedia[1],activationMedia[2]);
+ }
  if(path==='/api/inquiry'&&req.method==='POST'){
   await limited(db,'inquiry:'+clientIp(req),5,'درخواست‌های زیادی فرستاده‌ای؛ کمی بعد دوباره امتحان کن');
   const b=await req.json().catch(()=>({}));

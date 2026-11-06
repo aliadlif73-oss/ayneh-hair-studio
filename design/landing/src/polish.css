@@ -22,3 +22,20 @@
 
 /* Long Persian actions must wrap inside their grid column on small screens. */
 .btn.orbit-cta{max-width:100%;min-width:0;white-space:normal;text-align:center;line-height:1.8}.btn.orbit-cta>span:first-child{min-width:0}.s2-grid>*{min-width:0}.cta-ring rect{rx:999px;ry:999px}.film{overflow-x:clip}.demo-file:not(.visible){display:none}
+.btn.orbit-cta{overflow:visible}
+.cta-ring{inset:-5px;width:calc(100% + 10px);height:calc(100% + 10px)}
+.cta-ring rect{stroke:#fff0ae;stroke-width:1.8;filter:drop-shadow(0 0 2px #fff3a9) drop-shadow(0 0 5px #ffa526)}
+.benefits-five{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.benefits-five .benefit{padding:clamp(14px,2vw,24px);gap:10px}
+.benefit h3{font-size:clamp(16px,1.55vw,21px)}
+.benefit p{font-size:14px}
+.gold-icon{display:grid;place-items:center;width:60px;height:60px;border-radius:19px;background:radial-gradient(at 20% 10%,#fff2cb,#d2a567 53%,#755028 100%);border:1px solid #ab814a;box-shadow:inset 0 2px 2px #fff7dc,inset 0 -4px 4px #5232156e,0 7px 14px #55341036}
+.gold-icon svg{width:39px;height:39px;fill:none;stroke:#fff1ba;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 0 #4c2a0e)}
+.gold-icon .gold-icon-depth{stroke:#79512c;stroke-width:3.5;transform:translateY(2px)}
+.svc-try{margin-top:auto;align-self:flex-start}
+.service-timeline{display:flex;justify-content:center;gap:clamp(4px,3vw,36px);padding:18px 12px;border-bottom:1px solid #ae8b513f}
+.service-timeline a{display:grid;justify-items:center;gap:5px;min-width:0;text-align:center;color:#e6d2ad;font-size:clamp(11px,2.7vw,15px);padding:6px 9px}
+.service-timeline a span{border:1px solid #c4a57577;border-radius:50%;width:31px;height:31px;display:grid;place-items:center}
+.service-timeline a[aria-current] span,.service-timeline a:hover span{background:#efd599;color:#26170d}
+@media(max-width:1100px){.benefits-five{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:580px){.benefits-five{grid-template-columns:repeat(2,minmax(0,1fr))}.benefits-five .benefit:last-child{grid-column:1/-1}}

@@ -26,6 +26,13 @@
 (()=>{
  const root=document.querySelector('.service-journey');if(!root)return;document.documentElement.classList.add('journey-enabled');
  const reduced=matchMedia('(prefers-reduced-motion:reduce)'),cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
+ const chapters=[...root.querySelectorAll('.service-timeline a')];
+ const updateChapter=()=>{
+  const line=innerHeight*.45;
+  const active=chapters.filter(a=>document.querySelector(a.hash).getBoundingClientRect().top<=line).at(-1)||chapters[0];
+  chapters.forEach(a=>{if(a===active)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current')});
+ };
+ addEventListener('scroll',updateChapter,{passive:true});updateChapter();
  const states=[...root.querySelectorAll('[data-journey-film]')].map(v=>({v,key:v.dataset.journeyFilm,target:0,visible:false,userPaused:false,loaded:false}));
  async function load(s){if(s.loaded)return;s.loaded=true;s.v.muted=true;s.v.preload='auto';if(s.key==='hair')s.v.defaultPlaybackRate=s.v.playbackRate=1.5;try{const r=await fetch((window.__AYN_BASE||'assets/')+s.v.dataset.src+'?v='+window.__AYN_ASSET_VERSION,{credentials:'same-origin',priority:'low'});if(!r.ok||!(r.headers.get('content-type')||'').includes('video/'))throw Error('HTTP '+r.status+' '+r.headers.get('content-type'));s.v.src=URL.createObjectURL(await r.blob());s.v.load()}catch(e){console.warn('Video unavailable:',s.key,e.message);s.v.controls=true}}
  function playback(s){if(s.key==='nails')return;if(s.key==='hair')s.v.defaultPlaybackRate=s.v.playbackRate=1.5;if(s.visible&&!s.userPaused&&!document.hidden&&!reduced.matches){if(s.v.ended)s.v.currentTime=0;s.v.play().catch(()=>{s.v.controls=true})}else s.v.pause()}

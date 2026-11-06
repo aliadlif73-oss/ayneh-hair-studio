@@ -291,6 +291,13 @@
    stage.classList.add('mirror-flipped');invite.inert=false;
   }catch(error){if(error.name!=='AbortError')endDemo('مدل و رنگ دلخواهتان را روی آینه انتخاب کنید.')}
  }
+ $('openHeroDemo').addEventListener('click',e=>{
+  e.preventDefault();played=true;endDemo('مدل و رنگ دلخواهتان را انتخاب کنید.');showFront();
+  const target=$('heroPlayground')||studio;
+  target.scrollIntoView({block:'center',behavior:reduced?'instant':'smooth'});
+  const choice=dock.querySelector('[aria-checked="true"]')||dock.querySelector('[role="radio"]');
+  choice?.focus({preventScroll:true});
+ });
  $('skipDemo').addEventListener('click',()=>endDemo('حالا خودتان مدل و رنگ را انتخاب کنید.'));
  $('replayDemo').addEventListener('click',walkthrough);
  $('backToMirror').addEventListener('click',()=>{showFront();caption.textContent='مدل و رنگ دلخواهتان را انتخاب کنید.'});

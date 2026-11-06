@@ -476,7 +476,8 @@ var STYLES=__STYLES__;
 var LINES=__LINES__;
 var MARK=__MARK__;
 var EMBED=/[?&]embed=1(?:&|$)/.test(location.search);if(EMBED)document.body.classList.add('embedded-demo');
-var SLUG=location.pathname.split('/').filter(Boolean)[1]||'';
+var STUDIO_PREVIEW=location.pathname==='/salon-preview';
+var SLUG=STUDIO_PREVIEW?'sanaz-salon':location.pathname.split('/').filter(Boolean)[1]||'';
 var ICO={
  camera:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.2a2 2 0 0 0 1.7-.9l.6-1a2 2 0 0 1 1.7-.9h2.6a2 2 0 0 1 1.7.9l.6 1a2 2 0 0 0 1.7.9h1.2A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg>',
  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4.5" y="10" width="15" height="10" rx="2.6"/><path d="M8.5 10V7.8a3.5 3.5 0 0 1 7 0V10"/></svg>',
@@ -511,8 +512,9 @@ function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
 function tehranDate(d){var p={};new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d).forEach(function(x){p[x.type]=x.value});return p.year+'-'+p.month+'-'+p.day}
 function el(tag,attrs,children){var e=document.createElement(tag);attrs=attrs||{};Object.keys(attrs).forEach(function(k){var v=attrs[k];if(v===undefined||v===null)return;if(k==='text')e.textContent=v;else if(k==='html')e.innerHTML=v;else if(k==='class')e.className=v;else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),v);else if(k==='checked'||k==='disabled'||k==='hidden'||k==='required')e[k]=!!v;else e.setAttribute(k,v)});(children||[]).forEach(function(c){if(c!==null&&c!==undefined&&c!==false)e.append(c)});return e}
 function h(tag,text,cls){return el(tag,{class:cls||'',text:text})}
-function media(id){return '/api/s/'+SLUG+'/media/'+id}
+function media(id){return STUDIO_PREVIEW&&typeof id==='string'&&id.startsWith('blob:')?id:'/api/s/'+SLUG+'/media/'+id}
 function api(path,body,raw){
+ if(STUDIO_PREVIEW&&path!=='public')return Promise.reject(new Error('این صفحه پیش‌نمایش است.'));
  var init={};
  if(body!==undefined){init.method='POST';init.headers=raw?{}:{'Content-Type':'application/json'};init.body=raw?body:JSON.stringify(body)}
  return fetch('/api/s/'+SLUG+'/'+path,init).then(function(r){return r.json().catch(function(){return {}}).then(function(d){if(!r.ok)throw new Error(d.error||'خطای ارتباط با سرور');return d})})
@@ -531,10 +533,29 @@ document.addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='
 /* ---------- anonymous usage events (no name, phone or photo) ---------- */
 var VISITOR=(function(){var v='';try{v=localStorage.getItem('ayneh-v')||''}catch(e){}if(!/^[a-f0-9]{32}$/.test(v)){v=Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)),function(b){return b.toString(16).padStart(2,'0')}).join('');try{localStorage.setItem('ayneh-v',v)}catch(e){}}return v})();
 var tracked={};
-function track(kind,meta,once){if(once){if(tracked[kind+meta])return;tracked[kind+meta]=1}try{fetch('/api/s/'+SLUG+'/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:kind,v:VISITOR,meta:meta==null?'':String(meta)}),keepalive:true}).catch(function(){})}catch(e){}}
+function track(kind,meta,once){if(STUDIO_PREVIEW)return;if(once){if(tracked[kind+meta])return;tracked[kind+meta]=1}try{fetch('/api/s/'+SLUG+'/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:kind,v:VISITOR,meta:meta==null?'':String(meta)}),keepalive:true}).catch(function(){})}catch(e){}}
 
 /* ---------- boot ---------- */
 (async function boot(){
+ if(STUDIO_PREVIEW){
+  window.addEventListener('message',function(e){
+   if(e.source!==parent||e.origin!==location.origin||e.data?.type!=='ayneh-salon-draft')return;
+   state.pub=e.data.page;
+   applyBrand(e.data.brand);
+   state.step=1;
+   state.tab=hasLineWork(state.line)?'salon':'catalog';
+   renderAll();
+   parent.postMessage({type:'ayneh-salon-rendered',id:e.data.id},location.origin);
+  });
+  try{
+   var sample=await api('public');
+   if(state.pub||!sample.salon)return;
+   state.pub=sample;
+   state.tab=hasLineWork(state.line)?'salon':'catalog';
+   renderAll();
+  }catch(e){if(!state.pub?.salon)showFatal(e.message)}
+  return;
+ }
  try{state.pub=await api('public')}catch(e){showFatal(e.message);return}
  // Referral: who brought this visitor (kept by the server for good) and the tag for her own shares.
  var refIn=(location.search.match(/[?&]r=([a-z0-9]{1,20})/)||[])[1]||'';
@@ -564,9 +585,12 @@ function track(kind,meta,once){if(once){if(tracked[kind+meta])return;tracked[kin
 })();
 
 /* ---------- free trial strip: brand colour, time left, images left ---------- */
-function trialBar(t){
+function applyBrand(brand){
  var root=document.documentElement;
- if(/^#[0-9a-f]{6}$/i.test(t.brand||'')){var n=parseInt(t.brand.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255,mix=function(k,to){return 'rgb('+[r,g,b].map(function(c){return Math.round(c+(to-c)*k)}).join(',')+')'};root.style.setProperty('--accent',mix(.18,0));root.style.setProperty('--accent-ink',mix(.45,0));root.style.setProperty('--accent-soft',mix(.82,255));root.style.setProperty('--accent-ring','rgba('+r+','+g+','+b+',.3)')}
+ if(/^#[0-9a-f]{6}$/i.test(brand||'')){var n=parseInt(brand.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255,mix=function(k,to){return 'rgb('+[r,g,b].map(function(c){return Math.round(c+(to-c)*k)}).join(',')+')'};root.style.setProperty('--accent',mix(.18,0));root.style.setProperty('--accent-ink',mix(.45,0));root.style.setProperty('--accent-soft',mix(.82,255));root.style.setProperty('--accent-ring','rgba('+r+','+g+','+b+',.3)')}
+}
+function trialBar(t){
+ applyBrand(t.brand);
  var bar=el('div',{class:'trialbar',role:'status'}),fa=function(x){return String(x).replace(/\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d]})};
  function paint(){var ms=t.expires_at-Date.now();if(t.expired||ms<=0){bar.textContent='مهلت صفحهٔ آزمایشی تمام شد. برای ادامه با آینه تماس بگیرید.';bar.classList.add('is-over');var main=$('#main');if(main&&!$('.trial-over')){main.replaceChildren(el('div',{class:'panel fatal trial-over'},[h('h1','مهلت صفحهٔ آزمایشی تمام شد'),h('p','این صفحه ۱۰ ساعت و ۵ تصویر برای امتحان داشت. برای نسخهٔ دائمی با آینه تماس بگیرید.','muted'),el('a',{class:'btn btn--primary',href:'/#start',text:'درخواست نسخهٔ دائمی'})]))}return}
   var m=Math.ceil(ms/60000),hh=Math.floor(m/60),mm=m%60;bar.textContent='صفحهٔ آزمایشی · '+fa(hh)+' ساعت و '+fa(mm)+' دقیقه مانده · '+fa(t.images_left)+' تصویر از '+fa(t.images_limit)}
@@ -1173,6 +1197,7 @@ function renderDock(){
 
 /* ---------- upload ---------- */
 function handleFile(file,kind){
+ if(STUDIO_PREVIEW){toast('این صفحه برای پیش‌نمایش چیدمان است. برای امتحان روی عکس، دموی سالن ساناز را باز کنید.');return Promise.resolve()}
  if(!file){toast('عکسی انتخاب نشد');return}
  if(['image/jpeg','image/png','image/webp'].indexOf(file.type)<0){toast('فقط JPG، PNG یا WebP','error');return}
  state.busy=true;renderDock();
@@ -1689,7 +1714,7 @@ var SHARE_IC={
  link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>',
  more:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>'
 };
-function shareUrl(){return location.origin+'/s/'+SLUG+(state.tag?'?r='+state.tag:'')}
+function shareUrl(){if(STUDIO_PREVIEW)return 'https://ayneh-salon.site/s/'+state.pub.salon.slug;return location.origin+'/s/'+SLUG+(state.tag?'?r='+state.tag:'')}
 function shareText(){return 'این رو ببین! توی صفحهٔ «'+state.pub.salon.name+'» می‌تونی مدل مو، رنگ مو، طرح ناخن یا مژهٔ جدید رو روی عکس خودت امتحان کنی؛ رایگان و بدون نصب 👇'}
 function renderInvite(){
  var box=$('#invite');if(!box||!state.pub)return;

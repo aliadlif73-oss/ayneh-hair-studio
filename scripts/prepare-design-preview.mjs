@@ -17,10 +17,11 @@ const upstream='https://ayneh-salon.site';
 export default {async fetch(request){
  const u=new URL(request.url),p=u.pathname;
  if(p==='/favicon.svg')return new Response(icon,{headers:{'Content-Type':'image/svg+xml','Cache-Control':'public,max-age=3600'}});
- if(p==='/'||p==='/s/demo')return new Response(p==='/'?landing:customer,{headers:{'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'SAMEORIGIN','Content-Security-Policy':"frame-ancestors 'self'"}});
- const api=/^\\/api\\/s\\/demo\\//.test(p)||['/api/inquiry','/api/trial'].includes(p);
+ if(p==='/'||p==='/s/demo'||p==='/salon-preview')return new Response(p==='/'?landing:customer,{headers:{'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'same-origin','X-Frame-Options':'SAMEORIGIN','Content-Security-Policy':"frame-ancestors 'self'"}});
+ const api=/^\\/api\\/s\\/demo\\//.test(p)||['/api/inquiry','/api/trial','/api/activation'].includes(p);
  const asset=/^\\/(catalog|fonts|landing|assets)\\/[a-zA-Z0-9_./-]+$/.test(p);
- if(!api&&!asset)return new Response('Not found',{status:404});
+ const sample=request.method==='GET'&&/^\\/api\\/s\\/sanaz-salon\\/(public|media\\/[a-f0-9-]+)$/.test(p);
+ if(!api&&!asset&&!sample)return new Response('Not found',{status:404});
  if(request.method!=='GET'&&request.method!=='HEAD'&&(!api||!['POST','DELETE'].includes(request.method)))return new Response('Method not allowed',{status:405});
  const origin=request.headers.get('Origin');if(api&&origin&&origin!==u.origin)return new Response('Forbidden',{status:403});
  const headers=new Headers({'Accept-Encoding':'identity'});for(const k of ['Content-Type','Cookie','Range','Accept'])if(request.headers.has(k))headers.set(k,request.headers.get(k));

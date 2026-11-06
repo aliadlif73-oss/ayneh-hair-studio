@@ -330,6 +330,22 @@ function botCard(bot){
  if((t.ready||b.ready)&&bot.secret)c.append(el('button',{class:'btn btn--ghost',type:'button',style:'margin-top:12px',text:'اتصال ربات‌ها به این سایت',onclick:act(function(){return api('/api/owner/webhook',{}).then(function(d){toast('وصل شد: '+Object.keys(d.bots||{}).map(function(k){return (k==='bale'?'بله':'تلگرام')+' @'+d.bots[k]}).join('، '))})})}));
  return c;
 }
+function activationCard(){
+ var list=el('div',{class:'stack'}),before='',more=el('button',{class:'btn btn--ghost',type:'button',text:'نمایش درخواست‌های فعال‌سازی',onclick:act(load)});
+ function load(){return api('/api/owner/activations'+(before?'?before='+before:'')).then(function(d){
+  var labels={bio:'معرفی',manager:'مدیر',address:'آدرس',hours:'ساعات کاری',phone:'تلفن سالن',instagram:'اینستاگرام',website:'وب‌سایت',map:'نقشه',telegram:'تلگرام',logo:'لوگو',cover:'کاور',portrait:'عکس مدیر'};
+  d.requests.forEach(function(r){
+   var draft=r.draft,p=draft.profile,asset=function(slot,label){return el('a',{class:'btn btn--ghost btn--sm',href:'/api/owner/activations/'+r.id+'/'+slot,target:'_blank',rel:'noopener',text:label})};
+   var rows=Object.keys(labels).filter(function(k){return p[k]}).map(function(k){return ['logo','cover','portrait'].includes(k)?asset(p[k],labels[k]):h('p',labels[k]+' — '+p[k])});
+   draft.portfolio.forEach(function(item){rows.push(el('div',{class:'stack'},[h('strong',item.title+' · '+({hair:'مدل مو',color:'رنگ مو',lashes:'مژه',nails:'ناخن'}[item.line])),h('p',item.description),asset(item.slot,'مشاهدهٔ عکس نمونه‌کار')]))});
+   list.append(el('details',{class:'card'},[h('summary',draft.name+' · '+new Date(r.created_at).toLocaleDateString('fa-IR')),h('p',r.contact_name+' · '+r.contact_phone),h('p','نشانی درخواستی — /s/'+draft.slug),h('p','رنگ برند — '+draft.brand),el('div',{class:'stack'},rows)]));
+   before=r.created_at;
+  });
+  if(!list.childNodes.length)list.append(h('p','هنوز درخواست فعال‌سازی ثبت نشده است.'));
+  more.hidden=d.requests.length<30;more.textContent='درخواست‌های قدیمی‌تر';
+ })}
+ return el('section',{class:'card'},[h('h2','درخواست‌های فعال‌سازی صفحهٔ سالن'),list,more]);
+}
 function home(){return api('/api/owner').then(function(d){
  var head=el('div',{class:'page-head'},[el('div',{},[h('h1','داشبورد'),h('p','مشتری‌ها چطور از صفحه‌ها استفاده می‌کنند و سالن‌ها چقدر جواب می‌دهند. پایین صفحه، فهرست سالن‌ها و تنظیمات ربات است.')])]);
  var list=el('div',{class:'salons'});
@@ -341,7 +357,7 @@ function home(){return api('/api/owner').then(function(d){
   var prev=el('span',{class:'hint slug-preview'});si.closest('.field').append(prev);
   function show(){var v=si.value;prev.textContent=v?'صفحهٔ مشتری: '+location.host+'/s/'+v:''}
   si.addEventListener('input',function(){var c=si.value.toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'').replace(/-+/g,'-');if(c!==si.value)si.value=c;show()});show()})();
- $('#app').replaceChildren(head,dashboard(d.salons),el('h2',{class:'section-title',text:'سالن‌ها'}),el('div',{class:'grid grid--2'},[el('div',{class:'stack'},[list,create]),el('div',{class:'stack'},[alertsCard(d),botCard(d.bot),smsCard(d.sms||{}),imageCard(d.image)])]));
+ $('#app').replaceChildren(head,activationCard(),dashboard(d.salons),el('h2',{class:'section-title',text:'سالن‌ها'}),el('div',{class:'grid grid--2'},[el('div',{class:'stack'},[list,create]),el('div',{class:'stack'},[alertsCard(d),botCard(d.bot),smsCard(d.sms||{}),imageCard(d.image)])]));
 })}
 function smsCard(sms){
  var st=function(ok,on,off){return el('li',{class:ok?'on':'off'},[h('span',ok?'✓':'–','dot'),h('span',ok?on:off)])};

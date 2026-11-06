@@ -724,7 +724,7 @@ test('without SMS invites the bot offers messenger buttons and /i/ is a send pag
 // ---------- landing page and salon inquiries ----------
 test('landing page is public at / and the owner console stays at /admin',async()=>{const e=tgEnv(fixture());
  const r=await app.fetch(new Request(origin+'/'),e);assert.equal(r.status,200);const html=await r.text();
- assert.match(html,/id="leadForm"/);assert.match(html,/مشاورهٔ سالن را با عکس و انتخاب مشتری شروع کنید/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
+ assert.match(html,/id="builderFrame"/);assert.match(html,/مشاورهٔ سالن را با عکس و انتخاب مشتری شروع کنید/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
  new Function(html.match(/<script>([\s\S]*?)<\/script>/g).map(s=>s.replace(/<\/?script>/g,'')).join('\n'));
  assert.equal((await app.fetch(new Request(origin+'/admin'),e)).status,200);});
 
@@ -849,4 +849,37 @@ test('each person gets 3 images per service: a new session in the same browser s
   assert.equal((await gen(g,original)).status,200);
   assert.equal(tasks,5,'nothing paid beyond the quota');
  }finally{globalThis.fetch=previous}
+});
+
+test('activation requires verified mobile and stores the complete private draft and media once',async()=>{
+ const env=smsEnv(fixture()),sms=mockSms();
+ try{
+  const g=await guest(env,{slug:'demo'}),id=crypto.randomUUID();
+  const draft={name:'سالن نمونه',slug:'sample-beauty',brand:'#ac923a',profile:{bio:'معرفی سالن',phone:'۰۲۱-۲۲۳۳۴۴۵۵',instagram:'https://instagram.com/test'},portfolio:[{title:'فرنچ کلاسیک',line:'nails',description:'طرح سفید'}]};
+  const submit=()=>{
+   const data=new FormData();
+   data.set('id',id);data.set('draft',JSON.stringify(draft));
+   data.set('logo',new Blob([png()],{type:'image/png'}),'logo.png');
+   data.set('work-0',new Blob([png()],{type:'image/png'}),'nails.png');
+   return app.fetch(new Request(origin+'/api/activation',{method:'POST',headers:{origin,cookie:g.cookie},body:data}),env);
+  };
+  assert.equal((await submit()).status,403);
+  assert.equal((await call(env,'/api/s/demo/otp/send',otpBody(),g)).status,200);
+  assert.equal((await call(env,'/api/s/demo/otp/verify',{code:'۴۸۲۱۳'},g)).status,200);
+  assert.deepEqual(await (await submit()).json(),{ok:true,id});
+  assert.deepEqual(await (await submit()).json(),{ok:true,id});
+  assert.equal((await call(env,'/api/owner/activations')).status,401);
+  const result=await call(env,'/api/owner/activations',undefined,OWNER);
+  assert.equal(result.data.requests.length,1);
+  const row=result.data.requests[0];
+  assert.equal(row.contact_phone,'+989121234567');
+  assert.equal(row.draft.profile.phone,'02122334455');
+  assert.deepEqual(row.draft.portfolio,[{...draft.portfolio[0],slot:'work-0'}]);
+  const path='/api/owner/activations/'+id+'/work-0';
+  assert.equal((await call(env,path)).status,401);
+  const asset=await app.fetch(new Request(origin+path,{headers:{'oai-authenticated-user-id':OWNER.user,'oai-authenticated-user-email':OWNER.email}}),env);
+  assert.equal(asset.status,200);
+  assert.deepEqual(new Uint8Array(await asset.arrayBuffer()),png());
+  assert.equal((await app.fetch(new Request(origin+'/s/'+draft.slug),env)).status,404);
+ }finally{sms.restore()}
 });

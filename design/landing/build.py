@@ -26,21 +26,35 @@ css += NL + R('src/polish.css')
 css += NL + '.compare{margin-top:0}' + NL + '@media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}' + NL
 h = h.replace(st.group(0), '<style>' + css + '</style>')
 h = re.sub(r'  <!-- 1\. Hero -->.*?(?=  <!-- 2\. Experience -->)', lambda m: R('src/hero.html') + NL, h, flags=re.S)
-# Keep the sales path short. The cinematic walkthrough follows the inquiry.
+# The service films are part of the service chapter; the builder follows the story.
 def section(section_id):
     return re.search(r'  <section id="' + section_id + r'".*?</section>', h, re.S).group(0)
 
-lead = '<section id="start" class="section trial" aria-labelledby="h-trial" tabindex="-1"><div class="wrap lead-wrap"><div class="sec-head"><p class="kicker">برای مدیران سالن</p><h2 id="h-trial">درخواست دمو و مشاوره</h2><p class="sub">مشخصات سالن را بفرستید تا برای هماهنگی زمان دمو با شما تماس بگیریم.</p></div>' + R('src/lead.html') + '</div></section>'
-funnel = NL.join([section('how'), section('services'), R('src/trial.html'), section('faq'), lead, R('src/scenes.html'), R('src/sec2.html')])
+story, films = R('src/scenes.html').split('  <section id="transform"', 1)
+funnel = NL.join([section('how'), R('src/invite.html'), section('services'), '  <section id="transform"'+films, story, R('src/trial.html'), section('faq'), R('src/sec2.html')])
+icon_paths = {
+    'mirror': 'M11 27V15a9 9 0 0 1 18 0v12ZM20 27v6m-6 0h12m-9-14 5-5',
+    'talk': 'M9 10h22v15H19l-7 6v-6H9Zm6 6h10m-10 4h7',
+    'book': 'M10 8h20v24H10Zm5 17 5-6 4 4 3-3m-11-6h.1',
+    'link': 'M16 24l8-8m-10 5-4 4a4 4 0 0 0 6 6l4-4m0-14 4-4a4 4 0 0 1 6 6l-4 4',
+    'check': 'M20 7l11 4v8c0 6-4 10-11 14-7-4-11-8-11-14v-8Zm-5 13 4 4 7-8',
+    'hair': 'M12 24a4 4 0 1 0 4 4l12-17m0 13a4 4 0 1 1-4 4L12 11',
+    'nails': 'M13 30V17a7 7 0 0 1 14 0v13Zm3-10v-3a4 4 0 0 1 8 0v3Z',
+    'lashes': 'M8 23q12 11 24 0M11 26l-2 4m8-2-1 5m7-5 1 5m5-7 2 4M9 18q11-9 22 0',
+}
+def icon(match):
+    path = icon_paths[match[1]]
+    return '<span class="gold-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="gold-icon-depth" d="'+path+'"/><path d="'+path+'"/></svg></span>'
+funnel = re.sub(r'<!--ICON:(\w+)-->', icon, funnel)
 h = re.sub(r'  <!-- 2\. Experience -->.*?(?=</main>)', lambda m: funnel + NL, h, flags=re.S)
 h = h.replace('<!--AYNEH_MARK-->', R('assets/ayneh-mark.svg'))
-assert 'leadForm' in h and 'id="mock"' in h, 'trial section not inserted'
+assert 'builderFrame' in h and 'id="start"' in h, 'salon builder not inserted'
 # styles whose mirror render exists (assets/look-sNN.webp + mask-sNN.png): the hero shows their shape on the model
 LOOKS = sorted(int(m.group(1)) for f in os.listdir('assets') for m in [re.match(r'look-s(\d\d)\.webp$', f)] if m and os.path.exists('assets/mask-s%s.png' % m.group(1)))
 asset_version = hashlib.sha256(b''.join(open('assets/' + f, 'rb').read() for f in sorted(os.listdir('assets')) if re.match(r'(hero\.webp|hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', f))).hexdigest()[:12]
 # Include film contents so unchanged poster frames cannot leave stale video URLs.
 asset_version = hashlib.sha256((asset_version + ''.join(hashlib.sha256(open('../../public/landing/video/' + n + '.mp4', 'rb').read()).hexdigest() for n in ['hair', 'lashes', 'nails'])).encode()).hexdigest()[:12]
-scripts = '<script>window.__AYN_ASSET_VERSION=' + json.dumps(asset_version) + ';window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/draft.js', 'src/portrait.js', 'src/hair-color.js', 'src/hero.js', 'src/sec2.js', 'src/journey-timeline.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/reveal.js', 'src/lead.js'])
+scripts = '<script>window.__AYN_ASSET_VERSION=' + json.dumps(asset_version) + ';window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/draft.js', 'src/portrait.js', 'src/hair-color.js', 'src/hero.js', 'src/sec2.js', 'src/journey-timeline.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/reveal.js', 'src/builder.js'])
 h = h.replace('</body>', scripts + '</body>')
 W('out/v2.html', h.replace('__ORIGIN__', ''))
 
