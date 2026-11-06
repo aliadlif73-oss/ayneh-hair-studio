@@ -883,3 +883,16 @@ test('activation requires verified mobile and stores the complete private draft 
   assert.equal((await app.fetch(new Request(origin+'/s/'+draft.slug),env)).status,404);
  }finally{sms.restore()}
 });
+
+test('activation pagination keeps requests with the same timestamp',async()=>{
+ const env=fixture();
+ for(let i=0;i<31;i++){
+  env.DB.sql.prepare('INSERT INTO salon_activations VALUES(?,?,?,?,?)').run(crypto.randomUUID(),'نام آزمون','+989121234567','{}',1000);
+ }
+ const first=await call(env,'/api/owner/activations',undefined,OWNER);
+ assert.equal(first.data.requests.length,30);
+ const last=await call(env,'/api/owner/activations?before='+first.data.next,undefined,OWNER);
+ assert.equal(last.data.requests.length,1);
+ assert.equal(last.data.next,null);
+ assert.equal(new Set([...first.data.requests,...last.data.requests].map(row=>row.id)).size,31);
+});

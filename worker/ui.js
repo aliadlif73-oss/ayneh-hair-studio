@@ -339,10 +339,9 @@ function activationCard(){
    var rows=Object.keys(labels).filter(function(k){return p[k]}).map(function(k){return ['logo','cover','portrait'].includes(k)?asset(p[k],labels[k]):h('p',labels[k]+' — '+p[k])});
    draft.portfolio.forEach(function(item){rows.push(el('div',{class:'stack'},[h('strong',item.title+' · '+({hair:'مدل مو',color:'رنگ مو',lashes:'مژه',nails:'ناخن'}[item.line])),h('p',item.description),asset(item.slot,'مشاهدهٔ عکس نمونه‌کار')]))});
    list.append(el('details',{class:'card'},[h('summary',draft.name+' · '+new Date(r.created_at).toLocaleDateString('fa-IR')),h('p',r.contact_name+' · '+r.contact_phone),h('p','نشانی درخواستی — /s/'+draft.slug),h('p','رنگ برند — '+draft.brand),el('div',{class:'stack'},rows)]));
-   before=r.created_at;
   });
   if(!list.childNodes.length)list.append(h('p','هنوز درخواست فعال‌سازی ثبت نشده است.'));
-  more.hidden=d.requests.length<30;more.textContent='درخواست‌های قدیمی‌تر';
+  before=d.next;more.hidden=!before;more.textContent='درخواست‌های قدیمی‌تر';
  })}
  return el('section',{class:'card'},[h('h2','درخواست‌های فعال‌سازی صفحهٔ سالن'),list,more]);
 }

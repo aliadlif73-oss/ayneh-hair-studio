@@ -97,8 +97,14 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  }
  if(path==='/api/owner/activations'&&req.method==='GET'){
   await owner(req,env);
-  const before=Number(u.searchParams.get('before')||Date.now()+1);
-  return J({requests:(await all(db,'SELECT * FROM salon_activations WHERE created_at<? ORDER BY created_at DESC LIMIT 30',before)).map(row=>({...row,draft:parse(row.draft)}))});
+  const before=u.searchParams.get('before');
+  const cursor=before?.match(/^(\d{1,15})\.([a-f0-9-]{36})$/);
+  must(!before||cursor,'صفحهٔ درخواست‌ها معتبر نیست.');
+  const rows=cursor
+   ?await all(db,'SELECT * FROM salon_activations WHERE (created_at,id)<(?,?) ORDER BY created_at DESC,id DESC LIMIT 31',Number(cursor[1]),cursor[2])
+   :await all(db,'SELECT * FROM salon_activations ORDER BY created_at DESC,id DESC LIMIT 31');
+  const page=rows.slice(0,30),last=page.at(-1);
+  return J({requests:page.map(row=>({...row,draft:parse(row.draft)})),next:rows.length>30?last.created_at+'.'+last.id:null});
  }
  const activationMedia=path.match(/^\/api\/owner\/activations\/([a-f0-9-]{36})\/(logo|cover|portrait|work-[0-5])$/);
  if(activationMedia&&req.method==='GET'){

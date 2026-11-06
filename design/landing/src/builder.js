@@ -60,9 +60,10 @@
  }
  function change(event){
   render();
-  if(event?.target instanceof HTMLElement&&matchMedia('(max-width:850px)').matches){
+  if(event?.target instanceof HTMLElement){
    const key=event.target.name;
-   const target=event.target.closest('.builder-work')?$('liveWorks')
+   const row=event.target.closest('.builder-work');
+   const target=row?$('liveWorks').children[[...works.children].indexOf(row)]
     :['manager','portrait','phone','map','instagram','website','telegram'].includes(key)?$('liveContact')
     :['name','bio','address','hours'].includes(key)?$('liveName'):null;
    if(target)live.scrollTop+=target.getBoundingClientRect().top-live.getBoundingClientRect().top-8;
@@ -101,12 +102,17 @@
   }finally{image.close()}
  }
  form.addEventListener('submit',async e=>{
-  e.preventDefault();if(build.disabled)return;
+  e.preventDefault();if(build.disabled||busy)return;
+  if(draft&&!dirty){
+   activate.hidden=false;
+   if(!submitted)activate.focus();
+   return;
+  }
   $('builderError').textContent='';build.disabled=true;activate.hidden=true;hint.textContent='';
   loading.hidden=false;
-  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const fields=[...form.elements].filter(input=>!input.disabled);fields.forEach(input=>input.disabled=true);
   try{
+   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
    const name=form.elements.name.value.trim(),slug=form.elements.slug.value;
    if(name.length<2)throw new Error('نام سالن را وارد کنید.');
    const profile=Object.fromEntries(profileFields.map(key=>[key,form.elements[key].value.trim()]));
@@ -124,7 +130,7 @@
    }
    draft={id:crypto.randomUUID(),data:{name,slug,brand:form.elements.brand.value,profile,portfolio},files};
    dirty=false;submitted=false;
-   activate.hidden=false;activate.disabled=false;
+   activate.hidden=false;activate.disabled=false;activate.focus({preventScroll:true});
    hint.textContent='پیش‌نمایش آماده است. برای بررسی نشانی و راه‌اندازی، درخواست فعال‌سازی بفرستید.';
   }catch(error){$('builderError').textContent=error.message;hint.textContent=error.message}
   finally{build.disabled=false;loading.hidden=true;fields.forEach(input=>input.disabled=false);add.disabled=works.children.length>=6}
@@ -138,7 +144,9 @@
   const payload=new FormData();
   payload.append('id',draft.id);payload.append('draft',JSON.stringify(draft.data));
   for(const [key,file] of draft.files)payload.append(key,file,key);
+  const sentDraft=draft;
   await api('/api/activation',payload);
+  if(draft!==sentDraft||dirty)return;
   submitted=true;phone.hidden=true;otp.hidden=true;thanks.hidden=false;
   $('builderDialogTitle').textContent='درخواست فعال‌سازی ثبت شد';
   if(!dialog.open)dialog.showModal();

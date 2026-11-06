@@ -17,6 +17,7 @@
  }
  function select(index){
   if(index!==current){
+   root.classList.remove("is-playing");
    pause();
    current=index;
    const key=buttons[index].dataset.film,base=window.__AYN_BASE||'assets/';
@@ -36,16 +37,17 @@
  video.addEventListener('waiting',()=>root.classList.remove('is-playing'));
  video.addEventListener('pause',()=>{
   root.classList.remove('is-playing');
-  if(!systemPause&&!video.ended)userPaused=true;
+  if(!systemPause&&video.paused&&!video.ended)userPaused=true;
   systemPause=false;
  });
+ video.addEventListener('error',()=>root.classList.remove('is-playing'));
  video.addEventListener('ended',()=>{
   root.classList.remove('is-playing');
   if(current+1===buttons.length){completed=true;return}
   select(current+1);play();
  });
  new IntersectionObserver(([entry])=>{
-  visible=entry.isIntersecting;
+  visible=entry.intersectionRatio>=.3;
   if(!visible)pause();
   else if(!reduced.matches)play();
  },{threshold:.3}).observe(video);
