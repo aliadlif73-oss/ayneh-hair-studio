@@ -28,12 +28,12 @@
  const mobile=matchMedia('(max-width:900px)');
 
  /* ---------- build the three pickers ---------- */
- const make=(cls,html,onPick,box)=>{const b=document.createElement('button');b.type='button';b.className=cls;b.setAttribute('role','radio');b.setAttribute('aria-checked','false');b.innerHTML=html;(b.querySelector('.ic,.ph,.dot')||b).insertAdjacentHTML('beforeend',cls==='sw'?ring:frame);b.addEventListener('click',()=>{if(!b.closest('.hscroll')?.classList.contains('was-dragged'))onPick()});box.append(b);return b};
+ const make=(cls,html,onPick,box)=>{const b=document.createElement('button');b.type='button';b.className=cls;b.setAttribute('role','radio');b.setAttribute('aria-checked','false');b.tabIndex=box.children.length? -1:0;b.innerHTML=html;(b.querySelector('.ic,.ph,.dot')||b).insertAdjacentHTML('beforeend',cls==='sw'?ring:frame);b.addEventListener('click',()=>{if(!b.closest('.hscroll')?.classList.contains('was-dragged'))onPick()});box.append(b);return b};
  const n2=i=>String(i+1).padStart(2,'0');
  const cards=STYLES.map((name,i)=>make('card','<span class="ph"><img src="'+SRC('s'+n2(i))+'" alt="" width="240" height="300" loading="lazy" draggable="false"></span><span class="nm">'+name+'</span>',()=>pickStyle(i),$('track')));
  const dItems=[];
  STYLES.forEach((name,i)=>{
-  dItems[i]=make('d-item','<span class="ic"><img src="'+SRC('s'+n2(i))+'" alt="" draggable="false"></span><span>'+name+'</span>',()=>pickStyle(i),$('dockTrack'));
+  dItems[i]=make('d-item','<span class="ic"><img src="'+SRC('s'+n2(i))+'" alt="" loading="lazy" draggable="false"></span><span>'+name+'</span>',()=>pickStyle(i),$('dockTrack'));
  });
  cards.forEach((b,i)=>{const note=document.createElement('small');note.className='preview-kind';note.textContent=READY.has(i+1)?'پیش‌نمایش روی آینه':'عکس مرجع';b.append(note)});
  const sws=COLORS.map((c,i)=>make('sw','<span class="dot"><i style="background:'+c.css+'"></i></span><span>'+c.name+'</span>',()=>pickColor(i),$('colList')));
@@ -81,14 +81,14 @@
  /* arrow keys move between options inside each radio group */
  [[cards,$('track')],[dItems.filter(Boolean),$('dockTrack')],[sws,$('colList')]].forEach(([list,box])=>box.addEventListener('keydown',e=>{
   const i=list.indexOf(document.activeElement);if(i<0)return;
-  const k=e.key,vertical=box.id==='colList';
-  const dir=k==='ArrowDown'||(!vertical&&k==='ArrowLeft')?1:k==='ArrowUp'||(!vertical&&k==='ArrowRight')?-1:0;
-  if(!dir)return;e.preventDefault();const n=list[(i+dir+list.length)%list.length];n.focus();n.scrollIntoView({inline:'center',block:'nearest'})}));
+  const k=e.key;
+  const dir=k==='ArrowDown'||k==='ArrowLeft'?1:k==='ArrowUp'||k==='ArrowRight'?-1:0;
+  if(!dir)return;e.preventDefault();const n=list[(i+dir+list.length)%list.length];n.focus({preventScroll:true});n.click();n.scrollIntoView({inline:'center',block:'nearest'})}));
 
  /* ---------- all-styles rail ---------- */
- const rail=$('styles'),more=$('more');
+ const rail=$('styles'),more=$('more');rail.inert=true;
  function setRail(open){
-  rail.classList.toggle('open',open);rail.setAttribute('aria-hidden',String(!open));more.setAttribute('aria-expanded',String(open));dock.classList.toggle('away',open);
+  rail.inert=!open;rail.classList.toggle('open',open);rail.setAttribute('aria-hidden',String(!open));more.setAttribute('aria-expanded',String(open));dock.classList.toggle('away',open);
   if(open){setTimeout(()=>{(cards[st.style??0]).scrollIntoView({inline:'center',block:'nearest'});syncArrows();cards[st.style??0].focus({preventScroll:true})},60)}
   else more.focus({preventScroll:true})}
  more.addEventListener('click',()=>setRail(true));$('closeRail').addEventListener('click',()=>setRail(false));
@@ -198,7 +198,11 @@
  function paintScan(cur){run(900,x=>draw(cur,cur,1,x*1.3-.15),()=>draw(null,cur,1,-1))}
 
  /* ---------- selection ---------- */
- const mark=(list,idx)=>list.forEach((b,i)=>b?.setAttribute('aria-checked',String(i===idx)));
+ const mark=(list,idx)=>list.forEach((button,i)=>{
+  if(!button)return;
+  button.setAttribute('aria-checked',String(i===idx));
+  button.tabIndex=i===Math.max(0,idx)?0:-1;
+ });
  async function pickColor(i){
   showFront();revealPortrait();
   const prev=st.color!=null?COLORS[st.color]:null;st.color=i;mark(sws,i);summary();
@@ -305,12 +309,21 @@
  const human=e=>{if(!e.isTrusted||e.target.closest('.demo-controls'))return;if(demonstrating)endDemo('حالا خودتان مدل و رنگ را انتخاب کنید.');if(e.target.closest('#dock,#colors,#styles')){revealPortrait();showFront()}};
  film.addEventListener('pointerdown',human,true);film.addEventListener('keydown',human,true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')});
- const heroFiles=[['hero'],['hair-mask','png'],...STYLES.map((_,i)=>['s'+n2(i)]),...[...(window.__AYN_LOOKS||[])].flatMap(n=>[['look-s'+String(n).padStart(2,'0')],['mask-s'+String(n).padStart(2,'0'),'png']])];let loadedFiles=0;document.documentElement.classList.add('hero-loading');
- window.__AYN_HERO_READY=Promise.all(heroFiles.map(([k,e])=>loadImg(SRC(k,e)).catch(()=>null).finally(()=>{loadedFiles++;$('loaderProgress').style.width=(loadedFiles/heroFiles.length*100)+'%'}))).then(()=>Promise.all([prepare('base'),prepare('s06'),prepare('s12')])).finally(()=>{document.documentElement.classList.remove('hero-loading');$('siteLoader').classList.add('is-done');setTimeout(()=>$('siteLoader').remove(),450)});
- const pageReady=new Promise(resolve=>{if(document.readyState==='complete')resolve();else addEventListener('load',resolve,{once:true})});
- window.__AYN_HERO_READY.then(()=>{
+ const loader=$('siteLoader');
+ const essential=Promise.allSettled([prepare('base'),prepare('s06')]);
+ document.documentElement.classList.add('hero-loading');
+ let loadingTimeout;
+ const deadline=new Promise(resolve=>{loadingTimeout=setTimeout(()=>resolve(false),1800)});
+ window.__AYN_HERO_READY=Promise.race([essential.then(results=>results.every(result=>result.status==='fulfilled'&&result.value)),deadline]).finally(()=>{
+  clearTimeout(loadingTimeout);
+  $('loaderProgress').style.width='100%';
+  document.documentElement.classList.remove('hero-loading');
+  loader.classList.add('is-done');
+  setTimeout(()=>loader.remove(),450);
+ });
+ window.__AYN_HERO_READY.then(ready=>{
   // Never steal attention back if the visitor started interacting or scrolled past the hero while loading.
-  const r=film.getBoundingClientRect();if(played||r.bottom<innerHeight*.5||r.top>innerHeight){endDemo();return}
+  const r=film.getBoundingClientRect();if(!ready||played||r.bottom<innerHeight*.5||r.top>innerHeight){endDemo();return}
   walkthrough();
  });
  new IntersectionObserver(entries=>{if(!entries[0].isIntersecting&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')},{threshold:0}).observe(studio);

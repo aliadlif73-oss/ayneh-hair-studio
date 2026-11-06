@@ -837,10 +837,10 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
    <button type="button" data-film="nails" aria-pressed="false"><span class="film-icon"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M13 30V17a7 7 0 0 1 14 0v13Zm3-10v-3a4 4 0 0 1 8 0v3Z"/></svg></span><span>ناخن</span></button>
   </div>
   <div class="film-screen">
-   <video id="serviceVideo" class="service-video" muted playsinline controls preload="metadata" poster="/landing/hair-poster.webp" aria-label="مدل و رنگ مو">
+   <video id="serviceVideo" class="service-video" muted playsinline controls preload="none" poster="/landing/hair-poster.webp" aria-label="مدل و رنگ مو">
     <source src="/landing/video/hair.mp4" type="video/mp4">
    </video>
-   <div class="film-caption" aria-live="polite"><span>نمایش خدمات آینه</span><strong id="filmTitle">مدل و رنگ مو</strong><p id="filmText">مدل و رنگ‌های مختلف را روی یک چهره ببینید.</p></div>
+   <div class="film-caption" aria-live="polite"><span>نمایش خدمات آینه</span><strong id="filmTitle">مدل و رنگ مو</strong><p id="filmError" role="status" hidden></p><p id="filmText">مدل و رنگ‌های مختلف را روی یک چهره ببینید.</p></div>
   </div>
  </div>
 </section>
@@ -881,7 +881,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
    </form>
    <div class="builder-preview" id="builderPreview">
     <div class="builder-browser"><span class="live-badge">پیش‌نمایش زنده</span><b dir="ltr" id="builderAddress">ayneh-salon.site/s/your-salon</b></div>
-    <div class="builder-live" id="builderLive">
+    <div class="builder-live" id="builderLive" tabindex="0" role="region" aria-label="پیش‌نمایش زندهٔ صفحهٔ سالن">
      <div class="live-cover"><img id="liveCover" alt="" hidden><span>آینهٔ اختصاصی سالن</span></div>
      <div class="live-salon">
       <div class="live-logo"><img id="liveLogo" alt="" hidden><span id="liveInitial">س</span></div>
@@ -1060,12 +1060,12 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
  const mobile=matchMedia('(max-width:900px)');
 
  /* ---------- build the three pickers ---------- */
- const make=(cls,html,onPick,box)=>{const b=document.createElement('button');b.type='button';b.className=cls;b.setAttribute('role','radio');b.setAttribute('aria-checked','false');b.innerHTML=html;(b.querySelector('.ic,.ph,.dot')||b).insertAdjacentHTML('beforeend',cls==='sw'?ring:frame);b.addEventListener('click',()=>{if(!b.closest('.hscroll')?.classList.contains('was-dragged'))onPick()});box.append(b);return b};
+ const make=(cls,html,onPick,box)=>{const b=document.createElement('button');b.type='button';b.className=cls;b.setAttribute('role','radio');b.setAttribute('aria-checked','false');b.tabIndex=box.children.length? -1:0;b.innerHTML=html;(b.querySelector('.ic,.ph,.dot')||b).insertAdjacentHTML('beforeend',cls==='sw'?ring:frame);b.addEventListener('click',()=>{if(!b.closest('.hscroll')?.classList.contains('was-dragged'))onPick()});box.append(b);return b};
  const n2=i=>String(i+1).padStart(2,'0');
  const cards=STYLES.map((name,i)=>make('card','<span class="ph"><img src="'+SRC('s'+n2(i))+'" alt="" width="240" height="300" loading="lazy" draggable="false"></span><span class="nm">'+name+'</span>',()=>pickStyle(i),$('track')));
  const dItems=[];
  STYLES.forEach((name,i)=>{
-  dItems[i]=make('d-item','<span class="ic"><img src="'+SRC('s'+n2(i))+'" alt="" draggable="false"></span><span>'+name+'</span>',()=>pickStyle(i),$('dockTrack'));
+  dItems[i]=make('d-item','<span class="ic"><img src="'+SRC('s'+n2(i))+'" alt="" loading="lazy" draggable="false"></span><span>'+name+'</span>',()=>pickStyle(i),$('dockTrack'));
  });
  cards.forEach((b,i)=>{const note=document.createElement('small');note.className='preview-kind';note.textContent=READY.has(i+1)?'پیش‌نمایش روی آینه':'عکس مرجع';b.append(note)});
  const sws=COLORS.map((c,i)=>make('sw','<span class="dot"><i style="background:'+c.css+'"></i></span><span>'+c.name+'</span>',()=>pickColor(i),$('colList')));
@@ -1113,14 +1113,14 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
  /* arrow keys move between options inside each radio group */
  [[cards,$('track')],[dItems.filter(Boolean),$('dockTrack')],[sws,$('colList')]].forEach(([list,box])=>box.addEventListener('keydown',e=>{
   const i=list.indexOf(document.activeElement);if(i<0)return;
-  const k=e.key,vertical=box.id==='colList';
-  const dir=k==='ArrowDown'||(!vertical&&k==='ArrowLeft')?1:k==='ArrowUp'||(!vertical&&k==='ArrowRight')?-1:0;
-  if(!dir)return;e.preventDefault();const n=list[(i+dir+list.length)%list.length];n.focus();n.scrollIntoView({inline:'center',block:'nearest'})}));
+  const k=e.key;
+  const dir=k==='ArrowDown'||k==='ArrowLeft'?1:k==='ArrowUp'||k==='ArrowRight'?-1:0;
+  if(!dir)return;e.preventDefault();const n=list[(i+dir+list.length)%list.length];n.focus({preventScroll:true});n.click();n.scrollIntoView({inline:'center',block:'nearest'})}));
 
  /* ---------- all-styles rail ---------- */
- const rail=$('styles'),more=$('more');
+ const rail=$('styles'),more=$('more');rail.inert=true;
  function setRail(open){
-  rail.classList.toggle('open',open);rail.setAttribute('aria-hidden',String(!open));more.setAttribute('aria-expanded',String(open));dock.classList.toggle('away',open);
+  rail.inert=!open;rail.classList.toggle('open',open);rail.setAttribute('aria-hidden',String(!open));more.setAttribute('aria-expanded',String(open));dock.classList.toggle('away',open);
   if(open){setTimeout(()=>{(cards[st.style??0]).scrollIntoView({inline:'center',block:'nearest'});syncArrows();cards[st.style??0].focus({preventScroll:true})},60)}
   else more.focus({preventScroll:true})}
  more.addEventListener('click',()=>setRail(true));$('closeRail').addEventListener('click',()=>setRail(false));
@@ -1230,7 +1230,11 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
  function paintScan(cur){run(900,x=>draw(cur,cur,1,x*1.3-.15),()=>draw(null,cur,1,-1))}
 
  /* ---------- selection ---------- */
- const mark=(list,idx)=>list.forEach((b,i)=>b?.setAttribute('aria-checked',String(i===idx)));
+ const mark=(list,idx)=>list.forEach((button,i)=>{
+  if(!button)return;
+  button.setAttribute('aria-checked',String(i===idx));
+  button.tabIndex=i===Math.max(0,idx)?0:-1;
+ });
  async function pickColor(i){
   showFront();revealPortrait();
   const prev=st.color!=null?COLORS[st.color]:null;st.color=i;mark(sws,i);summary();
@@ -1337,12 +1341,21 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
  const human=e=>{if(!e.isTrusted||e.target.closest('.demo-controls'))return;if(demonstrating)endDemo('حالا خودتان مدل و رنگ را انتخاب کنید.');if(e.target.closest('#dock,#colors,#styles')){revealPortrait();showFront()}};
  film.addEventListener('pointerdown',human,true);film.addEventListener('keydown',human,true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')});
- const heroFiles=[['hero'],['hair-mask','png'],...STYLES.map((_,i)=>['s'+n2(i)]),...[...(window.__AYN_LOOKS||[])].flatMap(n=>[['look-s'+String(n).padStart(2,'0')],['mask-s'+String(n).padStart(2,'0'),'png']])];let loadedFiles=0;document.documentElement.classList.add('hero-loading');
- window.__AYN_HERO_READY=Promise.all(heroFiles.map(([k,e])=>loadImg(SRC(k,e)).catch(()=>null).finally(()=>{loadedFiles++;$('loaderProgress').style.width=(loadedFiles/heroFiles.length*100)+'%'}))).then(()=>Promise.all([prepare('base'),prepare('s06'),prepare('s12')])).finally(()=>{document.documentElement.classList.remove('hero-loading');$('siteLoader').classList.add('is-done');setTimeout(()=>$('siteLoader').remove(),450)});
- const pageReady=new Promise(resolve=>{if(document.readyState==='complete')resolve();else addEventListener('load',resolve,{once:true})});
- window.__AYN_HERO_READY.then(()=>{
+ const loader=$('siteLoader');
+ const essential=Promise.allSettled([prepare('base'),prepare('s06')]);
+ document.documentElement.classList.add('hero-loading');
+ let loadingTimeout;
+ const deadline=new Promise(resolve=>{loadingTimeout=setTimeout(()=>resolve(false),1800)});
+ window.__AYN_HERO_READY=Promise.race([essential.then(results=>results.every(result=>result.status==='fulfilled'&&result.value)),deadline]).finally(()=>{
+  clearTimeout(loadingTimeout);
+  $('loaderProgress').style.width='100%';
+  document.documentElement.classList.remove('hero-loading');
+  loader.classList.add('is-done');
+  setTimeout(()=>loader.remove(),450);
+ });
+ window.__AYN_HERO_READY.then(ready=>{
   // Never steal attention back if the visitor started interacting or scrolled past the hero while loading.
-  const r=film.getBoundingClientRect();if(played||r.bottom<innerHeight*.5||r.top>innerHeight){endDemo();return}
+  const r=film.getBoundingClientRect();if(!ready||played||r.bottom<innerHeight*.5||r.top>innerHeight){endDemo();return}
   walkthrough();
  });
  new IntersectionObserver(entries=>{if(!entries[0].isIntersecting&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')},{threshold:0}).observe(studio);
@@ -1370,6 +1383,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
  const video=root.querySelector('video'),buttons=[...root.querySelectorAll('[data-film]')];
  const titles=['مدل و رنگ مو','مدل مژه','طرح و رنگ ناخن'];
  const descriptions=['مدل و رنگ‌های مختلف را روی یک چهره ببینید.','حالت و حجم مژه را روی چشم‌ها مقایسه کنید.','تغییر فرم، طرح و رنگ ناخن را روی دست ببینید.'];
+ const error=root.querySelector('#filmError');
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  let current=0,visible=false,userPaused=false,systemPause=false,completed=false;
  function play(){
@@ -1382,7 +1396,8 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   video.pause();
  }
  function select(index){
-  if(index!==current){
+  error.hidden=true;
+  if(index!==current||video.error){
    root.classList.remove("is-playing");
    pause();
    current=index;
@@ -1406,7 +1421,9 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   if(!systemPause&&video.paused&&!video.ended)userPaused=true;
   systemPause=false;
  });
- video.addEventListener('error',()=>root.classList.remove('is-playing'));
+ video.addEventListener('error',()=>{
+  root.classList.remove('is-playing');error.textContent='ویدئو بارگیری نشد. برای تلاش دوباره، دکمهٔ همین خدمت را بزنید.';error.hidden=false;
+ });
  video.addEventListener('ended',()=>{
   root.classList.remove('is-playing');
   if(current+1===buttons.length){completed=true;return}

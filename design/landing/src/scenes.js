@@ -4,6 +4,7 @@
  const video=root.querySelector('video'),buttons=[...root.querySelectorAll('[data-film]')];
  const titles=['مدل و رنگ مو','مدل مژه','طرح و رنگ ناخن'];
  const descriptions=['مدل و رنگ‌های مختلف را روی یک چهره ببینید.','حالت و حجم مژه را روی چشم‌ها مقایسه کنید.','تغییر فرم، طرح و رنگ ناخن را روی دست ببینید.'];
+ const error=root.querySelector('#filmError');
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  let current=0,visible=false,userPaused=false,systemPause=false,completed=false;
  function play(){
@@ -16,7 +17,8 @@
   video.pause();
  }
  function select(index){
-  if(index!==current){
+  error.hidden=true;
+  if(index!==current||video.error){
    root.classList.remove("is-playing");
    pause();
    current=index;
@@ -40,7 +42,9 @@
   if(!systemPause&&video.paused&&!video.ended)userPaused=true;
   systemPause=false;
  });
- video.addEventListener('error',()=>root.classList.remove('is-playing'));
+ video.addEventListener('error',()=>{
+  root.classList.remove('is-playing');error.textContent='ویدئو بارگیری نشد. برای تلاش دوباره، دکمهٔ همین خدمت را بزنید.';error.hidden=false;
+ });
  video.addEventListener('ended',()=>{
   root.classList.remove('is-playing');
   if(current+1===buttons.length){completed=true;return}

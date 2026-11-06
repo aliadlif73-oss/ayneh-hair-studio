@@ -9,9 +9,25 @@ const brandSlots=['logo','cover','portrait'];
 
 export async function saveActivation(req,db,session){
  must(session.verified_phone,'ابتدا شمارهٔ موبایل را تأیید کنید.',403);
- const buffer=await req.arrayBuffer();
- must(buffer.byteLength<=4_000_000,'حجم تصاویر بیش از حد مجاز است.',413);
- const form=await new Response(buffer,{headers:{'Content-Type':req.headers.get('Content-Type')||''}}).formData().catch(()=>null);
+ const max=4_000_000,type=req.headers.get('Content-Type')||'';
+ must(/^multipart\/form-data\s*;/i.test(type),'فرم درخواست معتبر نیست.');
+ must(req.body,'فرم درخواست معتبر نیست.');
+ must(Number(req.headers.get('content-length')||0)<=max,'حجم تصاویر بیش از حد مجاز است.',413);
+ const reader=req.body.getReader(),chunks=[];
+ let size=0;
+ try{
+  while(true){
+   const {done,value}=await reader.read();
+   if(done)break;
+   size+=value.byteLength;
+   if(size>max){
+    await reader.cancel().catch(()=>{});
+    must(false,'حجم تصاویر بیش از حد مجاز است.',413);
+   }
+   chunks.push(value);
+  }
+ }finally{reader.releaseLock()}
+ const form=await new Response(new Blob(chunks),{headers:{'Content-Type':type}}).formData().catch(()=>null);
  must(form,'فرم درخواست معتبر نیست.');
  const id=form.get('id');
  must(typeof id==='string'&&idPattern.test(id),'شناسهٔ درخواست معتبر نیست.');
@@ -19,9 +35,10 @@ export async function saveActivation(req,db,session){
  if(existing){must(existing.contact_phone===session.verified_phone,'شناسهٔ درخواست معتبر نیست.',409);return {ok:true,id}}
  let input;
  try{input=JSON.parse(form.get('draft'));}catch{}
- must(input&&typeof input==='object'&&input.profile,'مشخصات سالن را وارد کنید.');
+ must(input&&typeof input==='object'&&input.profile&&typeof input.profile==='object'&&!Array.isArray(input.profile),'مشخصات سالن را وارد کنید.');
  const slug=String(input.slug||'');
  must(/^[a-z][a-z0-9-]{1,44}[a-z0-9]$/.test(slug),'نشانی انگلیسی صفحه معتبر نیست.');
+ must(slug!=='demo','این نشانی رزرو شده است. نشانی دیگری انتخاب کنید.',409);
  must(!await db.prepare('SELECT 1 FROM salons WHERE slug=?').bind(slug).first(),'این نشانی قبلاً گرفته شده است. نشانی دیگری انتخاب کنید.',409);
  const name=text(String(input.name||''),100);
  must(name.length>=2,'نام سالن را وارد کنید.');
@@ -59,5 +76,5 @@ export async function saveActivation(req,db,session){
 export async function activationAsset(db,id,slot){
  const item=await db.prepare('SELECT mime,bytes FROM salon_activation_assets WHERE activation_id=? AND slot=?').bind(id,slot).first();
  must(item,'عکس پیدا نشد.',404);
- return new Response(item.bytes,{headers:{'Content-Type':item.mime,'Cache-Control':'private,no-store','X-Content-Type-Options':'nosniff'}});
+ return new Response(item.bytes,{headers:{'Content-Type':item.mime,'Cache-Control':'private,no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"}});
 }

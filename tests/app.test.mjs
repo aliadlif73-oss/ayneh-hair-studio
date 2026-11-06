@@ -866,6 +866,14 @@ test('activation requires verified mobile and stores the complete private draft 
   assert.equal((await submit()).status,403);
   assert.equal((await call(env,'/api/s/demo/otp/send',otpBody(),g)).status,200);
   assert.equal((await call(env,'/api/s/demo/otp/verify',{code:'۴۸۲۱۳'},g)).status,200);
+  let cancelled=false;
+  const oversized=new ReadableStream({
+   start(controller){for(let i=0;i<5;i++)controller.enqueue(new Uint8Array(1_000_000));},
+   cancel(){cancelled=true;}
+  });
+  const rejected=await app.fetch(new Request(origin+'/api/activation',{method:'POST',headers:{origin,cookie:g.cookie,'Content-Type':'multipart/form-data; boundary=test'},body:oversized,duplex:'half'}),env);
+  assert.equal(rejected.status,413);
+  assert.equal(cancelled,true);
   assert.deepEqual(await (await submit()).json(),{ok:true,id});
   assert.deepEqual(await (await submit()).json(),{ok:true,id});
   assert.equal((await call(env,'/api/owner/activations')).status,401);
