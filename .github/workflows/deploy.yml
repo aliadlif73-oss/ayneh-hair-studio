@@ -2,6 +2,8 @@ name: Deploy to Cloudflare
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'mezon/**'
   workflow_dispatch:
 permissions:
   contents: read
