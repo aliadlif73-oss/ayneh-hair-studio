@@ -1783,7 +1783,7 @@ function shareText(){return 'این رو ببین! توی صفحهٔ «'+state.p
 function renderInvite(){
  var box=$('#invite');if(!box||!state.pub)return;
  var pics=el('span',{class:'invite__pics','aria-hidden':'true'});
- ['03','09','15'].forEach(function(n){var i=el('img',{src:'/catalog/'+n+'.webp',alt:'',loading:'lazy'});i.addEventListener('error',function(){i.replaceWith(el('span'))});pics.append(i)});
+ ['03','09','15'].forEach(function(n){var i=el('img',{src:'/catalog/dress/'+n+'.webp',alt:'',loading:'lazy'});i.addEventListener('error',function(){i.replaceWith(el('span'))});pics.append(i)});
  var b=el('button',{class:'invite',type:'button',onclick:function(){track('share_open');openShare()}},[
   pics,
   el('span',{class:'invite__txt'},[
