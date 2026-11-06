@@ -717,7 +717,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
         <h1 id="h1" class="reveal">مشتری قبل از نشستن روی صندلی می‌داند چه می‌خواهد.</h1>
         <p class="lead reveal">مدل مو، رنگ، ناخن یا مژه را روی عکس خودش امتحان می‌کند و انتخابش را مستقیم به تلگرام یا بله شما می‌فرستد. شما فقط درخواست را می‌بینید و جواب می‌دهید.</p>
         <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>ساخت پیش‌نمایش سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" href="#studio" id="openHeroDemo"><span>اول آینه را امتحان کنید</span></a></div>
-        <p class="fineprint reveal">همین پایین، مدل و رنگ را روی چهرهٔ نمونه عوض کنید.</p>
+        <p class="fineprint reveal">همین پایین، مدل و رنگ را روی چهرهٔ نمونه عوض کنید؛ ساخت پیش‌نمایش رایگان است و نیازی به ثبت‌نام ندارد.</p>
       </div>
 
       <div class="studio" id="studio" tabindex="-1" aria-label="دموی تعاملی آینه روی چهرهٔ نمونه">
@@ -838,7 +838,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
    <button type="button" data-film="nails" aria-pressed="false"><span class="film-icon"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M13 30V17a7 7 0 0 1 14 0v13Zm3-10v-3a4 4 0 0 1 8 0v3Z"/></svg></span><span>ناخن</span></button>
   </div>
   <div class="film-screen">
-   <video id="serviceVideo" class="service-video" muted playsinline controls preload="none" poster="/landing/hair-poster.webp" aria-label="مدل و رنگ مو">
+   <video id="serviceVideo" class="service-video" muted playsinline controls controlsList="nodownload noremoteplayback noplaybackrate" disablePictureInPicture preload="none" poster="/landing/hair-poster.webp" aria-label="مدل و رنگ مو">
     <source src="/landing/video/hair.mp4" type="video/mp4">
    </video>
    <div class="film-caption" aria-live="polite"><span>خدمات آینه روی چهره واقعی</span><strong id="filmTitle">مدل و رنگ مو</strong><p id="filmError" role="status" hidden></p><p id="filmText">مدل و رنگ‌های مختلف را روی یک چهره ببینید و انتخاب کنید.</p></div>
