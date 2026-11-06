@@ -94,3 +94,16 @@
 .live-works img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:6px}
 .builder-preview>.builder-note{color:#f2e4cc}.builder-preview>.btn{background:#f7d89f;color:#26180e}
 @media(max-width:850px){.builder-grid{grid-template-columns:1fr}.builder-preview{grid-row:1;position:sticky;top:var(--hh,68px);z-index:6;padding:7px;gap:6px}.builder-live{max-height:31svh}.live-cover{height:54px}.live-logo{width:37px;height:37px;margin-top:-18px}.live-salon{gap:3px}.live-salon p,.live-chips span,.live-services span{font-size:11px}.builder-form{scroll-margin-top:36svh}.builder-preview>.btn{min-height:38px;padding:4px 10px;font-size:13px}}
+.builder-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;list-style:none;padding:0;margin:0 0 16px;counter-reset:builder-step}
+.builder-steps li{counter-increment:builder-step;padding:12px 14px;border:1px solid #d8c3a7;border-radius:12px;background:#fffaf4;color:#493624}
+.builder-steps strong,.builder-steps span{display:block}
+.builder-steps strong::before{content:counter(builder-step, persian) ' · ';color:#76562f}
+.builder-steps span,.builder-availability{font-size:14px}
+.builder-availability{margin:0 0 16px;padding:10px 14px;border-inline-start:3px solid #997440;background:#f7ede0;color:#493624}
+.builder-form input,.builder-form select,.builder-form textarea,.builder-dialog input{min-height:44px;border-color:#857460}
+.live-logo{background:#f6ecdf;border-color:var(--salon-brand)}
+.faq-next{margin-top:24px}
+.faq details a{text-decoration:underline;text-underline-offset:3px}
+@media(max-width:850px){.builder-form input,.builder-form select,.builder-form textarea,.builder-dialog input{font-size:16px}.builder-form :is(input,select,textarea,button,summary):focus{scroll-margin-block-start:calc(var(--hh,68px) + 37svh)}}
+@media(max-width:580px){.builder-steps{grid-template-columns:1fr;gap:6px}.builder-steps li{padding:8px 12px}}
+@media(max-width:850px) and (max-height:650px){.builder-preview{position:static}.builder-form,.builder-form :is(input,select,textarea,button,summary):focus{scroll-margin-block-start:var(--hh,68px)}}

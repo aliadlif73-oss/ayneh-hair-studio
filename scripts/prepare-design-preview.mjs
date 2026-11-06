@@ -8,7 +8,7 @@ import {customerHTML} from '../worker/customer.js';
 import {favicon} from '../worker/brand.js';
 const target=resolve(process.argv[2]);
 import {landingHTML} from '../worker/landing.js';
-const html=landingHTML.replaceAll('__ORIGIN__','https://ayneh-design-review.packedhymn4.chatgpt.site');
+const html=landingHTML.replace('<li><a href="/admin">ورود مدیر</a></li>','').replaceAll('__ORIGIN__','https://ayneh-design-review.packedhymn4.chatgpt.site');
 mkdirSync(target+'/worker',{recursive:true});mkdirSync(target+'/scripts',{recursive:true});
 writeFileSync(target+'/worker/index.js',`const landing=${JSON.stringify(html)},customer=${JSON.stringify(customerHTML)};
 const icon=${JSON.stringify(favicon)};

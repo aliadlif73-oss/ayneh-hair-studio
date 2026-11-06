@@ -94,6 +94,7 @@ async function uploadProvider(env,m){const object=await bucketFor(env).get(m.obj
 export async function api(req,env){const u=new URL(req.url),path=u.pathname;must(env.DB,'پایگاه داده هنوز آماده نیست',503);const db=env.DB;
  if(req.method!=='GET'){must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
  if(path==='/api/activation'&&req.method==='GET'){
+  must(smsReady(env),'تأیید شماره هنوز فعال نشده است.',503);
   must(await one(db,"SELECT 1 FROM sqlite_master WHERE type='table' AND name='salon_activations'"),'ثبت فعال‌سازی هنوز در این محیط راه‌اندازی نشده است.',503);
   return J({ok:true});
  }

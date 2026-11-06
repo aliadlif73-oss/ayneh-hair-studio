@@ -4,18 +4,37 @@
  if(!form||!live)return;
  const loading=$('builderLoading'),activate=$('builderActivate'),hint=$('builderHint');
  const dialog=$('builderDialog'),phone=$('builderPhone'),otp=$('builderOtp'),thanks=$('builderThanks'),dialogError=$('builderDialogError');
+ const availability=$('builderAvailability');
  const add=$('builderAdd'),works=$('builderWorks'),build=$('builderBuild');
  const profileFields=['bio','manager','address','hours','phone','instagram','website','map','telegram'];
  const brandFields=['logo','cover','portrait'];
- let draft,otpBody,busy=false,submitted=false,dirty=false;
+ let draft,otpBody,busy=false,submitted=false,dirty=false,canActivate=false,checkingAvailability=false,availabilityKnown=false;
  const objectURLs=new Map();
- const api=async(path,body)=>{
+ const api=async(path,body,signal)=>{
   const options=body===undefined?{}:{method:'POST',...(body instanceof FormData?{body}:{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})};
-  const response=await fetch(path,options);
+  const response=await fetch(path,{...options,signal});
   const data=await response.json().catch(()=>({}));
   if(!response.ok||!data.ok)throw new Error(data.error||'ارتباط با آینه برقرار نشد. دوباره تلاش کنید.');
   return data;
  };
+ function showAvailability(available){
+  canActivate=available;
+  availability.textContent=available
+   ?'پیش‌نمایش رایگان است. برای درخواست راه‌اندازی، تأیید شمارهٔ موبایل لازم است.'
+   :'در حال حاضر می‌توانید پیش‌نمایش بسازید. ثبت درخواست راه‌اندازی در این نسخه در دسترس نیست.';
+  activate.hidden=!available||!draft||dirty;
+  if(draft&&!dirty&&!submitted)hint.textContent=available
+   ?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.'
+   :'پیش‌نمایش آماده است. ثبت درخواست راه‌اندازی فعلاً در دسترس نیست.';
+ }
+ async function checkAvailability(){
+  if(checkingAvailability)return;
+  checkingAvailability=true;
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),5000);
+  try{await api('/api/activation',undefined,controller.signal);showAvailability(true)}
+  catch{showAvailability(false)}
+  finally{clearTimeout(timer);checkingAvailability=false;availabilityKnown=true}
+ }
  const serviceNames={hair:'مدل مو',color:'رنگ مو',nails:'ناخن',lashes:'مژه'};
  const linkNames={instagram:'اینستاگرام',website:'وب‌سایت',map:'نقشه',telegram:'تلگرام'};
  function urlFor(file){
@@ -104,8 +123,9 @@
  form.addEventListener('submit',async e=>{
   e.preventDefault();if(build.disabled||busy)return;
   if(draft&&!dirty){
-   activate.hidden=false;
-   if(!submitted)activate.focus();
+   activate.hidden=!canActivate;
+   if(canActivate&&!submitted)activate.focus();
+   else if(!canActivate&&availabilityKnown)checkAvailability();
    return;
   }
   $('builderError').textContent='';build.disabled=true;activate.hidden=true;hint.textContent='';
@@ -130,8 +150,10 @@
    }
    draft={id:crypto.randomUUID(),data:{name,slug,brand:form.elements.brand.value,profile,portfolio},files};
    dirty=false;submitted=false;
-   activate.hidden=false;activate.disabled=false;activate.focus({preventScroll:true});
-   hint.textContent='پیش‌نمایش آماده است. برای بررسی نشانی و راه‌اندازی، درخواست فعال‌سازی بفرستید.';
+   activate.hidden=!canActivate;activate.disabled=false;
+   hint.textContent=canActivate?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.':'پیش‌نمایش آماده است. در این نسخه فقط پیش‌نمایش در دسترس است.';
+   (canActivate?activate:live).focus();
+   if(!canActivate&&availabilityKnown)checkAvailability();
   }catch(error){$('builderError').textContent=error.message;hint.textContent=error.message}
   finally{build.disabled=false;loading.hidden=true;fields.forEach(input=>input.disabled=false);add.disabled=works.children.length>=6}
  });
@@ -159,8 +181,9 @@
   finally{busy=false;control.disabled=control===activate&&submitted}
  }
  activate.onclick=()=>run(async()=>{
-  if(submitted||dirty)return;
-  try{await api('/api/activation')}catch(error){
+  if(submitted||dirty||!canActivate)return;
+  try{await api('/api/activation')}catch{
+   showAvailability(false);
    throw new Error('ثبت فعال‌سازی در این محیط در دسترس نیست. پیش‌نمایش شما آماده است.');
   }
   const current=await session();
@@ -184,4 +207,6 @@
  $('builderRetry').onclick=e=>run(async()=>{await api('/api/s/demo/otp/send',otpBody);dialogError.textContent='کد جدید فرستاده شد.'},e.currentTarget);
  dialog.querySelector('.builder-close').onclick=()=>dialog.close();
  dialog.addEventListener('close',()=>{if(!activate.hidden&&!activate.disabled)activate.focus({preventScroll:true})});
+ build.disabled=false;
+ checkAvailability();
 })();

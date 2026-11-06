@@ -1,16 +1,23 @@
 <section id="salon-example" class="section salon-builder" aria-labelledby="h-example" tabindex="-1">
  <div class="wrap">
   <header class="sec-head"><p class="kicker">استودیوی صفحهٔ سالن</p><h2 id="h-example">صفحهٔ سالن‌تان را از چشم مشتری ببینید</h2><p class="sub">نام، رنگ و نمونه‌کارهای سالن را وارد کنید. هر تغییر همان لحظه در نمای مشتری دیده می‌شود.</p></header>
+  <ol class="builder-steps" aria-label="مراحل راه‌اندازی صفحه">
+   <li><strong>پیش‌نمایش رایگان</strong><span>ظاهر صفحه را با اطلاعات سالن‌تان ببینید.</span></li>
+   <li><strong>درخواست راه‌اندازی</strong><span>وقتی ثبت درخواست در دسترس است، شمارهٔ موبایل‌تان را تأیید کنید.</span></li>
+   <li><strong>بررسی و هماهنگی</strong><span>قبل از راه‌اندازی، امکانات و هزینه‌ها را مرور می‌کنیم.</span></li>
+  </ol>
   <div class="builder-grid">
-   <form id="start" class="builder-form">
+   <form id="start" class="builder-form" method="post" aria-describedby="builderAvailability">
+  <p id="builderAvailability" class="builder-availability" role="status">پیش‌نمایش رایگان است. وضعیت ثبت درخواست در حال بررسی است.</p>
+  <noscript><p>برای ساخت پیش‌نمایش، جاوااسکریپت مرورگر را فعال کنید.</p></noscript>
     <fieldset><legend>هویت و نشانی صفحه</legend>
      <label>نام سالن<input name="name" required minlength="2" maxlength="100" autocomplete="organization"></label>
-     <label>نشانی اختصاصی پیشنهادی <small dir="ltr">ayneh-salon.site/s/</small><input name="slug" dir="ltr" required pattern="[a-z][a-z0-9\-]{1,44}[a-z0-9]" maxlength="46" placeholder="my-salon" autocapitalize="none" spellcheck="false"></label>
+     <label>نشانی اختصاصی پیشنهادی <small dir="ltr">ayneh-salon.site/s/</small><input name="slug" aria-describedby="slugHint" dir="ltr" required pattern="[a-z][a-z0-9\-]{1,44}[a-z0-9]" maxlength="46" placeholder="my-salon" autocapitalize="none" spellcheck="false"><small id="slugHint">۳ تا ۴۶ کاراکتر انگلیسی، عدد یا خط تیره. با حرف شروع کنید و با حرف یا عدد تمام کنید.</small></label>
      <label class="builder-color">رنگ برند<input type="color" name="brand" value="#B9975B"></label>
      <label>لوگو<input type="file" name="logo" accept="image/jpeg,image/png,image/webp"></label>
      <label>عکس کاور<input type="file" name="cover" accept="image/jpeg,image/png,image/webp"></label>
     </fieldset>
-    <details><summary>معرفی سالن و راه‌های تماس</summary>
+    <details><summary>معرفی سالن و راه‌های تماس <small>اختیاری</small></summary>
      <fieldset><legend class="sr-only">مشخصات سالن</legend>
       <label class="wide">دربارهٔ سالن<textarea name="bio" maxlength="1000" rows="3"></textarea></label>
       <label>نام مدیر<input name="manager" maxlength="100"></label>
@@ -24,13 +31,13 @@
       <label>وب‌سایت<input type="url" name="website" dir="ltr" maxlength="350"></label>
      </fieldset>
     </details>
-    <details><summary>نمونه‌کارها <small>تا ۶ مورد</small></summary>
+    <details><summary>نمونه‌کارها <small>اختیاری، تا ۶ مورد</small></summary>
      <div id="builderWorks"></div>
      <button id="builderAdd" class="btn btn--ghost" type="button">افزودن نمونه‌کار +</button>
     </details>
     <p class="builder-error" id="builderError" role="alert"></p>
-    <button type="submit" class="btn btn--lg" id="builderBuild">ساخت صفحهٔ اختصاصی سالن من</button>
-    <p class="builder-note">پیش‌نمایش خصوصی است. تصاویر بعد از درخواست فعال‌سازی برای کارشناسان آینه ارسال می‌شوند.</p>
+    <button type="submit" class="btn btn--lg" id="builderBuild" disabled>آماده‌کردن پیش‌نمایش</button>
+    <p class="builder-note">تا پیش از ارسال درخواست، پیش‌نمایش و عکس‌ها فقط در مرورگر شما می‌مانند.</p>
    </form>
    <div class="builder-preview" id="builderPreview">
     <div class="builder-browser"><span class="live-badge">پیش‌نمایش زنده</span><b dir="ltr" id="builderAddress">ayneh-salon.site/s/your-salon</b></div>
@@ -47,8 +54,8 @@
       <section class="live-detail"><h4>نمونه‌کارهای سالن</h4><div id="liveWorks" class="live-works"></div><p id="liveEmpty">با افزودن نمونه‌کار، عکس و توضیحات آن اینجا دیده می‌شود.</p></section>
      </div>
     </div>
-    <div class="builder-loading" id="builderLoading" role="status" hidden><span class="builder-spinner" aria-hidden="true"></span><p>در حال ساخت صفحهٔ اختصاصی سالن شما هستیم. چند لحظه صبر کنید.</p></div>
-    <button class="btn btn--lg" id="builderActivate" type="button" hidden>فعال‌سازی صفحهٔ اختصاصی سالن من</button>
+    <div class="builder-loading" id="builderLoading" role="status" hidden><span class="builder-spinner" aria-hidden="true"></span><p>در حال آماده‌کردن پیش‌نمایش…</p></div>
+    <button class="btn btn--lg" id="builderActivate" type="button" hidden>ثبت درخواست فعال‌سازی</button>
     <p class="builder-note" id="builderHint" aria-live="polite"></p>
    </div>
   </div>
@@ -67,18 +74,18 @@
 <dialog class="builder-dialog" id="builderDialog" aria-labelledby="builderDialogTitle">
  <button class="builder-close" type="button" aria-label="بستن">×</button>
  <h2 id="builderDialogTitle">تأیید شمارهٔ موبایل</h2>
- <form id="builderPhone">
+ <form id="builderPhone" method="post">
   <p>برای پیگیری درخواست فعال‌سازی، شمارهٔ موبایل‌تان را تأیید کنید.</p>
   <label>نام<input name="first_name" required minlength="2" maxlength="40" autocomplete="given-name"></label>
   <label>نام خانوادگی<input name="last_name" required minlength="2" maxlength="60" autocomplete="family-name"></label>
   <label>شمارهٔ موبایل<input name="phone" type="tel" required dir="ltr" maxlength="20" autocomplete="tel"></label>
   <button type="submit" class="btn">ارسال کد تأیید</button>
  </form>
- <form id="builderOtp" hidden>
+ <form id="builderOtp" method="post" hidden>
   <label>کد پیامک‌شده<input name="code" required dir="ltr" maxlength="12" inputmode="numeric" autocomplete="one-time-code"></label>
   <button type="submit" class="btn">تأیید و ارسال درخواست</button>
   <button type="button" id="builderRetry" class="btn btn--ghost">ارسال دوبارهٔ کد</button>
  </form>
  <p id="builderDialogError" class="builder-error" role="alert"></p>
- <p id="builderThanks" role="status" hidden>از اعتمادتان ممنونیم. درخواست فعال‌سازی صفحهٔ اختصاصی سالن برای کارشناسان ما ارسال شد. تا ۲۴ ساعت آینده با شما تماس می‌گیریم.</p>
+ <p id="builderThanks" role="status" hidden>از اعتمادتان ممنونیم. درخواست فعال‌سازی صفحهٔ اختصاصی سالن برای کارشناسان ما ارسال شد. پس از بررسی برای اعلام هزینه و هماهنگی با شما تماس می‌گیریم.</p>
 </dialog>

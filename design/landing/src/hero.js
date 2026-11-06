@@ -97,7 +97,7 @@
  /* ---------- hair recolour engine ---------- */
  const img=$('roomImg'),img2=$('roomImg2'),cv=$('hairCanvas'),ctx=cv.getContext('2d');
  let px=null,rafId=0,lookTok=0;const preps={};
- const imagePromises=new Map();const loadImg=src=>{if(!imagePromises.has(src))imagePromises.set(src,new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src}));return imagePromises.get(src)};
+ const imagePromises=new Map();const loadImg=src=>{if(!imagePromises.has(src))imagePromises.set(src,new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>{imagePromises.delete(src);rej(new Error("Image unavailable"))};i.src=src}));return imagePromises.get(src)};
  const lookAssets=key=>key==='base'?['hero','hair-mask']:['look-'+key,'mask-'+key];
  let identitySource=null;
  function canonical(){
@@ -154,7 +154,7 @@
   }).catch(()=>{delete preps[key];return null});
  }
  let transitionAnimation=null;
- const renderError=()=>{$('demoCaption').textContent='تصویر بارگذاری نشد؛ دوباره انتخاب کنید.';stage.dataset.renderState='error'};
+ const renderError=()=>{$('demoCaption').textContent='تصویر بارگذاری نشد. مدل یا رنگ را دوباره انتخاب کنید.';stage.dataset.renderState='error'};
  async function setLook(key){
   const my=++lookTok;
   stage.dataset.renderState='loading';
@@ -213,7 +213,7 @@
  async function pickStyle(i){
   showFront();
   st.style=i;mark(cards,i);mark(dItems,i);
-  $('refImg').src=cards[i].querySelector('img').src;$('refName').textContent=STYLES[i];$('ref').classList.add('on');
+  $('refImg').src=cards[i].querySelector('img').src;$('refName').textContent=STYLES[i];$('ref').inert=false;$('ref').classList.add('on');
   if(READY.has(i+1)){
    $('refNote').textContent='پیش‌نمایش این مدل روی چهرهٔ نمونه';
    await setLook(i===0?'base':'s'+n2(i));
@@ -263,7 +263,7 @@
   if(reduced){caption.textContent='مدل و رنگ دلخواهتان را روی آینه انتخاب کنید.';return}
   const controller=new AbortController(),signal=controller.signal;demoController=controller;demonstrating=true;
   stage.dataset.demo='playing';stage.classList.remove('portrait-visible');$('skipDemo').hidden=false;$('replayDemo').hidden=true;
-  st.color=null;st.style=null;mark(sws,-1);mark(cards,-1);mark(dItems,-1);$('ref').classList.remove('on');summary();
+  st.color=null;st.style=null;mark(sws,-1);mark(cards,-1);mark(dItems,-1);$('ref').inert=true;$('ref').classList.remove('on');summary();
   try{
    const loaded=await setLook('base');if(signal.aborted)return;if(!loaded){endDemo();return}
    caption.textContent='۱ · عکس چهره یا دستتان را بارگذاری کنید';
@@ -311,6 +311,7 @@
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')});
  const loader=$('siteLoader');
  const essential=Promise.allSettled([prepare('base'),prepare('s06')]);
+ loader.hidden=false;
  document.documentElement.classList.add('hero-loading');
  let loadingTimeout;
  const deadline=new Promise(resolve=>{loadingTimeout=setTimeout(()=>resolve(false),1800)});
@@ -340,5 +341,5 @@
  const req=()=>{if(!tick){tick=true;requestAnimationFrame(frameUpdate)}};
  addEventListener('scroll',req,{passive:true});
  new ResizeObserver(()=>{layout();req()}).observe(mirror);
- layout();frameUpdate();if(mobile.matches){$('demoCaption').hidden=true}
+ layout();frameUpdate();
 })();

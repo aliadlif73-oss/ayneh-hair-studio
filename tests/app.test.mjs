@@ -724,7 +724,7 @@ test('without SMS invites the bot offers messenger buttons and /i/ is a send pag
 // ---------- landing page and salon inquiries ----------
 test('landing page is public at / and the owner console stays at /admin',async()=>{const e=tgEnv(fixture());
  const r=await app.fetch(new Request(origin+'/'),e);assert.equal(r.status,200);const html=await r.text();
- assert.match(html,/id="builderLive"/);assert.match(html,/مشتری قبل از نشستن روی صندلی می‌داند چه می‌خواهد/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
+ assert.match(html,/id="builderLive"/);assert.match(html,/به مشتری‌ها فرصت بدهید مدل دلخواهشان را قبل از مراجعه امتحان کنند/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
  new Function(html.match(/<script>([\s\S]*?)<\/script>/g).map(s=>s.replace(/<\/?script>/g,'')).join('\n'));
  assert.equal((await app.fetch(new Request(origin+'/admin'),e)).status,200);});
 
@@ -854,6 +854,8 @@ test('each person gets 3 images per service: a new session in the same browser s
 test('activation requires verified mobile and stores the complete private draft and media once',async()=>{
  const env=smsEnv(fixture()),sms=mockSms();
  try{
+  assert.equal((await call(fixture(),'/api/activation')).status,503);
+  assert.equal((await call(env,'/api/activation')).status,200);
   const g=await guest(env,{slug:'demo'}),id=crypto.randomUUID();
   const draft={name:'سالن نمونه',slug:'sample-beauty',brand:'#ac923a',profile:{bio:'معرفی سالن',phone:'۰۲۱-۲۲۳۳۴۴۵۵',instagram:'https://instagram.com/test'},portfolio:[{title:'فرنچ کلاسیک',line:'nails',description:'طرح سفید'}]};
   const submit=()=>{

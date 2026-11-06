@@ -1,14 +1,14 @@
 <noscript><style>.site-loader{display:none!important}html.hero-loading{overflow:auto}</style></noscript>
-<div id="siteLoader" class="site-loader" role="status" aria-label="آماده‌سازی آینه"><div class="loader-mirror"><span class="loader-brand"><!--AYNEH_MARK--></span><i></i></div><p>انتخابی که به شما می‌آید.</p><div class="loader-track"><i id="loaderProgress"></i></div></div>
+<div id="siteLoader" class="site-loader" hidden role="status" aria-label="آماده‌سازی آینه"><div class="loader-mirror"><span class="loader-brand"><!--AYNEH_MARK--></span><i></i></div><p>انتخابی که به شما می‌آید.</p><div class="loader-track"><i id="loaderProgress"></i></div></div>
   <!-- 1. Hero: copy + the mirror studio. The photo, hair canvas and podium dock live on one plate so they never drift apart. -->
   <section id="intro" class="film" aria-labelledby="h1" tabindex="-1">
     <div class="stage" id="stage" data-demo="loading">
       <div class="copy" id="copy">
         <p class="eyebrow reveal">برای صاحبان سالن مو، ناخن و مژه</p>
-        <h1 id="h1" class="reveal">مشتری قبل از نشستن روی صندلی می‌داند چه می‌خواهد.</h1>
-        <p class="lead reveal">مدل مو، رنگ، ناخن یا مژه را روی عکس خودش امتحان می‌کند و انتخابش را مستقیم به تلگرام یا بله شما می‌فرستد. شما فقط درخواست را می‌بینید و جواب می‌دهید.</p>
-        <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>ساخت پیش‌نمایش سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" href="#studio" id="openHeroDemo"><span>اول آینه را امتحان کنید</span></a></div>
-        <p class="fineprint reveal">همین پایین، مدل و رنگ را روی چهرهٔ نمونه عوض کنید.</p>
+        <h1 id="h1" class="reveal">به مشتری‌ها فرصت بدهید مدل دلخواهشان را قبل از مراجعه امتحان کنند.</h1>
+        <p class="lead reveal">با صفحهٔ اختصاصی سالن، مشتری مدل و رنگ مو، طرح ناخن یا مژه را روی عکس خودش امتحان می‌کند. انتخاب و عکسش را در تلگرام یا بله دریافت و بررسی کنید.</p>
+        <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>ساخت پیش‌نمایش سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" href="#studio" id="openHeroDemo"><span>آینه را روی چهرهٔ نمونه امتحان کنید</span></a></div>
+        <p class="fineprint reveal"><a data-try="hair" href="/s/demo?l=hair">روی عکس خودتان امتحان کنید</a><br><span>برای شبیه‌سازی، عکس پس از تأیید شماره ارسال می‌شود.</span></p>
       </div>
 
       <div class="studio" id="studio" tabindex="-1" aria-label="دموی تعاملی آینه روی چهرهٔ نمونه">
@@ -40,7 +40,7 @@
             <h2 id="colors-h">رنگ مو</h2>
             <div class="col-list" id="colList" role="radiogroup" aria-labelledby="colors-h"></div>
           </div>
-          <aside class="reference glass" id="ref" aria-live="polite">
+          <aside class="reference glass" id="ref" inert aria-live="polite">
             <span class="ph"><img id="refImg" alt="" width="240" height="300"></span>
             <div class="ref-body">
               <strong id="refName"></strong>
@@ -70,7 +70,7 @@
       <svg class="demo-hand" id="demoHand" viewBox="0 0 48 56" aria-hidden="true"><path d="M14 29V9a5 5 0 0 1 10 0v15-5a4 4 0 0 1 8 0v7-4a4 4 0 0 1 8 0v9-3a4 4 0 0 1 8 0v12c0 10-6 17-17 17h-2c-6 0-10-3-14-8L5 35c-4-5 2-11 6-7l7 7" transform="translate(-3,-2)"/></svg>
       <div class="demo-caption" id="demoCaption" role="status" aria-live="polite">نمایش نحوهٔ کار آینه</div>
       <div class="demo-controls"><button type="button" id="skipDemo">رد کردن نمایش</button><button type="button" id="replayDemo" hidden>پخش دوبارهٔ نمایش</button></div>
-      <noscript><style>.mirror-front{opacity:1!important}.demo-controls,.demo-caption{display:none}</style></noscript>
+      <noscript><style>.mirror-front{opacity:1!important}.demo-controls,.demo-caption,.dock,.palette,#openHeroDemo{display:none}</style></noscript>
       <div class="fade" id="fade" aria-hidden="true"></div>
     </div>
   </section>
