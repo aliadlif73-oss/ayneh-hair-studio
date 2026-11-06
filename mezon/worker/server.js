@@ -27,12 +27,12 @@ const RATIOS=['1:1','2:3','3:2','3:4','4:3','4:5','5:4','9:16','16:9'];
 // so a test day cannot run up the image bill. A person is this session, this browser id and, once
 // verified, this mobile. Failed images do not count; the 360 view counts as a hairstyle image.
 // Images a salon page may make per day across all its customers (owner setting; 0 = no cap).
-export const DAILY_LIMIT=50;
+export const DAILY_LIMIT=0;
 const dailyLimit=cfg=>Number.isInteger(cfg?.daily_limit)?cfg.daily_limit:DAILY_LIMIT;
 // The 360 view: the front is her own result photo; only her left profile, the back of her head and
 // her right profile are made, three large tiles in one row, so no face is redrawn from the front.
 export const VIEWS_PROMPT='Hair consultation turnaround of the SAME woman as photo 1. Exactly 3 equal tiles side by side in one row, no gaps, borders, labels or numbers: tile 1 = exact side profile with her nose pointing to the LEFT edge of the image, tile 2 = the BACK of her head (180 degrees) showing the whole hairstyle from behind, tile 3 = exact side profile with her nose pointing to the RIGHT edge of the image. The two profiles face opposite directions, like a turntable. Each tile: head and shoulders, the same scale and framing, the same plain light background and soft even light. HAIR: in every tile the haircut, length, layers, parting, volume, texture, styling and hair COLOUR, roots and highlights are exactly as in photo 1, seen from that side. FACE: in the profiles keep her real nose, lips, chin, jawline, ear and skin tone from photo 1, natural and unretouched; never beautify, slim or change her face; same clothing neckline as photo 1. Photorealistic, high detail. No text, watermark or collage frame.';
-export const QUOTA_PER_LINE=8;
+export const QUOTA_PER_LINE=1000 /* TEMP: limits off while testing; the plan is 8 */;
 async function quotaUsed(db,salon,s,visitor){
  const rows=await all(db,"SELECT line,COUNT(*) n FROM generations WHERE salon_id=? AND state<>'fail' AND (session_id=? OR (?<>'' AND visitor=?) OR (? IS NOT NULL AND session_id IN (SELECT id FROM sessions WHERE salon_id=? AND verified_phone=?))) GROUP BY line",salon.id,s.id,visitor,visitor,s.verified_phone||null,salon.id,s.verified_phone||null);
  const used={dress:0};for(const r of rows)used[LINE_KEYS.includes(r.line)?r.line:'dress']+=Number(r.n);
@@ -129,7 +129,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  const match=path.match(/^\/api\/s\/([a-z0-9-]+)(?:\/(.*))?$/);must(match,'مسیر پیدا نشد',404);let salon=await one(db,'SELECT * FROM salons WHERE slug=?',match[1]);
  // The public demo salon behind the landing page is created on first visit; owner_id 'system' marks it.
  if(!salon&&match[1]==='demo'){await run(db,'INSERT OR IGNORE INTO salons(id,slug,owner_id,name,profile,settings,created_at) VALUES(?,?,?,?,?,?,?)',uid(),'demo','system','آینه (نسخهٔ نمونه)','{}',JSON.stringify({generation_enabled:true,reference_verified:false,demo:true}),Date.now());salon=await one(db,'SELECT * FROM salons WHERE slug=?','demo')}
- must(salon,'مزون پیدا نشد',404);const route=match[2]||'',cfg=parse(salon.settings),trial=cfg.trial?await trialOf(db,salon.id):null,demo=salon.owner_id==='system';
+ must(salon,'مزون پیدا نشد',404);const route=match[2]||'',cfg=parse(salon.settings),trial=cfg.trial?await trialOf(db,salon.id):null,demo=false;
  if(trial&&!trialLive(trial)&&route!=='public'&&!route.startsWith('owner'))throw new Problem(410,'مهلت ۱۰ ساعتهٔ صفحهٔ آزمایشی تمام شده است؛ برای ادامه با ما تماس بگیرید');
  const readOnly=route==='public'||route==='owner'||route==='requests'||route.startsWith('media/')||route.startsWith('generation/');
  must(route==='session'?['GET','POST'].includes(req.method):req.method===(readOnly?'GET':'POST'),'متد مجاز نیست',405);
