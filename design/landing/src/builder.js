@@ -1,13 +1,14 @@
 (()=>{
  const $=id=>document.getElementById(id);
- const form=$('start'),frame=$('builderFrame');
- if(!form||!frame)return;
- const preview=$('builderPreview'),loading=$('builderLoading'),activate=$('builderActivate'),hint=$('builderHint');
+ const form=$('start'),live=$('builderLive');
+ if(!form||!live)return;
+ const loading=$('builderLoading'),activate=$('builderActivate'),hint=$('builderHint');
  const dialog=$('builderDialog'),phone=$('builderPhone'),otp=$('builderOtp'),thanks=$('builderThanks'),dialogError=$('builderDialogError');
  const add=$('builderAdd'),works=$('builderWorks'),build=$('builderBuild');
  const profileFields=['bio','manager','address','hours','phone','instagram','website','map','telegram'];
  const brandFields=['logo','cover','portrait'];
- let draft,urls=[],ready=false,ack,otpBody,busy=false,submitted=false,dirty=false;
+ let draft,otpBody,busy=false,submitted=false,dirty=false;
+ const objectURLs=new Map();
  const api=async(path,body)=>{
   const options=body===undefined?{}:{method:'POST',...(body instanceof FormData?{body}:{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})};
   const response=await fetch(path,options);
@@ -15,16 +16,69 @@
   if(!response.ok||!data.ok)throw new Error(data.error||'ارتباط با آینه برقرار نشد. دوباره تلاش کنید.');
   return data;
  };
- function change(){
+ const serviceNames={hair:'مدل مو',color:'رنگ مو',nails:'ناخن',lashes:'مژه'};
+ const linkNames={instagram:'اینستاگرام',website:'وب‌سایت',map:'نقشه',telegram:'تلگرام'};
+ function urlFor(file){
+  if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>12_000_000)return '';
+  if(!objectURLs.has(file))objectURLs.set(file,URL.createObjectURL(file));
+  return objectURLs.get(file);
+ }
+ function image(element,file){
+  const url=urlFor(file);if(url)element.src=url;else element.removeAttribute('src');
+  element.hidden=!url;
+ }
+ function render(){
+  const fields=form.elements;
+  const get=key=>fields[key].value.trim();
+  const name=get('name')||'نام سالن شما';
+  const slug=get('slug')||'your-salon';
+  $('builderAddress').textContent='ayneh-salon.site/s/'+slug;
+  live.style.setProperty('--salon-brand',get('brand'));
+  $('liveName').textContent=name;$('liveInitial').textContent=get('name')[0]||'س';
+  $('liveBio').textContent=get('bio')||'مدل دلخواهت را روی عکس خودت ببین و انتخابت را برای سالن بفرست.';
+  for(const [id,key] of [['liveAddress','address'],['liveHours','hours'],['liveManager','manager'],['livePhone','phone']]){
+   $(id).textContent=get(key);$(id).hidden=!get(key);
+  }
+  for(const [id,key] of [['liveCover','cover'],['liveLogo','logo'],['livePortrait','portrait']])image($(id),fields[key].files[0]);
+  $('liveInitial').hidden=!$('liveLogo').hidden;
+  const links=Object.entries(linkNames).flatMap(([key,label])=>{
+   if(!get(key))return [];
+   const item=document.createElement('span');item.textContent=label+' · ';
+   const value=document.createElement('bdi');value.textContent=get(key);item.append(value);return [item];
+  });
+  $('liveLinks').replaceChildren(...links);
+  $('liveContact').hidden=!get('manager')&&!get('phone')&&!links.length&&$('livePortrait').hidden;
+  const cards=[...works.children].map(row=>{
+   const field=key=>row.querySelector('[data-work="'+key+'"]');
+   const card=document.createElement('article'),img=document.createElement('img'),label=document.createElement('small'),title=document.createElement('strong'),text=document.createElement('p');
+   img.alt='';image(img,field('file').files[0]);label.textContent=serviceNames[field('line').value];title.textContent=field('title').value.trim()||'عنوان نمونه‌کار';text.textContent=field('description').value.trim();
+   card.append(img,label,title,text);return card;
+  });
+  $('liveWorks').replaceChildren(...cards);$('liveEmpty').hidden=cards.length>0;
+  const kept=new Set([...form.querySelectorAll('input[type=file]')].map(input=>input.files[0]));
+  for(const [file,url] of objectURLs)if(!kept.has(file)){URL.revokeObjectURL(url);objectURLs.delete(file)}
+ }
+ function change(event){
+  render();
+  if(event?.target instanceof HTMLElement&&matchMedia('(max-width:850px)').matches){
+   const key=event.target.name;
+   const target=event.target.closest('.builder-work')?$('liveWorks')
+    :['manager','portrait','phone','map','instagram','website','telegram'].includes(key)?$('liveContact')
+    :['name','bio','address','hours'].includes(key)?$('liveName'):null;
+   if(target)live.scrollTop+=target.getBoundingClientRect().top-live.getBoundingClientRect().top-8;
+   else if(['logo','cover','brand','slug'].includes(key))live.scrollTop=0;
+  }
   if(!draft)return;
   dirty=true;activate.hidden=true;
-  hint.textContent='برای دیدن تغییرات و فعال‌سازی، پیش‌نمایش را دوباره بسازید.';
+  hint.textContent='پیش‌نمایش به‌روز شد. برای ادامه، اطلاعات را تأیید کنید.';
  }
- form.addEventListener('input',change);
- form.addEventListener('invalid',e=>{const details=e.target.closest('details');if(details)details.open=true},true);
  form.elements.slug.addEventListener('input',e=>{
   e.target.value=e.target.value.toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
  });
+ form.addEventListener('input',change);
+ form.addEventListener('change',change);
+ form.addEventListener('invalid',e=>{const details=e.target.closest('details');if(details)details.open=true},true);
+ render();
  add.addEventListener('click',()=>{
   const item=$('builderWorkTemplate').content.firstElementChild.cloneNode(true);
   item.querySelector('.builder-remove').onclick=()=>{item.remove();add.disabled=false;change();add.focus()};
@@ -46,19 +100,11 @@
    throw new Error('یکی از عکس‌ها خیلی حجیم است. نسخهٔ کوچک‌تر آن را انتخاب کنید.');
   }finally{image.close()}
  }
- function post(){
-  if(!ready||!draft)return;
-  frame.contentWindow.postMessage({type:'ayneh-salon-draft',id:draft.id,brand:draft.data.brand,page:draft.page},location.origin);
- }
- frame.addEventListener('load',()=>{ready=true;post()});
- addEventListener('message',event=>{
-  if(event.source!==frame.contentWindow||event.origin!==location.origin||event.data?.type!=='ayneh-salon-rendered'||event.data.id!==draft?.id)return;
-  ack?.();
- });
  form.addEventListener('submit',async e=>{
   e.preventDefault();if(build.disabled)return;
   $('builderError').textContent='';build.disabled=true;activate.hidden=true;hint.textContent='';
-  loading.hidden=false;preview.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth'});
+  loading.hidden=false;
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const fields=[...form.elements].filter(input=>!input.disabled);fields.forEach(input=>input.disabled=true);
   try{
    const name=form.elements.name.value.trim(),slug=form.elements.slug.value;
@@ -76,20 +122,8 @@
     files.set(slot,await photo(get('file').files[0]));
     portfolio.push({title,line:get('line').value,description:get('description').value.trim(),slot});
    }
-   const prev=urls;urls=[];
-   const imageUrl=slot=>{const url=URL.createObjectURL(files.get(slot));urls.push(url);return url};
-   const media={...profile};brandFields.forEach(key=>{if(files.has(key))media[key]=imageUrl(key)});
-   const data={name,slug,brand:form.elements.brand.value,profile,portfolio};
-   draft={id:crypto.randomUUID(),data,files,page:{salon:{name,slug,profile:media},portfolio:portfolio.map(item=>({...item,id:item.slot,images:JSON.stringify([imageUrl(item.slot)]),published:1,try_on:1})),generation:false,reference:false,telegram:false}};
+   draft={id:crypto.randomUUID(),data:{name,slug,brand:form.elements.brand.value,profile,portfolio},files};
    dirty=false;submitted=false;
-   const rendered=new Promise((resolve,reject)=>{
-    const timer=setTimeout(()=>reject(new Error('پیش‌نمایش آماده نشد. دوباره تلاش کنید.')),10000);
-    ack=()=>{clearTimeout(timer);resolve()};
-   });
-   frame.loading='eager';post();
-   try{await rendered}finally{ack=null;prev.forEach(URL.revokeObjectURL)}
-   $('builderAddress').textContent='ayneh-salon.site/s/'+slug;
-   $('builderPreviewLabel').textContent='پیش‌نمایش '+name;
    activate.hidden=false;activate.disabled=false;
    hint.textContent='پیش‌نمایش آماده است. برای بررسی نشانی و راه‌اندازی، درخواست فعال‌سازی بفرستید.';
   }catch(error){$('builderError').textContent=error.message;hint.textContent=error.message}
@@ -137,7 +171,7 @@
  });
  otp.addEventListener('submit',e=>{
   e.preventDefault();
-  run(async()=>{await api('/api/s/demo/otp/verify',{code:otp.elements.code.value});await send()},e.submitter);
+  run(async()=>{if(!(await api(sessionPath)).verified)await api('/api/s/demo/otp/verify',{code:otp.elements.code.value});await send()},e.submitter);
  });
  $('builderRetry').onclick=e=>run(async()=>{await api('/api/s/demo/otp/send',otpBody);dialogError.textContent='کد جدید فرستاده شد.'},e.currentTarget);
  dialog.querySelector('.builder-close').onclick=()=>dialog.close();

@@ -64,3 +64,33 @@
 @media(max-width:850px){.builder-grid{grid-template-columns:1fr}.builder-preview{position:relative;top:auto}}
 @media(prefers-reduced-motion:reduce){.builder-spinner{animation:none}}
 .builder-form .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.salon-builder{background:radial-gradient(ellipse at 20% 5%,#fff9ef 0%,transparent 60%),#eee2d4}
+.builder-grid{grid-template-columns:minmax(300px,.85fr) minmax(0,1.15fr);gap:clamp(16px,3.6vw,44px)}
+.builder-form{background:#fffaf4;border-color:#d6bea2}
+.builder-preview{padding:12px;background:#2b2017;border-color:#a78052;box-shadow:0 18px 54px #492d2240}
+.builder-browser{min-height:28px;color:#f3e4ce;padding:0 5px}
+.live-badge{display:inline-flex;gap:7px;align-items:center;border-radius:50px;background:#473527;padding:3px 10px}
+.live-badge::before{content:'';width:6px;height:6px;background:#e3c17d;border-radius:100%;box-shadow:0 0 8px #e3c17d}
+.builder-live{--salon-brand:#b9975b;background:#fffaf2;border-radius:16px;overflow:auto;max-height:min(63vh,580px);scrollbar-color:#c6a77e #fbf1e5}
+.live-cover{height:clamp(76px,13vw,142px);position:relative;background:linear-gradient(120deg,#241912,color-mix(in srgb,var(--salon-brand) 60%,#3b2518));color:#fff7e5}
+.live-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.live-cover>span{position:absolute;top:10px;inset-inline-start:12px;font-size:11px;background:#21170db8;padding:3px 9px;border-radius:30px}
+.live-salon{padding:0 clamp(12px,3vw,30px) 16px;display:grid;gap:6px}
+.live-logo{width:52px;height:52px;display:grid;place-items:center;position:relative;margin-top:-26px;border:3px solid #fffaf2;border-radius:50%;overflow:hidden;background:var(--salon-brand);color:#211509;font-weight:800}
+.live-logo img,.live-manager img{width:100%;height:100%;object-fit:cover}
+.live-kicker{font-size:11px;color:#795735;font-weight:700}
+.live-salon h3{font-size:clamp(19px,3vw,30px);overflow-wrap:anywhere}
+.live-salon p{font-size:13px;overflow-wrap:anywhere;color:#604a39}
+.live-chips,.live-services,.live-links{display:flex;flex-wrap:wrap;gap:5px}
+.live-chips span,.live-services span,.live-links span{padding:2px 7px;background:#f2e7d9;border-radius:7px;font-size:11px;overflow-wrap:anywhere}
+.live-try{justify-self:start;background:color-mix(in srgb,var(--salon-brand) 40%,#160c06);color:#fff8ed;border-radius:25px;padding:3px 12px;font-size:11px}
+.live-services{margin-block:5px}.live-services span:first-child{background:color-mix(in srgb,var(--salon-brand) 36%,#fbefdc)}
+.live-detail{border-top:1px solid #e8d8c5;padding-top:7px}
+.live-detail h4{margin:0 0 5px;font-size:13px}
+.live-manager{display:flex;gap:6px;align-items:center;font-size:12px}
+.live-manager img{width:30px;height:30px;border-radius:50%}
+.live-works{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.live-works article{display:grid;gap:3px;overflow-wrap:anywhere;min-width:0;background:#f5ebdf;padding:5px;border-radius:8px;font-size:12px}
+.live-works img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:6px}
+.builder-preview>.builder-note{color:#f2e4cc}.builder-preview>.btn{background:#f7d89f;color:#26180e}
+@media(max-width:850px){.builder-grid{grid-template-columns:1fr}.builder-preview{grid-row:1;position:sticky;top:var(--hh,68px);z-index:6;padding:7px;gap:6px}.builder-live{max-height:31svh}.live-cover{height:54px}.live-logo{width:37px;height:37px;margin-top:-18px}.live-salon{gap:3px}.live-salon p,.live-chips span,.live-services span{font-size:11px}.builder-form{scroll-margin-top:36svh}.builder-preview>.btn{min-height:38px;padding:4px 10px;font-size:13px}}

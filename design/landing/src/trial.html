@@ -1,6 +1,6 @@
 <section id="salon-example" class="section salon-builder" aria-labelledby="h-example" tabindex="-1">
  <div class="wrap">
-  <header class="sec-head"><p class="kicker">استودیوی صفحهٔ سالن</p><h2 id="h-example">صفحهٔ سالن‌تان را از نگاه مشتری ببینید</h2><p class="sub">نمونهٔ سالن ساناز را ببینید و بعد با نام، رنگ و نمونه‌کارهای خودتان یک پیش‌نمایش بسازید.</p></header>
+  <header class="sec-head"><p class="kicker">استودیوی صفحهٔ سالن</p><h2 id="h-example">صفحهٔ سالن‌تان را از نگاه مشتری ببینید</h2><p class="sub">نام، رنگ و نمونه‌کارهای سالن را وارد کنید. هر تغییر همان لحظه در نمای مشتری دیده می‌شود.</p></header>
   <div class="builder-grid">
    <form id="start" class="builder-form">
     <fieldset><legend>هویت و نشانی صفحه</legend>
@@ -33,8 +33,20 @@
     <p class="builder-note">پیش‌نمایش خصوصی است. تصاویر پس از درخواست فعال‌سازی برای کارشناسان آینه ارسال می‌شوند.</p>
    </form>
    <div class="builder-preview" id="builderPreview">
-    <div class="builder-browser"><span aria-hidden="true">● ● ●</span><b dir="ltr" id="builderAddress">ayneh-salon.site/s/sanaz-salon</b><span id="builderPreviewLabel">نمونهٔ سالن ساناز</span></div>
-    <iframe title="پیش‌نمایش صفحهٔ مشتری سالن" src="/salon-preview" id="builderFrame" loading="lazy"></iframe>
+    <div class="builder-browser"><span class="live-badge">پیش‌نمایش زنده</span><b dir="ltr" id="builderAddress">ayneh-salon.site/s/your-salon</b></div>
+    <div class="builder-live" id="builderLive">
+     <div class="live-cover"><img id="liveCover" alt="" hidden><span>آینهٔ اختصاصی سالن</span></div>
+     <div class="live-salon">
+      <div class="live-logo"><img id="liveLogo" alt="" hidden><span id="liveInitial">س</span></div>
+      <p class="live-kicker">استودیو زیبایی</p><h3 id="liveName">نام سالن شما</h3>
+      <p id="liveBio">مدل دلخواهت را روی عکس خودت ببین و انتخابت را برای سالن بفرست.</p>
+      <div class="live-chips"><span id="liveAddress" hidden></span><span id="liveHours" hidden></span></div>
+      <span class="live-try">شروع با عکس خودم</span>
+      <div class="live-services" aria-label="خدمات سالن"><span>مدل مو</span><span>رنگ مو</span><span>ناخن</span><span>مژه</span></div>
+      <section class="live-detail" id="liveContact" hidden><h4>دربارهٔ سالن</h4><div class="live-manager"><img id="livePortrait" alt="" hidden><span id="liveManager"></span></div><p id="livePhone" dir="ltr"></p><div class="live-links" id="liveLinks"></div></section>
+      <section class="live-detail"><h4>نمونه‌کارهای سالن</h4><div id="liveWorks" class="live-works"></div><p id="liveEmpty">با افزودن نمونه‌کار، عکس و توضیحات آن اینجا دیده می‌شود.</p></section>
+     </div>
+    </div>
     <div class="builder-loading" id="builderLoading" role="status" hidden><span class="builder-spinner" aria-hidden="true"></span><p>در حال ساخت صفحهٔ اختصاصی سالن شما هستیم. لطفاً چند لحظه صبر کنید.</p></div>
     <button class="btn btn--lg" id="builderActivate" type="button" hidden>فعال‌سازی صفحهٔ اختصاصی سالن من</button>
     <p class="builder-note" id="builderHint" aria-live="polite"></p>

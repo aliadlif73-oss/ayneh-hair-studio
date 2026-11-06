@@ -21,7 +21,7 @@ st = re.search(r'<style>(.*?)</style>', h, re.S)
 css = st.group(1)
 drop = re.compile(r'^\s*(\.hero|\.swatch|\.style-dock|\.lines-row|\.lead\{|h1\{|\.eyebrow|\.fineprint|\.hero-copy)')
 css = NL.join(l for l in css.split(NL) if not drop.match(l))
-css += NL + R('src/hero.css') + NL + R('src/sec2.css') + NL + R('src/lead.css') + NL + R('src/trial.css') + NL + R('src/scenes.css') + NL + R('src/cta.css')
+css += NL + R('src/hero.css') + NL + R('src/lead.css') + NL + R('src/trial.css') + NL + R('src/cta.css')
 css += NL + R('src/polish.css')
 css += NL + '.compare{margin-top:0}' + NL + '@media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}' + NL
 h = h.replace(st.group(0), '<style>' + css + '</style>')
@@ -30,8 +30,7 @@ h = re.sub(r'  <!-- 1\. Hero -->.*?(?=  <!-- 2\. Experience -->)', lambda m: R('
 def section(section_id):
     return re.search(r'  <section id="' + section_id + r'".*?</section>', h, re.S).group(0)
 
-story, films = R('src/scenes.html').split('  <section id="transform"', 1)
-funnel = NL.join([section('how'), R('src/invite.html'), section('services'), '  <section id="transform"'+films, story, R('src/trial.html'), section('faq'), R('src/sec2.html')])
+funnel = NL.join([section('how'), R('src/invite.html'), section('services'), R('src/scenes.html'), R('src/trial.html'), section('faq')])
 icon_paths = {
     'mirror': 'M11 27V15a9 9 0 0 1 18 0v12ZM20 27v6m-6 0h12m-9-14 5-5',
     'talk': 'M9 10h22v15H19l-7 6v-6H9Zm6 6h10m-10 4h7',
@@ -48,13 +47,13 @@ def icon(match):
 funnel = re.sub(r'<!--ICON:(\w+)-->', icon, funnel)
 h = re.sub(r'  <!-- 2\. Experience -->.*?(?=</main>)', lambda m: funnel + NL, h, flags=re.S)
 h = h.replace('<!--AYNEH_MARK-->', R('assets/ayneh-mark.svg'))
-assert 'builderFrame' in h and 'id="start"' in h, 'salon builder not inserted'
+assert 'builderLive' in h and 'id="start"' in h, 'salon builder not inserted'
 # styles whose mirror render exists (assets/look-sNN.webp + mask-sNN.png): the hero shows their shape on the model
 LOOKS = sorted(int(m.group(1)) for f in os.listdir('assets') for m in [re.match(r'look-s(\d\d)\.webp$', f)] if m and os.path.exists('assets/mask-s%s.png' % m.group(1)))
 asset_version = hashlib.sha256(b''.join(open('assets/' + f, 'rb').read() for f in sorted(os.listdir('assets')) if re.match(r'(hero\.webp|hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', f))).hexdigest()[:12]
 # Include film contents so unchanged poster frames cannot leave stale video URLs.
 asset_version = hashlib.sha256((asset_version + ''.join(hashlib.sha256(open('../../public/landing/video/' + n + '.mp4', 'rb').read()).hexdigest() for n in ['hair', 'lashes', 'nails'])).encode()).hexdigest()[:12]
-scripts = '<script>window.__AYN_ASSET_VERSION=' + json.dumps(asset_version) + ';window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/draft.js', 'src/portrait.js', 'src/hair-color.js', 'src/hero.js', 'src/sec2.js', 'src/journey-timeline.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/reveal.js', 'src/builder.js'])
+scripts = '<script>window.__AYN_ASSET_VERSION=' + json.dumps(asset_version) + ';window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/draft.js', 'src/portrait.js', 'src/hair-color.js', 'src/hero.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/reveal.js', 'src/builder.js'])
 h = h.replace('</body>', scripts + '</body>')
 W('out/v2.html', h.replace('__ORIGIN__', ''))
 

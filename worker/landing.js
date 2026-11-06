@@ -457,55 +457,6 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 .site-header .btn{max-width:280px;white-space:normal;text-align:center;line-height:1.6}@media(max-width:600px){.site-header .btn{max-width:185px;font-size:10px;padding:8px 14px;min-height:44px}}
 
 
-/* ---------- Section 2: request lands in the salon chat ---------- */
-.s2{position:relative;background:radial-gradient(90% 70% at 22% 40%,#2a1a0e 0%,#160D07 62%);color:var(--cream);padding:var(--sec-y) var(--gut)}
-.s2-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:clamp(32px,6vw,88px);align-items:center}
-.s2-copy h2{margin:0 0 16px;color:var(--ivory)}
-.s2 .sub{margin:0 0 28px;font-size:18px;line-height:1.95;color:var(--ivory-2);font-weight:500;max-width:560px}
-.s2-points{display:grid;gap:12px;margin:0 0 32px;max-width:560px}
-.s2-points li{display:grid;gap:2px;padding:14px 18px;border-radius:var(--r-card);border:1px solid var(--line-dark);background:linear-gradient(180deg,rgba(255,248,238,.07),rgba(255,248,238,.02))}
-.s2-points strong{color:var(--ivory);font-size:17px}
-.s2-points span{color:var(--ivory-2);font-size:15px}
-.s2-cta{display:flex;flex-wrap:wrap;gap:12px}
-.s2-demo{position:relative;display:grid;justify-items:center;gap:18px}
-.phone{position:relative;width:min(340px,100%);padding:14px 14px 18px;border-radius:38px;background:#120A05;border:1.5px solid var(--brass);box-shadow:0 0 0 6px rgba(185,151,91,.1),0 40px 80px rgba(0,0,0,.5)}
-.phone-top{display:flex;align-items:center;gap:12px;padding:6px 8px 12px;border-bottom:1px solid rgba(214,190,140,.2)}
-.phone-top .av{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:linear-gradient(145deg,#E7D3A4,#A9824F);color:var(--espresso);font-weight:800}
-.phone-top strong{display:block;font-size:15px;color:var(--ivory);line-height:1.4}
-.phone-top small{display:block;font-size:12px;color:var(--ivory-2);line-height:1.4}
-.push{position:absolute;z-index:3;inset-inline:22px;top:64px;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:16px;background:rgba(249,241,232,.96);color:var(--espresso);font-size:13px;font-weight:700;box-shadow:0 14px 30px rgba(0,0,0,.4);opacity:0;transform:translateY(-14px);pointer-events:none}
-.push .dot{width:8px;height:8px;border-radius:50%;background:#B9975B}
-.chat{display:grid;gap:12px;padding:14px 4px 4px;min-height:340px;align-content:start}
-.msg{max-width:92%;border-radius:18px;font-size:14px;line-height:1.8}
-.msg.in{display:flex;gap:12px;padding:10px;background:#23160C;border:1px solid rgba(214,190,140,.25);color:var(--ivory)}
-.msg .ph{flex:0 0 74px;aspect-ratio:4/5;border-radius:12px;overflow:hidden;background:#3a2a1c}
-.msg .ph img{width:100%;height:100%;object-fit:cover;display:block}
-.msg .body{min-width:0}
-.msg .body>strong{display:block;font-size:14px;margin-bottom:2px}
-.msg dl{margin:0;display:grid;gap:0}
-.msg dl div{display:flex;gap:6px;font-size:13px}
-.msg dt{color:var(--brass-soft);font-weight:600}
-.msg dt::after{content:":"}
-.msg dd{margin:0;color:var(--ivory);font-weight:700}
-.msg small{display:block;margin-top:4px;font-size:11.5px;line-height:1.6;color:var(--ivory-2)}
-.actions{display:flex;flex-wrap:wrap;gap:8px}
-.actions button{min-height:44px;padding:0 14px;border-radius:var(--r-pill);border:1px solid var(--brass-soft);background:transparent;color:var(--ivory);font-size:13.5px;font-weight:700;cursor:pointer;transition:background 160ms var(--ease),color 160ms var(--ease)}
-.actions button:hover{background:rgba(214,190,140,.16)}
-.actions button[aria-pressed="true"]{background:var(--cream);color:var(--espresso)}
-.msg.out{margin-inline-start:auto;padding:8px 14px;background:linear-gradient(145deg,#C9A569,#A9824F);color:var(--espresso);font-weight:700;border-radius:18px 18px 4px 18px}
-.cust{width:min(340px,100%);padding:14px 18px;border-radius:var(--r-card);border:1px dashed var(--line-dark);background:rgba(255,248,238,.04);text-align:right}
-.cust small{display:block;font-size:12.5px;color:var(--brass-soft);font-weight:700}
-.cust strong{display:block;font-size:16px;color:var(--ivory);line-height:1.7}
-.s2-demo.play .push{animation:push 3200ms var(--ease) 500ms both}
-.s2-demo.play #s2msg{animation:bubble 700ms var(--ease) 1500ms both}
-.s2-demo.play .actions{animation:bubble 600ms var(--ease) 2200ms both}
-.s2-demo.play .phone{animation:bubble 800ms var(--ease) both}
-@keyframes push{0%{opacity:0;transform:translateY(-14px)}12%,70%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-8px)}}
-@keyframes bubble{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-@media (max-width:900px){.s2-grid{grid-template-columns:1fr}.s2-cta .btn--lg{width:100%}}
-@media (prefers-reduced-motion:reduce){.s2-demo.play *{animation:none!important}}
-
-
 /* ---------- lead form (sends to the owner's bot chat via /api/inquiry) ---------- */
 .path--form{gap:16px}
 .path--form>p{max-width:560px}
@@ -594,158 +545,36 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 @media(max-width:850px){.builder-grid{grid-template-columns:1fr}.builder-preview{position:relative;top:auto}}
 @media(prefers-reduced-motion:reduce){.builder-spinner{animation:none}}
 .builder-form .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
-
-/* Scenes: pinned stage + scroll-scrubbed frame sequences (no library) */
-.scene{position:relative;background:var(--canvas)}
-.scene--pain{height:210svh}.scene[data-scene=transform]{height:420svh}.scene[data-scene=lines]{height:360svh}
-.scene--dark{background:var(--espresso);color:var(--cream)}
-.scene .sstage{position:sticky;top:var(--hh,76px);height:calc(100svh - var(--hh,76px));display:flex;flex-direction:column;align-items:center;justify-content:safe center;gap:clamp(10px,2svh,20px);padding:clamp(16px,3svh,32px) var(--gut) 16px;overflow:hidden}
-.scene-head{width:min(100%,1280px)}
-.scene-head h2{margin:0;font-size:clamp(24px,3.4vw,44px);line-height:1.5;font-weight:800;text-wrap:balance}
-.film-frame{position:relative;margin:0;width:min(100%,1280px);aspect-ratio:16/9;max-height:calc(100svh - var(--hh,76px) - 210px);border-radius:var(--r-frame);overflow:hidden;background:var(--espresso-2);box-shadow:0 30px 70px -34px rgba(0,0,0,.6)}
-.film-frame--pain{aspect-ratio:auto;height:min(56svh,100%);background:transparent;box-shadow:none;border-radius:0}
-.film-frame--pain img{width:100%;height:100%;object-fit:contain;transform:scale(var(--ps,1.14)) rotate(var(--pr,-2deg));opacity:var(--po,.4);will-change:transform,opacity}
-.film-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-.film-canvas--b{opacity:0}
-.cap-row{position:absolute;inset:auto 0 0 0;padding:44px clamp(16px,3vw,32px) clamp(14px,2.4vw,24px);background:linear-gradient(to top,rgba(22,13,7,.82),rgba(22,13,7,0));display:grid}
-.film-frame--pain .cap-row{position:static;background:none;padding:12px 0 0;color:var(--ink)}
-.cap{grid-area:1/1;font-size:clamp(15px,1.8vw,20px);font-weight:700;opacity:0;transform:translateY(8px);transition:opacity .35s var(--ease),transform .35s var(--ease)}
-.cap.is-on{opacity:1;transform:none}
-.rail{position:absolute;inset:auto 0 0 0;height:3px;background:rgba(249,241,232,.18)}
-.rail i{display:block;height:100%;width:100%;background:var(--brass);transform-origin:right;transform:scaleX(var(--rp,0))}
-.ai-note{margin:0;font-size:12.5px;opacity:.7}
-@media (max-width:760px){
-  .film-frame{aspect-ratio:4/5;max-height:58svh;width:min(100%,460px)}
-  .film-frame--pain{aspect-ratio:auto}
-  .scene-head h2{font-size:23px}
-}
-@media (prefers-reduced-motion:reduce){
-  .scene{height:auto!important}.scene .sstage{position:static;height:auto;padding-block:64px}
-  .film-frame--pain img{transform:none;opacity:1}
-  .film-canvas--b{display:none}
-  .cap{position:static;opacity:1;transform:none;grid-area:auto}.cap-row{display:block}.cap:not([data-still]){display:none}
-}
-
-/* Five dedicated film stills share one full-bleed, scroll-driven cinematic frame. */
-.cinema-story{height:500svh;position:relative;background:#160D07;color:#F8F2EB}
-.cinema-stage{height:calc(100svh - var(--hh,76px));position:sticky;top:var(--hh,76px);isolation:isolate;overflow:clip;background:#160D07}
-.cinema-reel,.cinema-shot{position:absolute;inset:0}
-.cinema-shot{opacity:0;visibility:hidden;transition:opacity 850ms cubic-bezier(.22,.61,.36,1),visibility 850ms;pointer-events:none;overflow:clip}
-.cinema-shot.is-current{opacity:1;visibility:visible;pointer-events:auto;z-index:2}
-.cinema-image{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;object-position:38% 48%;transform:scale(calc(1.025 + var(--cinema-local,0)*.035)) translateX(calc(var(--cinema-local,0)*-8px));transition:transform 100ms linear;filter:saturate(.88) contrast(1.04)}
-.cinema-shade{position:absolute;inset:0;background:linear-gradient(270deg,rgba(16,10,6,.91),rgba(16,10,6,.66) 33%,rgba(16,10,6,.12) 62%,rgba(16,10,6,.04)),linear-gradient(0deg,rgba(16,10,6,.95),transparent 28%,transparent 75%,rgba(16,10,6,.48));pointer-events:none}
-.cinema-copy{position:absolute;z-index:2;right:7%;top:48%;width:39%;max-width:560px;transform:translateY(calc(-50% + 25px));opacity:0;transition:opacity 650ms ease 160ms,transform 850ms cubic-bezier(.22,.61,.36,1) 100ms}
-.is-current .cinema-copy{transform:translateY(-50%);opacity:1}
-.cinema-eyebrow{font-size:12px;color:#D6BE8C;margin:0 0 18px;letter-spacing:.02em}
-.cinema-eyebrow span{display:inline-block;margin-right:15px;color:#B8A489;direction:ltr}
-.cinema-copy h2{font-size:clamp(33px,3.7vw,58px);font-weight:750;line-height:1.55;letter-spacing:-.04em;text-wrap:balance;margin:0 0 24px;max-width:15ch;color:#FBF5EB}
-.cinema-description{font-size:clamp(14px,1.3vw,18px);line-height:2;max-width:36ch;margin:0 0 26px;color:#D3C8BA}
-.cinema-benefit{border-right:1px solid #D6BE8C90;padding:2px 16px 2px 0;margin:0;color:#E8D4AE;max-width:35ch}
-.cinema-benefit>span{display:block;font-size:10px;color:#B9A78A;margin-bottom:6px}.cinema-benefit strong{font-size:clamp(14px,1.4vw,19px);line-height:1.85;font-weight:600}
-.cinema-next{display:inline-block;font-size:12px;margin-top:18px;color:#E7C783;text-underline-offset:5px}
-.cinema-frame{position:absolute;inset:24px;z-index:4;border:1px solid #D6BE8C30;pointer-events:none}
-.cinema-frame::before,.cinema-frame::after{content:"";position:absolute;width:26px;height:26px;border-color:#E0C48A70;border-style:solid}.cinema-frame::before{left:-1px;top:-1px;border-width:1px 0 0 1px}.cinema-frame::after{right:-1px;bottom:-1px;border-width:0 1px 1px 0}
-.cinema-topline{position:absolute;top:40px;left:48px;right:48px;z-index:5;display:flex;justify-content:space-between;gap:20px;color:#D3C3A9;font-size:10px}
-.cinema-controls{position:absolute;z-index:5;left:7%;right:7%;bottom:48px;display:flex;gap:22px}
-.cinema-controls button{position:relative;flex:1;min-width:0;min-height:44px;padding:8px 0 15px;border:0;background:transparent;color:#AD9C85;font:inherit;font-size:12px;display:flex;align-items:center;gap:10px;text-align:right;cursor:pointer;transition:color 250ms}
-.cinema-controls button::after{content:"";position:absolute;bottom:0;right:0;left:0;height:1px;background:#D6BE8C45}
-.cinema-controls i{position:absolute;bottom:0;right:0;left:0;height:1px;background:#E4C681;transform-origin:right;transform:scaleX(0);z-index:1}
-.cinema-controls button[aria-current="step"]{color:#F1DCB5}.cinema-controls button[aria-current="step"] i{transform:scaleX(var(--cinema-local,0))}.cinema-controls button.is-past i{transform:scaleX(1);opacity:.55}
-.cinema-step{font-size:10px;color:#B9975B}
-.cinema-footnote{position:absolute;z-index:5;bottom:15px;right:7%;left:7%;text-align:center;color:#A7967F;font-size:9px;margin:0}
-@media(max-width:900px){.cinema-copy{right:7%;width:46%}.cinema-copy h2{font-size:clamp(29px,4.3vw,40px)}.cinema-description{font-size:14px}.cinema-controls{gap:12px}.cinema-controls button{font-size:11px}}
-@media(max-width:600px){.cinema-image{object-position:29% 42%}.cinema-shade{background:linear-gradient(0deg,#100A06F5,rgba(16,10,6,.88) 26%,rgba(16,10,6,.25) 65%,rgba(16,10,6,.1)),linear-gradient(180deg,#100A0655,transparent 25%)}.cinema-copy,.is-current .cinema-copy{top:auto;bottom:115px;right:28px;left:28px;width:auto;max-width:none;transform:none}.cinema-copy h2{font-size:clamp(25px,6.8vw,34px);line-height:1.55;max-width:19ch;margin-bottom:12px}.cinema-eyebrow{font-size:10px;margin-bottom:9px}.cinema-description{font-size:13px;line-height:1.9;max-width:36ch;margin-bottom:15px}.cinema-benefit strong{font-size:13px}.cinema-benefit>span{font-size:9px;margin-bottom:3px}.cinema-frame{inset:13px}.cinema-topline{top:27px;left:28px;right:28px;font-size:9px}.cinema-topline span:first-child{display:none}.cinema-controls{left:28px;right:28px;bottom:42px;gap:9px}.cinema-controls button{font-size:9px;gap:3px;flex-wrap:wrap;align-content:center;min-height:44px}.cinema-step{font-size:8px}.cinema-footnote{font-size:8px;left:25px;right:25px;bottom:19px;line-height:1.5}.cinema-next{font-size:11px;margin-top:12px}}
-@media(max-height:700px) and (min-width:601px){.cinema-copy h2{font-size:32px;margin-bottom:14px}.cinema-description{font-size:14px;margin-bottom:15px}.cinema-copy{top:45%}.cinema-benefit strong{font-size:14px}.cinema-controls{bottom:36px}.cinema-topline{top:29px}}
-@media(prefers-reduced-motion:reduce),(max-height:540px){.cinema-story{height:auto}.cinema-stage{position:relative;top:auto;height:auto;overflow:visible}.cinema-reel{position:relative}.cinema-shot{position:relative;min-height:620px;height:90svh;opacity:1;visibility:visible;pointer-events:auto;transition:none}.cinema-copy{opacity:1;transform:translateY(-50%);transition:none}.cinema-image{transform:none;transition:none}.cinema-topline,.cinema-controls,.cinema-frame{display:none}.cinema-footnote{position:relative;bottom:auto;padding:16px 0}.cinema-copy,.is-current .cinema-copy{opacity:1}@media(max-width:600px){.cinema-copy,.is-current .cinema-copy{transform:none;bottom:50px}.cinema-shot{min-height:680px}}}
-html:not(.cinema-enabled) .cinema-story{height:auto}
-html:not(.cinema-enabled) .cinema-stage{position:relative;top:auto;height:auto}
-html:not(.cinema-enabled) .cinema-reel{position:relative}
-html:not(.cinema-enabled) .cinema-shot{position:relative;height:90svh;min-height:650px;opacity:1;visibility:visible;pointer-events:auto}
-html:not(.cinema-enabled) .cinema-copy{opacity:1;transform:translateY(-50%)}
-html:not(.cinema-enabled) .cinema-controls{display:none}
-
-@media(max-width:600px){html:not(.cinema-enabled) .cinema-copy{transform:none;bottom:55px}html:not(.cinema-enabled) .cinema-topline,html:not(.cinema-enabled) .cinema-frame{display:none}}
-
-/* Three user-supplied films share a native-scroll timeline and a DOM stone handoff. */
-.tryon-journey{height:1080svh;background:#17120e;color:#f8f0e5;position:relative;--film-progress:0}
-.journey-stage{position:sticky;top:var(--hh,76px);height:calc(100svh - var(--hh,76px));overflow:clip;isolation:isolate;background:#17120e}
-.journey-films,.journey-film,.journey-wash,.journey-bridge{position:absolute;inset:0;width:100%;height:100%}
-.journey-film{object-fit:contain;opacity:0;visibility:hidden;transition:opacity .4s;pointer-events:none;background:#17120e}
-.journey-film.is-active{opacity:1;visibility:visible}
-.journey-wash{pointer-events:none;background:linear-gradient(0deg,#100b08ed,transparent 40%,transparent 85%,#100b0870);z-index:2}
-.journey-copy{position:absolute;right:6%;bottom:115px;max-width:400px;width:34%;opacity:0;visibility:hidden;transform:translateY(14px);transition:opacity .35s,transform .45s;z-index:4;text-shadow:0 2px 16px #0008}
-.journey-copy.is-active{opacity:1;visibility:visible;transform:none}
-.journey-copy h3{font-size:clamp(26px,3.1vw,46px);line-height:1.5;margin:0 0 14px;letter-spacing:-.035em;color:#fff8ef}
-.journey-copy>p:not(.journey-kicker){font-size:clamp(13px,1.2vw,16px);line-height:1.95;color:#eee0ce;margin:0 0 15px;max-width:35ch}
-.journey-kicker{color:#e7c892;font-size:11px;margin:0 0 12px}
-.journey-copy a{font-size:12px;color:#ffe0a6;text-underline-offset:6px}.journey-copy a span{margin-right:16px}
-.journey-top{position:absolute;z-index:5;top:28px;left:6%;right:6%;display:flex;justify-content:space-between;font-size:10px;color:#eee0ca;gap:12px}
-.journey-nav{position:absolute;z-index:5;bottom:42px;left:6%;right:6%;display:flex;gap:24px}
-.journey-nav button{position:relative;flex:1;min-height:44px;border:0;border-bottom:1px solid #c8ac7e50;color:#b8a991;background:none;font:inherit;font-size:12px;text-align:right;cursor:pointer}
-.journey-nav button[aria-current]{color:#ffe2a6}.journey-nav i{position:absolute;bottom:-1px;right:0;width:100%;height:2px;background:#e7c58a;transform-origin:right;transform:scaleX(0)}.journey-nav button[aria-current] i{transform:scaleX(var(--film-progress))}
-.journey-note{position:absolute;bottom:13px;right:6%;left:6%;z-index:5;text-align:center;font-size:9px;color:#c2b29b;margin:0}
-.journey-breath{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:25px;background:#17120e;opacity:0;visibility:hidden;pointer-events:none;text-align:center;padding:30px}
-.journey-breath span{font-size:clamp(24px,3.5vw,45px);font-weight:600;line-height:1.8}.journey-breath small{font-size:12px;color:#c9ae7c}.journey-breath i{height:65px;width:1px;background:linear-gradient(transparent,#c9ae7c,transparent)}
-.journey-bridge{z-index:3;opacity:0;visibility:hidden;pointer-events:none;background:#17120e;--bridge-p:0}
-.journey-bridge-out,.journey-bridge-in{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
-.journey-bridge-space{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 45%,#493a29,#17120e 70%)}
-.journey-stone{position:absolute;left:50%;top:50%;width:clamp(180px,28vw,400px);height:auto;max-width:none;filter:drop-shadow(0 35px 35px #0006);will-change:transform;transform:translate(-50%,-50%)}
-.journey-bridge p{position:absolute;top:12%;left:20px;right:20px;text-align:center;font-size:clamp(18px,2.5vw,32px);color:#f6e2bf}
-.journey-load{position:absolute;z-index:6;top:60px;left:6%;font-size:11px;color:#e3ca9e}.journey-nojs{padding:30px}
-.tryon-journey[data-phase=breath] .journey-breath{opacity:1;visibility:visible}.tryon-journey[data-phase=bridge] .journey-bridge{opacity:1;visibility:visible}
-@media(min-width:901px){.journey-copy{background:linear-gradient(270deg,#17120ed9,#17120e65);padding:20px 22px;border-right:1px solid #d3b67e60;border-radius:2px}}
-@media(max-width:900px){.journey-copy{width:43%;bottom:100px}.journey-copy h3{font-size:29px}.journey-copy>p:not(.journey-kicker){font-size:13px}}
-@media(max-width:600px){.tryon-journey{height:1150svh}.journey-film,.journey-bridge-out,.journey-bridge-in{height:auto;aspect-ratio:16/9;top:15%;object-fit:contain}.journey-wash{background:linear-gradient(0deg,#17120e 15%,#17120e00 70%)}.journey-copy{right:25px;left:25px;bottom:110px;max-width:none;width:auto}.journey-copy h3{font-size:27px;line-height:1.5;margin-bottom:10px}.journey-copy h3 br{display:none}.journey-copy>p:not(.journey-kicker){font-size:13px;max-width:38ch;margin-bottom:12px}.journey-kicker{font-size:10px;margin-bottom:8px}.journey-top{top:25px;left:25px;right:25px;font-size:9px}.journey-top>span:first-child{display:none}.journey-nav{left:25px;right:25px;bottom:39px;gap:14px}.journey-nav button{font-size:11px}.journey-note{font-size:8px;bottom:13px}.journey-stone{width:51vw}.journey-bridge p{top:10%;font-size:23px}.journey-load{top:48px}.journey-breath span{font-size:26px}}
-/* Accessible alternative: direct playback instead of forced scroll animation. */
-html:not(.journey-enabled) .tryon-journey,.tryon-journey.is-static{height:auto}
-html:not(.journey-enabled) .journey-stage,.is-static .journey-stage{position:relative;top:auto;height:auto;overflow:visible;padding:50px 20px}
-html:not(.journey-enabled) .journey-films,.is-static .journey-films{position:relative;display:grid;gap:25px}
-html:not(.journey-enabled) .journey-film,.is-static .journey-film{position:relative;inset:auto;width:100%;height:auto;aspect-ratio:16/9;opacity:1;visibility:visible;pointer-events:auto}
-html:not(.journey-enabled) .journey-copy,.is-static .journey-copy{position:relative;inset:auto;width:auto;max-width:650px;opacity:1;visibility:visible;transform:none;margin:30px auto;padding:20px}
-html:not(.journey-enabled) .journey-bridge,html:not(.journey-enabled) .journey-breath,html:not(.journey-enabled) .journey-wash,html:not(.journey-enabled) .journey-nav,html:not(.journey-enabled) .journey-top,.is-static .journey-bridge,.is-static .journey-breath,.is-static .journey-wash,.is-static .journey-nav,.is-static .journey-top{display:none}
-.is-static .journey-note{position:relative;inset:auto;padding:20px}.is-static .journey-load{display:none}
-@media(min-width:601px){.journey-copy[data-journey-copy=nails]{top:75px;bottom:auto;width:29%;right:4%;max-width:340px}.journey-copy[data-journey-copy=nails] h3{font-size:clamp(23px,2.6vw,36px)}}
-@media(min-width:601px){.journey-copy[data-journey-copy=lashes]{width:86%;right:7%;max-width:none;bottom:105px;padding:14px 20px;display:grid;grid-template-columns:1fr 1fr;column-gap:40px;align-items:center}.journey-copy[data-journey-copy=lashes] .journey-kicker{grid-column:1;margin:0 0 4px}.journey-copy[data-journey-copy=lashes] h3{grid-column:1;font-size:28px;margin:0}.journey-copy[data-journey-copy=lashes] h3 br{display:none}.journey-copy[data-journey-copy=lashes]>p:not(.journey-kicker){grid-column:2;grid-row:1/3;max-width:none;font-size:14px;margin:0}.journey-copy[data-journey-copy=lashes] a{grid-column:1/3;margin-top:8px}}
-/* The outgoing downward gaze and incoming upward gaze share one moving frame. */
-.journey-gaze{display:block;padding:0;overflow:clip;background:#17120e}
-.journey-gaze-up,.journey-gaze-down{position:absolute;left:0;right:0;overflow:clip}
-.journey-gaze-up{top:0;height:var(--gaze-split)}.journey-gaze-down{bottom:0;height:calc(100% - var(--gaze-split))}
-.journey-gaze img{display:block;width:100%;height:100%;object-fit:cover;max-width:none}
-.journey-gaze-up img{object-position:62% 38%}.journey-gaze-down img{object-position:50% 14%}
-.journey-gaze .journey-gaze-seam{position:absolute;left:0;right:0;top:var(--gaze-split);width:100%;height:1px;background:#d4b37880;box-shadow:0 0 24px #d4b37850}
-@media(max-width:600px){.journey-gaze-up img{object-position:67% 38%}.journey-gaze-down img{object-position:50% 12%}}
-/* Compact carousel and normal-flow films replace the long pinned sequences. */
-html.cinema-enabled .cinema-story{height:auto}
-html.cinema-enabled .cinema-stage{position:relative;top:auto;height:88svh;min-height:650px;max-height:900px}
-html.cinema-enabled .cinema-reel{position:absolute;inset:0}
-html.cinema-enabled .cinema-shot{position:absolute;inset:0;height:100%;min-height:0;opacity:0;visibility:hidden}
-html.cinema-enabled .cinema-shot.is-current{opacity:1;visibility:visible}
-.cinema-arrows{position:absolute;z-index:6;left:7%;top:65px;display:flex;gap:8px;direction:ltr}
-.cinema-arrows button{width:44px;height:44px;border:1px solid #d7bb8055;border-radius:50%;background:#17110c88;color:#f2ddba;font:inherit;font-size:20px;cursor:pointer}
-.cinema-arrows [data-slide-toggle]{font-size:14px}.cinema-controls button[aria-current] i{transform:scaleX(1)}
-.service-journey{background:#17120e;color:#f8efe4}
-.auto-film{position:relative;min-height:650px;height:90svh;max-height:950px;overflow:clip;background:#17120e}
-.auto-film .journey-film{opacity:1;visibility:visible;object-fit:contain;pointer-events:auto}
-.auto-film .journey-copy{opacity:1;visibility:visible;transform:none}
-.film-toggle{position:absolute;z-index:6;left:6%;bottom:35px;width:44px;height:44px;background:#17120eaa;color:#f2d9b0;border:1px solid #d6bc8055;border-radius:50%;cursor:pointer;font-size:17px}
-.service-journey>.journey-gaze{position:relative;inset:auto;height:40svh;min-height:280px;max-height:450px;opacity:1;visibility:visible;--gaze-split:50%}
-.nail-journey{height:270svh;position:relative}.nail-journey .journey-stage{position:sticky}.nail-journey .journey-copy{transition:opacity .3s}.nail-journey .journey-bridge{visibility:visible;opacity:1}
-.nail-journey.is-static{height:auto}.nail-journey.is-static .journey-stage{height:auto;position:relative;padding:30px 15px}.nail-journey.is-static .journey-film{position:relative;inset:auto;width:100%;height:auto;aspect-ratio:16/9;opacity:1;visibility:visible;pointer-events:auto}.nail-journey.is-static .journey-copy{position:relative;inset:auto;width:auto;opacity:1;visibility:visible}.nail-journey.is-static .journey-bridge{display:none}
-@media(max-width:600px){html.cinema-enabled .cinema-stage{height:88svh;min-height:650px}.cinema-arrows{left:26px;top:26px}.cinema-topline{display:none}.cinema-copy,.is-current .cinema-copy{bottom:110px}.cinema-image{object-position:24% 20%}.auto-film{height:auto;min-height:0;padding:24px 0 95px}.auto-film .journey-film{position:relative;inset:auto;display:block;aspect-ratio:16/9;width:100%;height:auto}.auto-film .journey-wash{display:none}.auto-film .journey-copy{position:relative;inset:auto;width:auto;max-width:none;padding:25px 24px 0}.auto-film .journey-copy h3{font-size:26px}.auto-film .journey-copy p{font-size:14px}.film-toggle{bottom:25px;left:24px}.nail-journey{height:260svh}.nail-journey .journey-film{top:10%}.nail-journey .journey-copy{bottom:45px}.service-journey>.journey-gaze{height:38svh;min-height:260px}.journey-note{font-size:8px}}
-.auto-film{scroll-margin-top:var(--hh,65px)}
-
-/* One page peels away while the next remains on the shared film stage. */
-.cinema-stage{perspective:1800px;touch-action:pan-y}
-html.cinema-enabled .cinema-shot{backface-visibility:hidden;transform-origin:right center;transition:none}
-html.cinema-enabled .cinema-shot.is-current{z-index:1}
-html.cinema-enabled .cinema-shot.is-leaving{visibility:visible;opacity:1;z-index:2;pointer-events:none;animation:pageTurn .65s cubic-bezier(.4,0,.2,1) forwards;box-shadow:-25px 0 60px #0008}
-html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left center;animation-name:pageTurnBack}
-.cinema-arrows{direction:rtl}.cinema-controls button[aria-current] i{transition-duration:2.5s}
-@keyframes pageTurn{to{transform:rotateY(-100deg);filter:brightness(.45);opacity:0}}
-@keyframes pageTurnBack{to{transform:rotateY(100deg);filter:brightness(.45);opacity:0}}
-.nail-journey{margin-top:clamp(48px,9svh,96px)}
-.auto-film[data-auto-film=lashes] .journey-film{inset:0;width:100%;max-width:none;margin:0;transform:none;object-position:50% 50%}
-@media(prefers-reduced-motion:reduce){html.cinema-enabled .cinema-shot.is-leaving{animation:none;visibility:hidden}}
+.salon-builder{background:radial-gradient(ellipse at 20% 5%,#fff9ef 0%,transparent 60%),#eee2d4}
+.builder-grid{grid-template-columns:minmax(300px,.85fr) minmax(0,1.15fr);gap:clamp(16px,3.6vw,44px)}
+.builder-form{background:#fffaf4;border-color:#d6bea2}
+.builder-preview{padding:12px;background:#2b2017;border-color:#a78052;box-shadow:0 18px 54px #492d2240}
+.builder-browser{min-height:28px;color:#f3e4ce;padding:0 5px}
+.live-badge{display:inline-flex;gap:7px;align-items:center;border-radius:50px;background:#473527;padding:3px 10px}
+.live-badge::before{content:'';width:6px;height:6px;background:#e3c17d;border-radius:100%;box-shadow:0 0 8px #e3c17d}
+.builder-live{--salon-brand:#b9975b;background:#fffaf2;border-radius:16px;overflow:auto;max-height:min(63vh,580px);scrollbar-color:#c6a77e #fbf1e5}
+.live-cover{height:clamp(76px,13vw,142px);position:relative;background:linear-gradient(120deg,#241912,color-mix(in srgb,var(--salon-brand) 60%,#3b2518));color:#fff7e5}
+.live-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.live-cover>span{position:absolute;top:10px;inset-inline-start:12px;font-size:11px;background:#21170db8;padding:3px 9px;border-radius:30px}
+.live-salon{padding:0 clamp(12px,3vw,30px) 16px;display:grid;gap:6px}
+.live-logo{width:52px;height:52px;display:grid;place-items:center;position:relative;margin-top:-26px;border:3px solid #fffaf2;border-radius:50%;overflow:hidden;background:var(--salon-brand);color:#211509;font-weight:800}
+.live-logo img,.live-manager img{width:100%;height:100%;object-fit:cover}
+.live-kicker{font-size:11px;color:#795735;font-weight:700}
+.live-salon h3{font-size:clamp(19px,3vw,30px);overflow-wrap:anywhere}
+.live-salon p{font-size:13px;overflow-wrap:anywhere;color:#604a39}
+.live-chips,.live-services,.live-links{display:flex;flex-wrap:wrap;gap:5px}
+.live-chips span,.live-services span,.live-links span{padding:2px 7px;background:#f2e7d9;border-radius:7px;font-size:11px;overflow-wrap:anywhere}
+.live-try{justify-self:start;background:color-mix(in srgb,var(--salon-brand) 40%,#160c06);color:#fff8ed;border-radius:25px;padding:3px 12px;font-size:11px}
+.live-services{margin-block:5px}.live-services span:first-child{background:color-mix(in srgb,var(--salon-brand) 36%,#fbefdc)}
+.live-detail{border-top:1px solid #e8d8c5;padding-top:7px}
+.live-detail h4{margin:0 0 5px;font-size:13px}
+.live-manager{display:flex;gap:6px;align-items:center;font-size:12px}
+.live-manager img{width:30px;height:30px;border-radius:50%}
+.live-works{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.live-works article{display:grid;gap:3px;overflow-wrap:anywhere;min-width:0;background:#f5ebdf;padding:5px;border-radius:8px;font-size:12px}
+.live-works img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:6px}
+.builder-preview>.builder-note{color:#f2e4cc}.builder-preview>.btn{background:#f7d89f;color:#26180e}
+@media(max-width:850px){.builder-grid{grid-template-columns:1fr}.builder-preview{grid-row:1;position:sticky;top:var(--hh,68px);z-index:6;padding:7px;gap:6px}.builder-live{max-height:31svh}.live-cover{height:54px}.live-logo{width:37px;height:37px;margin-top:-18px}.live-salon{gap:3px}.live-salon p,.live-chips span,.live-services span{font-size:11px}.builder-form{scroll-margin-top:36svh}.builder-preview>.btn{min-height:38px;padding:4px 10px;font-size:13px}}
 
 /* CTA bands, sticky mobile CTA, plan buttons, form microcopy */
 .cta-band{padding:clamp(40px,6vw,72px) var(--gut);background:var(--espresso);color:var(--cream)}
@@ -827,6 +656,22 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
 .service-timeline a[aria-current] span,.service-timeline a:hover span{background:#efd599;color:#26170d}
 @media(max-width:1100px){.benefits-five{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:580px){.benefits-five{grid-template-columns:repeat(2,minmax(0,1fr))}.benefits-five .benefit:last-child{grid-column:1/-1}}
+.film-player{max-width:1100px;margin:auto;display:grid;gap:16px;padding:20px clamp(12px,4vw,44px) 34px}
+.service-journey{background:#17120e}
+.film-player .service-timeline{display:flex;justify-content:center;gap:clamp(12px,4vw,54px);border:0;padding:0}
+.service-timeline button{appearance:none;border:0;background:transparent;color:#d2ba91;display:grid;justify-items:center;gap:8px;cursor:pointer;font:inherit;font-size:13px;line-height:1.35;text-align:center;padding:8px;min-width:56px}
+.service-timeline button[aria-pressed=true]{color:#fff1d4}
+.film-icon{position:relative;isolation:isolate;width:48px;height:48px;display:grid;place-items:center;border-radius:50%;border:1px solid #b9975b77;background:#2b2119}
+.film-icon svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.service-timeline button[aria-pressed=true] .film-icon{background:#533a24;border-color:#f4cc84}
+.is-playing button[aria-pressed=true] .film-icon::after{content:'';position:absolute;inset:-5px;border:2px solid transparent;border-inline-start-color:#ffdf93;border-top-color:#fff1ba;border-radius:50%;filter:drop-shadow(0 0 4px #ffb44b);animation:film-orbit 1.5s linear infinite}
+@keyframes film-orbit{to{transform:rotate(360deg)}}
+.film-screen{min-width:0;border:1px solid #8e714748;border-radius:20px;overflow:hidden;background:#241b14}
+.service-video{width:100%;display:block;aspect-ratio:16/9;object-fit:contain;background:#0d0a08}
+.film-caption{display:grid;gap:3px;padding:14px clamp(14px,3vw,26px);color:#f9e9cc}
+.film-caption span{color:#d3b580;font-size:11px}.film-caption strong{font-size:19px}.film-caption p{font-size:14px;color:#e3d1b5}
+@media(max-width:640px){.film-player{grid-template-columns:63px minmax(0,1fr);gap:8px;align-items:start;padding-inline:8px}.film-player .service-timeline{flex-direction:column;gap:3px}.service-timeline button{font-size:10px;min-width:0;padding:5px 2px;gap:5px}.film-icon{width:36px;height:36px}.film-icon svg{width:23px;height:23px}.film-screen{border-radius:14px}}
+@media(prefers-reduced-motion:reduce){.is-playing button[aria-pressed=true] .film-icon::after{animation:none}}
 
 .compare{margin-top:0}
 @media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}
@@ -984,71 +829,25 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
       </div>
     </div>
   </section>
-  <section id="transform" class="service-journey on-dark" aria-label="روی تصویر خودتان امتحان کنید">
-<nav class="service-timeline" aria-label="تایم‌لاین ویدئوهای آینه">
- <a href="#film-hair"><span>۰۱</span> مدل و رنگ مو</a>
- <a href="#film-lashes"><span>۰۲</span> مدل مژه</a>
- <a href="#film-nails"><span>۰۳</span> طرح ناخن</a>
-</nav>
-<article class="auto-film" id="film-hair" data-auto-film="hair"><video class="journey-film is-active" data-journey-film="hair" data-src="video/hair.mp4" poster="/landing/hair-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ مو" controls><source src="/landing/video/hair.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy is-active" data-journey-copy="hair"><p class="journey-kicker">۰۱ / مدل و رنگ مو</p><h3>قبل از تغییر،<br>روی خودتان ببینید.</h3><p>عکس خودتان و مدل مو یا رنگ دلخواه‌تان را بگذارید؛ ببینید کدام انتخاب بیشتر به شما می‌آید.</p><div class="journey-actions"><a class="btn" data-try="hair" href="#intro">روی عکس خودم امتحان کنم <span aria-hidden="true">←</span></a></div></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
-
-
-<article class="auto-film" id="film-lashes" data-auto-film="lashes"><video class="journey-film" data-journey-film="lashes" data-src="video/lashes.mp4" poster="/landing/lashes-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل مژه" controls><source src="/landing/video/lashes.mp4" type="video/mp4"></video><div class="journey-wash" aria-hidden="true"></div><div class="journey-copy" data-journey-copy="lashes"><p class="journey-kicker">۰۲ / مدل مژه</p><h3>قبل از انتخاب مژه،<br>روی چشم خودتان ببینید.</h3><p>عکس چهره‌تان را بارگذاری کنید و مدل‌های مختلف مژه را روی چشم‌های خودتان ببینید.</p><div class="journey-actions"><a class="btn" data-try="lashes" href="#intro">مژهٔ دلخواهم را ببینم <span aria-hidden="true">←</span></a></div></div><button class="film-toggle" type="button" aria-label="توقف پخش ویدئو">Ⅱ</button></article>
-<section id="film-nails" class="nail-journey" aria-label="طرح و رنگ ناخن"><div class="journey-stage"><video class="journey-film" data-journey-film="nails" data-src="video/nails.mp4" poster="/landing/nails-poster.webp" preload="none" muted playsinline aria-label="تغییر مدل و رنگ ناخن؛ با اسکرول جلو و عقب ببرید" controls><source src="/landing/video/nails.mp4" type="video/mp4"></video><div class="journey-bridge" aria-hidden="true">
-
-        <div class="journey-bridge-space"></div>
-
-        <img class="journey-stone" src="/landing/journey-stone.webp" alt="" width="900" height="800" loading="lazy">
-        <p>حالا، نوبت دست‌های شماست.</p>
-      </div><div class="journey-copy" data-journey-copy="nails"><p class="journey-kicker">۰۳ / طرح و رنگ ناخن</p><h3>طرح بعدی را،<br>روی دست خودتان ببینید.</h3><p>عکس دستتان را بگذارید؛ فرم، رنگ و طرح ناخن را امتحان کنید و انتخاب دلخواه‌تان را برای سالن بفرستید.</p><div class="journey-actions"><a class="btn" data-try="nails" href="#intro">روی دست خودم امتحان کنم <span aria-hidden="true">←</span></a></div></div></div></section></section>
-
-
-  <!-- Salon value narrative, followed by the existing transformation and service films. -->
-  <section id="pain" class="cinema-story on-dark" aria-label="پنج صحنه از روز کاری سالن با آینه">
-    <div class="cinema-stage">
-      <div class="cinema-reel">
-        <article class="cinema-shot is-current" data-cinema-shot="0" aria-labelledby="cinema-title-0">
-          <img class="cinema-image" data-cinema-image="salon-film-01" src="/landing/salon-film-01.webp" loading="lazy" alt="مشتری در سالن تصویر مرجع را به آرایشگر نشان می‌دهد." width="1920" height="1080" decoding="async">
-          <div class="cinema-shade" aria-hidden="true"></div>
-          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۱</span></p><h2 id="cinema-title-0">مشتری، انتخابش را روی عکس خودش می‌بیند.</h2><p class="cinema-description">مشتری می‌خواهد بداند مدل و رنگ دلخواهش به چهرهٔ خودش می‌آید یا نه.</p><p class="cinema-benefit"><span>با آینه</span><strong>مدل و رنگ را روی عکس خودش امتحان می‌کند.</strong></p></div>
-        </article>
-        <article class="cinema-shot" data-cinema-shot="1" aria-labelledby="cinema-title-1">
-          <img class="cinema-image" data-cinema-image="salon-film-02" src="/landing/salon-film-02.webp" loading="lazy" alt="مشتری و آرایشگر با هم تصویر انتخاب‌شده را بررسی می‌کنند." width="1920" height="1080" decoding="async">
-          <div class="cinema-shade" aria-hidden="true"></div>
-          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۲</span></p><h2 id="cinema-title-1">مشاوره را با یک تصویر روشن شروع کنید.</h2><p class="cinema-description">مشتری پیش از شروع کار، عکس انتخابش را برای سالن می‌فرستد.</p><p class="cinema-benefit"><span>با آینه</span><strong>شما و مشتری دربارهٔ یک انتخاب مشخص گفت‌وگو می‌کنید.</strong></p></div>
-        </article>
-        <article class="cinema-shot" data-cinema-shot="2" aria-labelledby="cinema-title-2">
-          <img class="cinema-image" data-cinema-image="salon-film-03" src="/landing/salon-film-03.webp" loading="lazy" alt="آرایشگر نمونه‌کارهای سالن را کنار آینه به مشتری معرفی می‌کند." width="1920" height="1080" decoding="async">
-          <div class="cinema-shade" aria-hidden="true"></div>
-          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۳</span></p><h2 id="cinema-title-2">نمونه‌کارهای خودتان را وارد انتخاب مشتری کنید.</h2><p class="cinema-description">عکس نمونه‌کارتان را برای ربات بفرستید تا مشتری آن را در صفحهٔ سالن ببیند.</p><p class="cinema-benefit"><span>با آینه</span><strong>مشتری از بین کارهای خود سالن انتخاب می‌کند.</strong></p></div>
-        </article>
-        <article class="cinema-shot" data-cinema-shot="3" aria-labelledby="cinema-title-3">
-          <img class="cinema-image" data-cinema-image="salon-film-04" src="/landing/salon-film-04.webp" loading="lazy" alt="مشتری در فضای آرام کنار سالن صفحهٔ اختصاصی سالن را روی گوشی می‌بیند." width="1920" height="1080" decoding="async">
-          <div class="cinema-shade" aria-hidden="true"></div>
-          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۴</span></p><h2 id="cinema-title-3">قبل از مراجعه، گفت‌وگو را شروع کنید.</h2><p class="cinema-description">لینک صفحهٔ سالن را برای مشتری بفرستید تا مدل‌ها را روی عکس خودش امتحان کند.</p><p class="cinema-benefit"><span>با آینه</span><strong>گفت‌وگو پیش از مراجعه به سالن شروع می‌شود.</strong></p></div>
-        </article>
-        <article class="cinema-shot" data-cinema-shot="4" aria-labelledby="cinema-title-4">
-          <img class="cinema-image" data-cinema-image="salon-film-05" src="/landing/salon-film-05.webp" loading="lazy" alt="آرایشگر در همان سالن درخواست تصویری مشتری را روی گوشی بررسی می‌کند." width="1920" height="1080" decoding="async">
-          <div class="cinema-shade" aria-hidden="true"></div>
-          <div class="cinema-copy"><p class="cinema-eyebrow">آینه، در روزِ کاری شما <span> / ۰۵</span></p><h2 id="cinema-title-4">درخواست کامل را در پیام‌رسان دریافت کنید.</h2><p class="cinema-description">عکس، مدل و رنگ انتخابی مشتری در تلگرام یا بلهٔ سالن به دستتان می‌رسد.</p><p class="cinema-benefit"><span>با آینه</span><strong>درخواست را همان‌جا بررسی کنید و پاسخ بدهید.</strong></p><a class="cinema-next" href="#experience">نمونهٔ پاسخ سالن را ببینید ←</a></div>
-        </article>
-      </div>
-      <div class="cinema-frame" aria-hidden="true"></div>
-      <div class="cinema-topline"><span>یک روز در سالن. یک مسیر روشن‌تر.</span></div>
-      <div class="cinema-arrows"><button type="button" data-slide-prev aria-label="اسلاید قبلی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button><button type="button" data-slide-next aria-label="اسلاید بعدی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button></div><nav class="cinema-controls" aria-label="اسلایدهای روایت آینه">
-        <button type="button" data-cinema-go="0" aria-current="step"><span class="cinema-step">۰۱</span><span>تردید</span><i aria-hidden="true"></i></button>
-        <button type="button" data-cinema-go="1"><span class="cinema-step">۰۲</span><span>مشاوره</span><i aria-hidden="true"></i></button>
-        <button type="button" data-cinema-go="2"><span class="cinema-step">۰۳</span><span>نمونه‌کار</span><i aria-hidden="true"></i></button>
-        <button type="button" data-cinema-go="3"><span class="cinema-step">۰۴</span><span>ارتباط</span><i aria-hidden="true"></i></button>
-        <button type="button" data-cinema-go="4"><span class="cinema-step">۰۵</span><span>درخواست</span><i aria-hidden="true"></i></button>
-      </nav>
-    </div>
-  </section>
-
+<section id="transform" class="service-journey on-dark" aria-label="ویدئوهای خدمات آینه">
+ <div class="film-player">
+  <div class="service-timeline" role="group" aria-label="انتخاب ویدئو">
+   <button type="button" data-film="hair" aria-pressed="true"><span class="film-icon"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M12 24a4 4 0 1 0 4 4l12-17m0 13a4 4 0 1 1-4 4L12 11"/></svg></span><span>مدل و رنگ مو</span></button>
+   <button type="button" data-film="lashes" aria-pressed="false"><span class="film-icon"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M8 23q12 11 24 0M11 26l-2 4m8-2-1 5m7-5 1 5m5-7 2 4M9 18q11-9 22 0"/></svg></span><span>مژه</span></button>
+   <button type="button" data-film="nails" aria-pressed="false"><span class="film-icon"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M13 30V17a7 7 0 0 1 14 0v13Zm3-10v-3a4 4 0 0 1 8 0v3Z"/></svg></span><span>ناخن</span></button>
+  </div>
+  <div class="film-screen">
+   <video id="serviceVideo" class="service-video" muted playsinline controls preload="metadata" poster="/landing/hair-poster.webp" aria-label="مدل و رنگ مو">
+    <source src="/landing/video/hair.mp4" type="video/mp4">
+   </video>
+   <div class="film-caption" aria-live="polite"><span>نمایش خدمات آینه</span><strong id="filmTitle">مدل و رنگ مو</strong><p id="filmText">مدل و رنگ‌های مختلف را روی یک چهره ببینید.</p></div>
+  </div>
+ </div>
+</section>
 
 <section id="salon-example" class="section salon-builder" aria-labelledby="h-example" tabindex="-1">
  <div class="wrap">
-  <header class="sec-head"><p class="kicker">استودیوی صفحهٔ سالن</p><h2 id="h-example">صفحهٔ سالن‌تان را از نگاه مشتری ببینید</h2><p class="sub">نمونهٔ سالن ساناز را ببینید و بعد با نام، رنگ و نمونه‌کارهای خودتان یک پیش‌نمایش بسازید.</p></header>
+  <header class="sec-head"><p class="kicker">استودیوی صفحهٔ سالن</p><h2 id="h-example">صفحهٔ سالن‌تان را از نگاه مشتری ببینید</h2><p class="sub">نام، رنگ و نمونه‌کارهای سالن را وارد کنید. هر تغییر همان لحظه در نمای مشتری دیده می‌شود.</p></header>
   <div class="builder-grid">
    <form id="start" class="builder-form">
     <fieldset><legend>هویت و نشانی صفحه</legend>
@@ -1081,8 +880,20 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
     <p class="builder-note">پیش‌نمایش خصوصی است. تصاویر پس از درخواست فعال‌سازی برای کارشناسان آینه ارسال می‌شوند.</p>
    </form>
    <div class="builder-preview" id="builderPreview">
-    <div class="builder-browser"><span aria-hidden="true">● ● ●</span><b dir="ltr" id="builderAddress">ayneh-salon.site/s/sanaz-salon</b><span id="builderPreviewLabel">نمونهٔ سالن ساناز</span></div>
-    <iframe title="پیش‌نمایش صفحهٔ مشتری سالن" src="/salon-preview" id="builderFrame" loading="lazy"></iframe>
+    <div class="builder-browser"><span class="live-badge">پیش‌نمایش زنده</span><b dir="ltr" id="builderAddress">ayneh-salon.site/s/your-salon</b></div>
+    <div class="builder-live" id="builderLive">
+     <div class="live-cover"><img id="liveCover" alt="" hidden><span>آینهٔ اختصاصی سالن</span></div>
+     <div class="live-salon">
+      <div class="live-logo"><img id="liveLogo" alt="" hidden><span id="liveInitial">س</span></div>
+      <p class="live-kicker">استودیو زیبایی</p><h3 id="liveName">نام سالن شما</h3>
+      <p id="liveBio">مدل دلخواهت را روی عکس خودت ببین و انتخابت را برای سالن بفرست.</p>
+      <div class="live-chips"><span id="liveAddress" hidden></span><span id="liveHours" hidden></span></div>
+      <span class="live-try">شروع با عکس خودم</span>
+      <div class="live-services" aria-label="خدمات سالن"><span>مدل مو</span><span>رنگ مو</span><span>ناخن</span><span>مژه</span></div>
+      <section class="live-detail" id="liveContact" hidden><h4>دربارهٔ سالن</h4><div class="live-manager"><img id="livePortrait" alt="" hidden><span id="liveManager"></span></div><p id="livePhone" dir="ltr"></p><div class="live-links" id="liveLinks"></div></section>
+      <section class="live-detail"><h4>نمونه‌کارهای سالن</h4><div id="liveWorks" class="live-works"></div><p id="liveEmpty">با افزودن نمونه‌کار، عکس و توضیحات آن اینجا دیده می‌شود.</p></section>
+     </div>
+    </div>
     <div class="builder-loading" id="builderLoading" role="status" hidden><span class="builder-spinner" aria-hidden="true"></span><p>در حال ساخت صفحهٔ اختصاصی سالن شما هستیم. لطفاً چند لحظه صبر کنید.</p></div>
     <button class="btn btn--lg" id="builderActivate" type="button" hidden>فعال‌سازی صفحهٔ اختصاصی سالن من</button>
     <p class="builder-note" id="builderHint" aria-live="polite"></p>
@@ -1136,52 +947,6 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
       </div>
     </div>
   </section>
-  <!-- 2. Request lands in the salon chat (carries the visitor's mirror selection) -->
-  <section id="experience" class="s2 on-dark" aria-labelledby="h-exp" tabindex="-1">
-    <div class="s2-grid wrap">
-      <div class="s2-copy">
-        <p class="kicker">بعد از انتخاب مشتری</p>
-        <h2 id="h-exp">عکس و انتخاب مشتری، مستقیم به پیام‌رسان سالن می‌رسد.</h2>
-        <p class="sub">هر درخواست با عکس، مدل و رنگ انتخاب‌شده به ربات تلگرام یا بله شما می‌رسد. با یک ضربه وضعیتش را مشخص می‌کنید و مشتری همان را در صفحهٔ خودش می‌بیند.</p>
-        <ul class="s2-points">
-          <li><strong>درخواست‌ها را در تلگرام یا بله مدیریت کنید</strong><span>برای بررسی و پاسخ‌دادن، کافی است پیام‌رسان سالن را باز کنید؛ نیازی به پنل جداگانه نیست.</span></li>
-          <li><strong>وضعیت درخواست را با یک دکمه مشخص کنید</strong><span>«تماس گرفتم»، «نوبت شد» یا «انجام نمی‌دهم»؛ بدون تایپ کردن.</span></li>
-          <li><strong>مشتری پاسخ شما را در صفحهٔ خودش می‌بیند</strong><span>پاسخ شما در صفحهٔ مشتری نمایش داده می‌شود.</span></li>
-        </ul>
-        <div class="s2-cta">
-        </div>
-      </div>
-
-      <div class="s2-demo" id="s2demo">
-        <div class="phone" role="group" aria-label="نمونهٔ نمایشی چت ربات سالن">
-          <div class="phone-top"><span class="av" aria-hidden="true">آ</span><div><strong>ربات سالن</strong><small>آینه · نمونهٔ نمایشی</small></div></div>
-          <div class="push" id="s2push" aria-hidden="true"><span class="dot"></span>درخواست تازه از صفحهٔ سالن</div>
-          <div class="chat" id="s2chat" aria-live="polite">
-            <div class="msg in" id="s2msg">
-              <span class="ph"><img id="s2img" loading="lazy" alt="" width="240" height="300"></span>
-              <div class="body">
-                <strong>درخواست مشاوره</strong>
-                <dl><div><dt>مدل</dt><dd id="s2style">ولف‌کات</dd></div><div><dt>رنگ</dt><dd id="s2color">کاراملی</dd></div><div><dt>عکس مشتری</dt><dd>پیوست شد</dd></div></dl>
-                <small id="s2tag">نمونه؛ با انتخاب در آینه عوض می‌شود</small>
-              </div>
-            </div>
-            <div class="actions" id="s2acts" role="group" aria-label="وضعیت درخواست">
-              <button type="button" data-s="called">تماس گرفتم</button>
-              <button type="button" data-s="booked">نوبت شد</button>
-              <button type="button" data-s="declined">انجام نمی‌دهم</button>
-            </div>
-            <div class="msg out" id="s2out" hidden><span id="s2outText"></span></div>
-          </div>
-        </div>
-        <div class="cust" id="s2cust" aria-live="polite">
-          <small>مشتری در صفحهٔ سالن می‌بیند</small>
-          <strong id="s2custText">درخواست شما به دست سالن رسید.</strong>
-        </div>
-      </div>
-    </div>
-  </section>
-
-
 </main>
 <a class="sticky-cta" id="stickyCta" href="#start" hidden><span>ساخت پیش‌نمایش سالن</span><span class="arrow" aria-hidden="true">←</span></a>
 
@@ -1599,111 +1364,59 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
 
 </script>
 <script>
-/* Section 2: the hero selection becomes the request that "arrives" in the salon chat. */
 (()=>{
- const $=id=>document.getElementById(id);
- const SRC=(k,e)=>(window.__AYN_IMG&&window.__AYN_IMG[k])||((window.__AYN_BASE||'/landing/')+k+'.'+(e||'webp'));
- const demo=$('s2demo');if(!demo)return;
- const DEFAULT={style:'ولف‌کات',idx:2,color:'کاراملی'};
- let sel=window.__AYN_SEL||null;
- function render(){
-  const has=sel&&(sel.style!=null||sel.color!=null);
-  const s=sel&&sel.style!=null?sel.style:DEFAULT.style,i=sel&&sel.styleIdx!=null?sel.styleIdx:DEFAULT.idx,c=sel&&sel.color!=null?sel.color:DEFAULT.color;
-  $('s2style').textContent=s;$('s2color').textContent=c;$('s2img').src=SRC('s'+String(i+1).padStart(2,'0'));
-  $('s2tag').textContent=has?'ترکیبی که همین الان در آینه انتخاب کردی':'نمونه؛ با انتخاب در آینه عوض می‌شود'}
- addEventListener('ayneh:selection',e=>{sel=e.detail;render()});
- render();
- /* status buttons: one tap by the salon, shown to the customer */
- const TEXT={called:['وضعیت: تماس گرفتم','سالن با شما تماس گرفت یا به‌زودی تماس می‌گیرد.'],booked:['وضعیت: نوبت شد','نوبت شما ثبت شد. جزئیات را سالن اعلام می‌کند.'],declined:['وضعیت: انجام نمی‌دهم','سالن این مدل را انجام نمی‌دهد؛ می‌توانید مدل دیگری بفرستید.']};
- const btns=[...document.querySelectorAll('#s2acts button')];
- btns.forEach(b=>b.addEventListener('click',()=>{
-  btns.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
-  const t=TEXT[b.dataset.s];$('s2out').hidden=false;$('s2outText').textContent=t[0];$('s2custText').textContent=t[1]}));
- /* plays once when first scrolled into view; everything is visible at rest */
- if(!matchMedia('(prefers-reduced-motion:reduce)').matches&&'IntersectionObserver' in window){
-  const io=new IntersectionObserver(es=>{if(es.some(x=>x.isIntersecting)){demo.classList.add('play');io.disconnect()}},{threshold:.25});io.observe(demo)}
-})();
-
-</script>
-<script>
-/* One timeline shared by the automatic handoff and the user's native scroll. */
-(()=>{
- const bridge=.27;
- const duration=d=>Math.max(.05,Number.isFinite(d)?d-.05:7.95);
- const progressAt=(time,d)=>bridge+(1-bridge)*Math.min(duration(d),Math.max(0,time))/duration(d);
- const timeAt=(p,d)=>Math.max(0,Math.min(1,(p-bridge)/(1-bridge)))*duration(d);
- window.__AYN_JOURNEY={bridge,progressAt,timeAt};
-})();
-
-</script>
-<script>
-/* Type each page, hold it for two seconds, then turn it. Interaction holds the current page while typing continues. */
-(()=>{
- const root=document.querySelector('.cinema-story');if(!root)return;
- document.documentElement.classList.add('cinema-enabled');
- const shots=[...root.querySelectorAll('[data-cinema-shot]')],dots=[...root.querySelectorAll('[data-cinema-go]')];
- const reduced=matchMedia('(prefers-reduced-motion:reduce)');let current=0,visible=false,hover=false,held=false,focused=false,timer,typeTimer,turnTimer,turning=false,start=null,wheel=0,lastWheel=0,typed=0,total=0;
- const segment=typeof Intl.Segmenter==='function'?new Intl.Segmenter('fa',{granularity:'grapheme'}):null;
- const typing=shots.map(shot=>[...shot.querySelectorAll('.cinema-copy h2,.cinema-description,.cinema-benefit strong')].map(el=>{const text=el.textContent,chars=segment?[...segment.segment(text)].map(x=>x.segment):Array.from(text);el.classList.add('type-wrap');el.replaceChildren();const reserve=document.createElement('span'),live=document.createElement('span'),sr=document.createElement('span');reserve.className='type-reserve';reserve.textContent=text;reserve.setAttribute('aria-hidden','true');live.className='type-live';live.setAttribute('aria-hidden','true');sr.className='type-sr';sr.textContent=text;el.append(reserve,live,sr);return{chars,live}}));
- function paintType(){let remaining=typed;for(const node of typing[current]){const count=Math.min(node.chars.length,Math.max(0,remaining));node.live.textContent=node.chars.slice(0,count).join('');node.live.classList.toggle('is-typing',remaining>=0&&remaining<node.chars.length&&typed<total);remaining-=node.chars.length}root.dataset.typeState=typed>=total?'complete':'typing'}
- function beginType(){root.dataset.cinemaChapter=String(current);typed=0;total=typing[current].reduce((n,x)=>n+x.chars.length,0);if(reduced.matches)typed=total;paintType()}
- function typeTick(){typed=Math.min(total,typed+2);paintType();restart()}
- function restart(){clearTimeout(timer);clearTimeout(typeTimer);if(!visible||document.hidden||reduced.matches)return;if(typed<total)typeTimer=setTimeout(typeTick,28);else if(!hover&&!held&&!focused)timer=setTimeout(()=>show(current+1),2000)}
- function show(n){const next=(n+shots.length)%shots.length;if(next===current){restart();return}clearTimeout(turnTimer);const old=shots[current];shots.forEach(s=>s.classList.remove('is-leaving','turn-back'));old.classList.add('is-leaving');if(n<current)old.classList.add('turn-back');current=next;root.dataset.cinemaChapter=String(current);shots.forEach((s,i)=>{s.classList.toggle('is-current',i===current);s.inert=i!==current;s.setAttribute('aria-hidden',String(i!==current))});dots.forEach((d,i)=>i===current?d.setAttribute('aria-current','step'):d.removeAttribute('aria-current'));beginType();turning=true;turnTimer=setTimeout(()=>{old.classList.remove('is-leaving','turn-back');turning=false},650);restart()}
- root.querySelector('[data-slide-prev]').onclick=()=>show(current-1);root.querySelector('[data-slide-next]').onclick=()=>show(current+1);dots.forEach((d,i)=>d.onclick=()=>show(i));
- root.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse'){hover=true;restart()}});root.addEventListener('pointerleave',()=>{hover=false;restart()});
- root.addEventListener('pointerdown',e=>{held=true;start={x:e.clientX,y:e.clientY};restart()});
- function release(e){if(start&&e.type==='pointerup'){const dx=e.clientX-start.x,dy=e.clientY-start.y;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.3)show(current+(dx<0?1:-1))}held=false;start=null;restart()}
- addEventListener('pointerup',release);addEventListener('pointercancel',release);
- root.addEventListener('wheel',e=>{if(Math.abs(e.deltaX)<=Math.abs(e.deltaY))return;e.preventDefault();if(Date.now()-lastWheel<650)return;wheel+=e.deltaX;if(Math.abs(wheel)>45){show(current+(wheel>0?1:-1));wheel=0;lastWheel=Date.now()}},{passive:false});
- root.addEventListener('focusin',()=>{focused=true;restart()});root.addEventListener('focusout',e=>{if(!root.contains(e.relatedTarget)){focused=false;restart()}});root.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();show(current+(e.key==='ArrowLeft'?1:-1))}});document.addEventListener('visibilitychange',restart);
- new IntersectionObserver(es=>{visible=es[0].isIntersecting;restart()},{threshold:.35}).observe(root);
- root.querySelectorAll('[data-cinema-image]').forEach(img=>{const k=img.dataset.cinemaImage;img.src=window.__AYN_IMG?.[k]||((window.__AYN_BASE||'/landing/')+k+'.webp')});shots.forEach((s,i)=>{s.inert=i!==0;s.setAttribute('aria-hidden',String(i!==0))});beginType();
-})();
-
-/* First two films play on visibility. Only the stone and nails follow native scroll. */
-(()=>{
- const root=document.querySelector('.service-journey');if(!root)return;document.documentElement.classList.add('journey-enabled');
- const reduced=matchMedia('(prefers-reduced-motion:reduce)'),cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
- const chapters=[...root.querySelectorAll('.service-timeline a')];
- const updateChapter=()=>{
-  const line=innerHeight*.45;
-  const active=chapters.filter(a=>document.querySelector(a.hash).getBoundingClientRect().top<=line).at(-1)||chapters[0];
-  chapters.forEach(a=>{if(a===active)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current')});
- };
- addEventListener('scroll',updateChapter,{passive:true});updateChapter();
- const states=[...root.querySelectorAll('[data-journey-film]')].map(v=>({v,key:v.dataset.journeyFilm,target:0,visible:false,userPaused:false,loaded:false}));
- async function load(s){if(s.loaded)return;s.loaded=true;s.v.muted=true;s.v.preload='auto';if(s.key==='hair')s.v.defaultPlaybackRate=s.v.playbackRate=1.5;try{const r=await fetch((window.__AYN_BASE||'/landing/')+s.v.dataset.src+'?v='+window.__AYN_ASSET_VERSION,{credentials:'same-origin',priority:'low'});if(!r.ok||!(r.headers.get('content-type')||'').includes('video/'))throw Error('HTTP '+r.status+' '+r.headers.get('content-type'));s.v.src=URL.createObjectURL(await r.blob());s.v.load()}catch(e){console.warn('Video unavailable:',s.key,e.message);s.v.controls=true}}
- function playback(s){if(s.key==='nails')return;if(s.key==='hair')s.v.defaultPlaybackRate=s.v.playbackRate=1.5;if(s.visible&&!s.userPaused&&!document.hidden&&!reduced.matches){if(s.v.ended)s.v.currentTime=0;s.v.play().catch(()=>{s.v.controls=true})}else s.v.pause()}
- states.forEach(s=>{s.v.addEventListener('loadedmetadata',()=>{s.v.playbackRate=s.key==='hair'?1.5:1});s.v.controls=reduced.matches;s.v.addEventListener('loadeddata',()=>{playback(s);schedule()});if(s.key!=='nails'){const panel=s.v.closest('.auto-film'),button=panel.querySelector('.film-toggle');new IntersectionObserver(es=>{s.visible=es[0].intersectionRatio>=.4;playback(s)},{threshold:[0,.4,.7]}).observe(panel);button.onclick=()=>{s.userPaused=!s.v.paused;if(s.userPaused)s.v.pause();else{s.v.play().catch(()=>{s.v.controls=true})}button.textContent=s.userPaused?'▶':'Ⅱ';button.setAttribute('aria-label',s.userPaused?'پخش ویدئو':'توقف پخش ویدئو')};s.v.addEventListener('ended',()=>{button.textContent='↻';button.setAttribute('aria-label','پخش دوبارهٔ ویدئو');if(s.key==='lashes'&&s.visible&&!document.hidden)enterNails();if(s.key==='hair'&&s.visible&&!document.hidden){root.querySelector('[data-auto-film=lashes]').scrollIntoView({behavior:reduced.matches?'auto':'smooth',block:'start'})}})}});
- document.addEventListener('visibilitychange',()=>states.forEach(playback));reduced.addEventListener('change',()=>{states.forEach(s=>{s.v.controls=reduced.matches;playback(s)});schedule()});
- const area=root.querySelector('.nail-journey'),stage=area.querySelector('.journey-stage'),s=states.find(s=>s.key==='nails'),bridge=area.querySelector('.journey-bridge'),stone=area.querySelector('.journey-stone'),space=area.querySelector('.journey-bridge-space'),copy=area.querySelector('.journey-copy');let pending=false,position=0,target=0;
- function enterNails(){
-  if(!states.find(x=>x.key==='lashes').visible||document.hidden)return;
-  if(!Number.isFinite(s.v.duration)){s.v.addEventListener('loadedmetadata',enterNails,{once:true});return}
-  const timeline=window.__AYN_JOURNEY,stopTime=Math.min(3,s.v.duration-.05);
-  const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||65,startY=scrollY,areaY=scrollY+area.getBoundingClientRect().top-hh,span=Math.max(1,area.offsetHeight-stage.offsetHeight);
-  const bridgeY=areaY+span*timeline.bridge,endY=areaY+span*timeline.progressAt(stopTime,s.v.duration);
-  if(reduced.matches){scrollTo({top:areaY,behavior:'auto'});return}
-  area.dataset.handoff='auto';area.dataset.handoffTime=String(stopTime);
-  let frame=0,cancelled=false,t0=performance.now();const clean=()=>events.forEach(n=>removeEventListener(n,abort));const abort=()=>{cancelled=true;cancelAnimationFrame(frame);area.dataset.handoff='manual';clean()};const events=['wheel','touchstart','pointerdown','keydown'];events.forEach(n=>addEventListener(n,abort,{once:true,passive:true}));
-  function step(now){if(cancelled)return;const elapsed=now-t0;let y;
-   if(elapsed<1900){const t=elapsed/1900,e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;y=startY+(bridgeY-startY)*e}
-   else{const t=Math.min(1,(elapsed-1900)/(stopTime*1000));y=bridgeY+(endY-bridgeY)*t}
-   scrollTo({top:y,behavior:'instant'});
-   if(elapsed<1900+stopTime*1000)frame=requestAnimationFrame(step);
-   else{position=target=timeline.progressAt(stopTime,s.v.duration);s.target=stopTime;seek();schedule();area.dataset.handoff='manual';clean()}
-  }frame=requestAnimationFrame(step);
+ const root=document.querySelector('.film-player');
+ if(!root)return;
+ const video=root.querySelector('video'),buttons=[...root.querySelectorAll('[data-film]')];
+ const titles=['مدل و رنگ مو','مدل مژه','طرح و رنگ ناخن'];
+ const descriptions=['مدل و رنگ‌های مختلف را روی یک چهره ببینید.','حالت و حجم مژه را روی چشم‌ها مقایسه کنید.','تغییر فرم، طرح و رنگ ناخن را روی دست ببینید.'];
+ const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+ let current=0,visible=false,userPaused=false,systemPause=false,completed=false;
+ function play(){
+  if(!visible||document.hidden||completed||userPaused)return;
+  video.play().catch(()=>{});
  }
-
- function seek(){if(s.v.seeking||s.v.readyState<1||!Number.isFinite(s.v.duration))return;const t=cl(s.target,0,s.v.duration-.05);if(Math.abs(s.v.currentTime-t)>.045)s.v.currentTime=t}s.v.addEventListener('seeked',seek);
- function update(){pending=false;area.classList.toggle('is-static',reduced.matches);if(reduced.matches){s.v.controls=true;bridge.hidden=true;return}bridge.hidden=false;
- const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||65;target=cl((hh-area.getBoundingClientRect().top)/Math.max(1,area.offsetHeight-stage.offsetHeight));position+= (target-position)*.18;if(Math.abs(target-position)<.0004)position=target;const p=position,q=cl(p/.27),n=cl((p-.27)/.73);
- area.dataset.phase=p<.27?'bridge':'nails';bridge.style.opacity=p<.27?'1':'0';bridge.style.visibility=p<.27?'visible':'hidden';s.v.classList.toggle('is-active',p>=.27);copy.classList.toggle('is-active',p>=.27);
- space.style.opacity=String(cl(q/.18)*(1-cl((q-.73)/.27)));stone.style.opacity=String(cl(q/.1)*(1-cl((q-.9)/.1)));stone.style.top=(40+q*43)+'%';stone.style.transform='translate(-50%,-50%) scale('+(1-q*.35)+')';bridge.querySelector('p').style.opacity=String(cl((q-.18)/.15)*(1-cl((q-.65)/.15)));if(Number.isFinite(s.v.duration)){s.target=window.__AYN_JOURNEY.timeAt(p,s.v.duration);seek()}if(position!==target)schedule();
+ function pause(){
+  if(video.paused)return;
+  systemPause=true;
+  video.pause();
  }
- function schedule(){if(!pending){pending=true;requestAnimationFrame(update)}}addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);
- Promise.resolve(window.__AYN_HERO_READY).finally(()=>states.forEach(load));schedule();
+ function select(index){
+  if(index!==current){
+   pause();
+   current=index;
+   const key=buttons[index].dataset.film,base=window.__AYN_BASE||'/landing/';
+   video.poster=base+key+'-poster.webp';
+   video.src=base+'video/'+key+'.mp4?v='+window.__AYN_ASSET_VERSION;
+  }else if(video.ended)video.currentTime=0;
+  completed=false;userPaused=false;
+  video.playbackRate=index===0?1.5:1;
+  video.setAttribute('aria-label',titles[index]);
+  root.querySelector('#filmTitle').textContent=titles[index];
+  root.querySelector('#filmText').textContent=descriptions[index];
+  buttons.forEach((button,i)=>button.setAttribute('aria-pressed',String(i===index)));
+ }
+ buttons.forEach((button,index)=>button.addEventListener('click',()=>{select(index);visible=true;play()}));
+ video.addEventListener('loadedmetadata',()=>{video.playbackRate=current===0?1.5:1});
+ video.addEventListener('playing',()=>{userPaused=false;completed=false;root.classList.add('is-playing')});
+ video.addEventListener('waiting',()=>root.classList.remove('is-playing'));
+ video.addEventListener('pause',()=>{
+  root.classList.remove('is-playing');
+  if(!systemPause&&!video.ended)userPaused=true;
+  systemPause=false;
+ });
+ video.addEventListener('ended',()=>{
+  root.classList.remove('is-playing');
+  if(current+1===buttons.length){completed=true;return}
+  select(current+1);play();
+ });
+ new IntersectionObserver(([entry])=>{
+  visible=entry.isIntersecting;
+  if(!visible)pause();
+  else if(!reduced.matches)play();
+ },{threshold:.3}).observe(video);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();else if(!reduced.matches)play()});
+ select(0);
 })();
 
 </script>
@@ -1786,14 +1499,15 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
 <script>
 (()=>{
  const $=id=>document.getElementById(id);
- const form=$('start'),frame=$('builderFrame');
- if(!form||!frame)return;
- const preview=$('builderPreview'),loading=$('builderLoading'),activate=$('builderActivate'),hint=$('builderHint');
+ const form=$('start'),live=$('builderLive');
+ if(!form||!live)return;
+ const loading=$('builderLoading'),activate=$('builderActivate'),hint=$('builderHint');
  const dialog=$('builderDialog'),phone=$('builderPhone'),otp=$('builderOtp'),thanks=$('builderThanks'),dialogError=$('builderDialogError');
  const add=$('builderAdd'),works=$('builderWorks'),build=$('builderBuild');
  const profileFields=['bio','manager','address','hours','phone','instagram','website','map','telegram'];
  const brandFields=['logo','cover','portrait'];
- let draft,urls=[],ready=false,ack,otpBody,busy=false,submitted=false,dirty=false;
+ let draft,otpBody,busy=false,submitted=false,dirty=false;
+ const objectURLs=new Map();
  const api=async(path,body)=>{
   const options=body===undefined?{}:{method:'POST',...(body instanceof FormData?{body}:{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})};
   const response=await fetch(path,options);
@@ -1801,16 +1515,69 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
   if(!response.ok||!data.ok)throw new Error(data.error||'ارتباط با آینه برقرار نشد. دوباره تلاش کنید.');
   return data;
  };
- function change(){
+ const serviceNames={hair:'مدل مو',color:'رنگ مو',nails:'ناخن',lashes:'مژه'};
+ const linkNames={instagram:'اینستاگرام',website:'وب‌سایت',map:'نقشه',telegram:'تلگرام'};
+ function urlFor(file){
+  if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>12_000_000)return '';
+  if(!objectURLs.has(file))objectURLs.set(file,URL.createObjectURL(file));
+  return objectURLs.get(file);
+ }
+ function image(element,file){
+  const url=urlFor(file);if(url)element.src=url;else element.removeAttribute('src');
+  element.hidden=!url;
+ }
+ function render(){
+  const fields=form.elements;
+  const get=key=>fields[key].value.trim();
+  const name=get('name')||'نام سالن شما';
+  const slug=get('slug')||'your-salon';
+  $('builderAddress').textContent='ayneh-salon.site/s/'+slug;
+  live.style.setProperty('--salon-brand',get('brand'));
+  $('liveName').textContent=name;$('liveInitial').textContent=get('name')[0]||'س';
+  $('liveBio').textContent=get('bio')||'مدل دلخواهت را روی عکس خودت ببین و انتخابت را برای سالن بفرست.';
+  for(const [id,key] of [['liveAddress','address'],['liveHours','hours'],['liveManager','manager'],['livePhone','phone']]){
+   $(id).textContent=get(key);$(id).hidden=!get(key);
+  }
+  for(const [id,key] of [['liveCover','cover'],['liveLogo','logo'],['livePortrait','portrait']])image($(id),fields[key].files[0]);
+  $('liveInitial').hidden=!$('liveLogo').hidden;
+  const links=Object.entries(linkNames).flatMap(([key,label])=>{
+   if(!get(key))return [];
+   const item=document.createElement('span');item.textContent=label+' · ';
+   const value=document.createElement('bdi');value.textContent=get(key);item.append(value);return [item];
+  });
+  $('liveLinks').replaceChildren(...links);
+  $('liveContact').hidden=!get('manager')&&!get('phone')&&!links.length&&$('livePortrait').hidden;
+  const cards=[...works.children].map(row=>{
+   const field=key=>row.querySelector('[data-work="'+key+'"]');
+   const card=document.createElement('article'),img=document.createElement('img'),label=document.createElement('small'),title=document.createElement('strong'),text=document.createElement('p');
+   img.alt='';image(img,field('file').files[0]);label.textContent=serviceNames[field('line').value];title.textContent=field('title').value.trim()||'عنوان نمونه‌کار';text.textContent=field('description').value.trim();
+   card.append(img,label,title,text);return card;
+  });
+  $('liveWorks').replaceChildren(...cards);$('liveEmpty').hidden=cards.length>0;
+  const kept=new Set([...form.querySelectorAll('input[type=file]')].map(input=>input.files[0]));
+  for(const [file,url] of objectURLs)if(!kept.has(file)){URL.revokeObjectURL(url);objectURLs.delete(file)}
+ }
+ function change(event){
+  render();
+  if(event?.target instanceof HTMLElement&&matchMedia('(max-width:850px)').matches){
+   const key=event.target.name;
+   const target=event.target.closest('.builder-work')?$('liveWorks')
+    :['manager','portrait','phone','map','instagram','website','telegram'].includes(key)?$('liveContact')
+    :['name','bio','address','hours'].includes(key)?$('liveName'):null;
+   if(target)live.scrollTop+=target.getBoundingClientRect().top-live.getBoundingClientRect().top-8;
+   else if(['logo','cover','brand','slug'].includes(key))live.scrollTop=0;
+  }
   if(!draft)return;
   dirty=true;activate.hidden=true;
-  hint.textContent='برای دیدن تغییرات و فعال‌سازی، پیش‌نمایش را دوباره بسازید.';
+  hint.textContent='پیش‌نمایش به‌روز شد. برای ادامه، اطلاعات را تأیید کنید.';
  }
- form.addEventListener('input',change);
- form.addEventListener('invalid',e=>{const details=e.target.closest('details');if(details)details.open=true},true);
  form.elements.slug.addEventListener('input',e=>{
   e.target.value=e.target.value.toLowerCase().replace(/[\\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
  });
+ form.addEventListener('input',change);
+ form.addEventListener('change',change);
+ form.addEventListener('invalid',e=>{const details=e.target.closest('details');if(details)details.open=true},true);
+ render();
  add.addEventListener('click',()=>{
   const item=$('builderWorkTemplate').content.firstElementChild.cloneNode(true);
   item.querySelector('.builder-remove').onclick=()=>{item.remove();add.disabled=false;change();add.focus()};
@@ -1832,19 +1599,11 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
    throw new Error('یکی از عکس‌ها خیلی حجیم است. نسخهٔ کوچک‌تر آن را انتخاب کنید.');
   }finally{image.close()}
  }
- function post(){
-  if(!ready||!draft)return;
-  frame.contentWindow.postMessage({type:'ayneh-salon-draft',id:draft.id,brand:draft.data.brand,page:draft.page},location.origin);
- }
- frame.addEventListener('load',()=>{ready=true;post()});
- addEventListener('message',event=>{
-  if(event.source!==frame.contentWindow||event.origin!==location.origin||event.data?.type!=='ayneh-salon-rendered'||event.data.id!==draft?.id)return;
-  ack?.();
- });
  form.addEventListener('submit',async e=>{
   e.preventDefault();if(build.disabled)return;
   $('builderError').textContent='';build.disabled=true;activate.hidden=true;hint.textContent='';
-  loading.hidden=false;preview.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'instant':'smooth'});
+  loading.hidden=false;
+  await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
   const fields=[...form.elements].filter(input=>!input.disabled);fields.forEach(input=>input.disabled=true);
   try{
    const name=form.elements.name.value.trim(),slug=form.elements.slug.value;
@@ -1862,20 +1621,8 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
     files.set(slot,await photo(get('file').files[0]));
     portfolio.push({title,line:get('line').value,description:get('description').value.trim(),slot});
    }
-   const prev=urls;urls=[];
-   const imageUrl=slot=>{const url=URL.createObjectURL(files.get(slot));urls.push(url);return url};
-   const media={...profile};brandFields.forEach(key=>{if(files.has(key))media[key]=imageUrl(key)});
-   const data={name,slug,brand:form.elements.brand.value,profile,portfolio};
-   draft={id:crypto.randomUUID(),data,files,page:{salon:{name,slug,profile:media},portfolio:portfolio.map(item=>({...item,id:item.slot,images:JSON.stringify([imageUrl(item.slot)]),published:1,try_on:1})),generation:false,reference:false,telegram:false}};
+   draft={id:crypto.randomUUID(),data:{name,slug,brand:form.elements.brand.value,profile,portfolio},files};
    dirty=false;submitted=false;
-   const rendered=new Promise((resolve,reject)=>{
-    const timer=setTimeout(()=>reject(new Error('پیش‌نمایش آماده نشد. دوباره تلاش کنید.')),10000);
-    ack=()=>{clearTimeout(timer);resolve()};
-   });
-   frame.loading='eager';post();
-   try{await rendered}finally{ack=null;prev.forEach(URL.revokeObjectURL)}
-   $('builderAddress').textContent='ayneh-salon.site/s/'+slug;
-   $('builderPreviewLabel').textContent='پیش‌نمایش '+name;
    activate.hidden=false;activate.disabled=false;
    hint.textContent='پیش‌نمایش آماده است. برای بررسی نشانی و راه‌اندازی، درخواست فعال‌سازی بفرستید.';
   }catch(error){$('builderError').textContent=error.message;hint.textContent=error.message}
@@ -1923,7 +1670,7 @@ html.cinema-enabled .cinema-shot.is-leaving.turn-back{transform-origin:left cent
  });
  otp.addEventListener('submit',e=>{
   e.preventDefault();
-  run(async()=>{await api('/api/s/demo/otp/verify',{code:otp.elements.code.value});await send()},e.submitter);
+  run(async()=>{if(!(await api(sessionPath)).verified)await api('/api/s/demo/otp/verify',{code:otp.elements.code.value});await send()},e.submitter);
  });
  $('builderRetry').onclick=e=>run(async()=>{await api('/api/s/demo/otp/send',otpBody);dialogError.textContent='کد جدید فرستاده شد.'},e.currentTarget);
  dialog.querySelector('.builder-close').onclick=()=>dialog.close();

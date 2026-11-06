@@ -1,68 +1,54 @@
-/* Type each page, hold it for two seconds, then turn it. Interaction holds the current page while typing continues. */
 (()=>{
- const root=document.querySelector('.cinema-story');if(!root)return;
- document.documentElement.classList.add('cinema-enabled');
- const shots=[...root.querySelectorAll('[data-cinema-shot]')],dots=[...root.querySelectorAll('[data-cinema-go]')];
- const reduced=matchMedia('(prefers-reduced-motion:reduce)');let current=0,visible=false,hover=false,held=false,focused=false,timer,typeTimer,turnTimer,turning=false,start=null,wheel=0,lastWheel=0,typed=0,total=0;
- const segment=typeof Intl.Segmenter==='function'?new Intl.Segmenter('fa',{granularity:'grapheme'}):null;
- const typing=shots.map(shot=>[...shot.querySelectorAll('.cinema-copy h2,.cinema-description,.cinema-benefit strong')].map(el=>{const text=el.textContent,chars=segment?[...segment.segment(text)].map(x=>x.segment):Array.from(text);el.classList.add('type-wrap');el.replaceChildren();const reserve=document.createElement('span'),live=document.createElement('span'),sr=document.createElement('span');reserve.className='type-reserve';reserve.textContent=text;reserve.setAttribute('aria-hidden','true');live.className='type-live';live.setAttribute('aria-hidden','true');sr.className='type-sr';sr.textContent=text;el.append(reserve,live,sr);return{chars,live}}));
- function paintType(){let remaining=typed;for(const node of typing[current]){const count=Math.min(node.chars.length,Math.max(0,remaining));node.live.textContent=node.chars.slice(0,count).join('');node.live.classList.toggle('is-typing',remaining>=0&&remaining<node.chars.length&&typed<total);remaining-=node.chars.length}root.dataset.typeState=typed>=total?'complete':'typing'}
- function beginType(){root.dataset.cinemaChapter=String(current);typed=0;total=typing[current].reduce((n,x)=>n+x.chars.length,0);if(reduced.matches)typed=total;paintType()}
- function typeTick(){typed=Math.min(total,typed+2);paintType();restart()}
- function restart(){clearTimeout(timer);clearTimeout(typeTimer);if(!visible||document.hidden||reduced.matches)return;if(typed<total)typeTimer=setTimeout(typeTick,28);else if(!hover&&!held&&!focused)timer=setTimeout(()=>show(current+1),2000)}
- function show(n){const next=(n+shots.length)%shots.length;if(next===current){restart();return}clearTimeout(turnTimer);const old=shots[current];shots.forEach(s=>s.classList.remove('is-leaving','turn-back'));old.classList.add('is-leaving');if(n<current)old.classList.add('turn-back');current=next;root.dataset.cinemaChapter=String(current);shots.forEach((s,i)=>{s.classList.toggle('is-current',i===current);s.inert=i!==current;s.setAttribute('aria-hidden',String(i!==current))});dots.forEach((d,i)=>i===current?d.setAttribute('aria-current','step'):d.removeAttribute('aria-current'));beginType();turning=true;turnTimer=setTimeout(()=>{old.classList.remove('is-leaving','turn-back');turning=false},650);restart()}
- root.querySelector('[data-slide-prev]').onclick=()=>show(current-1);root.querySelector('[data-slide-next]').onclick=()=>show(current+1);dots.forEach((d,i)=>d.onclick=()=>show(i));
- root.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse'){hover=true;restart()}});root.addEventListener('pointerleave',()=>{hover=false;restart()});
- root.addEventListener('pointerdown',e=>{held=true;start={x:e.clientX,y:e.clientY};restart()});
- function release(e){if(start&&e.type==='pointerup'){const dx=e.clientX-start.x,dy=e.clientY-start.y;if(Math.abs(dx)>45&&Math.abs(dx)>Math.abs(dy)*1.3)show(current+(dx<0?1:-1))}held=false;start=null;restart()}
- addEventListener('pointerup',release);addEventListener('pointercancel',release);
- root.addEventListener('wheel',e=>{if(Math.abs(e.deltaX)<=Math.abs(e.deltaY))return;e.preventDefault();if(Date.now()-lastWheel<650)return;wheel+=e.deltaX;if(Math.abs(wheel)>45){show(current+(wheel>0?1:-1));wheel=0;lastWheel=Date.now()}},{passive:false});
- root.addEventListener('focusin',()=>{focused=true;restart()});root.addEventListener('focusout',e=>{if(!root.contains(e.relatedTarget)){focused=false;restart()}});root.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();show(current+(e.key==='ArrowLeft'?1:-1))}});document.addEventListener('visibilitychange',restart);
- new IntersectionObserver(es=>{visible=es[0].isIntersecting;restart()},{threshold:.35}).observe(root);
- root.querySelectorAll('[data-cinema-image]').forEach(img=>{const k=img.dataset.cinemaImage;img.src=window.__AYN_IMG?.[k]||((window.__AYN_BASE||'assets/')+k+'.webp')});shots.forEach((s,i)=>{s.inert=i!==0;s.setAttribute('aria-hidden',String(i!==0))});beginType();
-})();
-
-/* First two films play on visibility. Only the stone and nails follow native scroll. */
-(()=>{
- const root=document.querySelector('.service-journey');if(!root)return;document.documentElement.classList.add('journey-enabled');
- const reduced=matchMedia('(prefers-reduced-motion:reduce)'),cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v));
- const chapters=[...root.querySelectorAll('.service-timeline a')];
- const updateChapter=()=>{
-  const line=innerHeight*.45;
-  const active=chapters.filter(a=>document.querySelector(a.hash).getBoundingClientRect().top<=line).at(-1)||chapters[0];
-  chapters.forEach(a=>{if(a===active)a.setAttribute('aria-current','step');else a.removeAttribute('aria-current')});
- };
- addEventListener('scroll',updateChapter,{passive:true});updateChapter();
- const states=[...root.querySelectorAll('[data-journey-film]')].map(v=>({v,key:v.dataset.journeyFilm,target:0,visible:false,userPaused:false,loaded:false}));
- async function load(s){if(s.loaded)return;s.loaded=true;s.v.muted=true;s.v.preload='auto';if(s.key==='hair')s.v.defaultPlaybackRate=s.v.playbackRate=1.5;try{const r=await fetch((window.__AYN_BASE||'assets/')+s.v.dataset.src+'?v='+window.__AYN_ASSET_VERSION,{credentials:'same-origin',priority:'low'});if(!r.ok||!(r.headers.get('content-type')||'').includes('video/'))throw Error('HTTP '+r.status+' '+r.headers.get('content-type'));s.v.src=URL.createObjectURL(await r.blob());s.v.load()}catch(e){console.warn('Video unavailable:',s.key,e.message);s.v.controls=true}}
- function playback(s){if(s.key==='nails')return;if(s.key==='hair')s.v.defaultPlaybackRate=s.v.playbackRate=1.5;if(s.visible&&!s.userPaused&&!document.hidden&&!reduced.matches){if(s.v.ended)s.v.currentTime=0;s.v.play().catch(()=>{s.v.controls=true})}else s.v.pause()}
- states.forEach(s=>{s.v.addEventListener('loadedmetadata',()=>{s.v.playbackRate=s.key==='hair'?1.5:1});s.v.controls=reduced.matches;s.v.addEventListener('loadeddata',()=>{playback(s);schedule()});if(s.key!=='nails'){const panel=s.v.closest('.auto-film'),button=panel.querySelector('.film-toggle');new IntersectionObserver(es=>{s.visible=es[0].intersectionRatio>=.4;playback(s)},{threshold:[0,.4,.7]}).observe(panel);button.onclick=()=>{s.userPaused=!s.v.paused;if(s.userPaused)s.v.pause();else{s.v.play().catch(()=>{s.v.controls=true})}button.textContent=s.userPaused?'▶':'Ⅱ';button.setAttribute('aria-label',s.userPaused?'پخش ویدئو':'توقف پخش ویدئو')};s.v.addEventListener('ended',()=>{button.textContent='↻';button.setAttribute('aria-label','پخش دوبارهٔ ویدئو');if(s.key==='lashes'&&s.visible&&!document.hidden)enterNails();if(s.key==='hair'&&s.visible&&!document.hidden){root.querySelector('[data-auto-film=lashes]').scrollIntoView({behavior:reduced.matches?'auto':'smooth',block:'start'})}})}});
- document.addEventListener('visibilitychange',()=>states.forEach(playback));reduced.addEventListener('change',()=>{states.forEach(s=>{s.v.controls=reduced.matches;playback(s)});schedule()});
- const area=root.querySelector('.nail-journey'),stage=area.querySelector('.journey-stage'),s=states.find(s=>s.key==='nails'),bridge=area.querySelector('.journey-bridge'),stone=area.querySelector('.journey-stone'),space=area.querySelector('.journey-bridge-space'),copy=area.querySelector('.journey-copy');let pending=false,position=0,target=0;
- function enterNails(){
-  if(!states.find(x=>x.key==='lashes').visible||document.hidden)return;
-  if(!Number.isFinite(s.v.duration)){s.v.addEventListener('loadedmetadata',enterNails,{once:true});return}
-  const timeline=window.__AYN_JOURNEY,stopTime=Math.min(3,s.v.duration-.05);
-  const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||65,startY=scrollY,areaY=scrollY+area.getBoundingClientRect().top-hh,span=Math.max(1,area.offsetHeight-stage.offsetHeight);
-  const bridgeY=areaY+span*timeline.bridge,endY=areaY+span*timeline.progressAt(stopTime,s.v.duration);
-  if(reduced.matches){scrollTo({top:areaY,behavior:'auto'});return}
-  area.dataset.handoff='auto';area.dataset.handoffTime=String(stopTime);
-  let frame=0,cancelled=false,t0=performance.now();const clean=()=>events.forEach(n=>removeEventListener(n,abort));const abort=()=>{cancelled=true;cancelAnimationFrame(frame);area.dataset.handoff='manual';clean()};const events=['wheel','touchstart','pointerdown','keydown'];events.forEach(n=>addEventListener(n,abort,{once:true,passive:true}));
-  function step(now){if(cancelled)return;const elapsed=now-t0;let y;
-   if(elapsed<1900){const t=elapsed/1900,e=t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;y=startY+(bridgeY-startY)*e}
-   else{const t=Math.min(1,(elapsed-1900)/(stopTime*1000));y=bridgeY+(endY-bridgeY)*t}
-   scrollTo({top:y,behavior:'instant'});
-   if(elapsed<1900+stopTime*1000)frame=requestAnimationFrame(step);
-   else{position=target=timeline.progressAt(stopTime,s.v.duration);s.target=stopTime;seek();schedule();area.dataset.handoff='manual';clean()}
-  }frame=requestAnimationFrame(step);
+ const root=document.querySelector('.film-player');
+ if(!root)return;
+ const video=root.querySelector('video'),buttons=[...root.querySelectorAll('[data-film]')];
+ const titles=['مدل و رنگ مو','مدل مژه','طرح و رنگ ناخن'];
+ const descriptions=['مدل و رنگ‌های مختلف را روی یک چهره ببینید.','حالت و حجم مژه را روی چشم‌ها مقایسه کنید.','تغییر فرم، طرح و رنگ ناخن را روی دست ببینید.'];
+ const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+ let current=0,visible=false,userPaused=false,systemPause=false,completed=false;
+ function play(){
+  if(!visible||document.hidden||completed||userPaused)return;
+  video.play().catch(()=>{});
  }
-
- function seek(){if(s.v.seeking||s.v.readyState<1||!Number.isFinite(s.v.duration))return;const t=cl(s.target,0,s.v.duration-.05);if(Math.abs(s.v.currentTime-t)>.045)s.v.currentTime=t}s.v.addEventListener('seeked',seek);
- function update(){pending=false;area.classList.toggle('is-static',reduced.matches);if(reduced.matches){s.v.controls=true;bridge.hidden=true;return}bridge.hidden=false;
- const hh=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hh'))||65;target=cl((hh-area.getBoundingClientRect().top)/Math.max(1,area.offsetHeight-stage.offsetHeight));position+= (target-position)*.18;if(Math.abs(target-position)<.0004)position=target;const p=position,q=cl(p/.27),n=cl((p-.27)/.73);
- area.dataset.phase=p<.27?'bridge':'nails';bridge.style.opacity=p<.27?'1':'0';bridge.style.visibility=p<.27?'visible':'hidden';s.v.classList.toggle('is-active',p>=.27);copy.classList.toggle('is-active',p>=.27);
- space.style.opacity=String(cl(q/.18)*(1-cl((q-.73)/.27)));stone.style.opacity=String(cl(q/.1)*(1-cl((q-.9)/.1)));stone.style.top=(40+q*43)+'%';stone.style.transform='translate(-50%,-50%) scale('+(1-q*.35)+')';bridge.querySelector('p').style.opacity=String(cl((q-.18)/.15)*(1-cl((q-.65)/.15)));if(Number.isFinite(s.v.duration)){s.target=window.__AYN_JOURNEY.timeAt(p,s.v.duration);seek()}if(position!==target)schedule();
+ function pause(){
+  if(video.paused)return;
+  systemPause=true;
+  video.pause();
  }
- function schedule(){if(!pending){pending=true;requestAnimationFrame(update)}}addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule);
- Promise.resolve(window.__AYN_HERO_READY).finally(()=>states.forEach(load));schedule();
+ function select(index){
+  if(index!==current){
+   pause();
+   current=index;
+   const key=buttons[index].dataset.film,base=window.__AYN_BASE||'assets/';
+   video.poster=base+key+'-poster.webp';
+   video.src=base+'video/'+key+'.mp4?v='+window.__AYN_ASSET_VERSION;
+  }else if(video.ended)video.currentTime=0;
+  completed=false;userPaused=false;
+  video.playbackRate=index===0?1.5:1;
+  video.setAttribute('aria-label',titles[index]);
+  root.querySelector('#filmTitle').textContent=titles[index];
+  root.querySelector('#filmText').textContent=descriptions[index];
+  buttons.forEach((button,i)=>button.setAttribute('aria-pressed',String(i===index)));
+ }
+ buttons.forEach((button,index)=>button.addEventListener('click',()=>{select(index);visible=true;play()}));
+ video.addEventListener('loadedmetadata',()=>{video.playbackRate=current===0?1.5:1});
+ video.addEventListener('playing',()=>{userPaused=false;completed=false;root.classList.add('is-playing')});
+ video.addEventListener('waiting',()=>root.classList.remove('is-playing'));
+ video.addEventListener('pause',()=>{
+  root.classList.remove('is-playing');
+  if(!systemPause&&!video.ended)userPaused=true;
+  systemPause=false;
+ });
+ video.addEventListener('ended',()=>{
+  root.classList.remove('is-playing');
+  if(current+1===buttons.length){completed=true;return}
+  select(current+1);play();
+ });
+ new IntersectionObserver(([entry])=>{
+  visible=entry.isIntersecting;
+  if(!visible)pause();
+  else if(!reduced.matches)play();
+ },{threshold:.3}).observe(video);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();else if(!reduced.matches)play()});
+ select(0);
 })();
