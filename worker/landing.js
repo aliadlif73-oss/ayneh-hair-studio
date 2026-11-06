@@ -575,6 +575,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 .live-works img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:6px}
 .builder-preview>.builder-note{color:#f2e4cc}.builder-preview>.btn{background:#f7d89f;color:#26180e}
 @media(max-width:850px){.builder-grid{grid-template-columns:1fr}.builder-preview{grid-row:1;position:sticky;top:var(--hh,68px);z-index:6;padding:7px;gap:6px}.builder-live{max-height:31svh}.live-cover{height:54px}.live-logo{width:37px;height:37px;margin-top:-18px}.live-salon{gap:3px}.live-salon p,.live-chips span,.live-services span{font-size:11px}.builder-form{scroll-margin-top:36svh}.builder-preview>.btn{min-height:38px;padding:4px 10px;font-size:13px}}
+@media(max-width:480px){.builder-form fieldset{grid-template-columns:1fr}}
 
 /* CTA bands, sticky mobile CTA, plan buttons, form microcopy */
 .cta-band{padding:clamp(40px,6vw,72px) var(--gut);background:var(--espresso);color:var(--cream)}
@@ -1079,7 +1080,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   const x=Math.min(0,Math.max(W-pw,W/2-FX*pw)),y=Math.min(0,Math.max(H-ph,H*.5-FY*ph));
   Object.assign(plate.style,{width:pw+'px',height:ph+'px',left:x+'px',top:y+'px'});
   plate.style.setProperty('--scene-scale',s.toFixed(3));
-  dock.style.setProperty('--u',mobile.matches?'1':Math.max(.62,Math.min(1.35,s/.84)).toFixed(3));
+  dock.style.setProperty('--u',mobile.matches?'.8':Math.max(.62,Math.min(1.35,s/.84)).toFixed(3));
   // phones: the podium is too small for the dock, so it sits under the mirror instead
   // phones: colours and the style dock sit under the mirror, where thumbs can reach them
   if(mobile.matches){let lab=$('heroPlayground');if(!lab){lab=document.createElement('div');lab.id='heroPlayground';lab.className='hero-playground';studio.before(lab)}lab.append(studio,palette,dock);dock.classList.add('mobile');palette.classList.add('mobile')}
