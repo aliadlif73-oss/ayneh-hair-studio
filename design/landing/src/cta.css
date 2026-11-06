@@ -25,3 +25,14 @@
 .wipe.in{clip-path:inset(0 0 -.2em 0);transform:none}
 .s2-demo img,.trial-mock img,.svc .ico{will-change:transform}
 @media (prefers-reduced-motion:reduce){.site-header{transition:none}}
+/* The mobile action lives in its own safe-area-aware strip. */
+.lead-wrap{max-width:680px}
+#studio{scroll-margin-top:0}
+.service-preview-link{display:inline-flex;margin-top:20px}
+@media (max-width:900px){
+ html{scroll-padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+ body:has(.sticky-cta:not([hidden])){padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+ .sticky-cta:not([hidden]){display:flex;inset-inline:0;bottom:0;padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px));border:0;border-top:1px solid rgba(185,151,91,.35);border-radius:0;background:#f7efe4;box-shadow:0 -8px 22px rgba(22,13,7,.13);color:var(--espresso);font-size:15px;line-height:1.4;white-space:nowrap;min-height:52px}
+ .sticky-cta:focus-visible{outline-offset:-4px}
+ .trial-grid>.sec-head{margin-bottom:0}
+}

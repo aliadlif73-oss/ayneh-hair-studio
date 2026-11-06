@@ -11,6 +11,8 @@ for asset in os.listdir('assets'):
     if re.match(r'(hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', asset):
         shutil.copyfile('assets/' + asset, '../../public/landing/' + asset)
 
+W('../../worker/brand.js', 'export const brandMark=' + json.dumps(R('assets/ayneh-mark.svg'), ensure_ascii=False) + ';' + NL + 'export const favicon=' + json.dumps(R('assets/ayneh-favicon.svg'), ensure_ascii=False) + ';' + NL)
+shutil.copyfile('assets/ayneh-favicon.svg', '../../public/favicon.svg')
 W('../../worker/draft.js', 'export const draftScript=' + json.dumps(R('src/draft.js'), ensure_ascii=False) + ';' + NL)
 
 # ---------------- source assembly (relative asset paths) ----------------
@@ -24,11 +26,13 @@ css += NL + R('src/polish.css')
 css += NL + '.compare{margin-top:0}' + NL + '@media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}' + NL
 h = h.replace(st.group(0), '<style>' + css + '</style>')
 h = re.sub(r'  <!-- 1\. Hero -->.*?(?=  <!-- 2\. Experience -->)', lambda m: R('src/hero.html') + NL, h, flags=re.S)
-h = re.sub(r'  <!-- 2\. Experience -->.*?(?=  <!-- 3\. Services -->)', lambda m: R('src/scenes.html') + R('src/sec2.html') + NL, h, flags=re.S)
-# the free-trial section (live mockup + lead form) goes right before the plans
-trial = R('src/trial.html').replace('<!--LEAD-->', R('src/lead.html'))
-assert '  <!-- 6. Plans -->' in h
-h = re.sub(r'  <!-- 6\. Plans -->.*?(?=  <!-- 7\. FAQ -->)', lambda m: trial, h, flags=re.S)
+# Keep the sales path short. The cinematic walkthrough follows the inquiry.
+def section(section_id):
+    return re.search(r'  <section id="' + section_id + r'".*?</section>', h, re.S).group(0)
+
+lead = '<section id="start" class="section trial" aria-labelledby="h-trial" tabindex="-1"><div class="wrap lead-wrap"><div class="sec-head"><p class="kicker">برای مدیران سالن</p><h2 id="h-trial">درخواست دمو و مشاوره</h2><p class="sub">مشخصات سالن را بفرستید تا برای هماهنگی زمان دمو با شما تماس بگیریم.</p></div>' + R('src/lead.html') + '</div></section>'
+funnel = NL.join([section('how'), section('services'), R('src/trial.html'), section('faq'), lead, R('src/scenes.html'), R('src/sec2.html')])
+h = re.sub(r'  <!-- 2\. Experience -->.*?(?=</main>)', lambda m: funnel + NL, h, flags=re.S)
 h = h.replace('<!--AYNEH_MARK-->', R('assets/ayneh-mark.svg'))
 assert 'leadForm' in h and 'id="mock"' in h, 'trial section not inserted'
 # styles whose mirror render exists (assets/look-sNN.webp + mask-sNN.png): the hero shows their shape on the model

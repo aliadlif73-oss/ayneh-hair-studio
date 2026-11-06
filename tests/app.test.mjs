@@ -724,7 +724,7 @@ test('without SMS invites the bot offers messenger buttons and /i/ is a send pag
 // ---------- landing page and salon inquiries ----------
 test('landing page is public at / and the owner console stays at /admin',async()=>{const e=tgEnv(fixture());
  const r=await app.fetch(new Request(origin+'/'),e);assert.equal(r.status,200);const html=await r.text();
- assert.match(html,/id="leadForm"/);assert.match(html,/مشتری‌تان اول روی خودش می‌بیند، بعد برای شما می‌فرستد/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
+ assert.match(html,/id="leadForm"/);assert.match(html,/مشاورهٔ سالن را با عکس و انتخاب مشتری شروع کنید/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
  new Function(html.match(/<script>([\s\S]*?)<\/script>/g).map(s=>s.replace(/<\/?script>/g,'')).join('\n'));
  assert.equal((await app.fetch(new Request(origin+'/admin'),e)).status,200);});
 
