@@ -1,10 +1,13 @@
-// Melipayamak (ملی پیامک) texts. Two jobs only:
+// Melipayamak (ملی پیامک) texts. Two jobs in the main app, plus one in the specialist editions:
 //  1. One-time code: POST /api/send/otp/<token> {to} -> {code,status}. Melipayamak generates and
 //     texts the code and hands it back, so we can check it ourselves. We keep only its hash.
 //  2. Invitation: POST /api/send/shared/<token> {bodyId,to,args} from the shared service line,
 //     using the approved ready-made text MELIPAYAMAK_BODY_ID. args fill its variables in order:
 //     [salon name, salon slug]. The text itself ends with the fixed site address, e.g.
 //     «… ayneh-salon.site/s/{1}», so the link is the site plus /s/<slug>.
+//  3. Booking confirmed (specialist editions only, worker/booking.js): the approved text
+//     MELIPAYAMAK_BOOKING_BODY_ID with args [specialist/page name, Persian day+date+time], e.g.
+//     «نوبت شما نزد {0} برای {1} تأیید شد. آینه». No link (no starred eNamad). Unset = no text.
 // Secrets: MELIPAYAMAK_TOKEN is the random segment at the end of the API address shown in the
 // Melipayamak console (it is a credential: never commit it); MELIPAYAMAK_BODY_ID is the number of
 // the approved invitation text; MELIPAYAMAK_OTP_BODY_ID (optional) the approved one-time-code text.
@@ -15,6 +18,7 @@ const BASE='https://console.melipayamak.com/api/send/';
 export const DEV_CODE='12345';
 export const smsReady=env=>!!env?.MELIPAYAMAK_TOKEN;
 export const otpTextReady=env=>smsReady(env)&&/^\d+$/.test(String(env?.MELIPAYAMAK_OTP_BODY_ID||'').trim());
+export const bookingTextReady=env=>smsReady(env)&&/^\d+$/.test(String(env?.MELIPAYAMAK_BOOKING_BODY_ID||'').trim());
 export const inviteReady=env=>smsReady(env)&&/^\d+$/.test(String(env?.MELIPAYAMAK_BODY_ID||'').trim());
 const mock=env=>env.MELIPAYAMAK_TOKEN==='dev-mock';
 // The console shows the token inside a full address (…/api/send/otp/<token> or …/shared/<token>);
@@ -66,4 +70,12 @@ export async function sendInvite(env,phone,args){
  must(inviteReady(env),'پیامک دعوت هنوز فعال نشده است',503);
  if(mock(env)){console.log('[sms mock] invite ->',localNumber(phone),JSON.stringify(args));return {recId:'mock'};}
  return shared(env,phone,Number(String(env.MELIPAYAMAK_BODY_ID).trim()),args);
+}
+
+// Texts "your booking is confirmed" from the shared line. Without MELIPAYAMAK_BOOKING_BODY_ID it
+// sends nothing and returns null (the customer's page still shows the confirmed status).
+export async function sendBookingConfirm(env,phone,args){
+ if(!bookingTextReady(env))return null;
+ if(mock(env)){console.log('[sms mock] booking ->',JSON.stringify(args));return {recId:'mock'};}
+ return shared(env,phone,Number(String(env.MELIPAYAMAK_BOOKING_BODY_ID).trim()),args.map(a=>String(a).slice(0,60)));
 }

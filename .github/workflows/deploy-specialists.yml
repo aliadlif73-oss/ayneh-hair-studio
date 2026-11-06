@@ -28,6 +28,7 @@ jobs:
           OWNER_PASSWORD_HASH: ${{ secrets.OWNER_PASSWORD_HASH }}
           MELIPAYAMAK_TOKEN: ${{ secrets.MELIPAYAMAK_TOKEN }}
           MELIPAYAMAK_OTP_BODY_ID: ${{ secrets.MELIPAYAMAK_OTP_BODY_ID }}
+          MELIPAYAMAK_BOOKING_BODY_ID: ${{ secrets.MELIPAYAMAK_BOOKING_BODY_ID }}
         run: |
           set -euo pipefail
           test -n "$CLOUDFLARE_API_TOKEN"
@@ -45,7 +46,8 @@ jobs:
               fi
             done
             # Phone verification (OTP text only) keeps free demos and trials from being abused.
-            for key in KIE_API_KEY OWNER_PASSWORD OWNER_PASSWORD_HASH MELIPAYAMAK_TOKEN MELIPAYAMAK_OTP_BODY_ID; do
+            # The booking-confirmed text (no link) is optional; without it the page status still updates.
+            for key in KIE_API_KEY OWNER_PASSWORD OWNER_PASSWORD_HASH MELIPAYAMAK_TOKEN MELIPAYAMAK_OTP_BODY_ID MELIPAYAMAK_BOOKING_BODY_ID; do
               value="${!key:-}"
               if [ -n "$value" ]; then
                 printf '%s' "$value" | npx wrangler secret put "$key" --config "$cfg" >/dev/null
