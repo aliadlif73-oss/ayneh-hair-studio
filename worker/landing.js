@@ -5,11 +5,11 @@ export const landingHTML=`<!doctype html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>آینه | مشتری‌تان مدل مو، ناخن و مژه‌اش را قبل از آمدن می‌بیند</title>
-<meta name="description" content="صفحهٔ اینترنتی سالن شما: مشتری مدل مو، رنگ، طرح ناخن و مژه را روی عکس خودش امتحان می‌کند و درخواستش را با عکس به تلگرام یا بله شما می‌فرستد. درخواست صفحه اختصاصی سالن.">
+<title>آینه | مشتری قبل از آمدن، مدل مو و ناخنش را روی عکس خودش می‌بیند</title>
+<meta name="description" content="صفحهٔ اختصاصی سالن شما: مشتری مدل مو، رنگ، ناخن و مژه را روی عکس خودش امتحان می‌کند و انتخابش را مستقیم به تلگرام یا بله می‌فرستد. پیش‌نمایش رایگان بسازید.">
 <meta name="theme-color" content="#F8F2EB">
-<meta property="og:title" content="آینه | مشتری‌تان قبل از نشستن روی صندلی می‌داند چه می‌خواهد">
-<meta property="og:description" content="درخواست صفحه اختصاصی سالن برای سالن‌های مو، ناخن و مژه. مدل‌ها را همین‌جا امتحان کنید و صفحهٔ اختصاصی سالن خودتان را درخواست بدهید.">
+<meta property="og:title" content="آینه | مشتری قبل از نشستن روی صندلی می‌داند چه می‌خواهد">
+<meta property="og:description" content="برای سالن‌های مو، ناخن و مژه. مدل‌ها را همین‌جا امتحان کنید، پیش‌نمایش سالن بسازید و صفحهٔ اختصاصی‌تان را فعال کنید.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fa_IR">
 <meta property="og:image" content="__ORIGIN__/landing/og.jpg">
@@ -713,10 +713,10 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
     <div class="stage" id="stage" data-demo="loading">
       <div class="copy" id="copy">
         <p class="eyebrow reveal">برای صاحبان سالن مو، ناخن و مژه</p>
-        <h1 id="h1" class="reveal">مشاورهٔ سالن را با عکس و انتخاب مشتری شروع کنید.</h1>
-        <p class="lead reveal">مشتری مدل مو، رنگ، ناخن یا مژه را روی عکس خودش امتحان می‌کند و انتخابش را برای سالن می‌فرستد. شما درخواست را در تلگرام یا بله بررسی می‌کنید.</p>
-        <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>ساخت پیش‌نمایش سالن</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" href="#studio" id="openHeroDemo"><span>امتحان آینه بدون ثبت‌نام</span></a></div>
-        <p class="fineprint reveal">در آینهٔ زیر مدل و رنگ را روی چهرهٔ نمونه تغییر دهید.</p>
+        <h1 id="h1" class="reveal">مشتری قبل از نشستن روی صندلی می‌داند چه می‌خواهد.</h1>
+        <p class="lead reveal">مدل مو، رنگ، ناخن یا مژه را روی عکس خودش امتحان می‌کند و انتخابش را مستقیم به تلگرام یا بله شما می‌فرستد. شما فقط درخواست را می‌بینید و جواب می‌دهید.</p>
+        <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>ساخت پیش‌نمایش سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" href="#studio" id="openHeroDemo"><span>اول آینه را امتحان کنید</span></a></div>
+        <p class="fineprint reveal">همین پایین، مدل و رنگ را روی چهرهٔ نمونه عوض کنید.</p>
       </div>
 
       <div class="studio" id="studio" tabindex="-1" aria-label="دموی تعاملی آینه روی چهرهٔ نمونه">
@@ -731,7 +731,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
             </div>
             <div class="mirror-invite" id="mirrorInvite" inert>
               <span class="invite-mark" aria-hidden="true">✦</span><p>این بار،<br>تصویر خودتان.</p>
-              <a class="btn" data-try="hair" href="/s/demo?l=hair">با تصویر خودتان امتحان کنید <span aria-hidden="true">←</span></a>
+              <a class="btn" data-try="hair" href="/s/demo?l=hair">با عکس خودتان امتحان کنید <span aria-hidden="true">←</span></a>
               <button type="button" id="backToMirror">بازگشت به آینه</button>
             </div>
             <div class="dock glass" id="dock">
@@ -758,7 +758,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
           </aside>
           <div class="result glass" id="result" role="status" aria-live="polite">
             <span id="resultText"></span>
-            <a class="btn" data-try="hair" href="/s/demo?l=hair"><span>همین الان با تصویر خودم بساز</span><span class="arrow" aria-hidden="true">←</span></a>
+            <a class="btn" data-try="hair" href="/s/demo?l=hair"><span>همین الان با عکس خودم بساز</span><span class="arrow" aria-hidden="true">←</span></a>
           </div>
         </div>
       </div>
@@ -784,19 +784,19 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   </section>
 
   <section id="how" class="section section--sunken" aria-labelledby="h-how" tabindex="-1">
-    <div class="wrap"><header class="sec-head"><p class="kicker">آینه برای سالن‌های زیبایی</p><h2 id="h-how">آینه چیست؟</h2><p class="sub">آینه صفحهٔ اختصاصی سالن شماست. مشتری عکس چهره یا دستش را می‌گذارد، مدل و رنگ مو، طرح ناخن یا مژه را روی عکس خودش امتحان می‌کند و انتخابش را همراه تصویر برای سالن می‌فرستد. شما در تلگرام یا بله درخواست را بررسی، تأیید یا رد می‌کنید.</p></header>
+    <div class="wrap"><header class="sec-head"><p class="kicker">چرا آینه برای سالن شما ساخته شده</p><h2 id="h-how">آینه صفحهٔ اختصاصی سالن شماست</h2><p class="sub">مشتری عکس چهره یا دستش را می‌گذارد، مدل و رنگ مو، طرح ناخن یا مژه را روی عکس خودش امتحان می‌کند و انتخابش را با تصویر برای شما می‌فرستد. شما در تلگرام یا بله درخواست را می‌بینید و جواب می‌دهید.</p></header>
     <div class="benefits-five">
-      <article class="svc benefit"><span class="gold-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="gold-icon-depth" d="M11 27V15a9 9 0 0 1 18 0v12ZM20 27v6m-6 0h12m-9-14 5-5"/><path d="M11 27V15a9 9 0 0 1 18 0v12ZM20 27v6m-6 0h12m-9-14 5-5"/></svg></span><h3>انتخاب قبل از مراجعه</h3><p>مشتری مدل و رنگ را روی عکس خودش می‌بیند و با انتخاب مشخص سراغ سالن می‌آید.</p></article>
-      <article class="svc benefit"><span class="gold-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="gold-icon-depth" d="M9 10h22v15H19l-7 6v-6H9Zm6 6h10m-10 4h7"/><path d="M9 10h22v15H19l-7 6v-6H9Zm6 6h10m-10 4h7"/></svg></span><h3>مشاوره با تصویر</h3><p>آرایشگر تصویر و مدل انتخابی را کنار هم می‌بیند و دربارهٔ همان نتیجه با مشتری حرف می‌زند.</p></article>
-      <article class="svc benefit"><span class="gold-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="gold-icon-depth" d="M10 8h20v24H10Zm5 17 5-6 4 4 3-3m-11-6h.1"/><path d="M10 8h20v24H10Zm5 17 5-6 4 4 3-3m-11-6h.1"/></svg></span><h3>نمونه‌کار قابل امتحان</h3><p>مشتری می‌تواند از میان کارهای خود سالن انتخاب کند و مدل دلخواهش را روی عکسش ببیند.</p></article>
-      <article class="svc benefit"><span class="gold-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="gold-icon-depth" d="M16 24l8-8m-10 5-4 4a4 4 0 0 0 6 6l4-4m0-14 4-4a4 4 0 0 1 6 6l-4 4"/><path d="M16 24l8-8m-10 5-4 4a4 4 0 0 0 6 6l4-4m0-14 4-4a4 4 0 0 1 6 6l-4 4"/></svg></span><h3>یک لینک با نام سالن</h3><p>صفحهٔ سالن را در بیوی اینستاگرام یا دایرکت بفرستید تا مشتری از همان گوشی وارد شود.</p></article>
-      <article class="svc benefit"><span class="gold-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="gold-icon-depth" d="M20 7l11 4v8c0 6-4 10-11 14-7-4-11-8-11-14v-8Zm-5 13 4 4 7-8"/><path d="M20 7l11 4v8c0 6-4 10-11 14-7-4-11-8-11-14v-8Zm-5 13 4 4 7-8"/></svg></span><h3>پاسخ در پیام‌رسان</h3><p>درخواست تصویری به تلگرام یا بله می‌رسد و سالن همان‌جا آن را تأیید یا رد می‌کند.</p></article>
+      <article class="svc benefit"><span class="gold-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="gold-icon-depth" d="M11 27V15a9 9 0 0 1 18 0v12ZM20 27v6m-6 0h12m-9-14 5-5"/><path d="M11 27V15a9 9 0 0 1 18 0v12ZM20 27v6m-6 0h12m-9-14 5-5"/></svg></span><h3>انتخاب قبل از مراجعه</h3><p>مشتری مدل و رنگ را روی عکس خودش می‌بیند و با انتخاب روشن سراغ سالن می‌آید.</p></article>
+      <article class="svc benefit"><span class="gold-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="gold-icon-depth" d="M9 10h22v15H19l-7 6v-6H9Zm6 6h10m-10 4h7"/><path d="M9 10h22v15H19l-7 6v-6H9Zm6 6h10m-10 4h7"/></svg></span><h3>مشاوره با تصویر</h3><p>آرایشگر عکس و مدل انتخاب‌شده را کنار هم می‌بیند و دربارهٔ همان نتیجه با مشتری حرف می‌زند.</p></article>
+      <article class="svc benefit"><span class="gold-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="gold-icon-depth" d="M10 8h20v24H10Zm5 17 5-6 4 4 3-3m-11-6h.1"/><path d="M10 8h20v24H10Zm5 17 5-6 4 4 3-3m-11-6h.1"/></svg></span><h3>نمونه‌کار قابل امتحان</h3><p>مشتری از میان کارهای خود سالن انتخاب می‌کند و مدل دلخواهش را روی عکس خودش می‌بیند.</p></article>
+      <article class="svc benefit"><span class="gold-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="gold-icon-depth" d="M16 24l8-8m-10 5-4 4a4 4 0 0 0 6 6l4-4m0-14 4-4a4 4 0 0 1 6 6l-4 4"/><path d="M16 24l8-8m-10 5-4 4a4 4 0 0 0 6 6l4-4m0-14 4-4a4 4 0 0 1 6 6l-4 4"/></svg></span><h3>یک لینک با نام سالن</h3><p>لینک صفحه را در بیو اینستاگرام یا دایرکت بگذارید؛ مشتری از همان گوشی وارد می‌شود.</p></article>
+      <article class="svc benefit"><span class="gold-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="gold-icon-depth" d="M20 7l11 4v8c0 6-4 10-11 14-7-4-11-8-11-14v-8Zm-5 13 4 4 7-8"/><path d="M20 7l11 4v8c0 6-4 10-11 14-7-4-11-8-11-14v-8Zm-5 13 4 4 7-8"/></svg></span><h3>پاسخ در پیام‌رسان</h3><p>درخواست تصویری به تلگرام یا بله می‌رسد و همان‌جا تأیید یا رد می‌کنید.</p></article>
     </div></div>
   </section>
 <section class="salon-invite" aria-labelledby="salon-invite-title">
  <div class="salon-invite-card">
   <div class="salon-invite-art"><img src="/landing/salon-film-05.webp" alt="بررسی انتخاب مشتری در سالن زیبایی" width="1920" height="1080" loading="lazy"><span class="invite-seal"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M18 52V27a14 14 0 0 1 28 0v25H18Z" stroke="currentColor" stroke-width="2.5"/><path d="M13 51H8V32a10 10 0 0 1 6-9M51 51h5V32a10 10 0 0 0-6-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m25 43 14-18M26 32l8-10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".65"/><path d="M32 5v4M30 7h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>این تجربه،<br>با نام سالن شما.</span></span></div>
-  <div class="salon-invite-copy"><p class="journey-kicker">آینه برای سالن زیبایی شما</p><h2 id="salon-invite-title">آینهٔ اختصاصی سالن شما</h2><p>اسم، رنگ برند و نمونه‌کارهایتان را اضافه کنید تا ببینید مشتری‌ها صفحهٔ سالن شما را چطور می‌بینند.</p><p class="invite-detail">ساخت پیش‌نمایش بدون ثبت‌نام است. برای فعال‌سازی صفحه، بعد از دیدن پیش‌نمایش درخواست بفرستید.</p><a class="btn btn--lg" href="#salon-example"><span>ساخت پیش‌نمایش سالن من</span><span class="arrow" aria-hidden="true">←</span></a></div>
+  <div class="salon-invite-copy"><p class="journey-kicker">آینه برای سالن زیبایی شما</p><h2 id="salon-invite-title">صفحهٔ اختصاصی سالن‌تان را بسازید</h2><p>اسم، رنگ برند و نمونه‌کارهایتان را اضافه کنید و ببینید مشتری‌ها صفحهٔ سالن شما را چطور می‌بینند.</p><p class="invite-detail">پیش‌نمایش رایگان است و نیازی به ثبت‌نام ندارد. بعد از دیدن نتیجه، اگر خواستید صفحه را فعال کنید.</p><a class="btn btn--lg" href="#salon-example"><span>ساخت پیش‌نمایش سالن من</span><span class="arrow" aria-hidden="true">←</span></a></div>
  </div>
 </section>
 
@@ -804,26 +804,26 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
     <div class="wrap">
       <div class="sec-head">
         <p class="kicker">مو، ناخن، مژه</p>
-        <h2 id="h-svc">سه خدمت در یک صفحهٔ اختصاصی</h2>
-        <p class="sub">مشتری می‌تواند هر خدمت را جداگانه امتحان کند و انتخابش را برای شما بفرستد.</p>
+        <h2 id="h-svc">مو، ناخن و مژه؛ همه در یک صفحه</h2>
+        <p class="sub">مشتری هر خدمت را جداگانه امتحان می‌کند و انتخابش را برای شما می‌فرستد.</p>
       </div>
       <div class="cards3">
         <article class="svc">
           <span class="gold-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="gold-icon-depth" d="M12 24a4 4 0 1 0 4 4l12-17m0 13a4 4 0 1 1-4 4L12 11"/><path d="M12 24a4 4 0 1 0 4 4l12-17m0 13a4 4 0 1 1-4 4L12 11"/></svg></span>
           <h3>مدل و رنگ مو</h3>
-          <p>عکس چهره‌تان را بگذارید، مدل یا رنگ را انتخاب کنید و پیش‌نمایش را روی عکس خودتان ببینید.</p>
+          <p>عکس چهره را بگذارید، مدل یا رنگ را انتخاب کنید و نتیجه را روی همان عکس ببینید.</p>
           <a class="btn btn--ghost svc-try" href="https://ayneh-salon.site/s/sanaz-salon">مشاهدهٔ دمو</a>
         </article>
         <article class="svc">
           <span class="gold-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="gold-icon-depth" d="M13 30V17a7 7 0 0 1 14 0v13Zm3-10v-3a4 4 0 0 1 8 0v3Z"/><path d="M13 30V17a7 7 0 0 1 14 0v13Zm3-10v-3a4 4 0 0 1 8 0v3Z"/></svg></span>
           <h3>طرح ناخن</h3>
-          <p>عکس دستتان را بگذارید و فرم، رنگ و طرح ناخن را روی همان دست امتحان کنید.</p>
+          <p>عکس دست را بگذارید و فرم، رنگ و طرح را روی همان دست امتحان کنید.</p>
           <a class="btn btn--ghost svc-try" href="https://ayneh-salon.site/s/sanaz-salon">مشاهدهٔ دمو</a>
         </article>
         <article class="svc">
           <span class="gold-icon" aria-hidden="true"><svg viewBox="0 0 40 40"><path class="gold-icon-depth" d="M8 23q12 11 24 0M11 26l-2 4m8-2-1 5m7-5 1 5m5-7 2 4M9 18q11-9 22 0"/><path d="M8 23q12 11 24 0M11 26l-2 4m8-2-1 5m7-5 1 5m5-7 2 4M9 18q11-9 22 0"/></svg></span>
           <h3>مدل مژه</h3>
-          <p>عکس چهره یا چشم‌ها را بگذارید و حالت، طول و حجم مژه را روی چشم خودتان ببینید.</p>
+          <p>عکس چهره یا چشم را بگذارید و حالت، طول و حجم مژه را روی چشم خودتان ببینید.</p>
           <a class="btn btn--ghost svc-try" href="https://ayneh-salon.site/s/sanaz-salon">مشاهدهٔ دمو</a>
         </article>
       </div>
@@ -840,14 +840,14 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
    <video id="serviceVideo" class="service-video" muted playsinline controls preload="none" poster="/landing/hair-poster.webp" aria-label="مدل و رنگ مو">
     <source src="/landing/video/hair.mp4" type="video/mp4">
    </video>
-   <div class="film-caption" aria-live="polite"><span>نمایش خدمات آینه</span><strong id="filmTitle">مدل و رنگ مو</strong><p id="filmError" role="status" hidden></p><p id="filmText">مدل و رنگ‌های مختلف را روی یک چهره ببینید.</p></div>
+   <div class="film-caption" aria-live="polite"><span>خدمات آینه روی چهره واقعی</span><strong id="filmTitle">مدل و رنگ مو</strong><p id="filmError" role="status" hidden></p><p id="filmText">مدل و رنگ‌های مختلف را روی یک چهره ببینید و انتخاب کنید.</p></div>
   </div>
  </div>
 </section>
 
 <section id="salon-example" class="section salon-builder" aria-labelledby="h-example" tabindex="-1">
  <div class="wrap">
-  <header class="sec-head"><p class="kicker">استودیوی صفحهٔ سالن</p><h2 id="h-example">صفحهٔ سالن‌تان را از نگاه مشتری ببینید</h2><p class="sub">نام، رنگ و نمونه‌کارهای سالن را وارد کنید. هر تغییر همان لحظه در نمای مشتری دیده می‌شود.</p></header>
+  <header class="sec-head"><p class="kicker">استودیوی صفحهٔ سالن</p><h2 id="h-example">صفحهٔ سالن‌تان را از چشم مشتری ببینید</h2><p class="sub">نام، رنگ و نمونه‌کارهای سالن را وارد کنید. هر تغییر همان لحظه در نمای مشتری دیده می‌شود.</p></header>
   <div class="builder-grid">
    <form id="start" class="builder-form">
     <fieldset><legend>هویت و نشانی صفحه</legend>
@@ -877,7 +877,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
     </details>
     <p class="builder-error" id="builderError" role="alert"></p>
     <button type="submit" class="btn btn--lg" id="builderBuild">ساخت صفحهٔ اختصاصی سالن من</button>
-    <p class="builder-note">پیش‌نمایش خصوصی است. تصاویر پس از درخواست فعال‌سازی برای کارشناسان آینه ارسال می‌شوند.</p>
+    <p class="builder-note">پیش‌نمایش خصوصی است. تصاویر بعد از درخواست فعال‌سازی برای کارشناسان آینه ارسال می‌شوند.</p>
    </form>
    <div class="builder-preview" id="builderPreview">
     <div class="builder-browser"><span class="live-badge">پیش‌نمایش زنده</span><b dir="ltr" id="builderAddress">ayneh-salon.site/s/your-salon</b></div>
@@ -894,7 +894,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
       <section class="live-detail"><h4>نمونه‌کارهای سالن</h4><div id="liveWorks" class="live-works"></div><p id="liveEmpty">با افزودن نمونه‌کار، عکس و توضیحات آن اینجا دیده می‌شود.</p></section>
      </div>
     </div>
-    <div class="builder-loading" id="builderLoading" role="status" hidden><span class="builder-spinner" aria-hidden="true"></span><p>در حال ساخت صفحهٔ اختصاصی سالن شما هستیم. لطفاً چند لحظه صبر کنید.</p></div>
+    <div class="builder-loading" id="builderLoading" role="status" hidden><span class="builder-spinner" aria-hidden="true"></span><p>در حال ساخت صفحهٔ اختصاصی سالن شما هستیم. چند لحظه صبر کنید.</p></div>
     <button class="btn btn--lg" id="builderActivate" type="button" hidden>فعال‌سازی صفحهٔ اختصاصی سالن من</button>
     <p class="builder-note" id="builderHint" aria-live="polite"></p>
    </div>
@@ -915,7 +915,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
  <button class="builder-close" type="button" aria-label="بستن">×</button>
  <h2 id="builderDialogTitle">تأیید شمارهٔ موبایل</h2>
  <form id="builderPhone">
-  <p>برای پیگیری درخواست فعال‌سازی، شمارهٔ موبایل خودتان را تأیید کنید.</p>
+  <p>برای پیگیری درخواست فعال‌سازی، شمارهٔ موبایل‌تان را تأیید کنید.</p>
   <label>نام<input name="first_name" required minlength="2" maxlength="40" autocomplete="given-name"></label>
   <label>نام خانوادگی<input name="last_name" required minlength="2" maxlength="60" autocomplete="family-name"></label>
   <label>شمارهٔ موبایل<input name="phone" type="tel" required dir="ltr" maxlength="20" autocomplete="tel"></label>
@@ -927,28 +927,28 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   <button type="button" id="builderRetry" class="btn btn--ghost">ارسال دوبارهٔ کد</button>
  </form>
  <p id="builderDialogError" class="builder-error" role="alert"></p>
- <p id="builderThanks" role="status" hidden>از اعتماد شما ممنونیم. درخواست فعال‌سازی صفحهٔ اختصاصی سالن شما برای کارشناسان ما ارسال شد. تا ۲۴ ساعت آینده با شما تماس می‌گیریم.</p>
+ <p id="builderThanks" role="status" hidden>از اعتمادتان ممنونیم. درخواست فعال‌سازی صفحهٔ اختصاصی سالن برای کارشناسان ما ارسال شد. تا ۲۴ ساعت آینده با شما تماس می‌گیریم.</p>
 </dialog>
 
   <section id="faq" class="section" aria-labelledby="h-faq" tabindex="-1">
     <div class="wrap">
-      <div class="sec-head"><p class="kicker">پرسش‌های پرتکرار</p><h2 id="h-faq">هزینه، راه‌اندازی و پرسش‌ها</h2></div>
+      <div class="sec-head"><p class="kicker">پرسش‌های پرتکرار</p><h2 id="h-faq">پاسخ کوتاه به پرسش‌های رایج</h2></div>
       <div class="faq">
-        <details open><summary>هزینهٔ آینه چطور مشخص می‌شود؟</summary><p>هزینهٔ راه‌اندازی و هزینهٔ مصرف به امکانات و میزان استفادهٔ سالن بستگی دارد. در جلسهٔ دمو، گزینه‌های متناسب با سالن و هزینهٔ هر کدام را توضیح می‌دهیم.</p></details>
-        <details><summary>آینه دقیقاً چیست؟</summary><p>صفحه‌ای اینترنتی با نام و رنگ برند سالن شما. مشتری روی آن مدل مو، رنگ، طرح ناخن یا مژه را روی عکس خودش امتحان می‌کند و درخواستش را با عکس به تلگرام یا بله شما می‌فرستد.</p></details>
-        <details><summary>چطور سرویس‌ها را امتحان کنم؟</summary><p>بالای همین صفحه، عکس خودتان را انتخاب کنید و مدل مو، رنگ، مژه یا ناخن دلخواهتان را امتحان کنید.</p></details>
-        <details><summary>بعد از ثبت درخواست چه می‌شود؟</summary><p>بعد از تأیید موبایل و ارسال درخواست فعال‌سازی، کارشناسان آینه تا ۲۴ ساعت آینده برای هماهنگی با شما تماس می‌گیرند.</p></details>
-        <details><summary>مشتری‌های من چطور وارد می‌شوند؟</summary><p>با یک لینک. آن را در اینستاگرام، تلگرام یا هر چتی با مشتری می‌گذارید. برنامه‌ای نصب نمی‌شود و صفحه در مرورگر گوشی باز می‌شود.</p></details>
+        <details open><summary>هزینهٔ آینه چطور مشخص می‌شود؟</summary><p>هزینهٔ راه‌اندازی و مصرف به امکانات و میزان استفاده بستگی دارد. در جلسهٔ دمو، گزینه‌های مناسب سالن و هزینهٔ هر کدام را شفاف می‌گوییم.</p></details>
+        <details><summary>آینه دقیقاً چیست؟</summary><p>یک صفحهٔ اینترنتی با نام و رنگ برند سالن شما. مشتری مدل مو، رنگ، ناخن یا مژه را روی عکس خودش امتحان می‌کند و درخواستش را با عکس به تلگرام یا بله شما می‌فرستد.</p></details>
+        <details><summary>چطور سرویس‌ها را امتحان کنم؟</summary><p>بالای همین صفحه عکس خودتان را بگذارید و مدل مو، رنگ، مژه یا ناخن دلخواهتان را امتحان کنید.</p></details>
+        <details><summary>بعد از ثبت درخواست چه می‌شود؟</summary><p>بعد از تأیید موبایل و ارسال درخواست، کارشناسان آینه تا ۲۴ ساعت آینده برای هماهنگی با شما تماس می‌گیرند.</p></details>
+        <details><summary>مشتری‌های من چطور وارد می‌شوند؟</summary><p>با یک لینک. آن را در اینستاگرام، تلگرام یا هر چتی می‌گذارید. چیزی نصب نمی‌شود؛ صفحه در مرورگر گوشی باز می‌شود.</p></details>
         <details><summary>درخواست مشتری را کجا می‌بینم؟</summary><p>در ربات تلگرام یا بله خودتان. پنل جداگانه‌ای ندارید.</p></details>
-        <details><summary>آینه نوبت می‌دهد؟</summary><p>نه. آینه فقط کمک می‌کند مشتری روشن بگوید چه می‌خواهد. نوبت، زمان و هزینه مثل همیشه با شماست.</p></details>
-        <details><summary>نتیجهٔ شبیه‌سازی دقیق است؟</summary><p>نه، تقریبی است. مثل یک عکس مرجع واضح به گفتگو با آرایشگر کمک می‌کند و نتیجهٔ نهایی را تضمین نمی‌کند.</p></details>
-        <details><summary>ناخن و مژه هم دارید؟</summary><p>بله. بالای صفحهٔ سالن بین مو، ناخن و مژه جابه‌جا می‌شوند و هر کدام عکس و انتخاب‌های خودش را دارد.</p></details>
-        <details><summary>شبیه‌سازی برای همهٔ سالن‌ها روشن است؟</summary><p>هر سالن خودش تعیین می‌کند. اگر خاموش باشد، مشتری باز هم مدل و رنگ را انتخاب می‌کند و درخواستش را می‌فرستد.</p></details>
+        <details><summary>آینه نوبت می‌دهد؟</summary><p>نه. آینه فقط کمک می‌کند مشتری روشن بگوید چه می‌خواهد. نوبت، زمان و هزینه مثل همیشه دست خود شماست.</p></details>
+        <details><summary>نتیجهٔ شبیه‌سازی دقیق است؟</summary><p>نه، تقریبی است. مثل یک عکس مرجع واضح به گفتگو کمک می‌کند و نتیجهٔ نهایی را تضمین نمی‌کند.</p></details>
+        <details><summary>ناخن و مژه هم دارید؟</summary><p>بله. در صفحهٔ سالن بین مو، ناخن و مژه جابه‌جا می‌شوند و هر کدام عکس و انتخاب‌های خودش را دارد.</p></details>
+        <details><summary>شبیه‌سازی برای همهٔ سالن‌ها روشن است؟</summary><p>هر سالن خودش تصمیم می‌گیرد. اگر خاموش باشد، مشتری باز هم مدل و رنگ را انتخاب می‌کند و درخواستش را می‌فرستد.</p></details>
       </div>
     </div>
   </section>
 </main>
-<a class="sticky-cta" id="stickyCta" href="#start" hidden><span>ساخت پیش‌نمایش سالن</span><span class="arrow" aria-hidden="true">←</span></a>
+<a class="sticky-cta" id="stickyCta" href="#start" hidden><span>ساخت پیش‌نمایش سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
 
 <footer class="site-footer">
   <div class="foot">
@@ -957,7 +957,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
       <li><a href="#studio">تجربه آینه</a></li><li><a href="#services">خدمات</a></li><li><a href="#how">نحوه کار</a></li><li><a href="#salon-example">نمونهٔ صفحهٔ سالن</a></li><li><a href="#faq">پرسش‌ها</a></li><li><a href="/admin">ورود مدیر</a></li>
     </ul>
   </div>
-  <p class="legal">آینه؛ مدل مو، رنگ مو، ناخن و مژهٔ دلخواهتان را روی تصویر خودتان ببینید.</p>
+  <p class="legal">آینه — مدل مو، رنگ، ناخن و مژهٔ دلخواه را روی عکس خودتان ببینید.</p>
 </footer>
 
 <script>
@@ -1186,7 +1186,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   }).catch(()=>{delete preps[key];return null});
  }
  let transitionAnimation=null;
- const renderError=()=>{$('demoCaption').textContent='تصویر بارگیری نشد؛ دوباره انتخاب کنید.';stage.dataset.renderState='error'};
+ const renderError=()=>{$('demoCaption').textContent='تصویر بارگذاری نشد؛ دوباره انتخاب کنید.';stage.dataset.renderState='error'};
  async function setLook(key){
   const my=++lookTok;
   stage.dataset.renderState='loading';
@@ -1250,7 +1250,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
    $('refNote').textContent='پیش‌نمایش این مدل روی چهرهٔ نمونه';
    await setLook(i===0?'base':'s'+n2(i));
   }else{
-   $('refNote').textContent='عکس مرجع؛ برای دیدن این مدل روی چهره، با تصویر خودتان امتحان کنید.';
+   $('refNote').textContent='عکس مرجع؛ برای دیدن این مدل روی چهره‌تان، با عکس خودتان امتحان کنید.';
    // Do not replace the current hairstyle with an unrelated render.
   }
   summary();
@@ -1382,7 +1382,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
  if(!root)return;
  const video=root.querySelector('video'),buttons=[...root.querySelectorAll('[data-film]')];
  const titles=['مدل و رنگ مو','مدل مژه','طرح و رنگ ناخن'];
- const descriptions=['مدل و رنگ‌های مختلف را روی یک چهره ببینید.','حالت و حجم مژه را روی چشم‌ها مقایسه کنید.','تغییر فرم، طرح و رنگ ناخن را روی دست ببینید.'];
+ const descriptions=['مدل و رنگ‌های مختلف را روی یک چهره ببینید و انتخاب کنید.','حالت و حجم مژه را روی چشم‌ها مقایسه کنید.','تغییر فرم، طرح و رنگ ناخن را روی دست ببینید.'];
  const error=root.querySelector('#filmError');
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  let current=0,visible=false,userPaused=false,systemPause=false,completed=false;

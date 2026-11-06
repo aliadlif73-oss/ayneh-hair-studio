@@ -3,7 +3,7 @@
  if(!root)return;
  const video=root.querySelector('video'),buttons=[...root.querySelectorAll('[data-film]')];
  const titles=['مدل و رنگ مو','مدل مژه','طرح و رنگ ناخن'];
- const descriptions=['مدل و رنگ‌های مختلف را روی یک چهره ببینید.','حالت و حجم مژه را روی چشم‌ها مقایسه کنید.','تغییر فرم، طرح و رنگ ناخن را روی دست ببینید.'];
+ const descriptions=['مدل و رنگ‌های مختلف را روی یک چهره ببینید و انتخاب کنید.','حالت و حجم مژه را روی چشم‌ها مقایسه کنید.','تغییر فرم، طرح و رنگ ناخن را روی دست ببینید.'];
  const error=root.querySelector('#filmError');
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  let current=0,visible=false,userPaused=false,systemPause=false,completed=false;

@@ -154,7 +154,7 @@
   }).catch(()=>{delete preps[key];return null});
  }
  let transitionAnimation=null;
- const renderError=()=>{$('demoCaption').textContent='تصویر بارگیری نشد؛ دوباره انتخاب کنید.';stage.dataset.renderState='error'};
+ const renderError=()=>{$('demoCaption').textContent='تصویر بارگذاری نشد؛ دوباره انتخاب کنید.';stage.dataset.renderState='error'};
  async function setLook(key){
   const my=++lookTok;
   stage.dataset.renderState='loading';
@@ -218,7 +218,7 @@
    $('refNote').textContent='پیش‌نمایش این مدل روی چهرهٔ نمونه';
    await setLook(i===0?'base':'s'+n2(i));
   }else{
-   $('refNote').textContent='عکس مرجع؛ برای دیدن این مدل روی چهره، با تصویر خودتان امتحان کنید.';
+   $('refNote').textContent='عکس مرجع؛ برای دیدن این مدل روی چهره‌تان، با عکس خودتان امتحان کنید.';
    // Do not replace the current hairstyle with an unrelated render.
   }
   summary();
