@@ -232,7 +232,10 @@
  /* ---------- one-shot walkthrough, after the page and hero assets are ready ---------- */
  const hand=$('demoHand'),file=$('demoFile'),caption=$('demoCaption'),invite=$('mirrorInvite');
  let demoController=null,demonstrating=false,played=false;
- function showFront(){stage.classList.remove('mirror-flipped');invite.inert=true;}
+ let inviteTimer=0;
+ function showFront(){clearTimeout(inviteTimer);stage.classList.remove('mirror-flipped');invite.inert=true;}
+ // The invitation is a moment, not the end state: the model returns unless the visitor is using it.
+ function returnLater(){clearTimeout(inviteTimer);inviteTimer=setTimeout(()=>{if(invite.matches(':hover,:focus-within')){returnLater();return}showFront();caption.textContent='مدل و رنگ دلخواهتان را انتخاب کنید.'},6500)}
  function revealPortrait(){stage.classList.add('portrait-visible');}
  function endDemo(message){
   demoController?.abort();demoController=null;demonstrating=false;
@@ -294,7 +297,7 @@
    caption.textContent='انتخابتان را همراه تصویر برای تأیید یا رد به سالن بفرستید.';
    await delay(1300,signal);
    endDemo('همین حالا با تصویر خودتان امتحان کنید.');
-   stage.classList.add('mirror-flipped');invite.inert=false;
+   stage.classList.add('mirror-flipped');invite.inert=false;returnLater();
   }catch(error){if(error.name!=='AbortError')endDemo('مدل و رنگ دلخواهتان را روی آینه انتخاب کنید.')}
  }
  $('openHeroDemo').addEventListener('click',e=>{

@@ -790,6 +790,19 @@ h1,h2,.sec-head h2,.salon-invite-copy h2{text-wrap:balance}
 html{scroll-padding-top:var(--hh,68px)}
 /* Mobile menu ends with the main action. */
 .mobile-menu a.btn.menu-cta{display:flex;margin-top:14px;width:100%;max-width:none;white-space:nowrap;min-height:48px;justify-content:center;font-size:15px}
+/* Mirror invitation: a real card, not a cramped slab. */
+.mirror-invite{gap:clamp(6px,1.1vw,14px)}
+.mirror-invite p{font-size:clamp(14px,calc(24px * var(--scene-scale)),26px);line-height:1.55}
+.mirror-invite .btn{white-space:nowrap;min-height:40px;padding:0 clamp(10px,1vw,16px);font-size:clamp(12px,calc(13px * var(--scene-scale)),14px);line-height:1.4;gap:6px}
+:where(.page,body) .mirror-invite #backToMirror{background:none;box-shadow:none;border:0;color:#E9D8B8;min-height:36px;padding:0 4px;font-size:clamp(11px,calc(12px * var(--scene-scale)),13px);text-decoration:underline;text-underline-offset:4px;filter:none}
+:where(.page,body) .mirror-invite #backToMirror::after{display:none}
+.inv-short{display:none}
+@media(max-width:600px){.mirror-invite .inv-long{display:none}.mirror-invite .inv-short{display:inline}.mirror-invite .invite-mark{display:none}.mirror-invite .btn{padding:0 9px;min-height:34px}}
+/* Hero hands over to the light section below, not to black. */
+.fade{background:linear-gradient(180deg,rgba(237,229,217,0) 40%,var(--sunken,#EDE5D9) 100%)}
+/* The film always fits one desktop screen with its tabs and caption. */
+@media(min-width:641px){.film-player{max-width:min(1100px,calc((100svh - 360px) * 16 / 9 + 88px))}}
+.ref-try{white-space:nowrap}
 
 .compare{margin-top:0}
 @media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}
@@ -851,8 +864,8 @@ html{scroll-padding-top:var(--hh,68px)}
             </div>
             <div class="mirror-invite" id="mirrorInvite" inert>
               <span class="invite-mark" aria-hidden="true">✦</span><p>این بار،<br>تصویر خودتان.</p>
-              <a class="btn" data-try="hair" href="/s/demo?l=hair">با عکس خودتان امتحان کنید <span aria-hidden="true">←</span></a>
-              <button type="button" id="backToMirror">بازگشت به آینه</button>
+              <a class="btn" data-try="hair" href="/s/demo?l=hair"><span class="inv-long">با عکس خودم</span><span class="inv-short">امتحان کنید</span> <span aria-hidden="true">←</span></a>
+              <button type="button" id="backToMirror"><span class="inv-long">بازگشت به آینه</span><span class="inv-short">بازگشت</span></button>
             </div>
             <div class="dock glass" id="dock">
               <h2 id="dock-h">مدل مو · روی این چهره امتحان کنید</h2>
@@ -1392,7 +1405,10 @@ html{scroll-padding-top:var(--hh,68px)}
  /* ---------- one-shot walkthrough, after the page and hero assets are ready ---------- */
  const hand=$('demoHand'),file=$('demoFile'),caption=$('demoCaption'),invite=$('mirrorInvite');
  let demoController=null,demonstrating=false,played=false;
- function showFront(){stage.classList.remove('mirror-flipped');invite.inert=true;}
+ let inviteTimer=0;
+ function showFront(){clearTimeout(inviteTimer);stage.classList.remove('mirror-flipped');invite.inert=true;}
+ // The invitation is a moment, not the end state: the model returns unless the visitor is using it.
+ function returnLater(){clearTimeout(inviteTimer);inviteTimer=setTimeout(()=>{if(invite.matches(':hover,:focus-within')){returnLater();return}showFront();caption.textContent='مدل و رنگ دلخواهتان را انتخاب کنید.'},6500)}
  function revealPortrait(){stage.classList.add('portrait-visible');}
  function endDemo(message){
   demoController?.abort();demoController=null;demonstrating=false;
@@ -1454,7 +1470,7 @@ html{scroll-padding-top:var(--hh,68px)}
    caption.textContent='انتخابتان را همراه تصویر برای تأیید یا رد به سالن بفرستید.';
    await delay(1300,signal);
    endDemo('همین حالا با تصویر خودتان امتحان کنید.');
-   stage.classList.add('mirror-flipped');invite.inert=false;
+   stage.classList.add('mirror-flipped');invite.inert=false;returnLater();
   }catch(error){if(error.name!=='AbortError')endDemo('مدل و رنگ دلخواهتان را روی آینه انتخاب کنید.')}
  }
  $('openHeroDemo').addEventListener('click',e=>{

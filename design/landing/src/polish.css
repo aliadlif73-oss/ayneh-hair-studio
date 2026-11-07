@@ -128,3 +128,16 @@ h1,h2,.sec-head h2,.salon-invite-copy h2{text-wrap:balance}
 html{scroll-padding-top:var(--hh,68px)}
 /* Mobile menu ends with the main action. */
 .mobile-menu a.btn.menu-cta{display:flex;margin-top:14px;width:100%;max-width:none;white-space:nowrap;min-height:48px;justify-content:center;font-size:15px}
+/* Mirror invitation: a real card, not a cramped slab. */
+.mirror-invite{gap:clamp(6px,1.1vw,14px)}
+.mirror-invite p{font-size:clamp(14px,calc(24px * var(--scene-scale)),26px);line-height:1.55}
+.mirror-invite .btn{white-space:nowrap;min-height:40px;padding:0 clamp(10px,1vw,16px);font-size:clamp(12px,calc(13px * var(--scene-scale)),14px);line-height:1.4;gap:6px}
+:where(.page,body) .mirror-invite #backToMirror{background:none;box-shadow:none;border:0;color:#E9D8B8;min-height:36px;padding:0 4px;font-size:clamp(11px,calc(12px * var(--scene-scale)),13px);text-decoration:underline;text-underline-offset:4px;filter:none}
+:where(.page,body) .mirror-invite #backToMirror::after{display:none}
+.inv-short{display:none}
+@media(max-width:600px){.mirror-invite .inv-long{display:none}.mirror-invite .inv-short{display:inline}.mirror-invite .invite-mark{display:none}.mirror-invite .btn{padding:0 9px;min-height:34px}}
+/* Hero hands over to the light section below, not to black. */
+.fade{background:linear-gradient(180deg,rgba(237,229,217,0) 40%,var(--sunken,#EDE5D9) 100%)}
+/* The film always fits one desktop screen with its tabs and caption. */
+@media(min-width:641px){.film-player{max-width:min(1100px,calc((100svh - 360px) * 16 / 9 + 88px))}}
+.ref-try{white-space:nowrap}
