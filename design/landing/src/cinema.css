@@ -1,64 +1,722 @@
-/* ===== Glass finish on the existing 3D actions ===================================================
-   Colours, borders, depth shadow and position stay exactly as they were. A glass layer is added inside each
-   action (behind its label) with a curved specular highlight, and pressing sends water rings from the touch point. */
+/* ===== 1. Glass finish & water ripple on 3D actions ============================================== */
 .glass-layer{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:-1}
-.glass-layer::before{content:"";position:absolute;inset:1px 1px 50% 1px;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,.06) 70%,rgba(255,255,255,0));opacity:.9}
-.glass-layer::after{content:"";position:absolute;left:12%;right:12%;bottom:1px;height:38%;border-radius:50%;background:radial-gradient(ellipse at 50% 100%,rgba(255,236,200,.22),transparent 70%)}
-.ripple{position:absolute;border-radius:50%;transform:translate(-50%,-50%) scale(0);border:2px solid rgba(255,240,210,.8);background:radial-gradient(circle,rgba(255,255,255,.24) 0,rgba(255,255,255,.08) 38%,transparent 62%);animation:water .95s cubic-bezier(.15,.65,.3,1) forwards}
-:where(.on-dark,.salon-invite,.builder-preview,.mirror-invite,.site-footer) .ripple,.nav-btn .ripple,.copy .btn--ghost .ripple{border-color:rgba(150,108,60,.6);background:radial-gradient(circle,rgba(185,151,91,.22) 0,rgba(185,151,91,.06) 40%,transparent 62%)}
+.glass-layer::before{content:"";position:absolute;inset:1px 1px 50% 1px;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.36),rgba(255,255,255,.07) 70%,rgba(255,255,255,0));opacity:.92}
+.glass-layer::after{content:"";position:absolute;left:12%;right:12%;bottom:1px;height:38%;border-radius:50%;background:radial-gradient(ellipse at 50% 100%,rgba(255,236,200,.24),transparent 70%)}
+.ripple{position:absolute;border-radius:50%;transform:translate(-50%,-50%) scale(0);border:2px solid rgba(255,240,210,.82);background:radial-gradient(circle,rgba(255,255,255,.26) 0,rgba(255,255,255,.08) 38%,transparent 62%);animation:water .95s cubic-bezier(.15,.65,.3,1) forwards}
+:where(.on-dark,.salon-invite,.builder-preview,.mirror-invite,.site-footer) .ripple,.nav-btn .ripple,.copy .btn--ghost .ripple{border-color:rgba(150,108,60,.62);background:radial-gradient(circle,rgba(185,151,91,.24) 0,rgba(185,151,91,.06) 40%,transparent 62%)}
 @keyframes water{60%{opacity:.55}100%{transform:translate(-50%,-50%) scale(1);opacity:0;border-width:.5px}}
 .glass-layer.flash::before{animation:sheen-flash .5s ease}
 @keyframes sheen-flash{30%{opacity:1;filter:brightness(1.6)}}
 
-/* ===== Section entrances ========================================================================= */
-[data-cine]{--d:calc(var(--i,0) * 90ms)}
-/* 1. Benefits: cards lift out of the page with a slight tilt, icons pop, one gold glint passes */
-[data-cine=glint] .benefit{opacity:0;transform:perspective(900px) translateY(46px) rotateX(16deg);transform-origin:50% 100%;transition:opacity .7s var(--d),transform .9s cubic-bezier(.2,.8,.2,1) var(--d)}
-[data-cine=glint] .benefit .gold-icon{transform:scale(.55) rotate(-12deg);transition:transform .7s cubic-bezier(.3,1.6,.4,1) calc(var(--d) + .25s)}
-[data-cine=glint] .benefit{position:relative;overflow:hidden}
-[data-cine=glint] .benefit::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,226,160,.45) 50%,transparent 65%);transform:translateX(120%)}
-@media(min-width:901px){[data-cine=glint].cine-in .benefit{opacity:1;transform:none}[data-cine=glint].cine-in .benefit .gold-icon{transform:none}[data-cine=glint].cine-in .benefit::after{animation:glint 1.3s ease calc(var(--d) + .55s) both}}
-[data-cine=glint] .benefit.k-in{opacity:1;transform:none}[data-cine=glint] .benefit.k-in .gold-icon{transform:none}[data-cine=glint] .benefit.k-in::after{animation:glint 1.3s ease .55s both}
-@keyframes glint{from{transform:translateX(120%)}to{transform:translateX(-120%)}}
-/* 2. Invitation: the photo opens like a curtain, the copy follows line by line, light runs the gold edge */
-[data-cine=curtain] .salon-invite-card{opacity:0;transform:scale(.96);transition:opacity .8s,transform 1.1s cubic-bezier(.2,.8,.2,1)}
-[data-cine=curtain] .salon-invite-art{clip-path:inset(0 100% 0 0);transition:clip-path 1.3s cubic-bezier(.7,0,.2,1) .2s}
-[data-cine=curtain] .salon-invite-art>img{transform:scale(1.18);transition:transform 2.2s cubic-bezier(.2,.8,.2,1) .2s}
-[data-cine=curtain] .salon-invite-copy>*{opacity:0;transform:translateX(-28px);transition:opacity .7s calc(.55s + var(--d)),transform .9s cubic-bezier(.2,.8,.2,1) calc(.55s + var(--d))}
-[data-cine=curtain] .salon-invite-card{position:relative}
-[data-cine=curtain] .salon-invite-card::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;pointer-events:none;z-index:2;background:conic-gradient(from var(--sweep,0deg),transparent 0 300deg,#ffe3a3 340deg,transparent 360deg);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;opacity:0}
+/* ===== 2. Dual-Layer 3D Carved / Intaglio Architecture ("حک شده روی پس‌زمینه") ==================== */
+:root{
+  --trench-light-bg:linear-gradient(175deg,#DDD0BC 0%,#E9DEC9 45%,#F5EFE4 100%);
+  --trench-light-shadow:
+    inset 0 5px 10px rgba(32,18,6,.24),
+    inset 0 2px 4px rgba(32,18,6,.28),
+    inset 0 -3px 6px rgba(255,253,248,.95),
+    0 -1px 0 rgba(42,24,8,.18),
+    0 2px 0 rgba(255,253,248,.95),
+    0 12px 26px -10px rgba(34,20,8,.16);
+  --relief-light-bg:linear-gradient(165deg,#FFFDF9 0%,#F7EFE2 52%,#EBE0CE 100%);
+  --relief-light-shadow:
+    0 5px 0 #C2AC8C,
+    0 6px 0 rgba(112,78,38,.48),
+    0 12px 22px rgba(34,20,8,.18),
+    inset 0 1.5px 0 #FFFFFF,
+    inset 0 -2px 4px rgba(145,106,56,.18);
+  --relief-light-hover:
+    0 8px 0 #B9A17E,
+    0 9px 0 rgba(112,78,38,.58),
+    0 18px 30px rgba(34,20,8,.24),
+    inset 0 2px 0 #FFFFFF,
+    inset 0 0 0 1px rgba(185,151,91,.55);
+  --trench-dark-bg:linear-gradient(175deg,#0D0805 0%,#150E09 55%,#21160F 100%);
+  --trench-dark-shadow:
+    inset 0 6px 14px rgba(0,0,0,.88),
+    inset 0 2px 4px rgba(0,0,0,.95),
+    inset 0 -2px 5px rgba(226,193,130,.24),
+    0 -1px 0 rgba(0,0,0,.9),
+    0 2px 0 rgba(226,193,130,.28),
+    0 24px 52px rgba(0,0,0,.62);
+}
+
+/* Light Stone Carved Boxes: Outer Sunken Trench + Inner 3D Sculpted Relief */
+:where(.svc,.benefit,.step,.plan,.builder-steps>li){
+  position:relative;
+  isolation:isolate;
+  background:var(--trench-light-bg);
+  border:1px solid #BFA786;
+  box-shadow:var(--trench-light-shadow);
+  transition:transform .45s cubic-bezier(.18,.88,.22,1),box-shadow .45s cubic-bezier(.18,.88,.22,1),border-color .35s ease;
+}
+:where(.svc,.benefit,.step,.plan,.builder-steps>li)::before{
+  content:"";
+  position:absolute;
+  inset:7px;
+  border-radius:calc(var(--r-card,20px) - 6px);
+  background:
+    radial-gradient(380px circle at var(--mx,50%) var(--my,18%),rgba(222,188,122,.26),transparent 68%),
+    var(--relief-light-bg);
+  border:1px solid rgba(185,151,91,.42);
+  box-shadow:var(--relief-light-shadow);
+  pointer-events:none;
+  z-index:0;
+  transition:transform .45s cubic-bezier(.18,.88,.22,1),box-shadow .45s cubic-bezier(.18,.88,.22,1),border-color .35s ease;
+}
+:where(.builder-steps>li){
+  padding:18px 20px;
+  border-radius:16px;
+}
+:where(.builder-steps>li)::before{
+  inset:5px;
+  border-radius:11px;
+}
+:where(.svc,.benefit,.step,.plan,.builder-steps>li)>*{
+  position:relative;
+  z-index:1;
+}
+
+@media(hover:hover){
+  :where(.svc,.benefit,.step,.plan,.builder-steps>li):hover{
+    transform:perspective(950px) translate3d(0,-3px,6px) rotateX(var(--rx,1.5deg)) rotateY(var(--ry,0deg));
+    border-color:#A9895B;
+  }
+  :where(.svc,.benefit,.step,.plan,.builder-steps>li):hover::before{
+    transform:translateY(-3px);
+    border-color:#B9975B;
+    box-shadow:var(--relief-light-hover);
+  }
+  :where(.svc,.benefit,.builder-steps>li):active::before{
+    transform:translateY(1px);
+    box-shadow:0 2px 0 #C2AC8C,0 4px 10px rgba(34,20,8,.14),inset 0 2px 4px rgba(38,22,9,.14);
+  }
+}
+
+/* Carved Gold Icon Sockets */
+.gold-icon,.svc .ico{
+  position:relative;
+  box-shadow:
+    inset 0 2px 3px #FFF8E2,
+    inset 0 -4px 6px rgba(68,39,14,.58),
+    0 4px 0 #5E3D1C,
+    0 0 0 4px #DFD1BC,
+    0 0 0 5.5px rgba(128,92,46,.46),
+    0 10px 18px rgba(50,28,9,.26);
+  transition:transform .45s cubic-bezier(.34,1.56,.64,1),box-shadow .35s ease;
+}
+:where(.svc,.benefit):hover :is(.gold-icon,.svc .ico){
+  transform:translateY(-4px) scale(1.07) rotate(-4deg);
+  box-shadow:
+    inset 0 2px 4px #FFFDF2,
+    inset 0 -4px 6px rgba(68,39,14,.5),
+    0 6px 0 #5E3D1C,
+    0 0 0 4px #EFE3D0,
+    0 0 0 6px rgba(185,151,91,.68),
+    0 15px 24px rgba(50,28,9,.32);
+}
+
+/* Dark Espresso 3D Carved Monoliths */
+.salon-invite-card{
+  position:relative;
+  padding:10px;
+  border-radius:34px;
+  background:var(--trench-dark-bg);
+  border:1px solid rgba(214,180,115,.38);
+  box-shadow:var(--trench-dark-shadow);
+}
+.salon-invite-art{
+  border-radius:24px;
+  border:1px solid rgba(214,180,115,.34);
+  box-shadow:0 5px 0 #0B0704,0 16px 32px rgba(0,0,0,.55),inset 0 2px 0 rgba(255,238,205,.22);
+}
+.salon-invite-copy{
+  margin:4px;
+  border-radius:24px;
+  background:
+    radial-gradient(480px circle at var(--mx,50%) var(--my,20%),rgba(226,193,130,.15),transparent 70%),
+    linear-gradient(162deg,#2A1D14 0%,#1E140D 55%,#160E09 100%);
+  border:1px solid rgba(214,180,115,.32);
+  box-shadow:0 6px 0 #0B0704,0 18px 36px rgba(0,0,0,.5),inset 0 1.5px 0 rgba(255,238,205,.26),inset 0 -3px 6px rgba(0,0,0,.55);
+}
+.invite-seal{
+  padding:10px 16px;
+  border-radius:18px;
+  background:linear-gradient(155deg,rgba(42,29,19,.94),rgba(20,13,8,.96));
+  border:1px solid rgba(214,180,115,.52);
+  box-shadow:inset 0 2px 5px rgba(0,0,0,.7),inset 0 -1px 0 rgba(255,235,195,.28),0 4px 0 #090604,0 12px 24px rgba(0,0,0,.52);
+  backdrop-filter:blur(10px);
+}
+
+/* Hero Mirror Studio 3D Carved Podium Dock & Swatches */
+:where(.dock.glass,.palette.glass,.reference.glass,.result.glass){
+  background:linear-gradient(168deg,rgba(225,212,193,.9) 0%,rgba(246,239,228,.92) 48%,rgba(232,219,200,.9) 100%);
+  border:1px solid rgba(176,138,82,.68);
+  box-shadow:
+    inset 0 4px 8px rgba(42,25,10,.2),
+    inset 0 -2px 4px rgba(255,253,248,.92),
+    0 -1px 0 rgba(42,25,10,.16),
+    0 6px 0 #B69A72,
+    0 7px 0 rgba(104,72,34,.5),
+    0 22px 44px rgba(28,16,6,.3);
+}
+.d-item,.sw{transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s ease,background .28s ease}
+.d-item[aria-checked="true"],.sw[aria-checked="true"]{
+  background:linear-gradient(180deg,#DFD0BA,#F7F0E4);
+  box-shadow:inset 0 3px 6px rgba(42,25,10,.24),inset 0 1px 2px rgba(42,25,10,.28),0 1.5px 0 rgba(255,255,255,.95);
+}
+.demo-caption{
+  background:linear-gradient(170deg,#EFE4D4,#FCF9F2);
+  border:1px solid #C4AC89;
+  box-shadow:inset 0 2px 5px rgba(42,25,10,.16),inset 0 -1px 0 #FFF,0 4px 0 #BDA37E,0 12px 24px rgba(32,18,7,.2);
+}
+.styles .card .ph{box-shadow:inset 0 3px 6px rgba(0,0,0,.32),0 5px 0 #B5976D,0 14px 28px rgba(36,22,10,.3)}
+.styles .card .nm{box-shadow:inset 0 2px 4px rgba(44,26,10,.16),0 3px 0 #C4AB88}
+
+/* Service Cinema Player */
+.film-player{
+  padding:26px clamp(16px,4vw,44px) 38px;
+  border-radius:30px;
+  background:var(--trench-dark-bg);
+  border:1px solid rgba(214,180,115,.32);
+  box-shadow:var(--trench-dark-shadow);
+}
+.service-timeline button{
+  background:transparent;
+  border:0;
+  box-shadow:none;
+}
+.film-screen{
+  border-radius:22px;
+  border:1px solid rgba(214,180,115,.38);
+  box-shadow:0 7px 0 #090604,0 8px 0 rgba(214,180,115,.34),0 24px 48px rgba(0,0,0,.62),inset 0 2px 0 rgba(255,238,205,.22);
+}
+.film-caption{
+  background:linear-gradient(180deg,#1A120C,#261B13);
+  border-top:1px solid rgba(214,180,115,.28);
+  box-shadow:inset 0 4px 10px rgba(0,0,0,.62);
+}
+
+/* Salon Builder Studio */
+.builder-form,.builder-dialog{
+  position:relative;
+  background:var(--trench-light-bg);
+  border:1px solid #BEA684;
+  box-shadow:var(--trench-light-shadow),0 7px 0 #C2AB8A,0 8px 0 rgba(112,78,38,.45),0 24px 44px -8px rgba(34,20,8,.22);
+}
+.builder-form .builder-identity,.builder-form details,.builder-form .builder-work{
+  background:linear-gradient(168deg,#FFFDF9 0%,#F7EFE2 58%,#ECE0CE 100%);
+  border:1px solid #C8B08E;
+  box-shadow:0 5px 0 #C6AF8E,0 10px 20px rgba(42,25,10,.1),inset 0 1.5px 0 #FFFFFF,inset 0 -2px 4px rgba(140,102,54,.14);
+  border-radius:16px;
+}
+.builder-availability{
+  border-radius:14px;
+  border:1px solid #C4AC8A;
+  border-inline-start:4px solid #997440;
+  background:linear-gradient(175deg,#E5D8C5,#F7EFE2);
+  box-shadow:inset 0 3px 7px rgba(42,25,10,.18),inset 0 1px 2px rgba(42,25,10,.22),0 2px 0 rgba(255,253,248,.92);
+}
+.builder-form :is(input:not([type=color]):not([type=file]),select,textarea),.builder-dialog input,.identity-url,.identity-color{
+  background:linear-gradient(180deg,#E5D8C5 0%,#F5EDE0 38%,#FFFDF9 100%);
+  border:1px solid #9A8367;
+  box-shadow:inset 0 3px 6px rgba(38,22,8,.2),inset 0 1px 2px rgba(38,22,8,.24),0 1.5px 0 #FFFFFF;
+  transition:border-color .22s ease,box-shadow .22s ease,background .22s ease;
+}
+.builder-form .identity-url input{background:transparent;box-shadow:none}
+.builder-form :is(input:not([type=color]):not([type=file]),select,textarea):focus,.builder-dialog input:focus,.identity-url:focus-within,.identity-color:focus-within{
+  background:#FFFDF9;
+  border-color:#8A6236;
+  box-shadow:inset 0 2px 4px rgba(42,25,10,.12),0 0 0 3px rgba(185,151,91,.3),0 2px 8px rgba(138,98,54,.16);
+}
+.upload-control{
+  background:linear-gradient(175deg,#E3D5C0 0%,#F5ECE0 100%);
+  border:1.5px dashed #967A55;
+  box-shadow:inset 0 4px 8px rgba(38,22,8,.18),inset 0 1px 2px rgba(38,22,8,.22),0 2px 0 rgba(255,253,248,.92);
+  transition:border-color .25s ease,transform .25s ease,box-shadow .25s ease;
+}
+.upload-control:hover{border-color:#7A5A32;transform:translateY(-1px);box-shadow:inset 0 3px 6px rgba(38,22,8,.14),0 4px 12px rgba(44,26,10,.12)}
+.builder-preview{
+  padding:14px;
+  border-radius:26px;
+  background:var(--trench-dark-bg);
+  border:1px solid rgba(214,180,115,.45);
+  box-shadow:var(--trench-dark-shadow),0 7px 0 #0B0704,0 8px 0 rgba(214,180,115,.38);
+}
+.builder-live{
+  border:1px solid rgba(214,180,115,.48);
+  box-shadow:0 5px 0 #120B07,0 12px 26px rgba(0,0,0,.45),inset 0 3px 8px rgba(28,16,6,.18);
+}
+.live-chips span,.live-services span,.live-links span,.live-works article{
+  border:1px solid #CDB798;
+  background:linear-gradient(175deg,#E7DAC7,#FAF4EA);
+  box-shadow:inset 0 2px 4px rgba(44,26,10,.15),0 2px 0 #C4AE8F;
+}
+
+/* FAQ Carved Stone Accordions */
+.faq>details{
+  position:relative;
+  padding:6px;
+  border-radius:22px;
+  background:var(--trench-light-bg);
+  border:1px solid #BFA786;
+  box-shadow:var(--trench-light-shadow);
+  transition:transform .38s cubic-bezier(.2,.8,.2,1),box-shadow .38s ease,border-color .35s ease;
+}
+.faq>details>summary{
+  border-radius:16px;
+  background:radial-gradient(380px circle at var(--mx,50%) var(--my,50%),rgba(222,188,122,.22),transparent 70%),var(--relief-light-bg);
+  border:1px solid rgba(185,151,91,.38);
+  box-shadow:0 4px 0 #C2AC8C,0 5px 0 rgba(112,78,38,.42),0 8px 16px rgba(34,20,8,.12),inset 0 1.5px 0 #FFFFFF;
+  transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s ease,border-color .3s ease;
+}
+@media(hover:hover){
+  .faq>details:not([open]):hover>summary{
+    transform:translateY(-2px);
+    border-color:#B9975B;
+    box-shadow:0 6px 0 #B9A17E,0 7px 0 rgba(112,78,38,.5),0 14px 24px rgba(34,20,8,.18),inset 0 2px 0 #FFFFFF;
+  }
+}
+.faq>details[open]{
+  border-color:#B9975B;
+  box-shadow:inset 0 5px 12px rgba(32,18,6,.26),inset 0 -3px 6px rgba(255,253,248,.96),0 2px 0 rgba(255,253,248,.95),0 18px 34px -8px rgba(34,20,8,.22);
+}
+.faq>details[open]>summary{
+  border-radius:16px 16px 10px 10px;
+  border-color:#B9975B;
+  box-shadow:0 2px 0 #C2AC8C,inset 0 1.5px 0 #FFFFFF;
+}
+.faq>details>p{
+  margin:6px 4px 2px;
+  padding:16px 20px;
+  border-radius:12px;
+  background:linear-gradient(180deg,#E8DCC9 0%,#F6EFE3 100%);
+  border:1px solid rgba(185,151,91,.28);
+  box-shadow:inset 0 3px 6px rgba(38,22,8,.15),0 1px 0 #FFF;
+}
+.faq summary::after{
+  width:34px;
+  height:34px;
+  flex:0 0 34px;
+  background:linear-gradient(145deg,#FAF0DF,#DFC69F);
+  border:1px solid #AE8952;
+  box-shadow:inset 0 1px 1px #FFF,inset 0 -2px 3px rgba(72,44,16,.24),0 3px 0 #8F6B39,0 0 0 3px #E5D7C3,0 5px 10px rgba(40,24,10,.16);
+  transition:transform .45s cubic-bezier(.34,1.56,.64,1),background .3s ease,color .3s ease,box-shadow .3s ease;
+}
+.faq details[open] summary::after{
+  transform:rotate(180deg);
+  background:linear-gradient(145deg,#3A2617,#1B110A);
+  color:#F5D99B;
+  border-color:#D6B473;
+  box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 2px 0 #6B4E27,0 0 0 3px #DFD0BA;
+}
+.faq details[open]>p{animation:faq-unfold .42s cubic-bezier(.2,.8,.2,1) both}
+@keyframes faq-unfold{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ===== 3. Expressive Typography: 3D Impact Slam ("کوبیده شدن") & Live Typing ("تایپینگ") ========= */
+
+/* 3A. 3D Word Impact Slam (.cine-slam): Words slam down from 3D space onto the stone surface */
+.cine-slam{perspective:900px}
+.cine-word{
+  display:inline-block;
+  opacity:0;
+  transform:perspective(800px) translate3d(0,-38px,190px) scale(1.85) rotateX(24deg);
+  filter:blur(7px);
+  transform-origin:50% 60%;
+  will-change:transform,opacity,filter;
+}
+.cine-word--gold{
+  position:relative;
+  color:#6B471E;
+}
+.on-dark .cine-word--gold,.salon-invite .cine-word--gold{
+  color:#F5D797;
+}
+.cine-word--gold::after{
+  content:"";
+  position:absolute;
+  inset-inline:0;
+  bottom:.04em;
+  height:.11em;
+  border-radius:99px;
+  background:linear-gradient(90deg,#B9975B,#F2D492,#9A7138);
+  box-shadow:0 2px 8px rgba(185,151,91,.45);
+  transform:scaleX(0);
+  transform-origin:right center;
+  transition:transform .55s cubic-bezier(.16,1,.3,1) calc(var(--w,0) * 95ms + 340ms);
+}
+:where(.stage-in,.cine-in) .cine-word{
+  animation:word-slam 680ms cubic-bezier(.16,1,.3,1) calc(var(--w,0) * 95ms + 80ms) forwards;
+}
+:where(.stage-in,.cine-in) .cine-word--gold::after{
+  transform:scaleX(1);
+}
+@keyframes word-slam{
+  0%{
+    opacity:0;
+    filter:blur(7px);
+    transform:perspective(800px) translate3d(0,-38px,190px) scale(1.85) rotateX(24deg);
+  }
+  62%{
+    opacity:1;
+    filter:blur(0);
+    transform:perspective(800px) translate3d(0,3px,-10px) scale(.95) rotateX(-3deg);
+    text-shadow:0 0 28px rgba(214,180,115,.85),0 10px 22px rgba(22,13,7,.32);
+  }
+  82%{
+    transform:perspective(800px) translate3d(0,-1px,4px) scale(1.02) rotateX(1deg);
+  }
+  100%{
+    opacity:1;
+    filter:blur(0);
+    transform:none;
+    text-shadow:0 1px 0 rgba(255,253,248,.65),0 4px 12px rgba(34,20,8,.1);
+  }
+}
+:where(.on-dark,.salon-invite) :where(.stage-in,.cine-in) .cine-word{
+  animation-name:word-slam-dark;
+}
+@keyframes word-slam-dark{
+  0%{
+    opacity:0;
+    filter:blur(7px);
+    transform:perspective(800px) translate3d(0,-38px,190px) scale(1.85) rotateX(24deg);
+  }
+  62%{
+    opacity:1;
+    filter:blur(0);
+    transform:perspective(800px) translate3d(0,3px,-10px) scale(.95) rotateX(-3deg);
+    text-shadow:0 0 34px rgba(245,215,151,.9),0 12px 24px rgba(0,0,0,.75);
+  }
+  100%{
+    opacity:1;
+    filter:blur(0);
+    transform:none;
+    text-shadow:0 2px 14px rgba(0,0,0,.55);
+  }
+}
+
+/* 3B. Live Typewriter Cursor & Brass Kicker Line */
+.copy .eyebrow,.sec-head .kicker,.salon-invite-copy .journey-kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+}
+.copy .eyebrow::before,.sec-head .kicker::before,.salon-invite-copy .journey-kicker::before{
+  content:"";
+  width:0;
+  height:2px;
+  border-radius:2px;
+  background:linear-gradient(90deg,#B9975B,#E8CD96);
+  box-shadow:0 1px 4px rgba(185,151,91,.45);
+  transition:width .65s cubic-bezier(.16,1,.3,1);
+}
+:where(.stage-in,.cine-in,#intro) :is(.eyebrow,.kicker,.journey-kicker)::before{
+  width:30px;
+}
+.type-live.is-typing::after{
+  content:"";
+  display:inline-block;
+  width:2px;
+  height:1em;
+  background:#B9975B;
+  box-shadow:0 0 8px #E2C180;
+  margin-inline-start:4px;
+  vertical-align:-.12em;
+  animation:typingCaret .65s steps(1) infinite;
+}
+
+/* Hero Copy Staged Entrance */
+.copy .lead.reveal{
+  animation:lead-glide 850ms cubic-bezier(.16,1,.3,1) 520ms both;
+}
+.copy .cta-row.reveal{
+  animation:cta-spring 900ms cubic-bezier(.34,1.56,.64,1) 740ms both;
+}
+.copy .fineprint.reveal{
+  animation:lead-glide 750ms ease 920ms both;
+}
+@keyframes lead-glide{
+  from{opacity:0;filter:blur(5px);transform:translate3d(24px,16px,0)}
+  to{opacity:1;filter:blur(0);transform:none}
+}
+@keyframes cta-spring{
+  from{opacity:0;transform:perspective(800px) translate3d(0,32px,-50px) scale(.88) rotateX(20deg)}
+  to{opacity:1;transform:none}
+}
+@media(min-width:1181px){
+  .copy .cta-row{flex-wrap:nowrap}
+  .copy .cta-row .btn--lg{padding:0 24px;font-size:17px}
+  .copy .cta-row .btn--ghost{padding:0 20px;font-size:15px}
+}
+
+/* Section Headers (.sec-head): Stage 1 Entrance (independent from cards below) */
+.sec-head[data-stage]{
+  opacity:0;
+  transform:translateY(22px);
+  transition:opacity .65s ease,transform .8s cubic-bezier(.16,1,.3,1);
+}
+.sec-head[data-stage].stage-in{
+  opacity:1;
+  transform:none;
+}
+.sec-head[data-stage] .sub{
+  opacity:0;
+  transform:translate3d(20px,12px,0);
+  transition:opacity .7s ease .38s,transform .8s cubic-bezier(.16,1,.3,1) .38s;
+}
+.sec-head[data-stage].stage-in .sub{
+  opacity:1;
+  transform:none;
+}
+
+/* ===== 4. Staged Scroll Choreography for Every Section & Component =============================== */
+[data-cine]{--d:calc(var(--base,0ms) + var(--i,0) * 180ms)}
+
+/* Section 2 (#how): Stage 1 is .sec-head; Stage 2 stamps each .benefit tablet as user scrolls to it */
+[data-cine=glint] .benefit{
+  opacity:0;
+  transform:perspective(1100px) translate3d(0,-42px,130px) scale(1.16) rotateX(-24deg) rotateY(calc((2 - var(--i,0)) * 9deg));
+  filter:blur(5px);
+  transform-origin:50% 50%;
+  transition:
+    opacity .65s cubic-bezier(.16,1,.3,1) var(--d),
+    transform .95s cubic-bezier(.16,1,.3,1) var(--d),
+    filter .65s ease var(--d),
+    box-shadow .42s ease,
+    border-color .35s ease;
+  overflow:hidden;
+}
+[data-cine=glint] .benefit .gold-icon{
+  opacity:0;
+  transform:translateY(-28px) scale(.35) rotate(-45deg);
+  transition:opacity .5s calc(var(--d) + .24s),transform .85s cubic-bezier(.34,1.56,.64,1) calc(var(--d) + .24s);
+}
+[data-cine=glint] .benefit h3{
+  opacity:0;
+  transform:translateX(22px) scale(.92);
+  transition:opacity .55s calc(var(--d) + .36s),transform .7s cubic-bezier(.16,1,.3,1) calc(var(--d) + .36s);
+}
+[data-cine=glint] .benefit p{
+  opacity:0;
+  transform:translateY(16px);
+  transition:opacity .6s calc(var(--d) + .46s),transform .7s cubic-bezier(.16,1,.3,1) calc(var(--d) + .46s);
+}
+[data-cine=glint] .benefit::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(108deg,transparent 30%,rgba(255,228,168,.62) 50%,transparent 70%);
+  transform:translateX(135%);
+  z-index:2;
+}
+[data-cine=glint] .benefit.item-in{
+  opacity:1;
+  filter:blur(0);
+  transform:none;
+}
+[data-cine=glint] .benefit.item-in .gold-icon,
+[data-cine=glint] .benefit.item-in h3,
+[data-cine=glint] .benefit.item-in p{
+  opacity:1;
+  transform:none;
+}
+[data-cine=glint] .benefit.item-in::after{
+  animation:glint 1.35s ease calc(var(--d) + .55s) both;
+}
+@keyframes glint{from{transform:translateX(135%)}to{transform:translateX(-135%)}}
+
+/* Section 3 (.salon-invite): Arched Mirror Iris Portal + Hot Brass Wax Seal Slam + Copy Flip */
+[data-cine=curtain] .salon-invite-card{
+  opacity:0;
+  transform:perspective(1400px) translateY(60px) rotateX(16deg) scale(.92);
+  transition:opacity .85s,transform 1.15s cubic-bezier(.16,1,.3,1);
+}
+[data-cine=curtain] .salon-invite-art{
+  clip-path:inset(14% 46% 14% 46% round 180px 180px 24px 24px);
+  transition:clip-path 1.45s cubic-bezier(.65,0,.2,1) .15s;
+}
+[data-cine=curtain] .salon-invite-art>img{
+  transform:scale(1.26);
+  transition:transform 2.3s cubic-bezier(.16,1,.3,1) .15s;
+}
+[data-cine=curtain] .invite-seal{
+  opacity:0;
+  transform:perspective(600px) translate3d(0,-36px,140px) scale(2.1) rotate(-16deg);
+  filter:blur(4px);
+  transition:opacity .45s .92s,filter .45s .92s,transform .75s cubic-bezier(.34,1.56,.64,1) .92s;
+}
+[data-cine=curtain] .salon-invite-copy>*:not(h2){
+  opacity:0;
+  transform:translate3d(38px,14px,0);
+  transition:opacity .7s calc(.48s + var(--d)),transform .85s cubic-bezier(.16,1,.3,1) calc(.48s + var(--d));
+}
+[data-cine=curtain] .salon-invite-card::before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  border-radius:inherit;
+  padding:1.5px;
+  pointer-events:none;
+  z-index:2;
+  background:conic-gradient(from var(--sweep,0deg),transparent 0 295deg,#FFE3A3 340deg,transparent 360deg);
+  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  -webkit-mask-composite:xor;
+  mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+  mask-composite:exclude;
+  opacity:0;
+}
 @property --sweep{syntax:"<angle>";inherits:false;initial-value:0deg}
 [data-cine=curtain].cine-in .salon-invite-card{opacity:1;transform:none}
-[data-cine=curtain].cine-in .salon-invite-art{clip-path:inset(0 0 0 0)}
+[data-cine=curtain].cine-in .salon-invite-art{clip-path:inset(0% 0% 0% 0% round 24px)}
 [data-cine=curtain].cine-in .salon-invite-art>img{transform:none}
-@media(min-width:901px){[data-cine=curtain].cine-in .salon-invite-copy>*{opacity:1;transform:none}}[data-cine=curtain].cine-in .salon-invite-copy>.k-in{opacity:1;transform:none}
-[data-cine=curtain].cine-in .salon-invite-card::before{animation:edge-run 2.2s ease .9s both}
+[data-cine=curtain].cine-in .invite-seal{opacity:1;filter:blur(0);transform:none}
+[data-cine=curtain].cine-in .salon-invite-copy>*:not(h2){opacity:1;transform:none}
+[data-cine=curtain].cine-in .salon-invite-card::before{animation:edge-run 2.4s ease .85s both}
 @keyframes edge-run{0%{opacity:0;--sweep:0deg}15%{opacity:1}85%{opacity:1}100%{opacity:0;--sweep:360deg}}
-/* 3. Services: three cards fan in like a hand of cards, icons turn into place */
-[data-cine=fan] .cards3>.svc{opacity:0;transform:translateY(70px) rotate(calc((var(--i) - 1) * 5deg)) scale(.94);transform-origin:50% 120%;transition:opacity .7s var(--d),transform 1s cubic-bezier(.2,.9,.2,1) var(--d)}
-[data-cine=fan] .cards3>.svc .gold-icon{transform:rotate(-30deg) scale(.7);transition:transform .9s cubic-bezier(.3,1.5,.4,1) calc(var(--d) + .3s)}
-@media(min-width:901px){[data-cine=fan].cine-in .cards3>.svc{opacity:1;transform:none}[data-cine=fan].cine-in .cards3>.svc .gold-icon{transform:none}}
-[data-cine=fan] .cards3>.svc.k-in{opacity:1;transform:none}[data-cine=fan] .cards3>.svc.k-in .gold-icon{transform:none}
-/* 4. Films: the lights go down and the screen comes up out of the dark */
-[data-cine=lights] .film-screen{opacity:.15;transform:scale(.9);filter:brightness(.25) saturate(.6);transition:opacity 1s,transform 1.4s cubic-bezier(.2,.8,.2,1),filter 1.6s ease .2s}
-[data-cine=lights] .service-timeline>button{opacity:0;transform:translateY(-18px);transition:opacity .6s calc(.5s + var(--d)),transform .8s cubic-bezier(.3,1.4,.4,1) calc(.5s + var(--d))}
+
+/* Section 4 (#services): Stage 1 is .sec-head; Stage 2 unfolds the 3 Triptych Mirror Panels */
+[data-cine=fan] .cards3>.svc{
+  opacity:0;
+  transform:perspective(1200px) translate3d(calc((1 - var(--i,1)) * 72px),64px,-90px) rotateX(22deg) rotateY(calc((var(--i,1) - 1) * 38deg)) scale(.88);
+  filter:blur(4px);
+  transform-origin:50% 100%;
+  transition:
+    opacity .75s var(--d),
+    filter .75s var(--d),
+    transform 1.15s cubic-bezier(.16,1,.3,1) var(--d),
+    box-shadow .42s ease,
+    border-color .35s ease;
+}
+[data-cine=fan] .cards3>.svc .gold-icon{
+  opacity:0;
+  transform:perspective(500px) translateY(-24px) rotateY(110deg) scale(.45);
+  transition:opacity .5s calc(var(--d) + .26s),transform .95s cubic-bezier(.34,1.56,.64,1) calc(var(--d) + .26s);
+}
+[data-cine=fan] .cards3>.svc h3{
+  opacity:0;
+  transform:translateY(14px) scale(.94);
+  transition:opacity .55s calc(var(--d) + .36s),transform .7s cubic-bezier(.16,1,.3,1) calc(var(--d) + .36s);
+}
+[data-cine=fan] .cards3>.svc p{
+  opacity:0;
+  transform:translateY(14px);
+  transition:opacity .55s calc(var(--d) + .44s),transform .7s cubic-bezier(.16,1,.3,1) calc(var(--d) + .44s);
+}
+[data-cine=fan] .cards3>.svc .svc-try{
+  opacity:0;
+  transform:translateY(20px) scale(.92);
+  transition:opacity .6s calc(var(--d) + .54s),transform .8s cubic-bezier(.34,1.56,.64,1) calc(var(--d) + .54s);
+}
+[data-cine=fan] .cards3>.svc.item-in{
+  opacity:1;
+  filter:blur(0);
+  transform:none;
+}
+[data-cine=fan] .cards3>.svc.item-in :is(.gold-icon,h3,p,.svc-try){
+  opacity:1;
+  transform:none;
+}
+
+/* Section 5 (#transform): Private Screening Room */
+[data-cine=lights] .film-player{
+  opacity:0;
+  transform:perspective(1300px) translateY(52px) rotateX(16deg) scale(.93);
+  transition:opacity .85s,transform 1.15s cubic-bezier(.16,1,.3,1);
+}
+[data-cine=lights] .service-timeline>button{
+  opacity:0;
+  transform:perspective(700px) translate3d(0,-34px,90px) rotateX(-38deg) scale(1.25);
+  transition:opacity .6s calc(.28s + var(--d)),transform .85s cubic-bezier(.34,1.56,.64,1) calc(.28s + var(--d));
+}
+[data-cine=lights] .film-screen{
+  opacity:.12;
+  transform:perspective(1200px) translateY(42px) rotateX(20deg) scale(.9);
+  filter:brightness(.18) saturate(.4);
+  transition:opacity 1s .38s,transform 1.35s cubic-bezier(.16,1,.3,1) .38s,filter 1.5s ease .45s;
+}
+[data-cine=lights] .film-caption{
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity .7s .72s,transform .85s cubic-bezier(.16,1,.3,1) .72s;
+}
+[data-cine=lights].cine-in .film-player{opacity:1;transform:none}
+[data-cine=lights].cine-in .service-timeline>button{opacity:1;transform:none}
 [data-cine=lights].cine-in .film-screen{opacity:1;transform:none;filter:none}
-[data-cine=lights].cine-in .service-timeline>button,[data-cine=lights] .service-timeline>button.k-in{opacity:1;transform:none}
-/* 5. Builder: steps arrive in order, the preview device lands flat on the desk, the form slides in */
-[data-cine=desk] .builder-steps>li{opacity:0;transform:translateX(-26px);transition:opacity .6s var(--d),transform .8s cubic-bezier(.2,.8,.2,1) var(--d)}
-[data-cine=desk] .builder-preview{opacity:0;transform:perspective(1200px) translateY(70px) rotateX(24deg);transform-origin:50% 100%;transition:opacity .8s .35s,transform 1.3s cubic-bezier(.2,.8,.2,1) .35s}
-[data-cine=desk] .builder-form{opacity:0;transform:translateX(40px);transition:opacity .8s .5s,transform 1s cubic-bezier(.2,.8,.2,1) .5s}
-[data-cine=desk].cine-in .builder-form,[data-cine=desk] .builder-steps>li.k-in{opacity:1;transform:none}@media(min-width:901px){[data-cine=desk].cine-in .builder-steps>li{opacity:1;transform:none}}
-[data-cine=desk].cine-in .builder-preview{opacity:1;transform:none}
-@media(max-width:850px){[data-cine=desk] .builder-preview{transform:translateY(40px)}[data-cine=desk].cine-in .builder-preview{transform:none}}
-/* 6. FAQ: questions come into focus one after another */
-[data-cine=focus] .faq>details,[data-cine=focus] .faq-next{opacity:0;filter:blur(8px);transform:translateY(18px);transition:opacity .6s calc(var(--i) * 55ms),filter .8s calc(var(--i) * 55ms),transform .8s cubic-bezier(.2,.8,.2,1) calc(var(--i) * 55ms)}
-@media(min-width:901px){[data-cine=focus].cine-in .faq>details,[data-cine=focus].cine-in .faq-next{opacity:1;filter:none;transform:none}}[data-cine=focus] :is(.faq>details,.faq-next).k-in{opacity:1;filter:none;transform:none}
-/* 7. Footer: the mark draws itself, links settle */
-[data-cine=draw] .brand-symbol path{stroke-dasharray:var(--len,200);stroke-dashoffset:var(--len,200);transition:stroke-dashoffset 1.8s cubic-bezier(.6,0,.2,1)}
-[data-cine=draw] :is(.foot ul li,.legal){opacity:0;transform:translateY(10px);transition:opacity .6s calc(.6s + var(--d)),transform .7s calc(.6s + var(--d))}
+[data-cine=lights].cine-in .film-caption{opacity:1;transform:none}
+
+/* Section 6 (#salon-example): Staged Step Stones -> Ledger Form & Live Preview */
+[data-cine=desk] .builder-steps>li{
+  opacity:0;
+  transform:perspective(900px) translate3d(0,-38px,110px) scale(1.22) rotateX(-28deg);
+  filter:blur(4px);
+  transition:opacity .6s var(--d),filter .6s var(--d),transform .9s cubic-bezier(.34,1.52,.64,1) var(--d);
+}
+[data-cine=desk] .builder-steps>li.item-in{
+  opacity:1;
+  filter:blur(0);
+  transform:none;
+}
+[data-cine=desk] .builder-form{
+  opacity:0;
+  transform:perspective(1300px) translate3d(64px,36px,-60px) rotateY(-16deg);
+  transition:opacity .85s .1s,transform 1.15s cubic-bezier(.16,1,.3,1) .1s;
+}
+[data-cine=desk] .builder-preview{
+  opacity:0;
+  transform:perspective(1300px) translate3d(-48px,76px,-70px) rotateX(22deg) rotateY(14deg);
+  transform-origin:50% 100%;
+  transition:opacity .85s .28s,transform 1.3s cubic-bezier(.16,1,.3,1) .28s;
+}
+[data-cine=desk] .builder-form.item-in,[data-cine=desk] .builder-preview.item-in{
+  opacity:1;
+  transform:none;
+}
+@media(max-width:850px){
+  [data-cine=desk] .builder-preview,[data-cine=desk] .builder-form{transform:translateY(40px)}
+  [data-cine=desk] .builder-form.item-in,[data-cine=desk] .builder-preview.item-in{transform:none}
+}
+
+/* Section 7 (#faq): Per-Question Carved Stone Chisel Cascade */
+[data-cine=focus] .faq>details,[data-cine=focus] .faq-next{
+  opacity:0;
+  filter:blur(6px);
+  transform:perspective(1000px) translate3d(calc(var(--dir,1) * 44px),34px,-45px) rotateX(-20deg) rotateY(calc(var(--dir,1) * -8deg)) scale(.94);
+  transition:
+    opacity .65s cubic-bezier(.16,1,.3,1),
+    filter .65s ease,
+    transform .85s cubic-bezier(.16,1,.3,1),
+    box-shadow .42s ease,
+    border-color .35s ease;
+}
+[data-cine=focus] :is(.faq>details,.faq-next).item-in{
+  opacity:1;
+  filter:blur(0);
+  transform:none;
+}
+
+/* Section 8 (.site-footer): Golden Signature Seal Self-Draw */
+[data-cine=draw] .brand-symbol path{
+  stroke-dasharray:var(--len,200);
+  stroke-dashoffset:var(--len,200);
+  transition:stroke-dashoffset 1.8s cubic-bezier(.6,0,.2,1);
+}
+[data-cine=draw] :is(.foot ul li,.legal){
+  opacity:0;
+  transform:translateY(14px);
+  transition:opacity .65s calc(.55s + var(--d)),transform .75s cubic-bezier(.2,.8,.2,1) calc(.55s + var(--d));
+}
 [data-cine=draw].cine-in .brand-symbol path{stroke-dashoffset:0}
 [data-cine=draw].cine-in :is(.foot ul li,.legal){opacity:1;transform:none}
-/* Anything focused by keyboard is shown at once. */
-[data-cine] :is(.benefit,.svc,.faq>details,.builder-steps>li,.builder-form,.builder-preview,.salon-invite-copy>*):focus-within{opacity:1!important;filter:none!important;transform:none!important}
-@media(prefers-reduced-motion:reduce){.ripple,.glass-layer.flash::before{animation:none!important}[data-cine] *{transition:none!important;animation:none!important}}
+
+/* Keyboard accessibility & reduced-motion safeguards */
+[data-cine] :is(.sec-head,.benefit,.svc,.faq>details,.builder-steps>li,.builder-form,.builder-preview,.salon-invite-copy>*,.film-player,.cine-word):focus-within{
+  opacity:1!important;
+  filter:none!important;
+  transform:none!important;
+}
+@media(prefers-reduced-motion:reduce){
+  .ripple,.glass-layer.flash::before,.copy .reveal,.faq details[open]>p,.cine-word{animation:none!important;opacity:1!important;filter:none!important;transform:none!important}
+  [data-cine] *,[data-cine],.sec-head[data-stage],.sec-head[data-stage] *{transition:none!important;animation:none!important;opacity:1!important;filter:none!important;transform:none!important;clip-path:none!important}
+}
