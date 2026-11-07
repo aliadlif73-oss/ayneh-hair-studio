@@ -804,51 +804,17 @@ html{scroll-padding-top:var(--hh,68px)}
 @media(min-width:641px){.film-player{max-width:min(1100px,calc((100svh - 360px) * 16 / 9 + 88px))}}
 .ref-try{white-space:nowrap}
 
-/* ===== Glass actions (iOS-like frosted glass) ===================================================== */
-:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.header-cta){
- --g-tint:rgba(74,46,28,.78);--g-tint-2:rgba(44,27,16,.86);--g-text:#fffaf2;--g-edge:rgba(255,232,196,.38);--g-glow:rgba(40,24,12,.26);--g-ring:rgba(255,236,200,.75);
- position:relative;isolation:isolate;overflow:visible;color:var(--g-text);
- background:linear-gradient(180deg,var(--g-tint),var(--g-tint-2));
- -webkit-backdrop-filter:blur(16px) saturate(170%);backdrop-filter:blur(16px) saturate(170%);
- border:1px solid var(--g-edge);
- box-shadow:inset 0 1px 0 rgba(255,255,255,.34),inset 0 -1px 0 rgba(0,0,0,.22),0 10px 26px -8px var(--g-glow),0 2px 6px rgba(30,18,10,.12);
- text-shadow:none;filter:none;
- transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s,background .28s,border-color .28s;
-}
-/* specular highlight: the curved top light of glass */
-:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.header-cta)::before{
- content:"";position:absolute;inset:1px 1px 52% 1px;border-radius:inherit;pointer-events:none;z-index:-1;
- background:linear-gradient(180deg,rgba(255,255,255,.30),rgba(255,255,255,.04));
-}
-/* light glass: secondary actions on light surfaces and every action on dark surfaces */
-:where(.page,body) :is(.copy .btn--ghost,.svc-try,.builder-form .btn--ghost,.faq-next .btn--ghost),
-:where(.page,body) :is(.on-dark,.salon-invite,.builder-preview,.mirror-invite,.site-footer) :is(.btn,.close){
- --g-tint:rgba(255,253,248,.72);--g-tint-2:rgba(246,236,221,.66);--g-text:#3f2717;--g-edge:rgba(255,255,255,.85);--g-glow:rgba(60,38,20,.22);--g-ring:rgba(150,108,60,.55);
-}
-:where(.page,body) :is(.on-dark,.salon-invite,.site-footer) :is(.btn,.close){--g-glow:rgba(0,0,0,.45)}
-:where(.page,body) .nav-btn{--g-tint:rgba(255,253,248,.7);--g-tint-2:rgba(240,228,210,.62);--g-text:#4a2e1d;--g-edge:rgba(255,255,255,.9);--g-ring:rgba(150,108,60,.5)}
-:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.header-cta):not(:disabled):hover{
- filter:none;transform:translateY(-1px);
- background:linear-gradient(180deg,var(--g-tint),var(--g-tint-2));
- box-shadow:inset 0 1px 0 rgba(255,255,255,.42),inset 0 -1px 0 rgba(0,0,0,.2),0 16px 32px -10px var(--g-glow),0 3px 8px rgba(30,18,10,.14);
-}
-:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.header-cta):not(:disabled):active{transform:translateY(0) scale(.97);box-shadow:inset 0 1px 2px rgba(0,0,0,.18),0 4px 10px -4px var(--g-glow)}
-/* the gold orbit stays only on the main call to action, softer on glass */
-:where(.page,body) .btn--lg::after{opacity:.7}
-/* press: the surface gives a little, like water taking a stone */
-.is-pressed{animation:glass-give .52s cubic-bezier(.3,1.6,.4,1)}
-@keyframes glass-give{0%{transform:scale(1)}25%{transform:scale(.955)}60%{transform:scale(1.015)}100%{transform:scale(1)}}
-/* ripple rings */
-.ripple-host{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:0}
-.ripple{position:absolute;border-radius:50%;transform:translate(-50%,-50%) scale(0);border:2px solid var(--g-ring,rgba(255,236,200,.75));
- background:radial-gradient(circle,rgba(255,255,255,.22) 0,rgba(255,255,255,.08) 38%,transparent 62%);opacity:.95;animation:water .95s cubic-bezier(.15,.65,.3,1) forwards}
+/* ===== Glass finish on the existing 3D actions ===================================================
+   Colours, borders, depth shadow and position stay exactly as they were. A glass layer is added inside each
+   action (behind its label) with a curved specular highlight, and pressing sends water rings from the touch point. */
+.glass-layer{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:-1}
+.glass-layer::before{content:"";position:absolute;inset:1px 1px 50% 1px;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,.06) 70%,rgba(255,255,255,0));opacity:.9}
+.glass-layer::after{content:"";position:absolute;left:12%;right:12%;bottom:1px;height:38%;border-radius:50%;background:radial-gradient(ellipse at 50% 100%,rgba(255,236,200,.22),transparent 70%)}
+.ripple{position:absolute;border-radius:50%;transform:translate(-50%,-50%) scale(0);border:2px solid rgba(255,240,210,.8);background:radial-gradient(circle,rgba(255,255,255,.24) 0,rgba(255,255,255,.08) 38%,transparent 62%);animation:water .95s cubic-bezier(.15,.65,.3,1) forwards}
+:where(.on-dark,.salon-invite,.builder-preview,.mirror-invite,.site-footer) .ripple,.nav-btn .ripple,.copy .btn--ghost .ripple{border-color:rgba(150,108,60,.6);background:radial-gradient(circle,rgba(185,151,91,.22) 0,rgba(185,151,91,.06) 40%,transparent 62%)}
 @keyframes water{60%{opacity:.55}100%{transform:translate(-50%,-50%) scale(1);opacity:0;border-width:.5px}}
-:is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.header-cta)>:not(.ripple-host){position:relative;z-index:1}
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
- :where(.page,body) :is(.btn,.sticky-cta,.header-cta){--g-tint:#5a3a25;--g-tint-2:#3a2416}
-}
-/* mobile sticky strip: a frosted bar, not a solid slab */
-@media(max-width:900px){.sticky-cta:not([hidden]){border-radius:18px}}
+.glass-layer.flash::before{animation:sheen-flash .5s ease}
+@keyframes sheen-flash{30%{opacity:1;filter:brightness(1.6)}}
 
 /* ===== Section entrances ========================================================================= */
 [data-cine]{--d:calc(var(--i,0) * 90ms)}
@@ -900,8 +866,8 @@ html{scroll-padding-top:var(--hh,68px)}
 [data-cine=draw].cine-in .brand-symbol path{stroke-dashoffset:0}
 [data-cine=draw].cine-in :is(.foot ul li,.legal){opacity:1;transform:none}
 /* Anything focused by keyboard is shown at once. */
-[data-cine] :focus-within{opacity:1!important;filter:none!important;transform:none!important}
-@media(prefers-reduced-motion:reduce){.ripple,.is-pressed{animation:none!important}[data-cine] *{transition:none!important;animation:none!important}}
+[data-cine] :is(.benefit,.svc,.faq>details,.builder-steps>li,.builder-form,.builder-preview,.salon-invite-copy>*):focus-within{opacity:1!important;filter:none!important;transform:none!important}
+@media(prefers-reduced-motion:reduce){.ripple,.glass-layer.flash::before{animation:none!important}[data-cine] *{transition:none!important;animation:none!important}}
 
 .compare{margin-top:0}
 @media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}
@@ -1735,21 +1701,21 @@ html{scroll-padding-top:var(--hh,68px)}
  const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
  const $=s=>document.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 
- // ---- water ripple on every action -----------------------------------------------------------
- const actions='.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.header-cta';
+ // ---- glass layer + water ripple on every action ----------------------------------------------
+ const actions='.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button';
+ const layer=el=>{let g=el.querySelector(':scope>.glass-layer');if(!g){g=document.createElement('span');g.className='glass-layer';g.setAttribute('aria-hidden','true');el.prepend(g)}return g};
+ const dress=()=>$$(actions).forEach(layer);dress();
+ new MutationObserver(()=>{clearTimeout(dress.t);dress.t=setTimeout(dress,120)}).observe(document.body,{childList:true,subtree:true});
  document.addEventListener('pointerdown',e=>{
   const el=e.target.closest(actions);if(!el||el.disabled||still)return;
-  let host=el.querySelector(':scope>.ripple-host');
-  if(!host){host=document.createElement('span');host.className='ripple-host';host.setAttribute('aria-hidden','true');el.appendChild(host)}
-  const r=el.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const g=layer(el),r=el.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
   const size=Math.hypot(Math.max(x,r.width-x),Math.max(y,r.height-y))*2;
   for(let k=0;k<3;k++){
    const ring=document.createElement('i');ring.className='ripple';
    ring.style.cssText='left:'+x+'px;top:'+y+'px;width:'+size+'px;height:'+size+'px;animation-delay:'+(k*140)+'ms';
-   host.appendChild(ring);ring.addEventListener('animationend',()=>ring.remove(),{once:true});
+   g.appendChild(ring);ring.addEventListener('animationend',()=>ring.remove(),{once:true});
   }
-  el.classList.remove('is-pressed');void el.offsetWidth;el.classList.add('is-pressed');
-  setTimeout(()=>el.classList.remove('is-pressed'),520);
+  g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');
  },{passive:true});
 
  if(still||!('IntersectionObserver' in window))return;

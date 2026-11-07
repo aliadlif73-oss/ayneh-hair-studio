@@ -6,21 +6,21 @@
  const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
  const $=s=>document.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
 
- // ---- water ripple on every action -----------------------------------------------------------
- const actions='.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.header-cta';
+ // ---- glass layer + water ripple on every action ----------------------------------------------
+ const actions='.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button';
+ const layer=el=>{let g=el.querySelector(':scope>.glass-layer');if(!g){g=document.createElement('span');g.className='glass-layer';g.setAttribute('aria-hidden','true');el.prepend(g)}return g};
+ const dress=()=>$$(actions).forEach(layer);dress();
+ new MutationObserver(()=>{clearTimeout(dress.t);dress.t=setTimeout(dress,120)}).observe(document.body,{childList:true,subtree:true});
  document.addEventListener('pointerdown',e=>{
   const el=e.target.closest(actions);if(!el||el.disabled||still)return;
-  let host=el.querySelector(':scope>.ripple-host');
-  if(!host){host=document.createElement('span');host.className='ripple-host';host.setAttribute('aria-hidden','true');el.appendChild(host)}
-  const r=el.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
+  const g=layer(el),r=el.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;
   const size=Math.hypot(Math.max(x,r.width-x),Math.max(y,r.height-y))*2;
   for(let k=0;k<3;k++){
    const ring=document.createElement('i');ring.className='ripple';
    ring.style.cssText='left:'+x+'px;top:'+y+'px;width:'+size+'px;height:'+size+'px;animation-delay:'+(k*140)+'ms';
-   host.appendChild(ring);ring.addEventListener('animationend',()=>ring.remove(),{once:true});
+   g.appendChild(ring);ring.addEventListener('animationend',()=>ring.remove(),{once:true});
   }
-  el.classList.remove('is-pressed');void el.offsetWidth;el.classList.add('is-pressed');
-  setTimeout(()=>el.classList.remove('is-pressed'),520);
+  g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');
  },{passive:true});
 
  if(still||!('IntersectionObserver' in window))return;
