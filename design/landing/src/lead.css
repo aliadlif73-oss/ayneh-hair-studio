@@ -5,18 +5,18 @@
 .lf-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%}
 .lf-field{display:grid;gap:6px;width:100%}
 .lf-field label,.lf-hp label{font-size:14px;font-weight:700;color:var(--ivory)}
-.lf-field input,.lf-field textarea{width:100%;min-height:48px;padding:10px 14px;border-radius:var(--r-control);border:1px solid #a8957b;background:#080d15;color:var(--ivory);font:inherit;font-size:16px;line-height:1.6}
+.lf-field input,.lf-field textarea{width:100%;min-height:48px;padding:10px 14px;border-radius:var(--r-control);border:1px solid #8b9198;background:#080d15;color:var(--ivory);font:inherit;font-size:16px;line-height:1.6}
 .lf-field textarea{min-height:72px;resize:vertical}
 .lf-field input:focus-visible,.lf-field textarea:focus-visible{outline:3px solid var(--focus-dark);outline-offset:2px;border-color:var(--focus-dark)}
 .lf-field input[aria-invalid="true"]{border-color:#F2B8BE}
 .lf-hp{position:absolute;inset-inline-start:-9999px;width:1px;height:1px;overflow:hidden}
 .lf-check{display:flex;align-items:flex-start;gap:12px;font-size:15px;color:var(--ivory-2);cursor:pointer;line-height:1.8}
-.lf-check input{flex:0 0 24px;width:24px;height:24px;margin:2px 0 0;accent-color:#d4bc8e}
+.lf-check input{flex:0 0 24px;width:24px;height:24px;margin:2px 0 0;accent-color:#a7b0bb}
 .lf-err{min-height:1.6em;margin:0;font-size:15px;font-weight:700;color:#F2B8BE}
 .lf-done{margin:0;padding:16px 18px;border-radius:var(--r-control);border:1px solid #BFE3C8;background:rgba(191,227,200,.08);color:#BFE3C8;font-weight:700;line-height:1.9}
 .path--form .btn[disabled]{opacity:.6;cursor:progress}
 @media (max-width:640px){.lf-grid{grid-template-columns:1fr}}
 #lf-send[hidden]{display:none}
-.lf-resend{margin-top:8px;background:none;border:0;padding:6px 0;font:inherit;font-size:.85rem;color:var(--brass,#b7975d);text-decoration:underline;cursor:pointer;min-height:44px}
+.lf-resend{margin-top:8px;background:none;border:0;padding:6px 0;font:inherit;font-size:.85rem;color:var(--brass,#b7a686);text-decoration:underline;cursor:pointer;min-height:44px}
 .lf-resend:disabled{color:inherit;opacity:.55;text-decoration:none;cursor:default}
 #lf-code{letter-spacing:.4em;text-align:center;font-variant-numeric:tabular-nums}
