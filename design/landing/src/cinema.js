@@ -5,7 +5,7 @@
  const clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v;
  const subP=(p,s,e)=>clamp((p-s)/((e-s)||1),0,1);
 
- const actions='.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button';
+ const actions='button,.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,summary,[role="button"]';
  const layer=el=>{let g=el.querySelector(':scope>.glass-layer');if(!g){g=document.createElement('span');g.className='glass-layer';g.setAttribute('aria-hidden','true');el.prepend(g)}return g};
  const dress=()=>$$(actions).forEach(layer);dress();
  new MutationObserver(()=>{clearTimeout(dress.t);dress.t=setTimeout(dress,120)}).observe(document.body,{childList:true,subtree:true});
@@ -18,6 +18,15 @@
    ring.style.cssText='left:'+x+'px;top:'+y+'px;width:'+size+'px;height:'+size+'px;animation-delay:'+(k*140)+'ms';
    g.appendChild(ring);ring.addEventListener('animationend',()=>ring.remove(),{once:true});
   }
+  g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');
+ },{passive:true});
+ document.addEventListener('click',e=>{
+  if(e.detail!==0)return;
+  const el=e.target.closest(actions);if(!el||el.disabled||still)return;
+  const g=layer(el),r=el.getBoundingClientRect(),x=r.width/2,y=r.height/2,size=Math.hypot(x,y)*2;
+  for(let k=0;k<3;k++){const ring=document.createElement('i');ring.className='ripple';
+   ring.style.cssText='left:'+x+'px;top:'+y+'px;width:'+size+'px;height:'+size+'px;animation-delay:'+(k*140)+'ms';
+   g.appendChild(ring);ring.addEventListener('animationend',()=>ring.remove(),{once:true})}
   g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');
  },{passive:true});
 
@@ -75,9 +84,16 @@
 
  const tracks=[];
  const addTrack=(initP,targetFn,applyFn)=>{const t={cur:initP,target:targetFn,apply:applyFn};t.apply(initP);tracks.push(t)};
+ let measureV=0,maxScroll=1,heroH=0;
+ const tops=new WeakMap();
+ const docTop=el=>{let c=tops.get(el);if(!c||c.v!==measureV){const r=el.getBoundingClientRect();c={v:measureV,top:r.top+window.scrollY};tops.set(el,c)}return c.top};
+ const measure=()=>{measureV++;maxScroll=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);heroH=0};
+ addEventListener('resize',measure,{passive:true});addEventListener('load',measure);
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(measure);
+ measure();
  const rectP=(el,enterVh=0.92,fullVh=0.44)=>{
-  const r=el.getBoundingClientRect(),vh=window.innerHeight||800,s=vh*enterVh,e=vh*fullVh;
-  return clamp((s-r.top)/((s-e)||1),0,1);
+  const vh=window.innerHeight||800,s=vh*enterVh,e=vh*fullVh;
+  return clamp((s-(docTop(el)-window.scrollY))/((s-e)||1),0,1);
  };
 
  const heroCopy=$('#copy'),heroH1=$('#h1'),heroEyebrow=$('#intro .eyebrow');
@@ -87,9 +103,10 @@
   const bootTick=now=>{boot=clamp((now-t0)/900,0,1);if(boot<1)requestAnimationFrame(bootTick);scheduleScrub()};
   requestAnimationFrame(bootTick);
   addTrack(0,()=>{
-   const r=heroCopy.getBoundingClientRect(),vh=window.innerHeight||800;
+   const vh=window.innerHeight||800;if(!heroH)heroH=heroCopy.getBoundingClientRect().height;
    // Fade out only once the copy is actually scrolling away; a short phone screen must still show it at load.
-   const sf=r.top>=-8?1:clamp((r.bottom-vh*0.12)/Math.max(120,Math.min(r.height,vh*0.5)),0,1);
+   const top=docTop(heroCopy)-window.scrollY;
+   const sf=top>=-8?1:clamp((top+heroH-vh*0.12)/Math.max(120,Math.min(heroH,vh*0.5)),0,1);
    return Math.min(boot,sf);
   },p=>{
    heroCopy.style.setProperty('--kp',subP(p,0,0.45).toFixed(3));
@@ -200,8 +217,8 @@
   const links=$$('.foot ul li,.legal',footer);
   $$('.site-footer .brand-symbol path').forEach(p=>{try{p.style.setProperty('--len',Math.ceil(p.getTotalLength()))}catch{}});
   addTrack(0,()=>{
-   const base=rectP(footer,0.98,0.72),maxS=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
-   return Math.max(base,clamp((window.scrollY-(maxS-120))/120,0,1));
+   const base=rectP(footer,0.98,0.72);
+   return Math.max(base,clamp((window.scrollY-(maxScroll-120))/120,0,1));
   },p=>{
    footer.style.setProperty('--p',p.toFixed(3));
    links.forEach((el,i)=>{const s=0.2+i*0.1;el.style.setProperty('--lp',subP(p,s,Math.min(1,s+0.5)).toFixed(3))});
