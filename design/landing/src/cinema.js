@@ -54,12 +54,9 @@
   },{passive:true});
  }
 
- /* Static word highlighting. The scrub used to retime a paused animation on
-    every one of these spans on every scroll frame; --wp defaults to 1, so the
-    words and their gold underlines simply render in their final state. */
  const goldWords=new Set(['عکس','خودش','اختصاصی','سالن','شماست','همه','یک','صفحه','چشم','مشتری','ببینید','رایج']);
  function prepareSlam(el){
-  if(!el)return;
+  if(!el)return()=>{};
   const text=el.textContent.trim();
   el.setAttribute('aria-label',text);
   el.classList.add('cine-slam');
@@ -67,27 +64,186 @@
    const clean=w.replace(/[،؛.:؟!]/g,'');
    return '<span class="'+(goldWords.has(clean)?'cine-word cine-word--gold':'cine-word')+'" aria-hidden="true">'+w+'</span>';
   }).join(' ');
+  const spans=$$('.cine-word',el),n=spans.length||1;
+  return p=>{for(let i=0;i<n;i++){const st=(i/n)*0.56;spans[i].style.setProperty('--wp',subP(p,st,st+0.44).toFixed(3))}};
  }
+
  function prepareType(el){
-  if(!el)return;
+  if(!el)return()=>{};
   const text=el.textContent.trim();
   el.classList.add('type-wrap');
-  el.innerHTML='<span class="type-sr">'+text+'</span><span class="type-reserve" aria-hidden="true">'+text+'</span><span class="type-live" aria-hidden="true">'+text+'</span>';
+  el.innerHTML='<span class="type-sr">'+text+'</span><span class="type-reserve" aria-hidden="true">'+text+'</span><span class="type-live" aria-hidden="true"></span>';
+  const live=el.querySelector('.type-live'),len=text.length;
+  let last=-1;
+  return p=>{
+   const c=Math.round(clamp(p,0,1)*len);
+   if(c!==last){last=c;live.textContent=text.slice(0,c)}
+   live.classList.toggle('is-typing',p>0.02&&p<0.98);
+  };
  }
 
- /* Hooks kept for the colour/styling rules in the cascade. */
- const cine=(sel,v)=>{const el=$(sel);if(el)el.dataset.cine=v};
- cine('#how','glint');cine('.salon-invite','curtain');cine('#services','fan');
- cine('#transform','lights');cine('#salon-example','desk');cine('#faq','focus');
- cine('.site-footer','draw');
+ const tracks=[];
+ const addTrack=(initP,targetFn,applyFn)=>{const t={cur:initP,target:targetFn,apply:applyFn};t.apply(initP);tracks.push(t)};
+ let measureV=0,maxScroll=1,heroH=0;
+ const tops=new WeakMap();
+ const docTop=el=>{let c=tops.get(el);if(!c||c.v!==measureV){const r=el.getBoundingClientRect();c={v:measureV,top:r.top+window.scrollY};tops.set(el,c)}return c.top};
+ const measure=()=>{measureV++;maxScroll=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);heroH=0};
+ addEventListener('resize',measure,{passive:true});addEventListener('load',measure);
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(measure);
+ measure();
+ const rectP=(el,enterVh=0.92,fullVh=0.44)=>{
+  const vh=window.innerHeight||800,s=vh*enterVh,e=vh*fullVh;
+  return clamp((s-(docTop(el)-window.scrollY))/((s-e)||1),0,1);
+ };
 
- $$('.sec-head').forEach(h=>{prepareSlam(h.querySelector('h2'));prepareType(h.querySelector('.kicker'))});
- prepareSlam($('#h1'));prepareType($('#intro .eyebrow'));
- const inv=$('.salon-invite');
- if(inv){prepareSlam($('#salon-invite-title',inv));prepareType($('.journey-kicker',inv))}
- prepareType($('.film-caption>span'));
- $$('.cards3>.svc,.benefits-five>.benefit,.builder-steps>li,.faq>details,.faq-next,.service-timeline>button,.foot ul li,.legal')
-  .forEach((el,i)=>el.style.setProperty('--i',i%6));
- $$('.site-footer .brand-symbol path').forEach(path=>{try{path.style.setProperty('--len',Math.ceil(path.getTotalLength()))}catch{}});
+ const heroCopy=$('#copy'),heroH1=$('#h1'),heroEyebrow=$('#intro .eyebrow');
+ if(heroCopy){
+  const slamHero=prepareSlam(heroH1),typeHero=prepareType(heroEyebrow);
+  let boot=0;const t0=performance.now();
+  const bootTick=now=>{boot=clamp((now-t0)/900,0,1);if(boot<1)requestAnimationFrame(bootTick);scheduleScrub()};
+  requestAnimationFrame(bootTick);
+  addTrack(0,()=>{
+   const vh=window.innerHeight||800;if(!heroH)heroH=heroCopy.getBoundingClientRect().height;
+   // Fade out only once the copy is actually scrolling away; a short phone screen must still show it at load.
+   const top=docTop(heroCopy)-window.scrollY;
+   const sf=top>=-8?1:clamp((top+heroH-vh*0.12)/Math.max(120,Math.min(heroH,vh*0.5)),0,1);
+   return Math.min(boot,sf);
+  },p=>{
+   heroCopy.style.setProperty('--kp',subP(p,0,0.45).toFixed(3));
+   typeHero(subP(p,0.02,0.62));
+   slamHero(subP(p,0.08,0.82));
+   heroCopy.style.setProperty('--lp',subP(p,0.32,0.88).toFixed(3));
+   heroCopy.style.setProperty('--cp',subP(p,0.46,0.96).toFixed(3));
+   heroCopy.style.setProperty('--fp',subP(p,0.58,1).toFixed(3));
+  });
+ }
 
+ $$('.sec-head').forEach(head=>{
+  head.dataset.stage='head';
+  const slamH2=prepareSlam(head.querySelector('h2')),typeKicker=prepareType(head.querySelector('.kicker'));
+  addTrack(0,()=>rectP(head,0.92,0.48),p=>{
+   head.style.setProperty('--hp',p.toFixed(3));
+   head.style.setProperty('--kp',subP(p,0,0.45).toFixed(3));
+   typeKicker(subP(p,0.04,0.68));
+   slamH2(subP(p,0.12,0.88));
+   head.style.setProperty('--sp',subP(p,0.46,1).toFixed(3));
+  });
+ });
+
+ const how=$('#how');
+ if(how){
+  how.dataset.cine='glint';
+  const grid=$('.benefits-five',how),cards=$$('.benefits-five>.benefit',how);
+  cards.forEach((c,i)=>c.style.setProperty('--i',i));
+  cards.forEach((card,i)=>addTrack(0,()=>{
+   const row=grid?rectP(grid,0.88,0.28):1;
+   return window.innerWidth<=580?rectP(card,0.92,0.48):subP(row,i*0.14,i*0.14+0.44);
+  },p=>{
+   card.style.setProperty('--p',p.toFixed(3));
+   card.classList.toggle('scrub-done',p>0.99);
+  }));
+ }
+
+ const invite=$('.salon-invite');
+ if(invite){
+  invite.dataset.cine='curtain';
+  const card=$('.salon-invite-card',invite),slamInv=prepareSlam($('#salon-invite-title',invite)),typeInv=prepareType($('.journey-kicker',invite)),copyEls=$$('.salon-invite-copy>*:not(h2)',invite);
+  if(card)addTrack(0,()=>rectP(card,0.92,0.34),p=>{
+   invite.style.setProperty('--p',p.toFixed(3));
+   invite.style.setProperty('--kp',subP(p,0.1,0.5).toFixed(3));
+   typeInv(subP(p,0.14,0.66));
+   slamInv(subP(p,0.20,0.86));
+   copyEls.forEach((el,i)=>{const s=0.26+i*0.12;el.style.setProperty('--cp',subP(p,s,s+0.46).toFixed(3))});
+  });
+ }
+
+ const services=$('#services');
+ if(services){
+  services.dataset.cine='fan';
+  const grid=$('.cards3',services),cards=$$('.cards3>.svc',services);
+  cards.forEach((c,i)=>c.style.setProperty('--i',i));
+  cards.forEach((card,i)=>addTrack(0,()=>{
+   const row=grid?rectP(grid,0.90,0.32):1;
+   /* Same fan stagger, but it completes before the row saturates so the third
+      panel is never left behind on desktop either. */
+   return window.innerWidth<=1100?rectP(card,0.92,0.46):subP(row,i*0.12,i*0.12+0.56);
+  },p=>{
+   card.style.setProperty('--p',p.toFixed(3));
+   card.classList.toggle('scrub-done',p>0.99);
+  }));
+ }
+
+ const transform=$('#transform');
+ if(transform){
+  transform.dataset.cine='lights';
+  const player=$('.film-player',transform),tabs=$$('.service-timeline>button',transform),typeFilm=prepareType($('.film-caption>span',transform));
+  if(player){
+   addTrack(0,()=>rectP(player,0.92,0.36),p=>{
+    transform.style.setProperty('--p',p.toFixed(3));
+    typeFilm(subP(p,0.36,0.92));
+   });
+   tabs.forEach((btn,i)=>addTrack(0,()=>subP(rectP(player,0.92,0.36),i*0.14,i*0.14+0.56),
+     p=>btn.style.setProperty('--tp',p.toFixed(3))));
+  }
+ }
+
+ const builder=$('#salon-example');
+ if(builder){
+  builder.dataset.cine='desk';
+  const stepsList=$('.builder-steps',builder),steps=$$('.builder-steps>li',builder);
+  steps.forEach((li,i)=>li.style.setProperty('--i',i));
+  steps.forEach((li,i)=>addTrack(0,()=>{
+   const row=stepsList?rectP(stepsList,0.90,0.42):1;
+   return window.innerWidth<=850?rectP(li,0.92,0.48):subP(row,i*0.12,i*0.12+0.56);
+  },p=>{
+   li.style.setProperty('--p',p.toFixed(3));
+   li.classList.toggle('scrub-done',p>0.99);
+  }));
+  const form=$('.builder-form',builder),preview=$('.builder-preview',builder);
+  /* Both panes follow the SECTION, not their own boxes: the desktop preview
+     is position:sticky, so caching its own document top gives a scroll-
+     dependent (wrong) value and would leave it half transparent. */
+  if(form||preview)addTrack(0,()=>rectP(builder,0.98,0.72),p=>{
+   if(form)form.style.setProperty('--p',p.toFixed(3));
+   if(preview)preview.style.setProperty('--p',p.toFixed(3));
+  });
+ }
+
+ const faq=$('#faq');
+ if(faq){
+  faq.dataset.cine='focus';
+  $$('.faq>details,.faq-next',faq).forEach((item,i)=>{
+   item.style.setProperty('--dir',i%2===0?1:-1);
+   addTrack(0,()=>rectP(item,0.93,0.52),p=>item.style.setProperty('--p',p.toFixed(3)));
+  });
+ }
+
+ const footer=$('.site-footer');
+ if(footer){
+  footer.dataset.cine='draw';
+  const links=$$('.foot ul li,.legal',footer);
+  $$('.site-footer .brand-symbol path').forEach(p=>{try{p.style.setProperty('--len',Math.ceil(p.getTotalLength()))}catch{}});
+  addTrack(0,()=>{
+   const base=rectP(footer,0.98,0.72);
+   return Math.max(base,clamp((window.scrollY-(maxScroll-120))/120,0,1));
+  },p=>{
+   footer.style.setProperty('--p',p.toFixed(3));
+   links.forEach((el,i)=>{const s=0.2+i*0.1;el.style.setProperty('--lp',subP(p,s,Math.min(1,s+0.5)).toFixed(3))});
+  });
+ }
+
+ let rafId=0;
+ /* One pass per scroll frame, no trailing loop: the entrance effects stay
+    exactly scroll-linked, but nothing is rewritten while the page is idle. */
+ function tick(){
+  rafId=0;
+  for(let i=0;i<tracks.length;i++){
+   const t=tracks[i],tgt=Math.round(t.target()*80)/80;
+   if(tgt!==t.cur){t.cur=tgt;t.apply(tgt)}
+  }
+ }
+ function scheduleScrub(){if(!rafId)rafId=requestAnimationFrame(tick)}
+ window.addEventListener('scroll',scheduleScrub,{passive:true});
+ window.addEventListener('resize',scheduleScrub,{passive:true});
+ scheduleScrub();
 })();

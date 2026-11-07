@@ -214,11 +214,6 @@ section[id],.site-footer{scroll-margin-top:0}
 .salon-builder .builder-form,
 .salon-builder .builder-form :is(input,select,textarea,button,summary){scroll-margin:0!important}
 
-/* A form must never be scroll-scrubbed: keep it perfectly still and opaque. */
-[data-cine=desk] :is(.builder-form,.builder-preview){
-  animation:none!important;opacity:1!important;transform:none!important;
-  filter:none!important;will-change:auto!important}
-
 /* Fit the entire mini salon page into the device frame. transform leaves layout
    height measurable; the compensated width keeps the mock full-bleed. */
 .live-page{box-sizing:border-box;transform-origin:top left;
@@ -313,26 +308,6 @@ section[id],.site-footer{scroll-margin-top:0}
   .salon-builder .sec-head{margin-bottom:12px!important}
 }
 
-/* ---------- 11. One-shot entrances instead of per-frame scroll scrubbing ----------
-   Paused animations re-timed by --p/--wp on every scroll frame forced a full
-   style + paint pass for hundreds of elements. All those variables default to
-   1, so the elements can simply render in their final state. A single, cheap
-   opacity/transform entrance plays once per block on first view. */
-@media(prefers-reduced-motion:no-preference){
-  :where(.cine-word,.type-live,.sec-head[data-stage],.sec-head[data-stage] .sub,
-    .copy .reveal,.benefit,.svc,.builder-steps>li,.faq>details,.faq-next,
-    .film-player,.film-screen,.film-caption,.salon-invite-card,.salon-invite-art,
-    .salon-invite-art>:is(img,video),.invite-seal,.salon-invite-copy>*,.gold-icon,
-    .service-timeline>button,.foot ul li,.legal,.cards3>.svc .gold-icon,
-    .cards3>.svc h3,.cards3>.svc p,.cards3>.svc .svc-try,
-    .benefit .gold-icon,.benefit h3,.benefit p){
-      animation:none!important;filter:none!important;will-change:auto!important}
-}
-.cine-wait{opacity:0;transform:translate3d(0,14px,0);
-  transition:opacity .55s var(--ease),transform .55s var(--ease);
-  transition-delay:var(--enter,0ms)}
-.cine-wait.is-in{opacity:1;transform:none}
-
 /* ---------- 12. Cheap compositing while scrolling ----------
    backdrop-filter:blur() on decorative glass forces a full backdrop repaint on
    every scroll frame. These surfaces are already near-opaque: a slightly more
@@ -346,8 +321,3 @@ section[id],.site-footer{scroll-margin-top:0}
 .cinema-arrows button{background:#121720dc!important}
 .auto-film .journey-copy{background:linear-gradient(140deg,#101620f5,#101620e8)!important}
 .invite-seal{background:linear-gradient(155deg,rgba(17,23,35,.97),rgba(9,12,17,.99))!important}
-.gold-icon svg,.film-icon svg,.frame .orbit{filter:none!important}
-/* Content is simply always present: no hidden state, no observer, no timer,
-   and no chance of an item staying invisible when the visitor scrolls to it. */
-.cine-wait,.cine-wait.is-in{opacity:1!important;transform:none!important;
-  transition:none!important}
