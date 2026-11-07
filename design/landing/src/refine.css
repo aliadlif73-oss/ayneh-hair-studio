@@ -1,0 +1,202 @@
+/* AYN-D063 — Complementary gold, legibility, rhythm and the studio wizard.
+   Included last in the cascade; colour + presentation only, no layout rewrites. */
+:root{
+  --gold:#D8A63C; --gold-soft:#F2DFAF; --gold-deep:#7A5712; --gold-rim:#F6E4B8;
+  --gold-line:#C6AC74; --gold-glow:rgba(216,166,60,.30);
+  --steel:#98A0A9; --space-1:8px; --space-2:14px; --space-3:22px; --space-4:34px; --space-5:52px; --space-6:76px;
+  --hh:72px;
+}
+/* ---------- 1. Smooth scrolling & standard spacing ---------- */
+html{scroll-behavior:smooth;scroll-padding-top:calc(var(--hh) + 18px)}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+section[id],.site-footer{scroll-margin-top:calc(var(--hh) + 14px)}
+.section{padding-block:clamp(72px,9vw,132px)}
+.sec-head{margin-bottom:clamp(38px,5.2vw,68px)}
+.cards3{gap:clamp(20px,2.6vw,34px)}
+.benefits-five{gap:clamp(14px,1.8vw,22px)}
+.faq{gap:var(--space-3)}
+.site-footer{padding-block:var(--space-5) var(--space-4)}
+.builder-grid{gap:clamp(22px,3.6vw,48px)}
+.builder-form fieldset{gap:var(--space-3)}
+.builder-form .btn,.builder-preview .btn{margin-top:var(--space-2)}
+.journey-actions{gap:var(--space-2)}
+.sec-head .sub{margin-top:var(--space-3)}
+
+/* ---------- 2. Typography: darker, larger, clearer hierarchy ---------- */
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-size:16px}
+.sec-head p.sub{color:#35455F!important;font-size:clamp(16px,1.35vw,19px);font-weight:600;line-height:1.85}
+h1,h2,.sec-head h2,.salon-invite-copy h2{font-weight:800;letter-spacing:-.032em}
+h3,.svc h3{font-weight:800}
+.svc p,.benefit span,.builder-steps>li>span{color:#2C3B55!important;font-size:15.5px;font-weight:500;line-height:1.85}
+.svc h3{font-size:20px}
+.faq details summary{color:#1A2A44!important;font-size:18px;font-weight:800}
+.faq details p{color:#2C3B55!important;font-size:16px;font-weight:500;line-height:1.9}
+.kicker,.journey-kicker{color:var(--gold-deep)!important;font-weight:800;letter-spacing:.01em}
+.builder-note{color:#39455A!important;font-size:14px;font-weight:500}
+.builder-browser{font-size:12px;font-weight:600}
+.salon-invite-copy>p:not(.journey-kicker){font-size:15px;font-weight:500;color:#DCE7F3!important}
+.salon-invite-copy>p.invite-detail{font-size:14px!important}
+.film-caption,.live-bio{font-size:16px}
+.btn{font-weight:800;letter-spacing:.005em}
+.fineprint{color:#2B3A53!important;font-weight:600}
+@media(max-width:600px){
+  .svc p,.benefit span{font-size:15px}
+  .faq details summary{font-size:16.5px}
+  .sec-head p.sub{font-size:16px}
+}
+
+/* ---------- 3. Visible complementary gold (blue 220° ↔ gold 40°) ---------- */
+.site-header{border-bottom:1px solid rgba(216,166,60,.34);box-shadow:0 6px 22px rgba(16,30,56,.05)}
+.site-header .nav a[aria-current]{border-color:var(--gold)!important}
+.scroll-line{background:linear-gradient(90deg,#A87C22,var(--gold),var(--gold-soft),var(--gold))!important;height:3px}
+.sec-head .kicker::before,.copy .eyebrow::before,.salon-invite-copy .journey-kicker::before{
+  background:linear-gradient(90deg,var(--gold-deep),var(--gold),var(--gold-soft))!important;
+  box-shadow:0 1px 7px var(--gold-glow)!important;height:3px!important}
+.cine-word--gold{color:#8A641E!important}
+.cine-word--gold::after{background:linear-gradient(90deg,var(--gold),var(--gold-soft),var(--gold-deep))!important;box-shadow:0 2px 9px var(--gold-glow)!important}
+.on-dark .cine-word--gold,.salon-invite .cine-word--gold{color:var(--gold-soft)!important}
+.svc,.benefit,.builder-steps>li{border-color:var(--gold-line)!important}
+.svc::before,.benefit::before,.builder-steps>li::before{border-color:rgba(216,166,60,.42)!important}
+.svc:hover,.benefit:hover{border-color:var(--gold)!important}
+.faq details{border-color:rgba(198,172,116,.85)!important}
+.faq details[open]{border-color:var(--gold)!important;box-shadow:0 0 0 3px var(--gold-glow),0 14px 34px rgba(16,30,56,.09)}
+.faq details[open] summary{color:#101E38!important}
+.site-footer{border-top:1px solid rgba(216,166,60,.42)}
+.site-footer .foot a:hover{color:var(--gold-soft)!important}
+.btn{border-color:var(--gold)!important;box-shadow:0 0 0 3px var(--gold-glow),0 10px 24px rgba(8,13,21,.18)}
+.btn--ghost{border-color:var(--gold-line)!important;color:#1B2B45!important}
+.live-chips span,.live-services span,.live-links span,.live-works article{border-color:rgba(198,172,116,.9)!important}
+.live-badge{background:linear-gradient(145deg,#2A3446,#141C2C);border:1px solid rgba(216,166,60,.5)}
+.live-badge::before{background:var(--gold);box-shadow:0 0 9px var(--gold)}
+.builder-preview{border-color:rgba(216,166,60,.55)!important}
+.builder-browser b{color:var(--gold-soft)!important}
+
+/* ---------- 4. New 3D gold medallion icons ---------- */
+.gold-icon{
+  width:64px;height:64px;display:grid;place-items:center;border-radius:22px;
+  background:radial-gradient(circle at 28% 20%,#FFF6D8 0%,rgba(255,246,216,.35) 38%,transparent 62%),
+             conic-gradient(from 205deg at 50% 50%,#8A641E,#E6BC58,#FFF0C0,#D8A63C,#A87C22,#F3D78A,#8A641E);
+  border:1px solid var(--gold-rim)!important;
+  box-shadow:inset 0 2px 2px rgba(255,250,226,.95),inset 0 -5px 8px rgba(94,62,10,.55),
+             0 5px 0 #8A641E,0 6px 0 rgba(16,30,56,.45),0 0 0 4px #EFE4C9,
+             0 0 0 5px rgba(216,166,60,.6),0 12px 22px rgba(11,21,40,.3)!important;
+}
+.gold-icon::before{content:"";position:absolute;inset:3px;border-radius:18px;pointer-events:none;
+  background:linear-gradient(148deg,rgba(255,255,255,.5),transparent 44%,rgba(94,62,10,.26))}
+.gold-icon svg{position:relative;z-index:1;width:40px;height:40px;fill:none;stroke:#3B2A08!important;
+  stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 1px 0 rgba(255,246,214,.85))!important}
+.gold-icon .gold-icon-depth{stroke:rgba(255,246,214,.92)!important;stroke-width:3.1;transform:translate(1px,1.5px);filter:none!important}
+:is(.svc,.benefit):hover .gold-icon{box-shadow:inset 0 2px 3px rgba(255,250,226,.95),inset 0 -5px 8px rgba(94,62,10,.55),
+  0 7px 0 #8A641E,0 8px 0 rgba(16,30,56,.45),0 0 0 4px #EFE4C9,0 0 0 5px var(--gold),
+  0 16px 28px rgba(11,21,40,.34)!important}
+@media(max-width:600px){.gold-icon{width:58px;height:58px;border-radius:19px}.gold-icon svg{width:36px;height:36px}}
+
+/* ---------- 5. Ripple on every button ---------- */
+:where(button,.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,summary,[role="button"]){position:relative;isolation:isolate}
+:where(button,.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,summary,[role="button"])>.glass-layer{border-radius:inherit}
+.ripple{background:radial-gradient(circle,transparent 38%,rgba(216,166,60,.30) 58%,rgba(255,240,192,.92) 70%,rgba(216,166,60,.42) 80%,transparent 88%)!important;
+  box-shadow:0 0 16px rgba(216,166,60,.5)!important}
+.glass-layer.flash::before{background:linear-gradient(112deg,transparent 36%,rgba(242,223,175,.5) 47%,rgba(255,248,222,.92) 50%,rgba(216,166,60,.35) 53%,transparent 64%)!important}
+.btn:active,.sticky-cta:active,button:active{transform:translateY(1px) scale(.985)}
+.btn,.sticky-cta,button,summary{transition:transform .16s var(--ease),box-shadow .2s ease,border-color .2s ease,background .2s ease}
+
+/* ---------- 6. Crisp, lag-free item loading ---------- */
+[data-cine] *,.cine-word,.type-live,.glass-layer{will-change:auto!important}
+[data-cine] :is(.cine-word,.benefit,.svc,.builder-steps>li,.faq>details,.faq-next,.film-player,
+  .builder-form,.builder-preview,.salon-invite-card,.sec-head,.sec-head .sub,.gold-icon){filter:none!important}
+img:not([decoding]){image-rendering:auto}
+img[loading="lazy"]{background:#EEF3F9}
+.reveal,.cine-word{backface-visibility:hidden}
+
+/* ---------- 7. Studio wizard: big live preview + one question ---------- */
+.builder-preview{gap:var(--space-2)}
+.builder-preview .builder-live{height:clamp(420px,64vh,700px);max-height:none;scroll-behavior:smooth}
+.wizard{display:grid;gap:var(--space-3)}
+.wizard-top{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:12px;font-weight:800;color:var(--gold-deep)}
+.wizard-track{flex:1;height:6px;border-radius:99px;background:#DEE6EF;overflow:hidden}
+.wizard-track i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--gold-deep),var(--gold),var(--gold-soft));transition:width .35s var(--ease)}
+.wizard-count{direction:rtl;white-space:nowrap}
+.wizard-question{margin:0;font-size:clamp(19px,2vw,24px);font-weight:800;line-height:1.6;color:#152238}
+.wizard-hint{margin:0;font-size:13px;color:#46566F;line-height:1.8}
+.wizard-step{display:none;gap:var(--space-2)}
+.wizard-step.is-active{display:grid;animation:wizard-in .34s var(--ease) both}
+@keyframes wizard-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.wizard-step label,.wizard-step fieldset{min-width:0}
+.wizard-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:var(--space-2)}
+.wizard-actions .btn{flex:1;min-width:130px}
+.wizard-prev{flex:0 0 auto!important;min-width:100px}
+.wizard-skip{background:none!important;border:1px dashed var(--gold-line)!important;color:#3A4A63!important;flex:0 0 auto!important;min-width:96px;font-size:14px}
+.wizard-error{color:#932D26;font-weight:700;font-size:14px;min-height:20px;margin:0}
+.wizard-summary{display:grid;gap:6px;padding:var(--space-2);border:1px solid rgba(216,166,60,.45);border-radius:14px;background:linear-gradient(145deg,#FFFBF0,#F4F8FD);font-size:14px;line-height:1.9}
+.wizard-summary b{color:var(--gold-deep)}
+.live-flash{animation:live-flash 1.1s ease-out}
+@keyframes live-flash{0%{box-shadow:0 0 0 0 var(--gold-glow)}30%{box-shadow:0 0 0 7px var(--gold-glow)}100%{box-shadow:0 0 0 0 transparent}}
+@media(max-width:850px){
+  /* The studio becomes one phone screen: preview 2/3, question 1/3 underneath. */
+  .builder-grid{display:flex;flex-direction:column;gap:10px;height:calc(100svh - var(--hh) - 26px);min-height:540px;overflow:hidden;scroll-margin-top:0}
+  .builder-preview{order:1;position:relative;top:auto;padding:10px;flex:0 0 66%;height:auto;min-height:0;
+    display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px;overflow:hidden;scroll-margin-top:0}
+  .builder-preview .builder-live{height:auto;min-height:0;max-height:none}
+  .builder-preview #builderHint{display:none}
+  .builder-form{order:2;flex:1;min-height:0;overflow-y:auto;padding:16px;scroll-margin-top:0}
+  .builder-preview .builder-browser{display:flex}
+  .wizard-question{font-size:20px}
+}
+@media(prefers-reduced-motion:reduce){.wizard-step.is-active,.live-flash{animation:none}}
+
+/* Plain controls (colour swatches, film tabs, inline actions) get the ripple rings
+   but not the frosted bezel, so no extra box appears around them. */
+button:not(.btn):not(.sticky-cta):not(.menu-toggle):not(.close):not(.nav-btn):not(.demo-controls button):not(.mirror-invite button)>.glass-layer,
+summary>.glass-layer{background:none!important;box-shadow:none!important}
+button:not(.btn):not(.sticky-cta):not(.menu-toggle):not(.close):not(.nav-btn):not(.demo-controls button):not(.mirror-invite button)>.glass-layer::before,
+summary>.glass-layer::before{display:none}
+
+/* ---------- 8. Warmer ground: less blue, so the complementary gold reads ---------- */
+:root{
+  --relief-light-bg:linear-gradient(168deg,#FFFDF8 0%,#F5F2EA 55%,#E6E9EE 100%);
+  --trench-light-bg:linear-gradient(165deg,#D7D4CC 0%,#E5E2DB 46%,#F1F0EC 100%);
+}
+.salon-builder{background:radial-gradient(ellipse at 20% 5%,#FBF8F0 0%,transparent 60%),#E5E7E9!important}
+.builder-form{background:#FCFBF7!important}
+/* On desktop the live preview is the wider column. */
+@media(min-width:851px){.builder-grid{grid-template-columns:minmax(0,1.18fr) minmax(320px,.82fr)}}
+/* On phones the preview owns the top two thirds; the question sits underneath. */
+@media(max-width:600px){
+  .salon-builder .builder-steps{display:none}
+  .builder-form .builder-availability{font-size:12px;margin:0 0 10px;line-height:1.7}
+  .builder-form{padding:16px}
+  .wizard{gap:12px}
+  .wizard-question{font-size:19px;margin:0}
+  .wizard-hint{font-size:12px}
+  .wizard-actions{margin-top:10px}
+  .builder-preview{scroll-margin-top:calc(var(--hh) + 8px)}
+}
+@media(max-width:600px){
+  .builder-form .builder-availability{display:none}
+  .wizard{display:flex;flex-direction:column;gap:10px}
+  .wizard-question{order:0;font-size:18px;line-height:1.5;margin:0}
+  .wizard-top{order:1}
+  .wizard-hint{display:none}
+  .wizard-step.is-active{order:2}
+  .wizard-error{order:3;min-height:0}
+  .wizard-actions{order:4;margin-top:0;gap:7px;flex-wrap:nowrap}
+  .wizard-actions .btn{min-height:44px;font-size:13px;padding:0 8px;flex:1;min-width:0}
+  .wizard-prev,.wizard-skip{flex:1!important;min-width:0!important}
+}
+
+
+/* ---------- 9. Audit fixes ---------- */
+/* Author .btn{display:inline-flex} beats the UA [hidden] rule; restore it for the wizard. */
+.builder-form [hidden]{display:none!important}
+/* The same complementary-gold medallion on the dark film tabs. */
+.film-icon{background:radial-gradient(circle at 30% 22%,#FFF6D8 0%,transparent 55%),
+  conic-gradient(from 205deg,#8A641E,#E6BC58,#FFF0C0,#D8A63C,#A87C22,#F3D78A,#8A641E)!important;
+  border:1px solid var(--gold-rim)!important;
+  box-shadow:inset 0 2px 2px rgba(255,250,226,.9),inset 0 -3px 5px rgba(94,62,10,.5),
+             0 3px 0 #8A641E,0 0 0 3px rgba(216,166,60,.32)!important}
+.film-icon svg{stroke:#3B2A08!important;filter:drop-shadow(0 1px 0 rgba(255,246,214,.85))!important}
+.service-timeline button{color:#C9AE7B!important;font-weight:700}
+.service-timeline button[aria-pressed=true]{color:var(--gold-soft)!important}
+.service-timeline button[aria-pressed=true] .film-icon{box-shadow:inset 0 2px 2px rgba(255,250,226,.9),
+  inset 0 -3px 5px rgba(94,62,10,.5),0 3px 0 #8A641E,0 0 0 4px var(--gold),0 0 0 8px var(--gold-glow)!important}

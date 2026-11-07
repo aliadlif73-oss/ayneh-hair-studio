@@ -1,5 +1,5 @@
 /* AYNEH / brass, ivory and arched reflections. Shared presentation finishing. */
-.brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none}.brand-symbol{display:inline-flex;width:45px;height:48px;color:#9C8055;flex:none}.brand-symbol svg{width:100%;height:100%}.brand-name{display:flex;flex-direction:column;align-items:center;line-height:1.2}.brand .brand-name small{font-size:10px;letter-spacing:.24em;direction:ltr;margin:5px 0 0;opacity:.65}.foot .brand-symbol{color:#E9DCC0}.loader-brand svg{width:55px;height:65px;color:#9C8055}
+.brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none}.brand-symbol{display:inline-flex;width:45px;height:48px;color:#a17c3c;flex:none}.brand-symbol svg{width:100%;height:100%}.brand-name{display:flex;flex-direction:column;align-items:center;line-height:1.2}.brand .brand-name small{font-size:10px;letter-spacing:.24em;direction:ltr;margin:5px 0 0;opacity:.65}.foot .brand-symbol{color:#d4b275}.loader-brand svg{width:55px;height:65px;color:#a17c3c}
 .nav-btn,.cinema-arrows button{direction:ltr;unicode-bidi:isolate}.nav-btn svg,.cinema-arrows svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transform:none}
 /* A right chevron lives at the physical right edge; a left one at the left. */
 .cinema-arrows{inset:0;display:block;pointer-events:none;z-index:7}.cinema-arrows button{position:absolute;top:50%;transform:translateY(-50%);pointer-events:auto;width:48px;height:48px;background:#121720b8;backdrop-filter:blur(8px);display:grid;place-items:center;transition:background .2s,border-color .2s,box-shadow .2s}
@@ -59,12 +59,12 @@
 .mobile-menu:not([hidden]){max-height:calc(100vh - var(--hh,72px) - 24px);max-height:calc(100dvh - var(--hh,72px) - 24px);overflow-y:auto;overscroll-behavior:contain}
 @property --button-orbit{syntax:"<angle>";inherits:false;initial-value:0deg}
 :where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button){
- --button-top:#3C63AE;--button-base:#254E9E;--button-text:#F7FAFF;--button-depth:#162C5E;--button-edge:#8FA6C8;--button-light:#E9DCC0;
+ --button-top:#3C63AE;--button-base:#254E9E;--button-text:#F7FAFF;--button-depth:#162C5E;--button-edge:#D8A63C;--button-light:#F2DFAF;
  isolation:isolate;overflow:visible;color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base));border:1px solid var(--button-edge);box-shadow:inset 0 1px 0 #ffffff38,0 4px 0 var(--button-depth),0 8px 14px #10172331;text-shadow:none;
 }
 :is(.btn,.menu-toggle,.close,.demo-controls button,.mirror-invite button){position:relative}
 :where(.page,body) :is(.on-dark,.salon-invite,.builder-preview,.mirror-invite,.site-footer) :is(.btn,.close,.mirror-invite button){
- --button-top:#FBFCFE;--button-base:#DEE6EF;--button-text:#152238;--button-depth:#7C90AC;--button-edge:#B9C8DC;--button-light:#E9DCC0;
+ --button-top:#FBFCFE;--button-base:#DEE6EF;--button-text:#152238;--button-depth:#7C90AC;--button-edge:#C9A34F;--button-light:#F2DFAF;
  color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base));border-color:var(--button-edge);box-shadow:inset 0 1px 0 #fff,0 4px 0 var(--button-depth),0 8px 14px #090d153e;
 }
 :where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:disabled):hover{background:linear-gradient(180deg,var(--button-top),var(--button-base));filter:brightness(1.11)}
