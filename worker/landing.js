@@ -723,7 +723,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
  --button-top:#fffefa;--button-base:#f2e5d2;--button-text:#4c3020;--button-depth:#a08465;--button-edge:#d7b992;--button-light:#ffe3a3;
  color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base));border-color:var(--button-edge);box-shadow:inset 0 1px 0 #fff,0 4px 0 var(--button-depth),0 8px 14px #160e083e;
 }
-:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:disabled):hover{filter:brightness(1.11)}
+:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:disabled):hover{background:linear-gradient(180deg,var(--button-top),var(--button-base));filter:brightness(1.11)}
 :where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:disabled):active{box-shadow:inset 0 1px 3px #160e0840,0 1px 0 var(--button-depth)}
 @supports (mask-composite:exclude){
  :where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:disabled)::after{
@@ -732,6 +732,9 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 }
 @keyframes button-orbit{to{--button-orbit:360deg}}
 @media(prefers-reduced-motion:reduce){:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button)::after{animation:none}}
+@media(max-width:900px){
+ .sticky-cta:not([hidden]){inset-inline:16px;bottom:calc(10px + env(safe-area-inset-bottom,0px));padding:8px 16px;border:1px solid var(--button-edge);border-radius:14px;color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base))}
+}
 
 .compare{margin-top:0}
 @media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}
