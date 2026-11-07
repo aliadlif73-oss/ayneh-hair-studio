@@ -804,724 +804,166 @@ html{scroll-padding-top:var(--hh,68px)}
 @media(min-width:641px){.film-player{max-width:min(1100px,calc((100svh - 360px) * 16 / 9 + 88px))}}
 .ref-try{white-space:nowrap}
 
-/* ===== 1. Glass finish & water ripple on 3D actions ============================================== */
-.glass-layer{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:-1}
-.glass-layer::before{content:"";position:absolute;inset:1px 1px 50% 1px;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.36),rgba(255,255,255,.07) 70%,rgba(255,255,255,0));opacity:.92}
-.glass-layer::after{content:"";position:absolute;left:12%;right:12%;bottom:1px;height:38%;border-radius:50%;background:radial-gradient(ellipse at 50% 100%,rgba(255,236,200,.24),transparent 70%)}
-.ripple{position:absolute;border-radius:50%;transform:translate(-50%,-50%) scale(0);border:2px solid rgba(255,240,210,.82);background:radial-gradient(circle,rgba(255,255,255,.26) 0,rgba(255,255,255,.08) 38%,transparent 62%);animation:water .95s cubic-bezier(.15,.65,.3,1) forwards}
-:where(.on-dark,.salon-invite,.builder-preview,.mirror-invite,.site-footer) .ripple,.nav-btn .ripple,.copy .btn--ghost .ripple{border-color:rgba(150,108,60,.62);background:radial-gradient(circle,rgba(185,151,91,.24) 0,rgba(185,151,91,.06) 40%,transparent 62%)}
-@keyframes water{60%{opacity:.55}100%{transform:translate(-50%,-50%) scale(1);opacity:0;border-width:.5px}}
-.glass-layer.flash::before{animation:sheen-flash .5s ease}
-@keyframes sheen-flash{30%{opacity:1;filter:brightness(1.6)}}
+/* 1. Frosted Glass Specular Layer & Water Ripples */
+:where(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button){--glass-inset:1px}
+:where(.menu-toggle,.nav-btn,.close,.demo-controls button){--glass-inset:0px}
+.glass-layer{position:absolute;inset:var(--glass-inset,1px);border-radius:inherit;overflow:hidden;pointer-events:none;z-index:0;background:radial-gradient(120% 95% at 50% -18%,rgba(255,252,244,.38) 0%,rgba(255,248,232,.14) 38%,transparent 66%),linear-gradient(180deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,0) 48%,rgba(255,232,190,.09) 100%);box-shadow:inset 0 1.5px 1px rgba(255,255,255,.46),inset 0 -1.5px 2px rgba(22,12,5,.28)}
+:where(.on-dark,.salon-invite,.builder-preview,.mirror-invite,.site-footer) :is(.btn,.close,.mirror-invite button)>.glass-layer,.copy .btn--ghost>.glass-layer{background:radial-gradient(120% 95% at 50% -20%,rgba(255,255,255,.82) 0%,rgba(255,252,245,.34) 42%,transparent 68%),linear-gradient(180deg,rgba(255,255,255,.52) 0%,rgba(255,255,255,0) 52%,rgba(195,152,88,.16) 100%);box-shadow:inset 0 1.5px 1px rgba(255,255,255,.92),inset 0 -1.5px 2px rgba(92,62,32,.22)}
+.glass-layer::before{content:"";position:absolute;inset:-20% -40%;background:linear-gradient(112deg,transparent 38%,rgba(255,250,235,.48) 48%,rgba(255,255,255,.78) 50%,rgba(255,242,210,.36) 52%,transparent 62%);transform:translateX(120%) skewX(-16deg);transition:transform .75s cubic-bezier(.2,.75,.2,1)}
+:where(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button):hover>.glass-layer::before,.glass-layer.flash::before{transform:translateX(-120%) skewX(-16deg)}
+:where(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button)>:not(.glass-layer){position:relative;z-index:1}
+.ripple{position:absolute;border-radius:50%;pointer-events:none;transform:translate(-50%,-50%) scale(.06);background:radial-gradient(circle,transparent 42%,rgba(255,245,222,.42) 64%,rgba(255,255,255,.78) 72%,rgba(218,182,118,.34) 80%,transparent 86%);box-shadow:0 0 12px rgba(255,236,195,.38);animation:water-ring .95s cubic-bezier(.16,.84,.32,1) forwards}
+@keyframes water-ring{0%{opacity:.95;transform:translate(-50%,-50%) scale(.06)}65%{opacity:.55}100%{opacity:0;transform:translate(-50%,-50%) scale(1.08)}}
 
-/* ===== 2. Dual-Layer 3D Carved / Intaglio Architecture ("حک شده روی پس‌زمینه") ==================== */
+/* 2. 3D Carved Stone Architecture */
 :root{
-  --trench-light-bg:linear-gradient(175deg,#DDD0BC 0%,#E9DEC9 45%,#F5EFE4 100%);
-  --trench-light-shadow:
-    inset 0 5px 10px rgba(32,18,6,.24),
-    inset 0 2px 4px rgba(32,18,6,.28),
-    inset 0 -3px 6px rgba(255,253,248,.95),
-    0 -1px 0 rgba(42,24,8,.18),
-    0 2px 0 rgba(255,253,248,.95),
-    0 12px 26px -10px rgba(34,20,8,.16);
-  --relief-light-bg:linear-gradient(165deg,#FFFDF9 0%,#F7EFE2 52%,#EBE0CE 100%);
-  --relief-light-shadow:
-    0 5px 0 #C2AC8C,
-    0 6px 0 rgba(112,78,38,.48),
-    0 12px 22px rgba(34,20,8,.18),
-    inset 0 1.5px 0 #FFFFFF,
-    inset 0 -2px 4px rgba(145,106,56,.18);
-  --relief-light-hover:
-    0 8px 0 #B9A17E,
-    0 9px 0 rgba(112,78,38,.58),
-    0 18px 30px rgba(34,20,8,.24),
-    inset 0 2px 0 #FFFFFF,
-    inset 0 0 0 1px rgba(185,151,91,.55);
-  --trench-dark-bg:linear-gradient(175deg,#0D0805 0%,#150E09 55%,#21160F 100%);
-  --trench-dark-shadow:
-    inset 0 6px 14px rgba(0,0,0,.88),
-    inset 0 2px 4px rgba(0,0,0,.95),
-    inset 0 -2px 5px rgba(226,193,130,.24),
-    0 -1px 0 rgba(0,0,0,.9),
-    0 2px 0 rgba(226,193,130,.28),
-    0 24px 52px rgba(0,0,0,.62);
+  --trench-light-bg:linear-gradient(165deg,#DED1BE 0%,#EAE0D0 46%,#F5EFE4 100%);
+  --trench-light-shadow:inset 0 4px 9px rgba(36,21,8,.22),inset 0 1px 3px rgba(36,21,8,.26),inset 0 -3px 6px rgba(255,253,248,.92),0 2px 0 rgba(255,253,248,.95),0 -1px 0 rgba(52,32,14,.16),0 16px 32px -10px rgba(36,21,8,.16);
+  --relief-light-bg:linear-gradient(168deg,#FFFDF9 0%,#F8F0E3 55%,#EFE3D0 100%);
+  --relief-light-shadow:0 5px 0 #C4AE8E,0 6px 0 rgba(110,76,38,.45),0 12px 24px rgba(36,21,8,.18),inset 0 2px 1px #FFF,inset 0 -2px 4px rgba(156,118,68,.22);
+  --trench-dark-bg:linear-gradient(168deg,#110B07 0%,#1B120C 52%,#251911 100%);
+  --trench-dark-shadow:inset 0 6px 16px rgba(0,0,0,.85),inset 0 2px 4px rgba(0,0,0,.9),inset 0 -2px 5px rgba(226,193,130,.16),0 1.5px 0 rgba(235,204,142,.38),0 -1px 0 rgba(0,0,0,.9),0 26px 56px rgba(0,0,0,.55);
 }
-
-/* Light Stone Carved Boxes: Outer Sunken Trench + Inner 3D Sculpted Relief */
-:where(.svc,.benefit,.step,.plan,.builder-steps>li){
-  position:relative;
-  isolation:isolate;
-  background:var(--trench-light-bg);
-  border:1px solid #BFA786;
-  box-shadow:var(--trench-light-shadow);
-  transition:transform .45s cubic-bezier(.18,.88,.22,1),box-shadow .45s cubic-bezier(.18,.88,.22,1),border-color .35s ease;
-}
-:where(.svc,.benefit,.step,.plan,.builder-steps>li)::before{
-  content:"";
-  position:absolute;
-  inset:7px;
-  border-radius:calc(var(--r-card,20px) - 6px);
-  background:
-    radial-gradient(380px circle at var(--mx,50%) var(--my,18%),rgba(222,188,122,.26),transparent 68%),
-    var(--relief-light-bg);
-  border:1px solid rgba(185,151,91,.42);
-  box-shadow:var(--relief-light-shadow);
-  pointer-events:none;
-  z-index:0;
-  transition:transform .45s cubic-bezier(.18,.88,.22,1),box-shadow .45s cubic-bezier(.18,.88,.22,1),border-color .35s ease;
-}
-:where(.builder-steps>li){
-  padding:18px 20px;
-  border-radius:16px;
-}
-:where(.builder-steps>li)::before{
-  inset:5px;
-  border-radius:11px;
-}
-:where(.svc,.benefit,.step,.plan,.builder-steps>li)>*{
-  position:relative;
-  z-index:1;
-}
-
-@media(hover:hover){
-  :where(.svc,.benefit,.step,.plan,.builder-steps>li):hover{
-    transform:perspective(950px) translate3d(0,-3px,6px) rotateX(var(--rx,1.5deg)) rotateY(var(--ry,0deg));
-    border-color:#A9895B;
-  }
-  :where(.svc,.benefit,.step,.plan,.builder-steps>li):hover::before{
-    transform:translateY(-3px);
-    border-color:#B9975B;
-    box-shadow:var(--relief-light-hover);
-  }
-  :where(.svc,.benefit,.builder-steps>li):active::before{
-    transform:translateY(1px);
-    box-shadow:0 2px 0 #C2AC8C,0 4px 10px rgba(34,20,8,.14),inset 0 2px 4px rgba(38,22,9,.14);
-  }
-}
-
-/* Carved Gold Icon Sockets */
-.gold-icon,.svc .ico{
-  position:relative;
-  box-shadow:
-    inset 0 2px 3px #FFF8E2,
-    inset 0 -4px 6px rgba(68,39,14,.58),
-    0 4px 0 #5E3D1C,
-    0 0 0 4px #DFD1BC,
-    0 0 0 5.5px rgba(128,92,46,.46),
-    0 10px 18px rgba(50,28,9,.26);
-  transition:transform .45s cubic-bezier(.34,1.56,.64,1),box-shadow .35s ease;
-}
-:where(.svc,.benefit):hover :is(.gold-icon,.svc .ico){
-  transform:translateY(-4px) scale(1.07) rotate(-4deg);
-  box-shadow:
-    inset 0 2px 4px #FFFDF2,
-    inset 0 -4px 6px rgba(68,39,14,.5),
-    0 6px 0 #5E3D1C,
-    0 0 0 4px #EFE3D0,
-    0 0 0 6px rgba(185,151,91,.68),
-    0 15px 24px rgba(50,28,9,.32);
-}
-
-/* Dark Espresso 3D Carved Monoliths */
-.salon-invite-card{
-  position:relative;
-  padding:10px;
-  border-radius:34px;
-  background:var(--trench-dark-bg);
-  border:1px solid rgba(214,180,115,.38);
-  box-shadow:var(--trench-dark-shadow);
-}
-.salon-invite-art{
-  border-radius:24px;
-  border:1px solid rgba(214,180,115,.34);
-  box-shadow:0 5px 0 #0B0704,0 16px 32px rgba(0,0,0,.55),inset 0 2px 0 rgba(255,238,205,.22);
-}
-.salon-invite-copy{
-  margin:4px;
-  border-radius:24px;
-  background:
-    radial-gradient(480px circle at var(--mx,50%) var(--my,20%),rgba(226,193,130,.15),transparent 70%),
-    linear-gradient(162deg,#2A1D14 0%,#1E140D 55%,#160E09 100%);
-  border:1px solid rgba(214,180,115,.32);
-  box-shadow:0 6px 0 #0B0704,0 18px 36px rgba(0,0,0,.5),inset 0 1.5px 0 rgba(255,238,205,.26),inset 0 -3px 6px rgba(0,0,0,.55);
-}
-.invite-seal{
-  padding:10px 16px;
-  border-radius:18px;
-  background:linear-gradient(155deg,rgba(42,29,19,.94),rgba(20,13,8,.96));
-  border:1px solid rgba(214,180,115,.52);
-  box-shadow:inset 0 2px 5px rgba(0,0,0,.7),inset 0 -1px 0 rgba(255,235,195,.28),0 4px 0 #090604,0 12px 24px rgba(0,0,0,.52);
-  backdrop-filter:blur(10px);
-}
-
-/* Hero Mirror Studio 3D Carved Podium Dock & Swatches */
-:where(.dock.glass,.palette.glass,.reference.glass,.result.glass){
-  background:linear-gradient(168deg,rgba(225,212,193,.9) 0%,rgba(246,239,228,.92) 48%,rgba(232,219,200,.9) 100%);
-  border:1px solid rgba(176,138,82,.68);
-  box-shadow:
-    inset 0 4px 8px rgba(42,25,10,.2),
-    inset 0 -2px 4px rgba(255,253,248,.92),
-    0 -1px 0 rgba(42,25,10,.16),
-    0 6px 0 #B69A72,
-    0 7px 0 rgba(104,72,34,.5),
-    0 22px 44px rgba(28,16,6,.3);
-}
+.svc,.benefit,.builder-steps>li{position:relative;isolation:isolate;border-radius:24px;background:radial-gradient(420px circle at var(--mx,50%) var(--my,20%),rgba(255,244,218,.75),transparent 68%),var(--relief-light-bg);border:1px solid #BFA682;box-shadow:inset 0 1.5px 0 #FFF,inset 0 -2px 4px rgba(142,104,56,.22),0 5px 0 #C2AB8A,0 6px 0 rgba(112,78,38,.46),0 0 0 6px #E2D5C1,0 0 0 7px rgba(162,126,78,.42),0 8px 0 6px rgba(255,253,248,.92),0 18px 34px 2px rgba(34,20,8,.2);transform-style:preserve-3d;transition:box-shadow .38s ease,border-color .35s ease}
+#services .svc,.salon-builder .builder-steps>li{box-shadow:inset 0 1.5px 0 #FFF,inset 0 -2px 4px rgba(142,104,56,.22),0 5px 0 #C5AE8D,0 6px 0 rgba(112,78,38,.46),0 0 0 6px #E9DEC9,0 0 0 7px rgba(162,126,78,.4),0 8px 0 6px rgba(255,253,248,.95),0 18px 34px 2px rgba(34,20,8,.18)}
+.svc::before,.benefit::before,.builder-steps>li::before{content:"";position:absolute;inset:6px;border-radius:18px;border:1px solid rgba(185,151,91,.34);box-shadow:inset 0 2px 5px rgba(58,36,15,.1),0 1px 0 rgba(255,255,255,.85);pointer-events:none;z-index:0}
+.svc>*,.benefit>*,.builder-steps>li>*{position:relative;z-index:1}
+@media(hover:hover){:is(.svc,.benefit,.builder-steps>li).scrub-done:hover{--hy:-4px;border-color:#B9975B;box-shadow:inset 0 2px 1px #FFF,inset 0 -2px 5px rgba(142,104,56,.28),0 8px 0 #BAA07C,0 9px 0 rgba(102,70,32,.55),0 0 0 6px #DFD1BC,0 0 0 7.5px rgba(185,151,91,.62),0 10px 0 6px rgba(255,253,248,.96),0 26px 44px 4px rgba(34,20,8,.26)}}
+.gold-icon{position:relative;border-radius:20px;background:radial-gradient(circle at 28% 22%,#FFF7DC 0%,#DFB87A 45%,#8C6232 88%,#5B3B18 100%);border:1px solid #C69B5E;box-shadow:inset 0 2px 2px #FFFDF5,inset 0 -4px 5px rgba(58,34,12,.58),0 4px 0 #6C4922,0 0 0 4px #DFD1BC,0 0 0 5px rgba(148,112,66,.48),0 8px 16px rgba(42,24,9,.28);transition:transform .45s cubic-bezier(.34,1.56,.64,1),box-shadow .35s ease}
+:is(.svc,.benefit):hover .gold-icon{transform:translateY(-3px) scale(1.06) rotate(-4deg);box-shadow:inset 0 2px 3px #FFF,inset 0 -4px 5px rgba(58,34,12,.58),0 6px 0 #5E3E1B,0 0 0 4px #DFD1BC,0 0 0 5px rgba(185,151,91,.75),0 12px 22px rgba(42,24,9,.34)}
+.builder-steps>li::after{box-shadow:inset 0 2px 2px #FFF8E5,inset 0 -3px 4px rgba(62,36,12,.5),0 3px 0 #704C24,0 0 0 4px #E4D7C3,0 0 0 5px rgba(154,116,68,.42),0 6px 14px rgba(42,24,9,.24)}
+.salon-invite-card{position:relative;padding:10px;border-radius:32px;background:radial-gradient(600px circle at var(--mx,70%) var(--my,30%),rgba(218,180,112,.14),transparent 65%),var(--trench-dark-bg);border:1px solid rgba(214,180,115,.42);box-shadow:var(--trench-dark-shadow),0 7px 0 #0B0704,0 8px 0 rgba(214,180,115,.36)}
+.salon-invite-art{border-radius:24px;border:1px solid rgba(214,180,115,.36);box-shadow:0 6px 20px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,244,218,.12)}
+.invite-seal{padding:10px 16px;border-radius:18px;background:linear-gradient(155deg,rgba(36,25,16,.92),rgba(18,12,8,.94));border:1px solid rgba(224,190,126,.48);box-shadow:inset 0 1.5px 1px rgba(255,245,220,.25),inset 0 -2px 4px rgba(0,0,0,.7),0 4px 0 #0D0805,0 12px 26px rgba(0,0,0,.55);backdrop-filter:blur(10px)}
+:where(.dock.glass,.palette.glass,.reference.glass,.result.glass){background:linear-gradient(168deg,rgba(225,212,193,.9) 0%,rgba(246,239,228,.92) 48%,rgba(232,219,200,.9) 100%);border:1px solid rgba(176,138,82,.68);box-shadow:inset 0 4px 8px rgba(42,25,10,.2),inset 0 -2px 4px rgba(255,253,248,.92),0 -1px 0 rgba(42,25,10,.16),0 6px 0 #B69A72,0 7px 0 rgba(104,72,34,.5),0 22px 44px rgba(28,16,6,.3)}
 .d-item,.sw{transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s ease,background .28s ease}
-.d-item[aria-checked="true"],.sw[aria-checked="true"]{
-  background:linear-gradient(180deg,#DFD0BA,#F7F0E4);
-  box-shadow:inset 0 3px 6px rgba(42,25,10,.24),inset 0 1px 2px rgba(42,25,10,.28),0 1.5px 0 rgba(255,255,255,.95);
-}
-.demo-caption{
-  background:linear-gradient(170deg,#EFE4D4,#FCF9F2);
-  border:1px solid #C4AC89;
-  box-shadow:inset 0 2px 5px rgba(42,25,10,.16),inset 0 -1px 0 #FFF,0 4px 0 #BDA37E,0 12px 24px rgba(32,18,7,.2);
-}
+.d-item[aria-checked="true"],.sw[aria-checked="true"]{background:linear-gradient(180deg,#DFD0BA,#F7F0E4);box-shadow:inset 0 3px 6px rgba(42,25,10,.24),inset 0 1px 2px rgba(42,25,10,.28),0 1.5px 0 rgba(255,255,255,.95)}
+.demo-caption{background:linear-gradient(170deg,#EFE4D4,#FCF9F2);border:1px solid #C4AC89;box-shadow:inset 0 2px 5px rgba(42,25,10,.16),inset 0 -1px 0 #FFF,0 4px 0 #BDA37E,0 12px 24px rgba(32,18,7,.2)}
 .styles .card .ph{box-shadow:inset 0 3px 6px rgba(0,0,0,.32),0 5px 0 #B5976D,0 14px 28px rgba(36,22,10,.3)}
 .styles .card .nm{box-shadow:inset 0 2px 4px rgba(44,26,10,.16),0 3px 0 #C4AB88}
-
-/* Service Cinema Player */
-.film-player{
-  padding:26px clamp(16px,4vw,44px) 38px;
-  border-radius:30px;
-  background:var(--trench-dark-bg);
-  border:1px solid rgba(214,180,115,.32);
-  box-shadow:var(--trench-dark-shadow);
-}
-.service-timeline button{
-  background:transparent;
-  border:0;
-  box-shadow:none;
-}
-.film-screen{
-  border-radius:22px;
-  border:1px solid rgba(214,180,115,.38);
-  box-shadow:0 7px 0 #090604,0 8px 0 rgba(214,180,115,.34),0 24px 48px rgba(0,0,0,.62),inset 0 2px 0 rgba(255,238,205,.22);
-}
-.film-caption{
-  background:linear-gradient(180deg,#1A120C,#261B13);
-  border-top:1px solid rgba(214,180,115,.28);
-  box-shadow:inset 0 4px 10px rgba(0,0,0,.62);
-}
-
-/* Salon Builder Studio */
-.builder-form,.builder-dialog{
-  position:relative;
-  background:var(--trench-light-bg);
-  border:1px solid #BEA684;
-  box-shadow:var(--trench-light-shadow),0 7px 0 #C2AB8A,0 8px 0 rgba(112,78,38,.45),0 24px 44px -8px rgba(34,20,8,.22);
-}
-.builder-form .builder-identity,.builder-form details,.builder-form .builder-work{
-  background:linear-gradient(168deg,#FFFDF9 0%,#F7EFE2 58%,#ECE0CE 100%);
-  border:1px solid #C8B08E;
-  box-shadow:0 5px 0 #C6AF8E,0 10px 20px rgba(42,25,10,.1),inset 0 1.5px 0 #FFFFFF,inset 0 -2px 4px rgba(140,102,54,.14);
-  border-radius:16px;
-}
-.builder-availability{
-  border-radius:14px;
-  border:1px solid #C4AC8A;
-  border-inline-start:4px solid #997440;
-  background:linear-gradient(175deg,#E5D8C5,#F7EFE2);
-  box-shadow:inset 0 3px 7px rgba(42,25,10,.18),inset 0 1px 2px rgba(42,25,10,.22),0 2px 0 rgba(255,253,248,.92);
-}
-.builder-form :is(input:not([type=color]):not([type=file]),select,textarea),.builder-dialog input,.identity-url,.identity-color{
-  background:linear-gradient(180deg,#E5D8C5 0%,#F5EDE0 38%,#FFFDF9 100%);
-  border:1px solid #9A8367;
-  box-shadow:inset 0 3px 6px rgba(38,22,8,.2),inset 0 1px 2px rgba(38,22,8,.24),0 1.5px 0 #FFFFFF;
-  transition:border-color .22s ease,box-shadow .22s ease,background .22s ease;
-}
-.builder-form .identity-url input{background:transparent;box-shadow:none}
-.builder-form :is(input:not([type=color]):not([type=file]),select,textarea):focus,.builder-dialog input:focus,.identity-url:focus-within,.identity-color:focus-within{
-  background:#FFFDF9;
-  border-color:#8A6236;
-  box-shadow:inset 0 2px 4px rgba(42,25,10,.12),0 0 0 3px rgba(185,151,91,.3),0 2px 8px rgba(138,98,54,.16);
-}
-.upload-control{
-  background:linear-gradient(175deg,#E3D5C0 0%,#F5ECE0 100%);
-  border:1.5px dashed #967A55;
-  box-shadow:inset 0 4px 8px rgba(38,22,8,.18),inset 0 1px 2px rgba(38,22,8,.22),0 2px 0 rgba(255,253,248,.92);
-  transition:border-color .25s ease,transform .25s ease,box-shadow .25s ease;
-}
+.film-player{padding:26px clamp(16px,4vw,44px) 38px;border-radius:30px;background:var(--trench-dark-bg);border:1px solid rgba(214,180,115,.32);box-shadow:var(--trench-dark-shadow)}
+.service-timeline button{background:transparent;border:0;box-shadow:none}
+.film-screen{border-radius:22px;border:1px solid rgba(214,180,115,.38);box-shadow:0 7px 0 #090604,0 8px 0 rgba(214,180,115,.34),0 24px 48px rgba(0,0,0,.62),inset 0 2px 0 rgba(255,238,205,.22)}
+.film-caption{background:linear-gradient(180deg,#1A120C,#261B13);border-top:1px solid rgba(214,180,115,.28);box-shadow:inset 0 4px 10px rgba(0,0,0,.62)}
+.builder-form,.builder-dialog{position:relative;background:var(--trench-light-bg);border:1px solid #BEA684;box-shadow:var(--trench-light-shadow),0 7px 0 #C2AB8A,0 8px 0 rgba(112,78,38,.45),0 24px 44px -8px rgba(34,20,8,.22)}
+.builder-form fieldset,.builder-form details,.builder-work{background:var(--relief-light-bg);border:1px solid #C8B190;border-radius:18px;box-shadow:0 4px 0 #C4AD8D,0 5px 0 rgba(112,78,38,.38),0 10px 20px rgba(36,21,8,.1),inset 0 1.5px 0 #FFF}
+.builder-availability{background:linear-gradient(175deg,#E6D9C6 0%,#F4ECE0 100%);border:1px solid #C2AA86;box-shadow:inset 0 3px 6px rgba(42,25,10,.18),0 1.5px 0 #FFF}
+.builder-form input:not([type="file"]):not([type="color"]),.builder-form select,.builder-form textarea,.builder-dialog input,.identity-url,.identity-color{background:linear-gradient(180deg,#E5D8C5 0%,#F3ECE0 42%,#FAF6EF 100%);border:1px solid #B59B78;box-shadow:inset 0 3px 6px rgba(38,22,8,.2),inset 0 1px 2px rgba(38,22,8,.24),0 1.5px 0 rgba(255,253,248,.95);transition:box-shadow .22s ease,border-color .22s ease,background .22s ease}
+.builder-form :is(input:not([type="file"]):not([type="color"]),select,textarea):focus,.identity-url:focus-within{background:linear-gradient(180deg,#EFE5D6 0%,#FFFDF9 100%);border-color:#8A6236;box-shadow:inset 0 2px 4px rgba(42,25,10,.12),0 0 0 3px rgba(185,151,91,.3),0 2px 8px rgba(138,98,54,.16)}
+.upload-control{background:linear-gradient(175deg,#E3D5C0 0%,#F5ECE0 100%);border:1.5px dashed #967A55;box-shadow:inset 0 4px 8px rgba(38,22,8,.18),inset 0 1px 2px rgba(38,22,8,.22),0 2px 0 rgba(255,253,248,.92);transition:border-color .25s ease,transform .25s ease,box-shadow .25s ease}
 .upload-control:hover{border-color:#7A5A32;transform:translateY(-1px);box-shadow:inset 0 3px 6px rgba(38,22,8,.14),0 4px 12px rgba(44,26,10,.12)}
-.builder-preview{
-  padding:14px;
-  border-radius:26px;
-  background:var(--trench-dark-bg);
-  border:1px solid rgba(214,180,115,.45);
-  box-shadow:var(--trench-dark-shadow),0 7px 0 #0B0704,0 8px 0 rgba(214,180,115,.38);
-}
-.builder-live{
-  border:1px solid rgba(214,180,115,.48);
-  box-shadow:0 5px 0 #120B07,0 12px 26px rgba(0,0,0,.45),inset 0 3px 8px rgba(28,16,6,.18);
-}
-.live-chips span,.live-services span,.live-links span,.live-works article{
-  border:1px solid #CDB798;
-  background:linear-gradient(175deg,#E7DAC7,#FAF4EA);
-  box-shadow:inset 0 2px 4px rgba(44,26,10,.15),0 2px 0 #C4AE8F;
-}
-
-/* FAQ Carved Stone Accordions */
-.faq>details{
-  position:relative;
-  padding:6px;
-  border-radius:22px;
-  background:var(--trench-light-bg);
-  border:1px solid #BFA786;
-  box-shadow:var(--trench-light-shadow);
-  transition:transform .38s cubic-bezier(.2,.8,.2,1),box-shadow .38s ease,border-color .35s ease;
-}
-.faq>details>summary{
-  border-radius:16px;
-  background:radial-gradient(380px circle at var(--mx,50%) var(--my,50%),rgba(222,188,122,.22),transparent 70%),var(--relief-light-bg);
-  border:1px solid rgba(185,151,91,.38);
-  box-shadow:0 4px 0 #C2AC8C,0 5px 0 rgba(112,78,38,.42),0 8px 16px rgba(34,20,8,.12),inset 0 1.5px 0 #FFFFFF;
-  transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s ease,border-color .3s ease;
-}
-@media(hover:hover){
-  .faq>details:not([open]):hover>summary{
-    transform:translateY(-2px);
-    border-color:#B9975B;
-    box-shadow:0 6px 0 #B9A17E,0 7px 0 rgba(112,78,38,.5),0 14px 24px rgba(34,20,8,.18),inset 0 2px 0 #FFFFFF;
-  }
-}
-.faq>details[open]{
-  border-color:#B9975B;
-  box-shadow:inset 0 5px 12px rgba(32,18,6,.26),inset 0 -3px 6px rgba(255,253,248,.96),0 2px 0 rgba(255,253,248,.95),0 18px 34px -8px rgba(34,20,8,.22);
-}
-.faq>details[open]>summary{
-  border-radius:16px 16px 10px 10px;
-  border-color:#B9975B;
-  box-shadow:0 2px 0 #C2AC8C,inset 0 1.5px 0 #FFFFFF;
-}
-.faq>details>p{
-  margin:6px 4px 2px;
-  padding:16px 20px;
-  border-radius:12px;
-  background:linear-gradient(180deg,#E8DCC9 0%,#F6EFE3 100%);
-  border:1px solid rgba(185,151,91,.28);
-  box-shadow:inset 0 3px 6px rgba(38,22,8,.15),0 1px 0 #FFF;
-}
-.faq summary::after{
-  width:34px;
-  height:34px;
-  flex:0 0 34px;
-  background:linear-gradient(145deg,#FAF0DF,#DFC69F);
-  border:1px solid #AE8952;
-  box-shadow:inset 0 1px 1px #FFF,inset 0 -2px 3px rgba(72,44,16,.24),0 3px 0 #8F6B39,0 0 0 3px #E5D7C3,0 5px 10px rgba(40,24,10,.16);
-  transition:transform .45s cubic-bezier(.34,1.56,.64,1),background .3s ease,color .3s ease,box-shadow .3s ease;
-}
-.faq details[open] summary::after{
-  transform:rotate(180deg);
-  background:linear-gradient(145deg,#3A2617,#1B110A);
-  color:#F5D99B;
-  border-color:#D6B473;
-  box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 2px 0 #6B4E27,0 0 0 3px #DFD0BA;
-}
+.builder-preview{padding:14px;border-radius:26px;background:var(--trench-dark-bg);border:1px solid rgba(214,180,115,.45);box-shadow:var(--trench-dark-shadow),0 7px 0 #0B0704,0 8px 0 rgba(214,180,115,.38)}
+.builder-live{border:1px solid rgba(214,180,115,.48);box-shadow:0 5px 0 #120B07,0 12px 26px rgba(0,0,0,.45),inset 0 3px 8px rgba(28,16,6,.18)}
+.live-chips span,.live-services span,.live-links span,.live-works article{border:1px solid #CDB798;background:linear-gradient(175deg,#E7DAC7,#FAF4EA);box-shadow:inset 0 2px 4px rgba(44,26,10,.15),0 2px 0 #C4AE8F}
+.faq>details{position:relative;padding:6px;border-radius:22px;background:var(--trench-light-bg);border:1px solid #BFA786;box-shadow:var(--trench-light-shadow);transition:box-shadow .38s ease,border-color .35s ease}
+.faq>details>summary{border-radius:16px;background:radial-gradient(380px circle at var(--mx,50%) var(--my,50%),rgba(222,188,122,.22),transparent 70%),var(--relief-light-bg);border:1px solid rgba(185,151,91,.38);box-shadow:0 4px 0 #C2AC8C,0 5px 0 rgba(112,78,38,.42),0 8px 16px rgba(34,20,8,.12),inset 0 1.5px 0 #FFF;transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s ease,border-color .3s ease}
+@media(hover:hover){.faq>details:not([open]):hover>summary{transform:translateY(-2px);border-color:#B9975B;box-shadow:0 6px 0 #B9A17E,0 7px 0 rgba(112,78,38,.5),0 14px 24px rgba(34,20,8,.18),inset 0 2px 0 #FFF}}
+.faq>details[open]{border-color:#B9975B;box-shadow:inset 0 5px 12px rgba(32,18,6,.26),inset 0 -3px 6px rgba(255,253,248,.96),0 2px 0 rgba(255,253,248,.95),0 18px 34px -8px rgba(34,20,8,.22)}
+.faq>details[open]>summary{border-radius:16px 16px 10px 10px;border-color:#B9975B;box-shadow:0 2px 0 #C2AC8C,inset 0 1.5px 0 #FFF}
+.faq>details>p{margin:6px 4px 2px;padding:16px 20px;border-radius:12px;background:linear-gradient(180deg,#E8DCC9 0%,#F6EFE3 100%);border:1px solid rgba(185,151,91,.28);box-shadow:inset 0 3px 6px rgba(38,22,8,.15),0 1px 0 #FFF}
+.faq summary::after{width:34px;height:34px;flex:0 0 34px;background:linear-gradient(145deg,#FAF0DF,#DFC69F);border:1px solid #AE8952;box-shadow:inset 0 1px 1px #FFF,inset 0 -2px 3px rgba(72,44,16,.24),0 3px 0 #8F6B39,0 0 0 3px #E5D7C3,0 5px 10px rgba(40,24,10,.16);transition:transform .45s cubic-bezier(.34,1.56,.64,1),background .3s ease,color .3s ease,box-shadow .3s ease}
+.faq details[open] summary::after{transform:rotate(180deg);background:linear-gradient(145deg,#3A2617,#1B110A);color:#F5D99B;border-color:#D6B473;box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 2px 0 #6B4E27,0 0 0 3px #DFD0BA}
 .faq details[open]>p{animation:faq-unfold .42s cubic-bezier(.2,.8,.2,1) both}
 @keyframes faq-unfold{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 
-/* ===== 3. Expressive Typography: 3D Impact Slam ("کوبیده شدن") & Live Typing ("تایپینگ") ========= */
-
-/* 3A. 3D Word Impact Slam (.cine-slam): Words slam down from 3D space onto the stone surface */
+/* 3. Interactive Scroll-Scrubbed Typography (Forward & Backward Film Scrubbing) */
 .cine-slam{perspective:900px}
-.cine-word{
-  display:inline-block;
-  opacity:0;
-  transform:perspective(800px) translate3d(0,-38px,190px) scale(1.85) rotateX(24deg);
-  filter:blur(7px);
-  transform-origin:50% 60%;
-  will-change:transform,opacity,filter;
-}
-.cine-word--gold{
-  position:relative;
-  color:#6B471E;
-}
-.on-dark .cine-word--gold,.salon-invite .cine-word--gold{
-  color:#F5D797;
-}
-.cine-word--gold::after{
-  content:"";
-  position:absolute;
-  inset-inline:0;
-  bottom:.04em;
-  height:.11em;
-  border-radius:99px;
-  background:linear-gradient(90deg,#B9975B,#F2D492,#9A7138);
-  box-shadow:0 2px 8px rgba(185,151,91,.45);
-  transform:scaleX(0);
-  transform-origin:right center;
-  transition:transform .55s cubic-bezier(.16,1,.3,1) calc(var(--w,0) * 95ms + 340ms);
-}
-:where(.stage-in,.cine-in) .cine-word{
-  animation:word-slam 680ms cubic-bezier(.16,1,.3,1) calc(var(--w,0) * 95ms + 80ms) forwards;
-}
-:where(.stage-in,.cine-in) .cine-word--gold::after{
-  transform:scaleX(1);
-}
+.cine-word{display:inline-block;transform-origin:50% 60%;will-change:transform,opacity,filter;animation:word-slam 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--wp,1) * -999ms)}
+:where(.on-dark,.salon-invite) .cine-word{animation-name:word-slam-dark}
+.cine-word--gold{position:relative;color:#6B471E}
+.on-dark .cine-word--gold,.salon-invite .cine-word--gold{color:#F5D797}
+.cine-word--gold::after{content:"";position:absolute;inset-inline:0;bottom:.04em;height:.11em;border-radius:99px;background:linear-gradient(90deg,#B9975B,#F2D492,#9A7138);box-shadow:0 2px 8px rgba(185,151,91,.45);transform-origin:right center;transform:scaleX(var(--wp,1))}
 @keyframes word-slam{
-  0%{
-    opacity:0;
-    filter:blur(7px);
-    transform:perspective(800px) translate3d(0,-38px,190px) scale(1.85) rotateX(24deg);
-  }
-  62%{
-    opacity:1;
-    filter:blur(0);
-    transform:perspective(800px) translate3d(0,3px,-10px) scale(.95) rotateX(-3deg);
-    text-shadow:0 0 28px rgba(214,180,115,.85),0 10px 22px rgba(22,13,7,.32);
-  }
-  82%{
-    transform:perspective(800px) translate3d(0,-1px,4px) scale(1.02) rotateX(1deg);
-  }
-  100%{
-    opacity:1;
-    filter:blur(0);
-    transform:none;
-    text-shadow:0 1px 0 rgba(255,253,248,.65),0 4px 12px rgba(34,20,8,.1);
-  }
-}
-:where(.on-dark,.salon-invite) :where(.stage-in,.cine-in) .cine-word{
-  animation-name:word-slam-dark;
+  0%{opacity:0;filter:blur(7px);transform:perspective(800px) translate3d(0,-38px,190px) scale(1.85) rotateX(24deg)}
+  65%{opacity:1;filter:blur(0);transform:perspective(800px) translate3d(0,3px,-10px) scale(.95) rotateX(-3deg);text-shadow:0 0 28px rgba(214,180,115,.85),0 10px 22px rgba(22,13,7,.32)}
+  84%{transform:perspective(800px) translate3d(0,-1px,4px) scale(1.02) rotateX(1deg)}
+  100%{opacity:1;filter:blur(0);transform:none;text-shadow:0 1px 0 rgba(255,253,248,.65),0 4px 12px rgba(34,20,8,.1)}
 }
 @keyframes word-slam-dark{
-  0%{
-    opacity:0;
-    filter:blur(7px);
-    transform:perspective(800px) translate3d(0,-38px,190px) scale(1.85) rotateX(24deg);
-  }
-  62%{
-    opacity:1;
-    filter:blur(0);
-    transform:perspective(800px) translate3d(0,3px,-10px) scale(.95) rotateX(-3deg);
-    text-shadow:0 0 34px rgba(245,215,151,.9),0 12px 24px rgba(0,0,0,.75);
-  }
-  100%{
-    opacity:1;
-    filter:blur(0);
-    transform:none;
-    text-shadow:0 2px 14px rgba(0,0,0,.55);
-  }
+  0%{opacity:0;filter:blur(7px);transform:perspective(800px) translate3d(0,-38px,190px) scale(1.85) rotateX(24deg)}
+  65%{opacity:1;filter:blur(0);transform:perspective(800px) translate3d(0,3px,-10px) scale(.95) rotateX(-3deg);text-shadow:0 0 34px rgba(245,215,151,.9),0 12px 24px rgba(0,0,0,.75)}
+  100%{opacity:1;filter:blur(0);transform:none;text-shadow:0 2px 14px rgba(0,0,0,.55)}
 }
+.copy .eyebrow,.sec-head .kicker,.salon-invite-copy .journey-kicker{display:inline-flex;align-items:center;gap:10px}
+.copy .eyebrow::before,.sec-head .kicker::before,.salon-invite-copy .journey-kicker::before{content:"";width:calc(var(--kp,1) * 30px);height:2px;border-radius:2px;background:linear-gradient(90deg,#B9975B,#E8CD96);box-shadow:0 1px 4px rgba(185,151,91,.45)}
+.type-live.is-typing::after{content:"";display:inline-block;width:2px;height:1em;background:#B9975B;box-shadow:0 0 8px #E2C180;margin-inline-start:4px;vertical-align:-.12em;animation:typingCaret .65s steps(1) infinite}
+.copy .lead.reveal{animation:lead-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--lp,1) * -999ms)}
+.copy .cta-row.reveal{animation:cta-scrub 1000ms cubic-bezier(.34,1.56,.64,1) both paused;animation-delay:calc(var(--cp,1) * -999ms)}
+.copy .fineprint.reveal{animation:lead-scrub 1000ms ease both paused;animation-delay:calc(var(--fp,1) * -999ms)}
+@keyframes lead-scrub{0%{opacity:0;filter:blur(5px);transform:translate3d(24px,16px,0)}100%{opacity:1;filter:blur(0);transform:none}}
+@keyframes cta-scrub{0%{opacity:0;transform:perspective(800px) translate3d(0,32px,-50px) scale(.88) rotateX(20deg)}72%{opacity:1;transform:perspective(800px) translate3d(0,-3px,8px) scale(1.02) rotateX(-2deg)}100%{opacity:1;transform:none}}
+@media(min-width:1181px){.copy .cta-row{flex-wrap:nowrap}.copy .cta-row .btn--lg{padding:0 24px;font-size:17px}.copy .cta-row .btn--ghost{padding:0 20px;font-size:15px}}
+.sec-head[data-stage]{animation:head-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--hp,1) * -999ms)}
+.sec-head[data-stage] .sub{animation:lead-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--sp,1) * -999ms)}
+@keyframes head-scrub{0%{opacity:0;transform:translateY(22px)}30%{opacity:1}100%{opacity:1;transform:none}}
 
-/* 3B. Live Typewriter Cursor & Brass Kicker Line */
-.copy .eyebrow,.sec-head .kicker,.salon-invite-copy .journey-kicker{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
+/* 4. Bidirectional Scroll-Scrubbed Section & Component Choreography */
+[data-cine=glint] .benefit{transform-origin:50% 50%;overflow:hidden;will-change:transform,opacity,filter;animation:benefit-card-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes benefit-card-scrub{
+  0%{opacity:0;filter:blur(6px);transform:perspective(1100px) translate3d(0,-46px,135px) scale(1.18) rotateX(-26deg) rotateY(calc((2 - var(--i,0)) * 10deg))}
+  65%{opacity:1;filter:blur(0);transform:perspective(1100px) translate3d(0,3px,-8px) scale(.97) rotateX(2deg) rotateY(0deg)}
+  100%{opacity:1;filter:blur(0);transform:perspective(1000px) translateY(var(--hy,0px)) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
 }
-.copy .eyebrow::before,.sec-head .kicker::before,.salon-invite-copy .journey-kicker::before{
-  content:"";
-  width:0;
-  height:2px;
-  border-radius:2px;
-  background:linear-gradient(90deg,#B9975B,#E8CD96);
-  box-shadow:0 1px 4px rgba(185,151,91,.45);
-  transition:width .65s cubic-bezier(.16,1,.3,1);
-}
-:where(.stage-in,.cine-in,#intro) :is(.eyebrow,.kicker,.journey-kicker)::before{
-  width:30px;
-}
-.type-live.is-typing::after{
-  content:"";
-  display:inline-block;
-  width:2px;
-  height:1em;
-  background:#B9975B;
-  box-shadow:0 0 8px #E2C180;
-  margin-inline-start:4px;
-  vertical-align:-.12em;
-  animation:typingCaret .65s steps(1) infinite;
-}
+[data-cine=glint] .benefit .gold-icon{animation:benefit-icon-scrub 1000ms cubic-bezier(.34,1.56,.64,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes benefit-icon-scrub{0%,18%{opacity:0;transform:translateY(-28px) scale(.35) rotate(-50deg)}75%{opacity:1;transform:translateY(2px) scale(1.06) rotate(4deg)}100%{opacity:1;transform:none}}
+[data-cine=glint] .benefit h3{animation:benefit-title-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes benefit-title-scrub{0%,28%{opacity:0;transform:translateX(24px) scale(.92)}100%{opacity:1;transform:none}}
+[data-cine=glint] .benefit p{animation:benefit-body-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes benefit-body-scrub{0%,38%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:none}}
+[data-cine=glint] .benefit::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(108deg,transparent 30%,rgba(255,228,168,.62) 50%,transparent 70%);z-index:2;animation:glint-scrub 1000ms ease both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes glint-scrub{0%,42%{transform:translateX(135%)}100%{transform:translateX(-135%)}}
 
-/* Hero Copy Staged Entrance */
-.copy .lead.reveal{
-  animation:lead-glide 850ms cubic-bezier(.16,1,.3,1) 520ms both;
-}
-.copy .cta-row.reveal{
-  animation:cta-spring 900ms cubic-bezier(.34,1.56,.64,1) 740ms both;
-}
-.copy .fineprint.reveal{
-  animation:lead-glide 750ms ease 920ms both;
-}
-@keyframes lead-glide{
-  from{opacity:0;filter:blur(5px);transform:translate3d(24px,16px,0)}
-  to{opacity:1;filter:blur(0);transform:none}
-}
-@keyframes cta-spring{
-  from{opacity:0;transform:perspective(800px) translate3d(0,32px,-50px) scale(.88) rotateX(20deg)}
-  to{opacity:1;transform:none}
-}
-@media(min-width:1181px){
-  .copy .cta-row{flex-wrap:nowrap}
-  .copy .cta-row .btn--lg{padding:0 24px;font-size:17px}
-  .copy .cta-row .btn--ghost{padding:0 20px;font-size:15px}
-}
-
-/* Section Headers (.sec-head): Stage 1 Entrance (independent from cards below) */
-.sec-head[data-stage]{
-  opacity:0;
-  transform:translateY(22px);
-  transition:opacity .65s ease,transform .8s cubic-bezier(.16,1,.3,1);
-}
-.sec-head[data-stage].stage-in{
-  opacity:1;
-  transform:none;
-}
-.sec-head[data-stage] .sub{
-  opacity:0;
-  transform:translate3d(20px,12px,0);
-  transition:opacity .7s ease .38s,transform .8s cubic-bezier(.16,1,.3,1) .38s;
-}
-.sec-head[data-stage].stage-in .sub{
-  opacity:1;
-  transform:none;
-}
-
-/* ===== 4. Staged Scroll Choreography for Every Section & Component =============================== */
-[data-cine]{--d:calc(var(--base,0ms) + var(--i,0) * 180ms)}
-
-/* Section 2 (#how): Stage 1 is .sec-head; Stage 2 stamps each .benefit tablet as user scrolls to it */
-[data-cine=glint] .benefit{
-  opacity:0;
-  transform:perspective(1100px) translate3d(0,-42px,130px) scale(1.16) rotateX(-24deg) rotateY(calc((2 - var(--i,0)) * 9deg));
-  filter:blur(5px);
-  transform-origin:50% 50%;
-  transition:
-    opacity .65s cubic-bezier(.16,1,.3,1) var(--d),
-    transform .95s cubic-bezier(.16,1,.3,1) var(--d),
-    filter .65s ease var(--d),
-    box-shadow .42s ease,
-    border-color .35s ease;
-  overflow:hidden;
-}
-[data-cine=glint] .benefit .gold-icon{
-  opacity:0;
-  transform:translateY(-28px) scale(.35) rotate(-45deg);
-  transition:opacity .5s calc(var(--d) + .24s),transform .85s cubic-bezier(.34,1.56,.64,1) calc(var(--d) + .24s);
-}
-[data-cine=glint] .benefit h3{
-  opacity:0;
-  transform:translateX(22px) scale(.92);
-  transition:opacity .55s calc(var(--d) + .36s),transform .7s cubic-bezier(.16,1,.3,1) calc(var(--d) + .36s);
-}
-[data-cine=glint] .benefit p{
-  opacity:0;
-  transform:translateY(16px);
-  transition:opacity .6s calc(var(--d) + .46s),transform .7s cubic-bezier(.16,1,.3,1) calc(var(--d) + .46s);
-}
-[data-cine=glint] .benefit::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  background:linear-gradient(108deg,transparent 30%,rgba(255,228,168,.62) 50%,transparent 70%);
-  transform:translateX(135%);
-  z-index:2;
-}
-[data-cine=glint] .benefit.item-in{
-  opacity:1;
-  filter:blur(0);
-  transform:none;
-}
-[data-cine=glint] .benefit.item-in .gold-icon,
-[data-cine=glint] .benefit.item-in h3,
-[data-cine=glint] .benefit.item-in p{
-  opacity:1;
-  transform:none;
-}
-[data-cine=glint] .benefit.item-in::after{
-  animation:glint 1.35s ease calc(var(--d) + .55s) both;
-}
-@keyframes glint{from{transform:translateX(135%)}to{transform:translateX(-135%)}}
-
-/* Section 3 (.salon-invite): Arched Mirror Iris Portal + Hot Brass Wax Seal Slam + Copy Flip */
-[data-cine=curtain] .salon-invite-card{
-  opacity:0;
-  transform:perspective(1400px) translateY(60px) rotateX(16deg) scale(.92);
-  transition:opacity .85s,transform 1.15s cubic-bezier(.16,1,.3,1);
-}
-[data-cine=curtain] .salon-invite-art{
-  clip-path:inset(14% 46% 14% 46% round 180px 180px 24px 24px);
-  transition:clip-path 1.45s cubic-bezier(.65,0,.2,1) .15s;
-}
-[data-cine=curtain] .salon-invite-art>img{
-  transform:scale(1.26);
-  transition:transform 2.3s cubic-bezier(.16,1,.3,1) .15s;
-}
-[data-cine=curtain] .invite-seal{
-  opacity:0;
-  transform:perspective(600px) translate3d(0,-36px,140px) scale(2.1) rotate(-16deg);
-  filter:blur(4px);
-  transition:opacity .45s .92s,filter .45s .92s,transform .75s cubic-bezier(.34,1.56,.64,1) .92s;
-}
-[data-cine=curtain] .salon-invite-copy>*:not(h2){
-  opacity:0;
-  transform:translate3d(38px,14px,0);
-  transition:opacity .7s calc(.48s + var(--d)),transform .85s cubic-bezier(.16,1,.3,1) calc(.48s + var(--d));
-}
-[data-cine=curtain] .salon-invite-card::before{
-  content:"";
-  position:absolute;
-  inset:-1px;
-  border-radius:inherit;
-  padding:1.5px;
-  pointer-events:none;
-  z-index:2;
-  background:conic-gradient(from var(--sweep,0deg),transparent 0 295deg,#FFE3A3 340deg,transparent 360deg);
-  -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
-  -webkit-mask-composite:xor;
-  mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
-  mask-composite:exclude;
-  opacity:0;
-}
+[data-cine=curtain] .salon-invite-card{will-change:transform,opacity;animation:invite-card-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes invite-card-scrub{0%{opacity:0;transform:perspective(1400px) translateY(64px) rotateX(18deg) scale(.91)}100%{opacity:1;transform:none}}
+[data-cine=curtain] .salon-invite-art{animation:invite-art-scrub 1000ms cubic-bezier(.65,0,.2,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes invite-art-scrub{0%{clip-path:inset(15% 45% 15% 45% round 180px 180px 24px 24px)}78%,100%{clip-path:inset(0% 0% 0% 0% round 24px)}}
+[data-cine=curtain] .salon-invite-art>img{animation:invite-img-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes invite-img-scrub{0%{transform:scale(1.28)}100%{transform:scale(1)}}
+[data-cine=curtain] .invite-seal{animation:invite-seal-scrub 1000ms cubic-bezier(.34,1.56,.64,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes invite-seal-scrub{0%,42%{opacity:0;filter:blur(5px);transform:perspective(600px) translate3d(0,-38px,140px) scale(2.1) rotate(-16deg)}82%{opacity:1;filter:blur(0);transform:perspective(600px) translate3d(0,2px,-6px) scale(.96) rotate(2deg)}100%{opacity:1;filter:blur(0);transform:none}}
+[data-cine=curtain] .salon-invite-copy>*:not(h2){animation:invite-copy-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--cp,1) * -999ms)}
+@keyframes invite-copy-scrub{0%{opacity:0;transform:translate3d(38px,14px,0)}100%{opacity:1;transform:none}}
 @property --sweep{syntax:"<angle>";inherits:false;initial-value:0deg}
-[data-cine=curtain].cine-in .salon-invite-card{opacity:1;transform:none}
-[data-cine=curtain].cine-in .salon-invite-art{clip-path:inset(0% 0% 0% 0% round 24px)}
-[data-cine=curtain].cine-in .salon-invite-art>img{transform:none}
-[data-cine=curtain].cine-in .invite-seal{opacity:1;filter:blur(0);transform:none}
-[data-cine=curtain].cine-in .salon-invite-copy>*:not(h2){opacity:1;transform:none}
-[data-cine=curtain].cine-in .salon-invite-card::before{animation:edge-run 2.4s ease .85s both}
-@keyframes edge-run{0%{opacity:0;--sweep:0deg}15%{opacity:1}85%{opacity:1}100%{opacity:0;--sweep:360deg}}
+[data-cine=curtain] .salon-invite-card::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1.5px;pointer-events:none;z-index:2;background:conic-gradient(from var(--sweep,0deg),transparent 0 295deg,#FFE3A3 340deg,transparent 360deg);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;animation:edge-run-scrub 1000ms linear both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes edge-run-scrub{0%,25%{opacity:0;--sweep:0deg}40%{opacity:1}90%{opacity:1}100%{opacity:0;--sweep:360deg}}
 
-/* Section 4 (#services): Stage 1 is .sec-head; Stage 2 unfolds the 3 Triptych Mirror Panels */
-[data-cine=fan] .cards3>.svc{
-  opacity:0;
-  transform:perspective(1200px) translate3d(calc((1 - var(--i,1)) * 72px),64px,-90px) rotateX(22deg) rotateY(calc((var(--i,1) - 1) * 38deg)) scale(.88);
-  filter:blur(4px);
-  transform-origin:50% 100%;
-  transition:
-    opacity .75s var(--d),
-    filter .75s var(--d),
-    transform 1.15s cubic-bezier(.16,1,.3,1) var(--d),
-    box-shadow .42s ease,
-    border-color .35s ease;
+[data-cine=fan] .cards3>.svc{transform-origin:50% 100%;will-change:transform,opacity,filter;animation:svc-panel-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes svc-panel-scrub{
+  0%{opacity:0;filter:blur(5px);transform:perspective(1200px) translate3d(calc((1 - var(--i,1)) * 78px),64px,-95px) rotateX(24deg) rotateY(calc((var(--i,1) - 1) * 40deg)) scale(.86)}
+  100%{opacity:1;filter:blur(0);transform:perspective(1000px) translateY(var(--hy,0px)) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
 }
-[data-cine=fan] .cards3>.svc .gold-icon{
-  opacity:0;
-  transform:perspective(500px) translateY(-24px) rotateY(110deg) scale(.45);
-  transition:opacity .5s calc(var(--d) + .26s),transform .95s cubic-bezier(.34,1.56,.64,1) calc(var(--d) + .26s);
-}
-[data-cine=fan] .cards3>.svc h3{
-  opacity:0;
-  transform:translateY(14px) scale(.94);
-  transition:opacity .55s calc(var(--d) + .36s),transform .7s cubic-bezier(.16,1,.3,1) calc(var(--d) + .36s);
-}
-[data-cine=fan] .cards3>.svc p{
-  opacity:0;
-  transform:translateY(14px);
-  transition:opacity .55s calc(var(--d) + .44s),transform .7s cubic-bezier(.16,1,.3,1) calc(var(--d) + .44s);
-}
-[data-cine=fan] .cards3>.svc .svc-try{
-  opacity:0;
-  transform:translateY(20px) scale(.92);
-  transition:opacity .6s calc(var(--d) + .54s),transform .8s cubic-bezier(.34,1.56,.64,1) calc(var(--d) + .54s);
-}
-[data-cine=fan] .cards3>.svc.item-in{
-  opacity:1;
-  filter:blur(0);
-  transform:none;
-}
-[data-cine=fan] .cards3>.svc.item-in :is(.gold-icon,h3,p,.svc-try){
-  opacity:1;
-  transform:none;
-}
+[data-cine=fan] .cards3>.svc .gold-icon{animation:svc-icon-scrub 1000ms cubic-bezier(.34,1.56,.64,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes svc-icon-scrub{0%,20%{opacity:0;transform:perspective(500px) translateY(-24px) rotateY(115deg) scale(.42)}100%{opacity:1;transform:none}}
+[data-cine=fan] .cards3>.svc h3{animation:benefit-title-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+[data-cine=fan] .cards3>.svc p{animation:benefit-body-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+[data-cine=fan] .cards3>.svc .svc-try{animation:svc-cta-scrub 1000ms cubic-bezier(.34,1.56,.64,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes svc-cta-scrub{0%,42%{opacity:0;transform:translateY(22px) scale(.9)}100%{opacity:1;transform:none}}
 
-/* Section 5 (#transform): Private Screening Room */
-[data-cine=lights] .film-player{
-  opacity:0;
-  transform:perspective(1300px) translateY(52px) rotateX(16deg) scale(.93);
-  transition:opacity .85s,transform 1.15s cubic-bezier(.16,1,.3,1);
-}
-[data-cine=lights] .service-timeline>button{
-  opacity:0;
-  transform:perspective(700px) translate3d(0,-34px,90px) rotateX(-38deg) scale(1.25);
-  transition:opacity .6s calc(.28s + var(--d)),transform .85s cubic-bezier(.34,1.56,.64,1) calc(.28s + var(--d));
-}
-[data-cine=lights] .film-screen{
-  opacity:.12;
-  transform:perspective(1200px) translateY(42px) rotateX(20deg) scale(.9);
-  filter:brightness(.18) saturate(.4);
-  transition:opacity 1s .38s,transform 1.35s cubic-bezier(.16,1,.3,1) .38s,filter 1.5s ease .45s;
-}
-[data-cine=lights] .film-caption{
-  opacity:0;
-  transform:translateY(20px);
-  transition:opacity .7s .72s,transform .85s cubic-bezier(.16,1,.3,1) .72s;
-}
-[data-cine=lights].cine-in .film-player{opacity:1;transform:none}
-[data-cine=lights].cine-in .service-timeline>button{opacity:1;transform:none}
-[data-cine=lights].cine-in .film-screen{opacity:1;transform:none;filter:none}
-[data-cine=lights].cine-in .film-caption{opacity:1;transform:none}
+[data-cine=lights] .film-player{will-change:transform,opacity;animation:film-player-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes film-player-scrub{0%{opacity:0;transform:perspective(1300px) translateY(56px) rotateX(18deg) scale(.92)}100%{opacity:1;transform:none}}
+[data-cine=lights] .service-timeline>button{animation:film-tab-scrub 1000ms cubic-bezier(.34,1.56,.64,1) both paused;animation-delay:calc(var(--tp,1) * -999ms)}
+@keyframes film-tab-scrub{0%{opacity:0;transform:perspective(700px) translate3d(0,-34px,95px) rotateX(-38deg) scale(1.28)}100%{opacity:1;transform:none}}
+[data-cine=lights] .film-screen{animation:film-screen-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes film-screen-scrub{0%,15%{opacity:.12;transform:perspective(1200px) translateY(42px) rotateX(20deg) scale(.9);filter:brightness(.18) saturate(.4)}100%{opacity:1;transform:none;filter:brightness(1) saturate(1)}}
+[data-cine=lights] .film-caption{animation:film-caption-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes film-caption-scrub{0%,40%{opacity:0;transform:translateY(20px)}100%{opacity:1;transform:none}}
 
-/* Section 6 (#salon-example): Staged Step Stones -> Ledger Form & Live Preview */
-[data-cine=desk] .builder-steps>li{
-  opacity:0;
-  transform:perspective(900px) translate3d(0,-38px,110px) scale(1.22) rotateX(-28deg);
-  filter:blur(4px);
-  transition:opacity .6s var(--d),filter .6s var(--d),transform .9s cubic-bezier(.34,1.52,.64,1) var(--d);
-}
-[data-cine=desk] .builder-steps>li.item-in{
-  opacity:1;
-  filter:blur(0);
-  transform:none;
-}
-[data-cine=desk] .builder-form{
-  opacity:0;
-  transform:perspective(1300px) translate3d(64px,36px,-60px) rotateY(-16deg);
-  transition:opacity .85s .1s,transform 1.15s cubic-bezier(.16,1,.3,1) .1s;
-}
-[data-cine=desk] .builder-preview{
-  opacity:0;
-  transform:perspective(1300px) translate3d(-48px,76px,-70px) rotateX(22deg) rotateY(14deg);
-  transform-origin:50% 100%;
-  transition:opacity .85s .28s,transform 1.3s cubic-bezier(.16,1,.3,1) .28s;
-}
-[data-cine=desk] .builder-form.item-in,[data-cine=desk] .builder-preview.item-in{
-  opacity:1;
-  transform:none;
-}
-@media(max-width:850px){
-  [data-cine=desk] .builder-preview,[data-cine=desk] .builder-form{transform:translateY(40px)}
-  [data-cine=desk] .builder-form.item-in,[data-cine=desk] .builder-preview.item-in{transform:none}
-}
+[data-cine=desk] .builder-steps>li{will-change:transform,opacity,filter;animation:step-stone-scrub 1000ms cubic-bezier(.34,1.52,.64,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes step-stone-scrub{0%{opacity:0;filter:blur(5px);transform:perspective(900px) translate3d(0,-42px,115px) scale(1.24) rotateX(-28deg)}100%{opacity:1;filter:blur(0);transform:perspective(1000px) translateY(var(--hy,0px)) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}}
+[data-cine=desk] .builder-form{will-change:transform,opacity;animation:builder-form-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes builder-form-scrub{0%{opacity:0;transform:perspective(1300px) translate3d(72px,40px,-65px) rotateY(-18deg)}100%{opacity:1;transform:none}}
+[data-cine=desk] .builder-preview{transform-origin:50% 100%;will-change:transform,opacity;animation:builder-preview-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes builder-preview-scrub{0%{opacity:0;transform:perspective(1300px) translate3d(-56px,76px,-75px) rotateX(22deg) rotateY(16deg)}100%{opacity:1;transform:none}}
+@media(max-width:850px){@keyframes builder-form-scrub{0%{opacity:0;transform:translateY(44px)}100%{opacity:1;transform:none}}@keyframes builder-preview-scrub{0%{opacity:0;transform:translateY(44px)}100%{opacity:1;transform:none}}}
 
-/* Section 7 (#faq): Per-Question Carved Stone Chisel Cascade */
-[data-cine=focus] .faq>details,[data-cine=focus] .faq-next{
-  opacity:0;
-  filter:blur(6px);
-  transform:perspective(1000px) translate3d(calc(var(--dir,1) * 44px),34px,-45px) rotateX(-20deg) rotateY(calc(var(--dir,1) * -8deg)) scale(.94);
-  transition:
-    opacity .65s cubic-bezier(.16,1,.3,1),
-    filter .65s ease,
-    transform .85s cubic-bezier(.16,1,.3,1),
-    box-shadow .42s ease,
-    border-color .35s ease;
-}
-[data-cine=focus] :is(.faq>details,.faq-next).item-in{
-  opacity:1;
-  filter:blur(0);
-  transform:none;
-}
+[data-cine=focus] .faq>details,[data-cine=focus] .faq-next{will-change:transform,opacity,filter;animation:faq-tablet-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+@keyframes faq-tablet-scrub{0%{opacity:0;filter:blur(6px);transform:perspective(1000px) translate3d(calc(var(--dir,1) * 48px),36px,-50px) rotateX(-22deg) rotateY(calc(var(--dir,1) * -10deg)) scale(.93)}100%{opacity:1;filter:blur(0);transform:none}}
 
-/* Section 8 (.site-footer): Golden Signature Seal Self-Draw */
-[data-cine=draw] .brand-symbol path{
-  stroke-dasharray:var(--len,200);
-  stroke-dashoffset:var(--len,200);
-  transition:stroke-dashoffset 1.8s cubic-bezier(.6,0,.2,1);
-}
-[data-cine=draw] :is(.foot ul li,.legal){
-  opacity:0;
-  transform:translateY(14px);
-  transition:opacity .65s calc(.55s + var(--d)),transform .75s cubic-bezier(.2,.8,.2,1) calc(.55s + var(--d));
-}
-[data-cine=draw].cine-in .brand-symbol path{stroke-dashoffset:0}
-[data-cine=draw].cine-in :is(.foot ul li,.legal){opacity:1;transform:none}
+[data-cine=draw] .brand-symbol path{stroke-dasharray:var(--len,200);stroke-dashoffset:calc(var(--len,200) * (1 - var(--p,1)))}
+[data-cine=draw] :is(.foot ul li,.legal){animation:footer-link-scrub 1000ms cubic-bezier(.2,.8,.2,1) both paused;animation-delay:calc(var(--lp,1) * -999ms)}
+@keyframes footer-link-scrub{0%{opacity:0;transform:translateY(16px)}100%{opacity:1;transform:none}}
 
-/* Keyboard accessibility & reduced-motion safeguards */
-[data-cine] :is(.sec-head,.benefit,.svc,.faq>details,.builder-steps>li,.builder-form,.builder-preview,.salon-invite-copy>*,.film-player,.cine-word):focus-within{
-  opacity:1!important;
-  filter:none!important;
-  transform:none!important;
-}
+[data-cine] :is(.sec-head,.benefit,.svc,.faq>details,.builder-steps>li,.builder-form,.builder-preview,.salon-invite-copy>*,.film-player,.cine-word):focus-within{opacity:1!important;filter:none!important;transform:none!important}
 @media(prefers-reduced-motion:reduce){
   .ripple,.glass-layer.flash::before,.copy .reveal,.faq details[open]>p,.cine-word{animation:none!important;opacity:1!important;filter:none!important;transform:none!important}
   [data-cine] *,[data-cine],.sec-head[data-stage],.sec-head[data-stage] *{transition:none!important;animation:none!important;opacity:1!important;filter:none!important;transform:none!important;clip-path:none!important}
@@ -2344,21 +1786,13 @@ html{scroll-padding-top:var(--hh,68px)}
 
 </script>
 <script>
-/* Cinematic section & component choreography:
-   1. Expressive Typography:
-      - Key headlines (.cine-slam) split into 3D impact words (.cine-word) that slam onto the stone surface,
-        with signature gold chisel highlights (.cine-word--gold) on the core value words.
-      - Conversational kickers and narrative lines type out live character-by-character (.type-wrap / .type-live)
-        with a glowing brass caret when they enter the viewport.
-   2. Multi-Stage Scroll Choreography:
-      - Section headers (.sec-head) enter first when scrolled into view.
-      - Cards, triptych panels, builder steps, and FAQ tablets are observed as distinct scroll stages so the
-        salon owner sees the text arrive first and then watches each 3D carved component animate in as they scroll. */
+/* Interactive Bidirectional Scroll-Scrubbed Cinema Engine */
 (()=>{
  const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
  const $=s=>document.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+ const clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v;
+ const subP=(p,s,e)=>clamp((p-s)/((e-s)||1),0,1);
 
- // ---- 1. Glass layer + water ripple on every action -------------------------------------------
  const actions='.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button';
  const layer=el=>{let g=el.querySelector(':scope>.glass-layer');if(!g){g=document.createElement('span');g.className='glass-layer';g.setAttribute('aria-hidden','true');el.prepend(g)}return g};
  const dress=()=>$$(actions).forEach(layer);dress();
@@ -2375,25 +1809,19 @@ html{scroll-padding-top:var(--hh,68px)}
   g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');
  },{passive:true});
 
- if(still||!('IntersectionObserver' in window))return;
+ if(still)return;
 
- // ---- 2. Interactive 3D carved surface light & tilt tracking ----------------------------------
  const carvedSelector='.svc,.benefit,.builder-steps>li,.salon-invite-card,.film-screen,.faq>details,.builder-form,.builder-preview';
  if(matchMedia('(hover:hover)').matches){
   let activeCard=null,raf=0,px=0,py=0;
   document.addEventListener('pointermove',e=>{
    const card=e.target.closest(carvedSelector);
-   if(activeCard&&activeCard!==card){
-    activeCard.style.removeProperty('--rx');
-    activeCard.style.removeProperty('--ry');
-    activeCard=null;
-   }
+   if(activeCard&&activeCard!==card){activeCard.style.removeProperty('--rx');activeCard.style.removeProperty('--ry');activeCard=null}
    if(!card)return;
    activeCard=card;px=e.clientX;py=e.clientY;
    if(!raf)raf=requestAnimationFrame(()=>{
     raf=0;if(!activeCard)return;
-    const r=activeCard.getBoundingClientRect();
-    if(!r.width||!r.height)return;
+    const r=activeCard.getBoundingClientRect();if(!r.width||!r.height)return;
     const x=px-r.left,y=py-r.top,nx=x/r.width-.5,ny=y/r.height-.5;
     activeCard.style.setProperty('--mx',x.toFixed(0)+'px');
     activeCard.style.setProperty('--my',y.toFixed(0)+'px');
@@ -2405,174 +1833,182 @@ html{scroll-padding-top:var(--hh,68px)}
   },{passive:true});
  }
 
- // ---- 3. Expressive Typography: 3D Word Slam + Live Typewriter --------------------------------
  const goldWords=new Set(['عکس','خودش','اختصاصی','سالن','شماست','همه','یک','صفحه','چشم','مشتری','ببینید','رایج']);
  function prepareSlam(el){
-  if(!el||el.dataset.slammed)return;
-  el.dataset.slammed='1';
+  if(!el)return()=>{};
   const text=el.textContent.trim();
   el.setAttribute('aria-label',text);
   el.classList.add('cine-slam');
-  const words=text.split(/\\s+/);
-  el.innerHTML=words.map((w,i)=>{
+  el.innerHTML=text.split(/\\s+/).map(w=>{
    const clean=w.replace(/[،؛.:؟!]/g,'');
-   const cls=goldWords.has(clean)?'cine-word cine-word--gold':'cine-word';
-   return '<span class="'+cls+'" style="--w:'+i+'" aria-hidden="true">'+w+'</span>';
+   return '<span class="'+(goldWords.has(clean)?'cine-word cine-word--gold':'cine-word')+'" aria-hidden="true">'+w+'</span>';
   }).join(' ');
+  const spans=$$('.cine-word',el),n=spans.length||1;
+  return p=>{for(let i=0;i<n;i++){const st=(i/n)*0.56;spans[i].style.setProperty('--wp',subP(p,st,st+0.44).toFixed(3))}};
  }
 
- function prepareType(el,speed=26,delay=60){
-  if(!el||el.dataset.typed)return ()=>{};
-  el.dataset.typed='1';
+ function prepareType(el){
+  if(!el)return()=>{};
   const text=el.textContent.trim();
   el.classList.add('type-wrap');
   el.innerHTML='<span class="type-sr">'+text+'</span><span class="type-reserve" aria-hidden="true">'+text+'</span><span class="type-live" aria-hidden="true"></span>';
-  const live=el.querySelector('.type-live');
-  let started=false;
-  return ()=>{
-   if(started)return;started=true;
-   setTimeout(()=>{
-    live.classList.add('is-typing');
-    let idx=0;
-    const step=()=>{
-     idx+=1;
-     live.textContent=text.slice(0,idx);
-     if(idx<text.length)setTimeout(step,speed);
-     else setTimeout(()=>live.classList.remove('is-typing'),550);
-    };
-    step();
-   },delay);
+  const live=el.querySelector('.type-live'),len=text.length;
+  let last=-1;
+  return p=>{
+   const c=Math.round(clamp(p,0,1)*len);
+   if(c!==last){last=c;live.textContent=text.slice(0,c)}
+   live.classList.toggle('is-typing',p>0.02&&p<0.98);
   };
  }
 
- // Hero #intro: slam the main H1 and live-type the eyebrow immediately on load
- const heroH1=$('#h1'),heroEyebrow=$('#intro .eyebrow'),heroCopy=$('#copy');
- if(heroH1)prepareSlam(heroH1);
- const runHeroType=heroEyebrow?prepareType(heroEyebrow,30,180):null;
- if(heroCopy){
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-   heroCopy.classList.add('stage-in');
-   runHeroType&&runHeroType();
-  }));
- }
+ const tracks=[];
+ const addTrack=(initP,targetFn,applyFn)=>{const t={cur:initP,target:targetFn,apply:applyFn};t.apply(initP);tracks.push(t)};
+ const rectP=(el,enterVh=0.92,fullVh=0.44)=>{
+  const r=el.getBoundingClientRect(),vh=window.innerHeight||800,s=vh*enterVh,e=vh*fullVh;
+  return clamp((s-r.top)/((s-e)||1),0,1);
+ };
 
- // Prepare section headers (.sec-head) as Stage 1 (Slam H2 + Live-Type Kicker)
- const headerIO=new IntersectionObserver(es=>es.forEach(e=>{
-  if(!e.isIntersecting)return;
-  const head=e.target;
-  head.classList.add('stage-in');
-  head._runType&&head._runType();
-  headerIO.unobserve(head);
- }),{rootMargin:'0px 0px -16% 0px',threshold:0.25});
+ const heroCopy=$('#copy'),heroH1=$('#h1'),heroEyebrow=$('#intro .eyebrow');
+ if(heroCopy){
+  const slamHero=prepareSlam(heroH1),typeHero=prepareType(heroEyebrow);
+  let boot=0;const t0=performance.now();
+  const bootTick=now=>{boot=clamp((now-t0)/900,0,1);if(boot<1)requestAnimationFrame(bootTick);scheduleScrub()};
+  requestAnimationFrame(bootTick);
+  addTrack(0,()=>{
+   const r=heroCopy.getBoundingClientRect(),vh=window.innerHeight||800;
+   const sf=r.bottom<vh*0.72?clamp((r.bottom-vh*0.14)/(vh*0.58),0,1):1;
+   return Math.min(boot,sf);
+  },p=>{
+   heroCopy.style.setProperty('--kp',subP(p,0,0.45).toFixed(3));
+   typeHero(subP(p,0.02,0.62));
+   slamHero(subP(p,0.08,0.82));
+   heroCopy.style.setProperty('--lp',subP(p,0.32,0.88).toFixed(3));
+   heroCopy.style.setProperty('--cp',subP(p,0.46,0.96).toFixed(3));
+   heroCopy.style.setProperty('--fp',subP(p,0.58,1).toFixed(3));
+  });
+ }
 
  $$('.sec-head').forEach(head=>{
   head.dataset.stage='head';
-  const h2=head.querySelector('h2'),kicker=head.querySelector('.kicker');
-  if(h2)prepareSlam(h2);
-  if(kicker)head._runType=prepareType(kicker,28,100);
-  headerIO.observe(head);
+  const slamH2=prepareSlam(head.querySelector('h2')),typeKicker=prepareType(head.querySelector('.kicker'));
+  addTrack(0,()=>rectP(head,0.92,0.48),p=>{
+   head.style.setProperty('--hp',p.toFixed(3));
+   head.style.setProperty('--kp',subP(p,0,0.45).toFixed(3));
+   typeKicker(subP(p,0.04,0.68));
+   slamH2(subP(p,0.12,0.88));
+   head.style.setProperty('--sp',subP(p,0.46,1).toFixed(3));
+  });
  });
 
- // ---- 4. Staged Scroll Choreography for Sections & Components ---------------------------------
- // Helper to observe individual items or groups only when the user actually scrolls to them
- const itemIO=new IntersectionObserver(es=>es.forEach(e=>{
-  if(!e.isIntersecting)return;
-  e.target.classList.add('item-in');
-  e.target._onEnter&&e.target._onEnter();
-  itemIO.unobserve(e.target);
- }),{rootMargin:'0px 0px -14% 0px',threshold:0.2});
-
- const tallIO=new IntersectionObserver(es=>es.forEach(e=>{
-  if(!e.isIntersecting)return;
-  e.target.classList.add('item-in');
-  tallIO.unobserve(e.target);
- }),{rootMargin:'0px 0px -8% 0px',threshold:0.05});
-
- const secIO=new IntersectionObserver(es=>es.forEach(e=>{
-  if(!e.isIntersecting)return;
-  e.target.classList.add('cine-in');
-  e.target._onEnter&&e.target._onEnter();
-  secIO.unobserve(e.target);
- }),{rootMargin:'0px 0px -16% 0px',threshold:0.22});
-
- // Section 2 (#how): Stage 1 is .sec-head; Stage 2 stamps each .benefit card sequentially on scroll
  const how=$('#how');
  if(how){
   how.dataset.cine='glint';
-  $$('.benefits-five>.benefit',how).forEach((card,i)=>{
-   card.style.setProperty('--base','380ms');
-   card.style.setProperty('--i',i);
-   itemIO.observe(card);
+  const grid=$('.benefits-five',how),cards=$$('.benefits-five>.benefit',how);
+  cards.forEach((c,i)=>c.style.setProperty('--i',i));
+  if(grid)addTrack(0,()=>rectP(grid,0.88,0.28),rowP=>{
+   const st=window.innerWidth<=580;
+   cards.forEach((card,i)=>{
+    const cp=st?rectP(card,0.92,0.48):subP(rowP,i*0.14,i*0.14+0.44);
+    card.style.setProperty('--p',cp.toFixed(3));
+    card.classList.toggle('scrub-done',cp>0.99);
+   });
   });
  }
 
- // Section 3 (.salon-invite): Arched mirror portal + Wax seal slam + Typewriter kicker + H2 slam
  const invite=$('.salon-invite');
  if(invite){
   invite.dataset.cine='curtain';
-  const invKicker=$('.journey-kicker',invite),invH2=$('#salon-invite-title',invite);
-  if(invH2)prepareSlam(invH2);
-  const runInvType=invKicker?prepareType(invKicker,28,450):null;
-  $$('.salon-invite-copy>*',invite).forEach((el,i)=>el.style.setProperty('--i',i));
-  invite._onEnter=()=>{runInvType&&runInvType()};
-  secIO.observe(invite);
+  const card=$('.salon-invite-card',invite),slamInv=prepareSlam($('#salon-invite-title',invite)),typeInv=prepareType($('.journey-kicker',invite)),copyEls=$$('.salon-invite-copy>*:not(h2)',invite);
+  if(card)addTrack(0,()=>rectP(card,0.92,0.34),p=>{
+   invite.style.setProperty('--p',p.toFixed(3));
+   invite.style.setProperty('--kp',subP(p,0.1,0.5).toFixed(3));
+   typeInv(subP(p,0.14,0.66));
+   slamInv(subP(p,0.20,0.86));
+   copyEls.forEach((el,i)=>{const s=0.26+i*0.12;el.style.setProperty('--cp',subP(p,s,s+0.46).toFixed(3))});
+  });
  }
 
- // Section 4 (#services): Stage 1 is .sec-head; Stage 2 unfolds the 3 Triptych Mirror service cards
  const services=$('#services');
  if(services){
   services.dataset.cine='fan';
-  $$('.cards3>.svc',services).forEach((card,i)=>{
-   card.style.setProperty('--base','360ms');
-   card.style.setProperty('--i',i);
-   itemIO.observe(card);
+  const grid=$('.cards3',services),cards=$$('.cards3>.svc',services);
+  cards.forEach((c,i)=>c.style.setProperty('--i',i));
+  if(grid)addTrack(0,()=>rectP(grid,0.90,0.32),rowP=>{
+   const st=window.innerWidth<=1100;
+   cards.forEach((card,i)=>{
+    const cp=st?rectP(card,0.92,0.46):subP(rowP,i*0.18,i*0.18+0.64);
+    card.style.setProperty('--p',cp.toFixed(3));
+    card.classList.toggle('scrub-done',cp>0.99);
+   });
   });
  }
 
- // Section 5 (#transform): Medallions stamp in, screen lights up, and caption types out
  const transform=$('#transform');
  if(transform){
   transform.dataset.cine='lights';
-  $$('.service-timeline>button',transform).forEach((btn,i)=>btn.style.setProperty('--i',i));
-  const filmKicker=$('.film-caption>span',transform);
-  const runFilmType=filmKicker?prepareType(filmKicker,26,550):null;
-  transform._onEnter=()=>{runFilmType&&runFilmType()};
-  secIO.observe(transform);
+  const player=$('.film-player',transform),tabs=$$('.service-timeline>button',transform),typeFilm=prepareType($('.film-caption>span',transform));
+  if(player)addTrack(0,()=>rectP(player,0.92,0.36),p=>{
+   transform.style.setProperty('--p',p.toFixed(3));
+   tabs.forEach((btn,i)=>{const s=i*0.14;btn.style.setProperty('--tp',subP(p,s,s+0.56).toFixed(3))});
+   typeFilm(subP(p,0.36,0.92));
+  });
  }
 
- // Section 6 (#salon-example): Stage 1 .sec-head -> Stage 2 step stones -> Stage 3 form & live preview
  const builder=$('#salon-example');
  if(builder){
   builder.dataset.cine='desk';
-  $$('.builder-steps>li',builder).forEach((li,i)=>{
-   li.style.setProperty('--base','340ms');
-   li.style.setProperty('--i',i);
-   itemIO.observe(li);
+  const stepsList=$('.builder-steps',builder),steps=$$('.builder-steps>li',builder);
+  steps.forEach((li,i)=>li.style.setProperty('--i',i));
+  if(stepsList)addTrack(0,()=>rectP(stepsList,0.90,0.42),rowP=>{
+   const st=window.innerWidth<=850;
+   steps.forEach((li,i)=>{
+    const sp=st?rectP(li,0.92,0.48):subP(rowP,i*0.18,i*0.18+0.64);
+    li.style.setProperty('--p',sp.toFixed(3));
+    li.classList.toggle('scrub-done',sp>0.99);
+   });
   });
   const form=$('.builder-form',builder),preview=$('.builder-preview',builder);
-  if(form)tallIO.observe(form);
-  if(preview)tallIO.observe(preview);
+  if(form)addTrack(0,()=>rectP(form,0.92,0.42),p=>form.style.setProperty('--p',p.toFixed(3)));
+  if(preview)addTrack(0,()=>rectP(preview,0.92,0.42),p=>preview.style.setProperty('--p',p.toFixed(3)));
  }
 
- // Section 7 (#faq): Stage 1 .sec-head -> Stage 2 each question tablet chisels in as user scrolls
  const faq=$('#faq');
  if(faq){
   faq.dataset.cine='focus';
   $$('.faq>details,.faq-next',faq).forEach((item,i)=>{
-   item.style.setProperty('--i',0);
    item.style.setProperty('--dir',i%2===0?1:-1);
-   itemIO.observe(item);
+   addTrack(0,()=>rectP(item,0.93,0.52),p=>item.style.setProperty('--p',p.toFixed(3)));
   });
  }
 
- // Section 8 (.site-footer): Self-drawing brass emblem
  const footer=$('.site-footer');
  if(footer){
   footer.dataset.cine='draw';
-  $$('.foot ul li,.legal',footer).forEach((el,i)=>el.style.setProperty('--i',i));
-  $$('.site-footer .brand-symbol path').forEach(p=>{try{const L=Math.ceil(p.getTotalLength());p.style.setProperty('--len',L)}catch{}});
-  secIO.observe(footer);
+  const links=$$('.foot ul li,.legal',footer);
+  $$('.site-footer .brand-symbol path').forEach(p=>{try{p.style.setProperty('--len',Math.ceil(p.getTotalLength()))}catch{}});
+  addTrack(0,()=>{
+   const base=rectP(footer,0.98,0.72),maxS=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
+   return Math.max(base,clamp((window.scrollY-(maxS-120))/120,0,1));
+  },p=>{
+   footer.style.setProperty('--p',p.toFixed(3));
+   links.forEach((el,i)=>{const s=0.2+i*0.1;el.style.setProperty('--lp',subP(p,s,Math.min(1,s+0.5)).toFixed(3))});
+  });
  }
+
+ let rafId=0;
+ function tick(){
+  rafId=0;let moving=false;
+  for(let i=0;i<tracks.length;i++){
+   const t=tracks[i],tgt=t.target(),diff=tgt-t.cur;
+   if(Math.abs(diff)>0.0015){t.cur+=diff*0.28;t.apply(t.cur);moving=true}
+   else if(t.cur!==tgt){t.cur=tgt;t.apply(t.cur)}
+  }
+  if(moving)rafId=requestAnimationFrame(tick);
+ }
+ function scheduleScrub(){if(!rafId)rafId=requestAnimationFrame(tick)}
+ window.addEventListener('scroll',scheduleScrub,{passive:true});
+ window.addEventListener('resize',scheduleScrub,{passive:true});
+ scheduleScrub();
 })();
 
 </script>
