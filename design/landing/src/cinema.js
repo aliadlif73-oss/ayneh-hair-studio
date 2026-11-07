@@ -88,7 +88,8 @@
   requestAnimationFrame(bootTick);
   addTrack(0,()=>{
    const r=heroCopy.getBoundingClientRect(),vh=window.innerHeight||800;
-   const sf=r.bottom<vh*0.72?clamp((r.bottom-vh*0.14)/(vh*0.58),0,1):1;
+   // Fade out only once the copy is actually scrolling away; a short phone screen must still show it at load.
+   const sf=r.top>=-8?1:clamp((r.bottom-vh*0.12)/Math.max(120,Math.min(r.height,vh*0.5)),0,1);
    return Math.min(boot,sf);
   },p=>{
    heroCopy.style.setProperty('--kp',subP(p,0,0.45).toFixed(3));
