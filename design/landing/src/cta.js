@@ -14,7 +14,9 @@
   const beforeForm=form.top>=innerHeight;
   const film=player?.getBoundingClientRect();
   const overFilm=film&&film.top<innerHeight&&film.bottom>0;
-  bar.hidden=!(mobile.matches&&afterHero&&beforeForm&&!overFilm&&!document.querySelector('dialog[open]'));
+  // Never show the same action twice on screen.
+  const twin=[...document.querySelectorAll('main a[href="#salon-example"],main a[href="#start"]')].some(a=>{const r=a.getBoundingClientRect();return r.height&&r.bottom>0&&r.top<innerHeight});
+  bar.hidden=!(mobile.matches&&afterHero&&beforeForm&&!overFilm&&!twin&&!document.querySelector('dialog[open]'));
  }
  function schedule(){if(!queued){queued=true;requestAnimationFrame(sync)}}
  addEventListener('scroll',schedule,{passive:true});

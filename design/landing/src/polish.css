@@ -83,3 +83,48 @@
 .copy .btn--ghost::after,.svc-try::after{opacity:.55}
 .copy .btn--ghost:is(:hover,:focus-visible)::after,.svc-try:is(:hover,:focus-visible)::after{opacity:1}
 @media(max-width:390px){.film-player .service-timeline button{min-height:48px}.builder-form .identity-url input{padding-inline:5px}}
+
+/* QA pass: hierarchy, rhythm and small-screen fixes. */
+h1,h2,.sec-head h2,.salon-invite-copy h2{text-wrap:balance}
+.sec-head .sub,.lead{text-wrap:pretty}
+/* Header: one clear action on wide screens; the sticky strip covers phones. */
+.header-cta{min-height:42px;padding:0 18px;font-size:14px}
+.site-header .header-cta::after{display:none}
+@media(max-width:900px){.header-cta{display:none!important}}
+/* Hero: the second action is lighter so the primary path reads first. */
+.copy .btn--ghost:not(:disabled){--button-top:#fffdf8;--button-base:#f1e4d0;--button-text:#4a2e1d;--button-depth:#b39470;--button-edge:#cfae80}
+.copy .cta-row{align-items:center}
+@media(max-width:900px){.copy .cta-row{flex-direction:column;align-items:stretch;width:100%;max-width:440px;margin-inline:auto}.copy .cta-row .btn{width:100%;justify-content:center}}
+/* Only primary actions keep the continuous gold orbit; the rest shine on hover. */
+:where(.page,body) :is(.btn:not(.btn--lg),.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:hover,:focus-visible)::after{animation-play-state:paused;opacity:0}
+/* Benefits: titles stay on one line on desktop; one readable column on phones. */
+.benefit h3{font-size:clamp(16px,1.3vw,19px);line-height:1.5}
+@media(max-width:580px){
+ .benefits-five{grid-template-columns:1fr;gap:12px}
+ .benefits-five .benefit{display:grid;grid-template-columns:52px minmax(0,1fr);column-gap:14px;row-gap:4px;align-items:start;padding:16px}
+ .benefits-five .benefit .gold-icon{grid-row:span 2;width:52px;height:52px;border-radius:16px}
+ .benefits-five .benefit .gold-icon svg{width:32px;height:32px}
+ .benefits-five .benefit h3{margin:0;font-size:17px}
+ .benefits-five .benefit p{margin:0;font-size:14px;line-height:1.85}
+}
+/* Invitation kicker matches every other section label. */
+.salon-invite-copy .journey-kicker{color:#e2c182;font-size:13px;font-weight:700;margin:0 0 10px}
+/* Builder: custom disclosure marker instead of the browser triangle. */
+.builder-form summary{list-style:none;display:flex;align-items:center;gap:10px}
+.builder-form summary::-webkit-details-marker{display:none}
+.builder-form summary::before{content:"";flex:none;width:8px;height:8px;border-right:2px solid #8d633e;border-bottom:2px solid #8d633e;transform:translateY(-2px) rotate(45deg);transition:transform .2s;margin-inline:2px 4px}
+.builder-form details[open]>summary::before{transform:translateY(2px) rotate(-135deg)}
+.builder-form summary small{font-weight:600;color:#7b6551}
+.upload-action{font-size:13px;white-space:nowrap}
+/* Mobile live preview stays compact so the form keeps most of the screen. */
+@media(max-width:850px){.builder-preview .builder-browser{display:none}.builder-live{max-height:24svh}.builder-preview .live-services,.builder-preview .live-try{display:none}.builder-form :is(input,select,textarea,button,summary):focus{scroll-margin-block-start:calc(var(--hh,68px) + 28svh)}}
+/* Hero colour names stay legible on phones. */
+@media(max-width:600px){.palette .col-list span,.palette .col-list small{font-size:10px}}
+/* Footer */
+.site-footer .legal{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px}
+/* The expanded style rail must not sit on top of the hero actions. */
+@media(min-width:901px){.copy .cta-row,.copy .fineprint{transition:opacity .3s,visibility .3s}.stage:has(.styles.open) .copy :is(.cta-row,.fineprint){opacity:0;visibility:hidden}}
+/* Anchors land exactly under the compact sticky header. */
+html{scroll-padding-top:var(--hh,68px)}
+/* Mobile menu ends with the main action. */
+.mobile-menu a.btn.menu-cta{display:flex;margin-top:14px;width:100%;max-width:none;white-space:nowrap;min-height:48px;justify-content:center;font-size:15px}

@@ -274,7 +274,8 @@
    const begin={left:Math.max(20,dest.left-130),top:Math.max(35,dest.top-160)};
    file.style.left=begin.left+'px';file.style.top=begin.top+'px';file.classList.add('visible');
    hand.style.left=(begin.left+60)+'px';hand.style.top=(begin.top+65)+'px';hand.classList.add('visible');
-   file.animate([begin,dest],{duration:1200,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
+   const px=p=>({left:p.left+'px',top:p.top+'px'});
+   file.animate([px(begin),px(dest)],{duration:1200,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
    hand.animate([{left:(begin.left+60)+'px',top:(begin.top+65)+'px'},{left:(dest.left+60)+'px',top:(dest.top+65)+'px'}],{duration:1200,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
    await delay(1250,signal);file.classList.remove('visible');file.getAnimations().forEach(a=>a.cancel());hand.getAnimations().forEach(a=>a.cancel());
    hand.style.left=(dest.left+60)+'px';hand.style.top=(dest.top+65)+'px';revealPortrait();

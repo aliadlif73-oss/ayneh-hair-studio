@@ -746,6 +746,51 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 .copy .btn--ghost:is(:hover,:focus-visible)::after,.svc-try:is(:hover,:focus-visible)::after{opacity:1}
 @media(max-width:390px){.film-player .service-timeline button{min-height:48px}.builder-form .identity-url input{padding-inline:5px}}
 
+/* QA pass: hierarchy, rhythm and small-screen fixes. */
+h1,h2,.sec-head h2,.salon-invite-copy h2{text-wrap:balance}
+.sec-head .sub,.lead{text-wrap:pretty}
+/* Header: one clear action on wide screens; the sticky strip covers phones. */
+.header-cta{min-height:42px;padding:0 18px;font-size:14px}
+.site-header .header-cta::after{display:none}
+@media(max-width:900px){.header-cta{display:none!important}}
+/* Hero: the second action is lighter so the primary path reads first. */
+.copy .btn--ghost:not(:disabled){--button-top:#fffdf8;--button-base:#f1e4d0;--button-text:#4a2e1d;--button-depth:#b39470;--button-edge:#cfae80}
+.copy .cta-row{align-items:center}
+@media(max-width:900px){.copy .cta-row{flex-direction:column;align-items:stretch;width:100%;max-width:440px;margin-inline:auto}.copy .cta-row .btn{width:100%;justify-content:center}}
+/* Only primary actions keep the continuous gold orbit; the rest shine on hover. */
+:where(.page,body) :is(.btn:not(.btn--lg),.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:hover,:focus-visible)::after{animation-play-state:paused;opacity:0}
+/* Benefits: titles stay on one line on desktop; one readable column on phones. */
+.benefit h3{font-size:clamp(16px,1.3vw,19px);line-height:1.5}
+@media(max-width:580px){
+ .benefits-five{grid-template-columns:1fr;gap:12px}
+ .benefits-five .benefit{display:grid;grid-template-columns:52px minmax(0,1fr);column-gap:14px;row-gap:4px;align-items:start;padding:16px}
+ .benefits-five .benefit .gold-icon{grid-row:span 2;width:52px;height:52px;border-radius:16px}
+ .benefits-five .benefit .gold-icon svg{width:32px;height:32px}
+ .benefits-five .benefit h3{margin:0;font-size:17px}
+ .benefits-five .benefit p{margin:0;font-size:14px;line-height:1.85}
+}
+/* Invitation kicker matches every other section label. */
+.salon-invite-copy .journey-kicker{color:#e2c182;font-size:13px;font-weight:700;margin:0 0 10px}
+/* Builder: custom disclosure marker instead of the browser triangle. */
+.builder-form summary{list-style:none;display:flex;align-items:center;gap:10px}
+.builder-form summary::-webkit-details-marker{display:none}
+.builder-form summary::before{content:"";flex:none;width:8px;height:8px;border-right:2px solid #8d633e;border-bottom:2px solid #8d633e;transform:translateY(-2px) rotate(45deg);transition:transform .2s;margin-inline:2px 4px}
+.builder-form details[open]>summary::before{transform:translateY(2px) rotate(-135deg)}
+.builder-form summary small{font-weight:600;color:#7b6551}
+.upload-action{font-size:13px;white-space:nowrap}
+/* Mobile live preview stays compact so the form keeps most of the screen. */
+@media(max-width:850px){.builder-preview .builder-browser{display:none}.builder-live{max-height:24svh}.builder-preview .live-services,.builder-preview .live-try{display:none}.builder-form :is(input,select,textarea,button,summary):focus{scroll-margin-block-start:calc(var(--hh,68px) + 28svh)}}
+/* Hero colour names stay legible on phones. */
+@media(max-width:600px){.palette .col-list span,.palette .col-list small{font-size:10px}}
+/* Footer */
+.site-footer .legal{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px}
+/* The expanded style rail must not sit on top of the hero actions. */
+@media(min-width:901px){.copy .cta-row,.copy .fineprint{transition:opacity .3s,visibility .3s}.stage:has(.styles.open) .copy :is(.cta-row,.fineprint){opacity:0;visibility:hidden}}
+/* Anchors land exactly under the compact sticky header. */
+html{scroll-padding-top:var(--hh,68px)}
+/* Mobile menu ends with the main action. */
+.mobile-menu a.btn.menu-cta{display:flex;margin-top:14px;width:100%;max-width:none;white-space:nowrap;min-height:48px;justify-content:center;font-size:15px}
+
 .compare{margin-top:0}
 @media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}
 </style>
@@ -756,25 +801,27 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 <header class="site-header">
   <a class="brand" href="#intro" aria-label="آینه، بازگشت به ابتدای صفحه"><span class="brand-symbol"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M18 52V27a14 14 0 0 1 28 0v25H18Z" stroke="currentColor" stroke-width="2.5"/><path d="M13 51H8V32a10 10 0 0 1 6-9M51 51h5V32a10 10 0 0 0-6-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m25 43 14-18M26 32l8-10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".65"/><path d="M32 5v4M30 7h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><span class="brand-name">آینه<small>AYNEH</small></span></a>
   <nav class="nav" aria-label="ناوبری اصلی">
-    <a href="#studio">تجربه آینه</a>
+    <a href="#studio">تجربهٔ آینه</a>
     <a href="#how">مزایا</a>
     <a href="#services">خدمات</a>
-    <a href="#salon-example">نمونهٔ صفحهٔ سالن</a>
+    <a href="#salon-example">ساخت صفحهٔ سالن</a>
     <a href="#faq">پرسش‌ها</a>
   </nav>
   <div class="header-actions">
+    <a class="btn header-cta" href="#salon-example">ساخت پیش‌نمایش رایگان</a>
     <button type="button" class="menu-toggle" aria-expanded="false" aria-controls="mobile-menu" aria-label="باز کردن فهرست">
       <span class="menu-bars" aria-hidden="true"><i></i><i></i></span>
     </button>
   </div>
   <nav id="mobile-menu" class="mobile-menu" aria-label="فهرست موبایل" hidden>
     <p class="menu-kicker">فهرست آینه</p>
-    <a class="menu-link" href="#studio"><span>تجربه آینه</span><span aria-hidden="true">↙</span></a>
+    <a class="menu-link" href="#studio"><span>تجربهٔ آینه</span><span aria-hidden="true">↙</span></a>
     <a class="menu-link" href="#how"><span>مزایا</span><span aria-hidden="true">↙</span></a>
     <a class="menu-link" href="#services"><span>خدمات مو، ناخن و مژه</span><span aria-hidden="true">↙</span></a>
-    <a class="menu-link" href="#salon-example"><span>نمونهٔ صفحهٔ سالن</span><span aria-hidden="true">↙</span></a>
+    <a class="menu-link" href="#salon-example"><span>ساخت صفحهٔ سالن</span><span aria-hidden="true">↙</span></a>
 
     <a class="menu-link" href="#faq"><span>پرسش‌ها</span><span aria-hidden="true">↙</span></a>
+    <a class="btn menu-cta" href="#salon-example">ساخت پیش‌نمایش رایگان</a>
   </nav>
 </header>
 
@@ -878,7 +925,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
       <div class="sec-head">
         <p class="kicker">دموی خدمات</p>
         <h2 id="h-svc">مو، ناخن و مژه؛ همه در یک صفحه</h2>
-        <p class="sub">دموی هر خدمت در صفحهٔ نمونهٔ سالن ساناز باز می‌شود.</p>
+        <p class="sub">هر دمو در صفحهٔ یک سالن نمونه باز می‌شود؛ همان چیزی که مشتری‌های شما می‌بینند.</p>
       </div>
       <div class="cards3">
         <article class="svc">
@@ -934,14 +981,14 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
      <label class="identity-name"><span>نام سالن</span><input name="name" required minlength="2" maxlength="100" autocomplete="organization"></label>
      <label class="identity-address"><span>نشانی اختصاصی پیشنهادی</span><span class="identity-url" dir="ltr"><span>ayneh-salon.site/s/</span><input name="slug" aria-describedby="slugHint" dir="ltr" required pattern="[a-z][a-z0-9\\-]{1,44}[a-z0-9]" maxlength="46" placeholder="my-salon" autocapitalize="none" spellcheck="false"></span><small id="slugHint">۳ تا ۴۶ کاراکتر انگلیسی، عدد یا خط تیره. با حرف شروع کنید و با حرف یا عدد تمام کنید.</small></label>
      <label class="builder-color"><span>رنگ برند</span><span class="identity-color"><input type="color" name="brand" value="#B9975B"><output id="builderBrandHex" dir="ltr">#B9975B</output></span></label>
-     <label class="builder-upload"><span>لوگو</span><span class="upload-control"><span class="upload-action">لوگوی برند خود را انتخاب کنید</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="logo" accept="image/jpeg,image/png,image/webp"></span></label>
-     <label class="builder-upload"><span>عکس کاور</span><span class="upload-control"><span class="upload-action">عکس کاور برند خود را انتخاب کنید</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="cover" accept="image/jpeg,image/png,image/webp"></span></label>
+     <label class="builder-upload"><span>لوگو</span><span class="upload-control"><span class="upload-action">انتخاب لوگو</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="logo" accept="image/jpeg,image/png,image/webp"></span></label>
+     <label class="builder-upload"><span>عکس کاور</span><span class="upload-control"><span class="upload-action">انتخاب عکس کاور</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="cover" accept="image/jpeg,image/png,image/webp"></span></label>
     </fieldset>
     <details><summary>معرفی سالن و راه‌های تماس <small>اختیاری</small></summary>
      <fieldset><legend class="sr-only">مشخصات سالن</legend>
       <label class="wide">دربارهٔ سالن<textarea name="bio" maxlength="1000" rows="3"></textarea></label>
       <label>نام مدیر<input name="manager" maxlength="100"></label>
-      <label class="builder-upload"><span>عکس مدیر</span><span class="upload-control"><span class="upload-action">عکس مدیر را انتخاب کنید</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="portrait" accept="image/jpeg,image/png,image/webp"></span></label>
+      <label class="builder-upload"><span>عکس مدیر</span><span class="upload-control"><span class="upload-action">انتخاب عکس مدیر</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="portrait" accept="image/jpeg,image/png,image/webp"></span></label>
       <label>تلفن سالن<input type="tel" name="phone" dir="ltr" maxlength="24"></label>
       <label>ساعات کاری<input name="hours" maxlength="150"></label>
       <label class="wide">آدرس<input name="address" maxlength="250"></label>
@@ -986,7 +1033,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   <legend>نمونه‌کار</legend>
   <label>عنوان<input data-work="title" required minlength="2" maxlength="100"></label>
   <label>خدمت<select data-work="line"><option value="hair">مدل مو</option><option value="color">رنگ مو</option><option value="nails">ناخن</option><option value="lashes">مژه</option></select></label>
-  <label class="builder-upload wide"><span>عکس نمونه‌کار</span><span class="upload-control"><span class="upload-action">عکس نمونه‌کار را انتخاب کنید</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" data-work="file" required accept="image/jpeg,image/png,image/webp"></span></label>
+  <label class="builder-upload wide"><span>عکس نمونه‌کار</span><span class="upload-control"><span class="upload-action">انتخاب عکس نمونه‌کار</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" data-work="file" required accept="image/jpeg,image/png,image/webp"></span></label>
   <label class="wide">توضیح کوتاه<textarea data-work="description" rows="2" maxlength="300"></textarea></label>
   <button type="button" class="btn btn--ghost builder-remove">حذف نمونه‌کار</button>
  </fieldset>
@@ -1014,10 +1061,10 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
     <div class="wrap">
       <div class="sec-head"><p class="kicker">پرسش‌های پرتکرار</p><h2 id="h-faq">پاسخ کوتاه به پرسش‌های رایج</h2></div>
       <div class="faq">
-        <details open><summary>هزینهٔ آینه چطور مشخص می‌شود؟</summary><p>هزینه دو بخش دارد: راه‌اندازی صفحه و اعتبار ساخت تصویر. پیش از تصمیم‌گیری، امکانات و هزینهٔ متناسب با نیاز سالن را با شما مرور می‌کنیم.</p></details>
-        <details><summary>آینه دقیقاً چیست؟</summary><p>یک صفحهٔ اینترنتی با نام و رنگ برند سالن شما. مشتری مدل مو، رنگ، ناخن یا مژه را روی عکس خودش امتحان می‌کند و درخواستش را با عکس به تلگرام یا بله شما می‌فرستد.</p></details>
+        <details open><summary>آینه دقیقاً چیست؟</summary><p>یک صفحهٔ اینترنتی با نام و رنگ برند سالن شما. مشتری مدل مو، رنگ، ناخن یا مژه را روی عکس خودش امتحان می‌کند و درخواستش را با عکس به تلگرام یا بله شما می‌فرستد.</p></details>
         <details><summary>چطور سرویس‌ها را امتحان کنم؟</summary><p>بالای صفحه، مدل و رنگ مو را روی چهرهٔ نمونه امتحان کنید. برای امتحان خدمات روی عکس خودتان، یکی از <a href="#services">دموهای خدمات</a> را باز کنید.</p></details>
         <details><summary>بعد از ثبت درخواست چه می‌شود؟</summary><p>پس از تأیید موبایل، درخواست برای بررسی ثبت می‌شود. تیم آینه برای اعلام هزینه و هماهنگی راه‌اندازی با شما تماس می‌گیرد. ثبت درخواست شامل پرداخت یا انتشار صفحه نیست.</p></details>
+        <details><summary>هزینهٔ آینه چطور مشخص می‌شود؟</summary><p>هزینه دو بخش دارد: راه‌اندازی صفحه و اعتبار ساخت تصویر. پیش از تصمیم‌گیری، امکانات و هزینهٔ متناسب با نیاز سالن را با شما مرور می‌کنیم.</p></details>
         <details><summary>مشتری‌های من چطور وارد می‌شوند؟</summary><p>با یک لینک. آن را در اینستاگرام، تلگرام یا هر چتی می‌گذارید. چیزی نصب نمی‌شود؛ صفحه در مرورگر گوشی باز می‌شود.</p></details>
         <details><summary>درخواست مشتری را کجا می‌بینم؟</summary><p>در ربات تلگرام یا بله خودتان. پنل جداگانه‌ای ندارید.</p></details>
         <details><summary>آینه نوبت می‌دهد؟</summary><p>نه. آینه فقط کمک می‌کند مشتری روشن بگوید چه می‌خواهد. نوبت، زمان و هزینه مثل همیشه دست خود شماست.</p></details>
@@ -1035,10 +1082,10 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   <div class="foot">
     <a class="brand" href="#intro"><span class="brand-symbol"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M18 52V27a14 14 0 0 1 28 0v25H18Z" stroke="currentColor" stroke-width="2.5"/><path d="M13 51H8V32a10 10 0 0 1 6-9M51 51h5V32a10 10 0 0 0-6-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m25 43 14-18M26 32l8-10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".65"/><path d="M32 5v4M30 7h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><span class="brand-name">آینه<small>AYNEH</small></span></a>
     <ul aria-label="پیوندهای پایین صفحه">
-      <li><a href="#studio">تجربه آینه</a></li><li><a href="#how">مزایا</a></li><li><a href="#services">خدمات</a></li><li><a href="#salon-example">نمونهٔ صفحهٔ سالن</a></li><li><a href="#faq">پرسش‌ها</a></li><li><a href="/admin">ورود مدیر</a></li>
+      <li><a href="#studio">تجربهٔ آینه</a></li><li><a href="#how">مزایا</a></li><li><a href="#services">خدمات</a></li><li><a href="#salon-example">ساخت صفحهٔ سالن</a></li><li><a href="#faq">پرسش‌ها</a></li><li><a href="/admin">ورود مدیر</a></li>
     </ul>
   </div>
-  <p class="legal">آینه — مدل مو، رنگ، ناخن و مژهٔ دلخواه را روی عکس خودتان ببینید.</p>
+  <p class="legal"><span>آینه — صفحهٔ اختصاصی سالن برای امتحان مدل و رنگ مو، ناخن و مژه روی عکس مشتری.</span><span>© ۱۴۰۵ آینه</span></p>
 </footer>
 
 <script>
@@ -1387,7 +1434,8 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
    const begin={left:Math.max(20,dest.left-130),top:Math.max(35,dest.top-160)};
    file.style.left=begin.left+'px';file.style.top=begin.top+'px';file.classList.add('visible');
    hand.style.left=(begin.left+60)+'px';hand.style.top=(begin.top+65)+'px';hand.classList.add('visible');
-   file.animate([begin,dest],{duration:1200,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
+   const px=p=>({left:p.left+'px',top:p.top+'px'});
+   file.animate([px(begin),px(dest)],{duration:1200,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
    hand.animate([{left:(begin.left+60)+'px',top:(begin.top+65)+'px'},{left:(dest.left+60)+'px',top:(dest.top+65)+'px'}],{duration:1200,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
    await delay(1250,signal);file.classList.remove('visible');file.getAnimations().forEach(a=>a.cancel());hand.getAnimations().forEach(a=>a.cancel());
    hand.style.left=(dest.left+60)+'px';hand.style.top=(dest.top+65)+'px';revealPortrait();
@@ -1550,7 +1598,9 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   const beforeForm=form.top>=innerHeight;
   const film=player?.getBoundingClientRect();
   const overFilm=film&&film.top<innerHeight&&film.bottom>0;
-  bar.hidden=!(mobile.matches&&afterHero&&beforeForm&&!overFilm&&!document.querySelector('dialog[open]'));
+  // Never show the same action twice on screen.
+  const twin=[...document.querySelectorAll('main a[href="#salon-example"],main a[href="#start"]')].some(a=>{const r=a.getBoundingClientRect();return r.height&&r.bottom>0&&r.top<innerHeight});
+  bar.hidden=!(mobile.matches&&afterHero&&beforeForm&&!overFilm&&!twin&&!document.querySelector('dialog[open]'));
  }
  function schedule(){if(!queued){queued=true;requestAnimationFrame(sync)}}
  addEventListener('scroll',schedule,{passive:true});
@@ -1626,7 +1676,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   canActivate=available;
   availability.textContent=available
    ?'پیش‌نمایش رایگان است. برای درخواست راه‌اندازی، تأیید شمارهٔ موبایل لازم است.'
-   :'در حال حاضر می‌توانید پیش‌نمایش بسازید. ثبت درخواست راه‌اندازی در این نسخه در دسترس نیست.';
+   :'پیش‌نمایش رایگان است و همین حالا ساخته می‌شود. ثبت درخواست راه‌اندازی موقتاً در دسترس نیست؛ کمی بعد دوباره سر بزنید.';
   activate.hidden=!available||!draft||dirty;
   if(draft&&!dirty&&!submitted)hint.textContent=available
    ?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.'
