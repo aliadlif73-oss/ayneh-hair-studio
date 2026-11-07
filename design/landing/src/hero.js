@@ -52,6 +52,7 @@
   // phones: colours and the style dock sit under the mirror, where thumbs can reach them
   if(mobile.matches){let lab=$('heroPlayground');if(!lab){lab=document.createElement('div');lab.id='heroPlayground';lab.className='hero-playground';studio.before(lab)}lab.append(studio,palette,dock);dock.classList.add('mobile');palette.classList.add('mobile')}
   else if(dock.parentElement!==plate){const lab=$('heroPlayground');if(lab){lab.before(studio);lab.remove()}plate.append(dock);mirror.append(palette);dock.classList.remove('mobile');palette.classList.remove('mobile')}
+  if(!mobile.matches)plate.style.setProperty('--dock-limit',Math.max(0,H-y-dock.offsetHeight-16)+'px');
   syncArrows();
  }
 

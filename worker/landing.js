@@ -261,7 +261,7 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
 @keyframes gold-orbit{to{stroke-dashoffset:-100}}
 
 /* podium dock: lives on the plate, so it always sits on the podium */
-.dock{--u:1;position:absolute;z-index:3;left:49.85%;top:64.6%;width:26%;padding:calc(6px * var(--u)) calc(8px * var(--u)) 0;border-radius:calc(18px * var(--u));transform:translateX(-50%);transition:opacity 360ms var(--ease),transform 360ms var(--ease),visibility 0s}
+.dock{--u:1;position:absolute;z-index:3;left:49.85%;top:min(64.6%,var(--dock-limit,100%));width:26%;padding:calc(6px * var(--u)) calc(8px * var(--u)) 0;border-radius:calc(18px * var(--u));transform:translateX(-50%);transition:opacity 360ms var(--ease),transform 360ms var(--ease),visibility 0s}
 .dock.away{opacity:0;visibility:hidden;transform:translateX(-50%) translateY(14px);transition:opacity 360ms var(--ease),transform 360ms var(--ease),visibility 0s linear 360ms}
 .dock h2{margin:0;font-size:calc(13px * var(--u));font-weight:800;color:#24170C;text-align:center}
 .dock-view{position:relative}
@@ -463,6 +463,8 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
  .stage[data-render-state="error"] .demo-caption{display:block;order:7;margin:0 16px 12px}
 }
 
+.copy:focus-within{opacity:1;transform:none}
+
 
 /* ---------- lead form (sends to the owner's bot chat via /api/inquiry) ---------- */
 .path--form{gap:16px}
@@ -613,6 +615,11 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 .upload-action{display:grid;place-items:center;min-height:44px;padding:5px 8px;text-align:center;border-radius:8px;background:linear-gradient(#65442b,#452c1b);color:#fffaf4;box-shadow:0 3px 0 #2c1b10;font-size:12px;line-height:1.65}
 .upload-name{min-width:0;text-align:center;overflow-wrap:anywhere;color:#6d543b;font-size:11px;font-weight:500}
 @media(max-width:540px){.builder-form .builder-identity{gap:12px}.builder-identity .builder-upload{grid-column:1/-1}.upload-control{min-height:79px}.identity-url>span{font-size:10px;padding-inline:5px}}
+.builder-error:empty{display:none}
+.builder-error:focus{scroll-margin-block-start:calc(var(--hh,68px) + 35svh)}
+.upload-control:has([aria-invalid="true"]){border-color:#932d26;background:#fff1ec}
+.upload-control:has([aria-invalid="true"]) .upload-name{color:#8a2520}
+@media(max-width:850px) and (max-height:650px){.builder-error:focus{scroll-margin-block-start:var(--hh,68px)}}
 
 /* CTA bands, sticky mobile CTA, plan buttons, form microcopy */
 .cta-band{padding:clamp(40px,6vw,72px) var(--gut);background:var(--espresso);color:var(--cream)}
@@ -715,10 +722,9 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 @property --button-orbit{syntax:"<angle>";inherits:false;initial-value:0deg}
 :where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button){
  --button-top:#6c492e;--button-base:#452b1b;--button-text:#fffaf2;--button-depth:#2e1a0f;--button-edge:#8d633e;--button-light:#ffe3a3;
- position:relative;isolation:isolate;overflow:visible;color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base));border:1px solid var(--button-edge);box-shadow:inset 0 1px 0 #ffffff38,0 4px 0 var(--button-depth),0 8px 14px #25160e31;text-shadow:none;
+ isolation:isolate;overflow:visible;color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base));border:1px solid var(--button-edge);box-shadow:inset 0 1px 0 #ffffff38,0 4px 0 var(--button-depth),0 8px 14px #25160e31;text-shadow:none;
 }
-:where(.page,body) :is(.sticky-cta,.nav-btn){position:fixed}
-:where(.page,body) .nav-btn{position:absolute}
+:is(.btn,.menu-toggle,.close,.demo-controls button,.mirror-invite button){position:relative}
 :where(.page,body) :is(.on-dark,.salon-invite,.builder-preview,.mirror-invite,.site-footer) :is(.btn,.close,.mirror-invite button){
  --button-top:#fffefa;--button-base:#f2e5d2;--button-text:#4c3020;--button-depth:#a08465;--button-edge:#d7b992;--button-light:#ffe3a3;
  color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base));border-color:var(--button-edge);box-shadow:inset 0 1px 0 #fff,0 4px 0 var(--button-depth),0 8px 14px #160e083e;
@@ -735,6 +741,10 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 @media(max-width:900px){
  .sticky-cta:not([hidden]){inset-inline:16px;bottom:calc(10px + env(safe-area-inset-bottom,0px));padding:8px 16px;border:1px solid var(--button-edge);border-radius:14px;color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base))}
 }
+.copy .btn--ghost:not(:disabled){--button-top:#775337;--button-base:#583c28;--button-text:#fffaf2;--button-depth:#3a2416;--button-edge:#9c7754}
+.copy .btn--ghost::after,.svc-try::after{opacity:.55}
+.copy .btn--ghost:is(:hover,:focus-visible)::after,.svc-try:is(:hover,:focus-visible)::after{opacity:1}
+@media(max-width:390px){.film-player .service-timeline button{min-height:48px}.builder-form .identity-url input{padding-inline:5px}}
 
 .compare{margin-top:0}
 @media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}
@@ -776,9 +786,9 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
     <div class="stage" id="stage" data-demo="loading">
       <div class="copy" id="copy">
         <p class="eyebrow reveal">برای صاحبان سالن مو، ناخن و مژه</p>
-        <h1 id="h1" class="reveal">به مشتری‌ها فرصت بدهید مدل دلخواهشان را قبل از مراجعه امتحان کنند.</h1>
+        <h1 id="h1" class="reveal">مدل دلخواه مشتری، روی عکس خودش و پیش از مراجعه</h1>
         <p class="lead reveal">با صفحهٔ اختصاصی سالن، مشتری مدل و رنگ مو، طرح ناخن یا مژه را روی عکس خودش امتحان می‌کند. انتخاب و عکسش را در تلگرام یا بله دریافت و بررسی کنید.</p>
-        <div class="cta-row reveal"><a class="btn btn--lg" href="#start"><span>ساخت پیش‌نمایش سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" href="#studio" id="openHeroDemo"><span>آینه را روی چهرهٔ نمونه امتحان کنید</span></a></div>
+        <div class="cta-row reveal"><a class="btn btn--lg" href="#salon-example"><span>ساخت پیش‌نمایش سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost" href="#studio" id="openHeroDemo"><span>امتحان روی چهرهٔ نمونه</span></a></div>
         <p class="fineprint reveal"><a data-try="hair" href="/s/demo?l=hair">روی عکس خودتان امتحان کنید</a><br><span>برای شبیه‌سازی، عکس پس از تأیید شماره ارسال می‌شود.</span></p>
       </div>
 
@@ -924,14 +934,14 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
      <label class="identity-name"><span>نام سالن</span><input name="name" required minlength="2" maxlength="100" autocomplete="organization"></label>
      <label class="identity-address"><span>نشانی اختصاصی پیشنهادی</span><span class="identity-url" dir="ltr"><span>ayneh-salon.site/s/</span><input name="slug" aria-describedby="slugHint" dir="ltr" required pattern="[a-z][a-z0-9\\-]{1,44}[a-z0-9]" maxlength="46" placeholder="my-salon" autocapitalize="none" spellcheck="false"></span><small id="slugHint">۳ تا ۴۶ کاراکتر انگلیسی، عدد یا خط تیره. با حرف شروع کنید و با حرف یا عدد تمام کنید.</small></label>
      <label class="builder-color"><span>رنگ برند</span><span class="identity-color"><input type="color" name="brand" value="#B9975B"><output id="builderBrandHex" dir="ltr">#B9975B</output></span></label>
-     <label class="builder-upload"><span>لوگو</span><span class="upload-control"><span class="upload-action">لوگوی برند خود را انتخاب کنید</span><span class="upload-name" dir="auto">JPG، PNG یا WebP</span><input type="file" name="logo" accept="image/jpeg,image/png,image/webp"></span></label>
-     <label class="builder-upload"><span>عکس کاور</span><span class="upload-control"><span class="upload-action">عکس کاور برند خود را انتخاب کنید</span><span class="upload-name" dir="auto">JPG، PNG یا WebP</span><input type="file" name="cover" accept="image/jpeg,image/png,image/webp"></span></label>
+     <label class="builder-upload"><span>لوگو</span><span class="upload-control"><span class="upload-action">لوگوی برند خود را انتخاب کنید</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="logo" accept="image/jpeg,image/png,image/webp"></span></label>
+     <label class="builder-upload"><span>عکس کاور</span><span class="upload-control"><span class="upload-action">عکس کاور برند خود را انتخاب کنید</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="cover" accept="image/jpeg,image/png,image/webp"></span></label>
     </fieldset>
     <details><summary>معرفی سالن و راه‌های تماس <small>اختیاری</small></summary>
      <fieldset><legend class="sr-only">مشخصات سالن</legend>
       <label class="wide">دربارهٔ سالن<textarea name="bio" maxlength="1000" rows="3"></textarea></label>
       <label>نام مدیر<input name="manager" maxlength="100"></label>
-      <label class="builder-upload"><span>عکس مدیر</span><span class="upload-control"><span class="upload-action">عکس مدیر را انتخاب کنید</span><span class="upload-name" dir="auto">JPG، PNG یا WebP</span><input type="file" name="portrait" accept="image/jpeg,image/png,image/webp"></span></label>
+      <label class="builder-upload"><span>عکس مدیر</span><span class="upload-control"><span class="upload-action">عکس مدیر را انتخاب کنید</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="portrait" accept="image/jpeg,image/png,image/webp"></span></label>
       <label>تلفن سالن<input type="tel" name="phone" dir="ltr" maxlength="24"></label>
       <label>ساعات کاری<input name="hours" maxlength="150"></label>
       <label class="wide">آدرس<input name="address" maxlength="250"></label>
@@ -945,7 +955,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
      <div id="builderWorks"></div>
      <button id="builderAdd" class="btn btn--ghost" type="button">افزودن نمونه‌کار +</button>
     </details>
-    <p class="builder-error" id="builderError" role="alert"></p>
+    <p class="builder-error" id="builderError" role="alert" tabindex="-1"></p>
     <button type="submit" class="btn btn--lg" id="builderBuild" disabled>آماده‌کردن پیش‌نمایش</button>
     <p class="builder-note">تا پیش از ارسال درخواست، پیش‌نمایش و عکس‌ها فقط در مرورگر شما می‌مانند.</p>
    </form>
@@ -976,7 +986,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   <legend>نمونه‌کار</legend>
   <label>عنوان<input data-work="title" required minlength="2" maxlength="100"></label>
   <label>خدمت<select data-work="line"><option value="hair">مدل مو</option><option value="color">رنگ مو</option><option value="nails">ناخن</option><option value="lashes">مژه</option></select></label>
-  <label class="builder-upload wide"><span>عکس نمونه‌کار</span><span class="upload-control"><span class="upload-action">عکس نمونه‌کار را انتخاب کنید</span><span class="upload-name" dir="auto">JPG، PNG یا WebP</span><input type="file" data-work="file" required accept="image/jpeg,image/png,image/webp"></span></label>
+  <label class="builder-upload wide"><span>عکس نمونه‌کار</span><span class="upload-control"><span class="upload-action">عکس نمونه‌کار را انتخاب کنید</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" data-work="file" required accept="image/jpeg,image/png,image/webp"></span></label>
   <label class="wide">توضیح کوتاه<textarea data-work="description" rows="2" maxlength="300"></textarea></label>
   <button type="button" class="btn btn--ghost builder-remove">حذف نمونه‌کار</button>
  </fieldset>
@@ -1015,7 +1025,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
         <details><summary>ناخن و مژه هم دارید؟</summary><p>بله. در صفحهٔ سالن بین مو، ناخن و مژه جابه‌جا می‌شوند و هر کدام عکس و انتخاب‌های خودش را دارد.</p></details>
         <details><summary>شبیه‌سازی برای همهٔ سالن‌ها روشن است؟</summary><p>هر سالن خودش تصمیم می‌گیرد. اگر خاموش باشد، مشتری باز هم مدل و رنگ را انتخاب می‌کند و درخواستش را می‌فرستد.</p></details>
       </div>
-      <p class="faq-next"><a class="btn btn--lg" href="#start">ساخت پیش‌نمایش سالن من</a></p>
+      <p class="faq-next"><a class="btn btn--lg" href="#salon-example">ساخت پیش‌نمایش سالن من</a></p>
     </div>
   </section>
 </main>
@@ -1025,7 +1035,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   <div class="foot">
     <a class="brand" href="#intro"><span class="brand-symbol"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M18 52V27a14 14 0 0 1 28 0v25H18Z" stroke="currentColor" stroke-width="2.5"/><path d="M13 51H8V32a10 10 0 0 1 6-9M51 51h5V32a10 10 0 0 0-6-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m25 43 14-18M26 32l8-10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".65"/><path d="M32 5v4M30 7h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span><span class="brand-name">آینه<small>AYNEH</small></span></a>
     <ul aria-label="پیوندهای پایین صفحه">
-      <li><a href="#studio">تجربه آینه</a></li><li><a href="#services">خدمات</a></li><li><a href="#how">نحوه کار</a></li><li><a href="#salon-example">نمونهٔ صفحهٔ سالن</a></li><li><a href="#faq">پرسش‌ها</a></li><li><a href="/admin">ورود مدیر</a></li>
+      <li><a href="#studio">تجربه آینه</a></li><li><a href="#how">مزایا</a></li><li><a href="#services">خدمات</a></li><li><a href="#salon-example">نمونهٔ صفحهٔ سالن</a></li><li><a href="#faq">پرسش‌ها</a></li><li><a href="/admin">ورود مدیر</a></li>
     </ul>
   </div>
   <p class="legal">آینه — مدل مو، رنگ، ناخن و مژهٔ دلخواه را روی عکس خودتان ببینید.</p>
@@ -1155,6 +1165,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   // phones: colours and the style dock sit under the mirror, where thumbs can reach them
   if(mobile.matches){let lab=$('heroPlayground');if(!lab){lab=document.createElement('div');lab.id='heroPlayground';lab.className='hero-playground';studio.before(lab)}lab.append(studio,palette,dock);dock.classList.add('mobile');palette.classList.add('mobile')}
   else if(dock.parentElement!==plate){const lab=$('heroPlayground');if(lab){lab.before(studio);lab.remove()}plate.append(dock);mirror.append(palette);dock.classList.remove('mobile');palette.classList.remove('mobile')}
+  if(!mobile.matches)plate.style.setProperty('--dock-limit',Math.max(0,H-y-dock.offsetHeight-16)+'px');
   syncArrows();
  }
 
@@ -1517,7 +1528,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
  const links=[...document.querySelectorAll('[data-try]')];if(!links.length)return;
  const input=document.createElement('input');input.type='file';input.accept='image/jpeg,image/png,image/webp';input.hidden=true;input.setAttribute('aria-label','انتخاب تصویر خودم');document.body.append(input);let line='hair',opener;
  const dialog=document.createElement('dialog');dialog.className='personal-try';dialog.setAttribute('aria-label','ساخت تصویر خودم');dialog.innerHTML='<div class="personal-head"><strong>این بار، تصویر خودتان.</strong><button type="button" aria-label="بستن تجربهٔ تصویر من">×</button></div><iframe title="عکس من، انتخاب من" allow="camera"></iframe>';document.body.append(dialog);const frame=dialog.querySelector('iframe');dialog.querySelector('button').onclick=()=>dialog.close();dialog.addEventListener('close',()=>{document.documentElement.classList.remove('try-open');opener?.focus({preventScroll:true})});
- links.forEach(a=>{a.href='#intro';a.addEventListener('click',e=>{e.preventDefault();line=a.dataset.try;opener=a;input.value='';input.click()})});
+ links.forEach(a=>{a.addEventListener('click',e=>{if(e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();line=a.dataset.try;opener=a;input.value='';input.click()})});
  input.addEventListener('change',async()=>{const file=input.files[0];if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>25*1024*1024){alert('یک تصویر JPG، PNG یا WebP با حجم کمتر از ۲۵ مگابایت انتخاب کنید.');return}try{const selection={...(window.__AYN_SEL||{})};await window.__AYN_DRAFT.put({file,line,selection});const q=new URLSearchParams({l:line,draft:'1',embed:'1'});if(line==='hair'){q.set('s',selection.styleIdx??0);if(selection.color)q.set('c',selection.color)}frame.src='/s/demo?'+q;dialog.showModal();document.documentElement.classList.add('try-open')}catch(_){alert('باز کردن تصویر ممکن نشد. دوباره انتخاب کنید.')}});
 })();
 
@@ -1586,8 +1597,6 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
  heads.forEach(h=>{h.classList.add('wipe');io.observe(h)});
 })();
 
-/* Shared gold motion follows the button outline, keeping the label still. */
-
 </script>
 <script>
 (()=>{
@@ -1602,6 +1611,10 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
  const brandFields=['logo','cover','portrait'];
  let draft,otpBody,busy=false,submitted=false,dirty=false,canActivate=false,checkingAvailability=false,availabilityKnown=false;
  const objectURLs=new Map();
+ const imageTypes=['image/jpeg','image/png','image/webp'];
+ const validPhoto=file=>imageTypes.includes(file.type)&&file.size>0&&file.size<=12_000_000;
+ const photoHelp='عکس JPG، PNG یا WebP با حجم حداکثر ۱۲ مگابایت انتخاب کنید.';
+
  const api=async(path,body,signal)=>{
   const options=body===undefined?{}:{method:'POST',...(body instanceof FormData?{body}:{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})};
   const response=await fetch(path,{...options,signal});
@@ -1630,7 +1643,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
  const serviceNames={hair:'مدل مو',color:'رنگ مو',nails:'ناخن',lashes:'مژه'};
  const linkNames={instagram:'اینستاگرام',website:'وب‌سایت',map:'نقشه',telegram:'تلگرام'};
  function urlFor(file){
-  if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>12_000_000)return '';
+  if(!file||!validPhoto(file))return '';
   if(!objectURLs.has(file))objectURLs.set(file,URL.createObjectURL(file));
   return objectURLs.get(file);
  }
@@ -1671,7 +1684,11 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   for(const input of form.querySelectorAll('input[type=file]')){
    const file=input.files[0];
    if(file)kept.add(file);
-   input.closest('.upload-control').querySelector('.upload-name').textContent=file?.name||'JPG، PNG یا WebP';
+   const control=input.closest('.upload-control');
+   const invalid=!!file&&!validPhoto(file);
+   input.setCustomValidity(invalid?photoHelp:'');
+   if(invalid)input.setAttribute('aria-invalid','true');else input.removeAttribute('aria-invalid');
+   control.querySelector('.upload-name').textContent=invalid?photoHelp:file?.name||'JPG، PNG یا WebP';
   }
   for(const [file,url] of objectURLs)if(!kept.has(file)){URL.revokeObjectURL(url);objectURLs.delete(file)}
  }
@@ -1704,7 +1721,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   item.querySelector('input').focus();
  });
  async function photo(file){
-  if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>12_000_000)throw new Error('عکس JPG، PNG یا WebP با حجم حداکثر ۱۲ مگابایت انتخاب کنید.');
+  if(!file||!validPhoto(file))throw new Error(photoHelp);
   const image=await createImageBitmap(file).catch(()=>{throw new Error('یکی از عکس‌ها خوانده نشد.')});
   try{
    if(file.size<=400_000)return file;
@@ -1752,7 +1769,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
    hint.textContent=canActivate?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.':'پیش‌نمایش آماده است. در این نسخه فقط پیش‌نمایش در دسترس است.';
    (canActivate?activate:live).focus();
    if(!canActivate&&availabilityKnown)checkAvailability();
-  }catch(error){$('builderError').textContent=error.message;hint.textContent=error.message}
+  }catch(error){$('builderError').textContent=error.message;$('builderError').focus();}
   finally{build.disabled=false;loading.hidden=true;fields.forEach(input=>input.disabled=false);add.disabled=works.children.length>=6}
  });
  const sessionPath='/api/s/demo/session';

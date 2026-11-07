@@ -10,6 +10,10 @@
  const brandFields=['logo','cover','portrait'];
  let draft,otpBody,busy=false,submitted=false,dirty=false,canActivate=false,checkingAvailability=false,availabilityKnown=false;
  const objectURLs=new Map();
+ const imageTypes=['image/jpeg','image/png','image/webp'];
+ const validPhoto=file=>imageTypes.includes(file.type)&&file.size>0&&file.size<=12_000_000;
+ const photoHelp='عکس JPG، PNG یا WebP با حجم حداکثر ۱۲ مگابایت انتخاب کنید.';
+
  const api=async(path,body,signal)=>{
   const options=body===undefined?{}:{method:'POST',...(body instanceof FormData?{body}:{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})};
   const response=await fetch(path,{...options,signal});
@@ -38,7 +42,7 @@
  const serviceNames={hair:'مدل مو',color:'رنگ مو',nails:'ناخن',lashes:'مژه'};
  const linkNames={instagram:'اینستاگرام',website:'وب‌سایت',map:'نقشه',telegram:'تلگرام'};
  function urlFor(file){
-  if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>12_000_000)return '';
+  if(!file||!validPhoto(file))return '';
   if(!objectURLs.has(file))objectURLs.set(file,URL.createObjectURL(file));
   return objectURLs.get(file);
  }
@@ -79,7 +83,11 @@
   for(const input of form.querySelectorAll('input[type=file]')){
    const file=input.files[0];
    if(file)kept.add(file);
-   input.closest('.upload-control').querySelector('.upload-name').textContent=file?.name||'JPG، PNG یا WebP';
+   const control=input.closest('.upload-control');
+   const invalid=!!file&&!validPhoto(file);
+   input.setCustomValidity(invalid?photoHelp:'');
+   if(invalid)input.setAttribute('aria-invalid','true');else input.removeAttribute('aria-invalid');
+   control.querySelector('.upload-name').textContent=invalid?photoHelp:file?.name||'JPG، PNG یا WebP';
   }
   for(const [file,url] of objectURLs)if(!kept.has(file)){URL.revokeObjectURL(url);objectURLs.delete(file)}
  }
@@ -112,7 +120,7 @@
   item.querySelector('input').focus();
  });
  async function photo(file){
-  if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>12_000_000)throw new Error('عکس JPG، PNG یا WebP با حجم حداکثر ۱۲ مگابایت انتخاب کنید.');
+  if(!file||!validPhoto(file))throw new Error(photoHelp);
   const image=await createImageBitmap(file).catch(()=>{throw new Error('یکی از عکس‌ها خوانده نشد.')});
   try{
    if(file.size<=400_000)return file;
@@ -160,7 +168,7 @@
    hint.textContent=canActivate?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.':'پیش‌نمایش آماده است. در این نسخه فقط پیش‌نمایش در دسترس است.';
    (canActivate?activate:live).focus();
    if(!canActivate&&availabilityKnown)checkAvailability();
-  }catch(error){$('builderError').textContent=error.message;hint.textContent=error.message}
+  }catch(error){$('builderError').textContent=error.message;$('builderError').focus();}
   finally{build.disabled=false;loading.hidden=true;fields.forEach(input=>input.disabled=false);add.disabled=works.children.length>=6}
  });
  const sessionPath='/api/s/demo/session';

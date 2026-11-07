@@ -14,14 +14,14 @@
      <label class="identity-name"><span>نام سالن</span><input name="name" required minlength="2" maxlength="100" autocomplete="organization"></label>
      <label class="identity-address"><span>نشانی اختصاصی پیشنهادی</span><span class="identity-url" dir="ltr"><span>ayneh-salon.site/s/</span><input name="slug" aria-describedby="slugHint" dir="ltr" required pattern="[a-z][a-z0-9\-]{1,44}[a-z0-9]" maxlength="46" placeholder="my-salon" autocapitalize="none" spellcheck="false"></span><small id="slugHint">۳ تا ۴۶ کاراکتر انگلیسی، عدد یا خط تیره. با حرف شروع کنید و با حرف یا عدد تمام کنید.</small></label>
      <label class="builder-color"><span>رنگ برند</span><span class="identity-color"><input type="color" name="brand" value="#B9975B"><output id="builderBrandHex" dir="ltr">#B9975B</output></span></label>
-     <label class="builder-upload"><span>لوگو</span><span class="upload-control"><span class="upload-action">لوگوی برند خود را انتخاب کنید</span><span class="upload-name" dir="auto">JPG، PNG یا WebP</span><input type="file" name="logo" accept="image/jpeg,image/png,image/webp"></span></label>
-     <label class="builder-upload"><span>عکس کاور</span><span class="upload-control"><span class="upload-action">عکس کاور برند خود را انتخاب کنید</span><span class="upload-name" dir="auto">JPG، PNG یا WebP</span><input type="file" name="cover" accept="image/jpeg,image/png,image/webp"></span></label>
+     <label class="builder-upload"><span>لوگو</span><span class="upload-control"><span class="upload-action">لوگوی برند خود را انتخاب کنید</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="logo" accept="image/jpeg,image/png,image/webp"></span></label>
+     <label class="builder-upload"><span>عکس کاور</span><span class="upload-control"><span class="upload-action">عکس کاور برند خود را انتخاب کنید</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="cover" accept="image/jpeg,image/png,image/webp"></span></label>
     </fieldset>
     <details><summary>معرفی سالن و راه‌های تماس <small>اختیاری</small></summary>
      <fieldset><legend class="sr-only">مشخصات سالن</legend>
       <label class="wide">دربارهٔ سالن<textarea name="bio" maxlength="1000" rows="3"></textarea></label>
       <label>نام مدیر<input name="manager" maxlength="100"></label>
-      <label class="builder-upload"><span>عکس مدیر</span><span class="upload-control"><span class="upload-action">عکس مدیر را انتخاب کنید</span><span class="upload-name" dir="auto">JPG، PNG یا WebP</span><input type="file" name="portrait" accept="image/jpeg,image/png,image/webp"></span></label>
+      <label class="builder-upload"><span>عکس مدیر</span><span class="upload-control"><span class="upload-action">عکس مدیر را انتخاب کنید</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="portrait" accept="image/jpeg,image/png,image/webp"></span></label>
       <label>تلفن سالن<input type="tel" name="phone" dir="ltr" maxlength="24"></label>
       <label>ساعات کاری<input name="hours" maxlength="150"></label>
       <label class="wide">آدرس<input name="address" maxlength="250"></label>
@@ -35,7 +35,7 @@
      <div id="builderWorks"></div>
      <button id="builderAdd" class="btn btn--ghost" type="button">افزودن نمونه‌کار +</button>
     </details>
-    <p class="builder-error" id="builderError" role="alert"></p>
+    <p class="builder-error" id="builderError" role="alert" tabindex="-1"></p>
     <button type="submit" class="btn btn--lg" id="builderBuild" disabled>آماده‌کردن پیش‌نمایش</button>
     <p class="builder-note">تا پیش از ارسال درخواست، پیش‌نمایش و عکس‌ها فقط در مرورگر شما می‌مانند.</p>
    </form>
@@ -66,7 +66,7 @@
   <legend>نمونه‌کار</legend>
   <label>عنوان<input data-work="title" required minlength="2" maxlength="100"></label>
   <label>خدمت<select data-work="line"><option value="hair">مدل مو</option><option value="color">رنگ مو</option><option value="nails">ناخن</option><option value="lashes">مژه</option></select></label>
-  <label class="builder-upload wide"><span>عکس نمونه‌کار</span><span class="upload-control"><span class="upload-action">عکس نمونه‌کار را انتخاب کنید</span><span class="upload-name" dir="auto">JPG، PNG یا WebP</span><input type="file" data-work="file" required accept="image/jpeg,image/png,image/webp"></span></label>
+  <label class="builder-upload wide"><span>عکس نمونه‌کار</span><span class="upload-control"><span class="upload-action">عکس نمونه‌کار را انتخاب کنید</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" data-work="file" required accept="image/jpeg,image/png,image/webp"></span></label>
   <label class="wide">توضیح کوتاه<textarea data-work="description" rows="2" maxlength="300"></textarea></label>
   <button type="button" class="btn btn--ghost builder-remove">حذف نمونه‌کار</button>
  </fieldset>

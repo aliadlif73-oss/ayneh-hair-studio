@@ -32,5 +32,3 @@
  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -12% 0px'});
  heads.forEach(h=>{h.classList.add('wipe');io.observe(h)});
 })();
-
-/* Shared gold motion follows the button outline, keeping the label still. */
