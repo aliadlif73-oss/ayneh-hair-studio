@@ -595,6 +595,24 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 @media(max-width:850px){.builder-form input,.builder-form select,.builder-form textarea,.builder-dialog input{font-size:16px}.builder-form :is(input,select,textarea,button,summary):focus{scroll-margin-block-start:calc(var(--hh,68px) + 37svh)}}
 @media(max-width:580px){.builder-steps{grid-template-columns:1fr;gap:6px}.builder-steps li{padding:8px 12px}}
 @media(max-width:850px) and (max-height:650px){.builder-preview{position:static}.builder-form,.builder-form :is(input,select,textarea,button,summary):focus{scroll-margin-block-start:var(--hh,68px)}}
+.builder-form .builder-identity{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;padding:clamp(12px,2vw,20px);border:1px solid #dcc8ab;border-radius:16px;background:#fffdf7;align-items:start}
+.builder-identity legend{padding-inline:7px;color:#51361f}
+.builder-identity .identity-name,.builder-identity .identity-address{grid-column:1/-1}
+.builder-identity .identity-address small{font-weight:500;color:#725b45;line-height:1.65}
+.identity-url,.identity-color{display:flex;align-items:center;min-width:0;min-height:48px;border:1px solid #857460;border-radius:10px;background:#fffdf8}
+.identity-url>span{font:12px system-ui,sans-serif;padding-inline:8px;color:#6b543e;flex-shrink:0}
+.builder-form .identity-url input{border:0;border-inline-start:1px solid #dcc8ab;border-radius:0 9px 9px 0;background:transparent;flex:1}
+.builder-identity .builder-color{grid-column:1/-1}
+.identity-color{gap:12px;padding-inline:8px}
+.builder-form .identity-color input{width:48px;min-height:34px;height:34px;padding:2px;border:0;background:transparent;cursor:pointer}
+.identity-color output{font:13px system-ui,sans-serif;color:#60452d}
+.builder-form .builder-upload{align-self:stretch;grid-template-rows:auto 1fr}
+.upload-control{position:relative;min-width:0;display:grid;grid-template-rows:auto auto;align-content:center;gap:5px;min-height:100px;padding:9px;border:1px dashed #a58a67;border-radius:12px;background:#f7eee1}
+.builder-form .upload-control input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.upload-control:focus-within{outline:2px solid var(--focus);outline-offset:3px}
+.upload-action{display:grid;place-items:center;min-height:44px;padding:5px 8px;text-align:center;border-radius:8px;background:linear-gradient(#65442b,#452c1b);color:#fffaf4;box-shadow:0 3px 0 #2c1b10;font-size:12px;line-height:1.65}
+.upload-name{min-width:0;text-align:center;overflow-wrap:anywhere;color:#6d543b;font-size:11px;font-weight:500}
+@media(max-width:540px){.builder-form .builder-identity{gap:12px}.builder-identity .builder-upload{grid-column:1/-1}.upload-control{min-height:79px}.identity-url>span{font-size:10px;padding-inline:5px}}
 
 /* CTA bands, sticky mobile CTA, plan buttons, form microcopy */
 .cta-band{padding:clamp(40px,6vw,72px) var(--gut);background:var(--espresso);color:var(--cream)}
@@ -641,9 +659,9 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 /* A right chevron lives at the physical right edge; a left one at the left. */
 .cinema-arrows{inset:0;display:block;pointer-events:none;z-index:7}.cinema-arrows button{position:absolute;top:50%;transform:translateY(-50%);pointer-events:auto;width:48px;height:48px;background:#211811b8;backdrop-filter:blur(8px);display:grid;place-items:center;transition:background .2s,border-color .2s,box-shadow .2s}
 .cinema-arrows [data-slide-prev]{right:24px;left:auto}.cinema-arrows [data-slide-next]{left:24px;right:auto}.cinema-arrows button:hover{background:#3c2d1d;border-color:#d7b975;box-shadow:0 0 25px #d7b97520}
-.btn.orbit-cta{position:relative;isolation:isolate;overflow:hidden;border-color:#b9975b80;box-shadow:0 5px 20px #0002;transition:background .22s,box-shadow .22s,transform .22s}
-.btn.orbit-cta:hover{transform:translateY(-2px);box-shadow:0 9px 25px #b9975b30}.btn.orbit-cta:focus-visible,.nav-btn:focus-visible,.cinema-arrows button:focus-visible{outline:2px solid #d8b878;outline-offset:4px}
-.cta-ring{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}.cta-ring rect{x:1px;y:1px;width:calc(100% - 2px);height:calc(100% - 2px);rx:28px;fill:none;stroke:#f8d98c;stroke-width:1.35;stroke-dasharray:14 86;animation:gold-orbit 5s linear infinite;filter:drop-shadow(0 0 3px #d8b36d80)}
+
+.nav-btn:focus-visible,.cinema-arrows button:focus-visible{outline:2px solid #d8b878;outline-offset:4px}
+
 .journey-actions{display:flex;flex-direction:column;gap:10px;margin-top:22px}.journey-copy .journey-actions .btn{display:inline-flex;justify-content:center;align-items:center;gap:18px;min-height:50px;width:100%;padding:12px 18px;border:1px solid #c8a86b88;border-radius:999px;background:#1a120d;color:#fff1d8;font:inherit;font-size:13px;font-weight:700;text-decoration:none;text-shadow:none;line-height:1.7}.journey-copy .journey-actions a span{margin:0}.journey-copy .journey-actions .salon-action{align-self:center;display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:44px;color:#edd5a4;font-size:11px;line-height:1.8;text-decoration:none;text-shadow:none;border-bottom:1px solid #c8a86b45;transition:color .2s,border-color .2s}.journey-copy .journey-actions .salon-action:hover{color:#fff3d9;border-color:#e2c180}
 /* All autoplay film cards share the same hierarchy and dimensions. */
 .auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{display:block;top:auto;bottom:80px;right:6%;left:auto;width:33%;max-width:400px;padding:26px;border:1px solid #d3b67e45;border-radius:20px;background:linear-gradient(140deg,#21170fe8,#21170fc9);backdrop-filter:blur(12px);box-shadow:0 20px 60px #0003}
@@ -653,15 +671,15 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 .svc,.feat li,.faq details,.phone{transition:border-color .25s,box-shadow .25s,background .25s}.svc:hover,.feat li:hover,.faq details[open]{border-color:#b9975b70;box-shadow:0 14px 34px #30201412}.faq details[open] summary{color:#936b2f}.s2-points li{transition:border-color .25s,transform .25s}.s2-points li:hover{border-color:#d5b06c;transform:translateX(-3px)}.salon-invite-card.rv{transition:opacity .7s,transform .7s}
 @media(max-width:900px){.auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{width:40%;right:5%;padding:22px}.salon-invite-card{grid-template-columns:1fr}.salon-invite-art{min-height:320px}.salon-invite-copy{padding:30px}.salon-invite-copy h2 br{display:none}.salon-invite-copy h2{font-size:34px}.salon-invite-copy .btn{max-width:420px}}
 @media(max-width:600px){.brand{gap:6px}.brand-symbol{width:31px;height:35px}.brand .brand-name small{font-size:8px;margin-top:3px}.brand-name{font-size:20px}.cinema-arrows button{width:40px;height:40px}.cinema-arrows [data-slide-prev]{right:10px}.cinema-arrows [data-slide-next]{left:10px}.cinema-copy,.is-current .cinema-copy{right:62px;left:62px;width:auto;max-width:none}.auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{position:relative;inset:auto;width:auto;max-width:none;margin:18px 18px 0;padding:22px;border-radius:18px}.auto-film .journey-copy h3,.auto-film .journey-copy[data-journey-copy=lashes] h3{font-size:25px}.salon-invite{padding:38px 18px}.salon-invite-card{border-radius:22px}.salon-invite-art{min-height:260px}.salon-invite-copy{padding:25px}.salon-invite-copy h2{font-size:30px}.salon-invite-copy>p:not(.journey-kicker){font-size:14px}.salon-invite-copy .btn{font-size:12px}.journey-copy .journey-actions .btn{font-size:12px}}
-@media(prefers-reduced-motion:reduce){.cta-ring rect{animation:none;stroke-dasharray:none;opacity:.5}.type-live:after{animation:none}.salon-invite-card:hover .salon-invite-art>img,.btn.orbit-cta:hover,.s2-points li:hover{transform:none}.svc,.feat li,.faq details,.phone{transition:none}}
+@media(prefers-reduced-motion:reduce){.type-live:after{animation:none}.salon-invite-card:hover .salon-invite-art>img,.s2-points li:hover{transform:none}.svc,.feat li,.faq details,.phone{transition:none}}
 
 @media(max-width:600px){.rail-wrap .nav-btn{display:grid;width:36px;height:36px;margin-top:0}.rail-wrap .nav-r{right:6px}.rail-wrap .nav-l{left:6px}}
 
 /* Long Persian actions must wrap inside their grid column on small screens. */
-.btn.orbit-cta{max-width:100%;min-width:0;white-space:normal;text-align:center;line-height:1.8}.btn.orbit-cta>span:first-child{min-width:0}.s2-grid>*{min-width:0}.cta-ring rect{rx:999px;ry:999px}.film{overflow-x:clip}.demo-file:not(.visible){display:none}
-.btn.orbit-cta{overflow:visible}
-.cta-ring{inset:-5px;width:calc(100% + 10px);height:calc(100% + 10px)}
-.cta-ring rect{stroke:#fff0ae;stroke-width:1.8;filter:drop-shadow(0 0 2px #fff3a9) drop-shadow(0 0 5px #ffa526)}
+.s2-grid>*{min-width:0}.film{overflow-x:clip}.demo-file:not(.visible){display:none}
+
+
+
 .benefits-five{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
 .benefits-five .benefit{padding:clamp(14px,2vw,24px);gap:10px}
 .benefit h3{font-size:clamp(16px,1.55vw,21px)}
@@ -694,6 +712,26 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 @media(prefers-reduced-motion:reduce){.is-playing button[aria-pressed=true] .film-icon::after{animation:none}}
 .rv:focus-within{opacity:1;transform:none;transition:none}
 .mobile-menu:not([hidden]){max-height:calc(100vh - var(--hh,72px) - 24px);max-height:calc(100dvh - var(--hh,72px) - 24px);overflow-y:auto;overscroll-behavior:contain}
+@property --button-orbit{syntax:"<angle>";inherits:false;initial-value:0deg}
+:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button){
+ --button-top:#6c492e;--button-base:#452b1b;--button-text:#fffaf2;--button-depth:#2e1a0f;--button-edge:#8d633e;--button-light:#ffe3a3;
+ position:relative;isolation:isolate;overflow:visible;color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base));border:1px solid var(--button-edge);box-shadow:inset 0 1px 0 #ffffff38,0 4px 0 var(--button-depth),0 8px 14px #25160e31;text-shadow:none;
+}
+:where(.page,body) :is(.sticky-cta,.nav-btn){position:fixed}
+:where(.page,body) .nav-btn{position:absolute}
+:where(.page,body) :is(.on-dark,.salon-invite,.builder-preview,.mirror-invite,.site-footer) :is(.btn,.close,.mirror-invite button){
+ --button-top:#fffefa;--button-base:#f2e5d2;--button-text:#4c3020;--button-depth:#a08465;--button-edge:#d7b992;--button-light:#ffe3a3;
+ color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base));border-color:var(--button-edge);box-shadow:inset 0 1px 0 #fff,0 4px 0 var(--button-depth),0 8px 14px #160e083e;
+}
+:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:disabled):hover{filter:brightness(1.11)}
+:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:disabled):active{box-shadow:inset 0 1px 3px #160e0840,0 1px 0 var(--button-depth)}
+@supports (mask-composite:exclude){
+ :where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:disabled)::after{
+  content:"";position:absolute;inset:-4px;padding:1px;border-radius:inherit;pointer-events:none;background:conic-gradient(from var(--button-orbit),transparent 0deg 295deg,#c28c4a55 315deg,var(--button-light) 347deg,transparent 360deg);mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;animation:button-orbit 4s linear infinite;
+ }
+}
+@keyframes button-orbit{to{--button-orbit:360deg}}
+@media(prefers-reduced-motion:reduce){:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button)::after{animation:none}}
 
 .compare{margin-top:0}
 @media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}
@@ -859,7 +897,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
    <button type="button" data-film="nails" aria-pressed="false"><span class="film-icon"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M13 30V17a7 7 0 0 1 14 0v13Zm3-10v-3a4 4 0 0 1 8 0v3Z"/></svg></span><span>ناخن</span></button>
   </div>
   <div class="film-screen">
-   <video id="serviceVideo" class="service-video" muted playsinline controls preload="none" poster="/landing/hair-poster.webp" aria-label="مدل و رنگ مو">
+   <video id="serviceVideo" class="service-video" muted playsinline disablepictureinpicture disableremoteplayback preload="none" poster="/landing/hair-poster.webp" aria-label="مدل و رنگ مو">
     <source src="/landing/video/hair.mp4" type="video/mp4">
    </video>
    <div class="film-caption" aria-live="polite"><span>نمونه‌های شبیه‌سازی آینه</span><strong id="filmTitle">مدل و رنگ مو</strong><p id="filmError" role="status" hidden></p><p id="filmText">مدل و رنگ‌های مختلف را روی یک چهره ببینید و انتخاب کنید.</p></div>
@@ -879,18 +917,18 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
    <form id="start" class="builder-form" method="post" aria-describedby="builderAvailability">
   <p id="builderAvailability" class="builder-availability" role="status">پیش‌نمایش رایگان است. وضعیت ثبت درخواست در حال بررسی است.</p>
   <noscript><p>برای ساخت پیش‌نمایش، جاوااسکریپت مرورگر را فعال کنید.</p></noscript>
-    <fieldset><legend>هویت و نشانی صفحه</legend>
-     <label>نام سالن<input name="name" required minlength="2" maxlength="100" autocomplete="organization"></label>
-     <label>نشانی اختصاصی پیشنهادی <small dir="ltr">ayneh-salon.site/s/</small><input name="slug" aria-describedby="slugHint" dir="ltr" required pattern="[a-z][a-z0-9\\-]{1,44}[a-z0-9]" maxlength="46" placeholder="my-salon" autocapitalize="none" spellcheck="false"><small id="slugHint">۳ تا ۴۶ کاراکتر انگلیسی، عدد یا خط تیره. با حرف شروع کنید و با حرف یا عدد تمام کنید.</small></label>
-     <label class="builder-color">رنگ برند<input type="color" name="brand" value="#B9975B"></label>
-     <label>لوگو<input type="file" name="logo" accept="image/jpeg,image/png,image/webp"></label>
-     <label>عکس کاور<input type="file" name="cover" accept="image/jpeg,image/png,image/webp"></label>
+    <fieldset class="builder-identity"><legend>هویت و نشانی صفحه</legend>
+     <label class="identity-name"><span>نام سالن</span><input name="name" required minlength="2" maxlength="100" autocomplete="organization"></label>
+     <label class="identity-address"><span>نشانی اختصاصی پیشنهادی</span><span class="identity-url" dir="ltr"><span>ayneh-salon.site/s/</span><input name="slug" aria-describedby="slugHint" dir="ltr" required pattern="[a-z][a-z0-9\\-]{1,44}[a-z0-9]" maxlength="46" placeholder="my-salon" autocapitalize="none" spellcheck="false"></span><small id="slugHint">۳ تا ۴۶ کاراکتر انگلیسی، عدد یا خط تیره. با حرف شروع کنید و با حرف یا عدد تمام کنید.</small></label>
+     <label class="builder-color"><span>رنگ برند</span><span class="identity-color"><input type="color" name="brand" value="#B9975B"><output id="builderBrandHex" dir="ltr">#B9975B</output></span></label>
+     <label class="builder-upload"><span>لوگو</span><span class="upload-control"><span class="upload-action">لوگوی برند خود را انتخاب کنید</span><span class="upload-name" dir="auto">JPG، PNG یا WebP</span><input type="file" name="logo" accept="image/jpeg,image/png,image/webp"></span></label>
+     <label class="builder-upload"><span>عکس کاور</span><span class="upload-control"><span class="upload-action">عکس کاور برند خود را انتخاب کنید</span><span class="upload-name" dir="auto">JPG، PNG یا WebP</span><input type="file" name="cover" accept="image/jpeg,image/png,image/webp"></span></label>
     </fieldset>
     <details><summary>معرفی سالن و راه‌های تماس <small>اختیاری</small></summary>
      <fieldset><legend class="sr-only">مشخصات سالن</legend>
       <label class="wide">دربارهٔ سالن<textarea name="bio" maxlength="1000" rows="3"></textarea></label>
       <label>نام مدیر<input name="manager" maxlength="100"></label>
-      <label>عکس مدیر<input type="file" name="portrait" accept="image/jpeg,image/png,image/webp"></label>
+      <label class="builder-upload"><span>عکس مدیر</span><span class="upload-control"><span class="upload-action">عکس مدیر را انتخاب کنید</span><span class="upload-name" dir="auto">JPG، PNG یا WebP</span><input type="file" name="portrait" accept="image/jpeg,image/png,image/webp"></span></label>
       <label>تلفن سالن<input type="tel" name="phone" dir="ltr" maxlength="24"></label>
       <label>ساعات کاری<input name="hours" maxlength="150"></label>
       <label class="wide">آدرس<input name="address" maxlength="250"></label>
@@ -935,7 +973,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   <legend>نمونه‌کار</legend>
   <label>عنوان<input data-work="title" required minlength="2" maxlength="100"></label>
   <label>خدمت<select data-work="line"><option value="hair">مدل مو</option><option value="color">رنگ مو</option><option value="nails">ناخن</option><option value="lashes">مژه</option></select></label>
-  <label class="wide">عکس<input data-work="file" type="file" required accept="image/jpeg,image/png,image/webp"></label>
+  <label class="builder-upload wide"><span>عکس نمونه‌کار</span><span class="upload-control"><span class="upload-action">عکس نمونه‌کار را انتخاب کنید</span><span class="upload-name" dir="auto">JPG، PNG یا WebP</span><input type="file" data-work="file" required accept="image/jpeg,image/png,image/webp"></span></label>
   <label class="wide">توضیح کوتاه<textarea data-work="description" rows="2" maxlength="300"></textarea></label>
   <button type="button" class="btn btn--ghost builder-remove">حذف نمونه‌کار</button>
  </fieldset>
@@ -1546,7 +1584,6 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 })();
 
 /* Shared gold motion follows the button outline, keeping the label still. */
-(()=>{document.querySelectorAll('a.btn[href="#start"],.journey-actions a.btn').forEach(a=>{a.classList.add('orbit-cta');a.insertAdjacentHTML('beforeend','<svg class="cta-ring" aria-hidden="true"><rect pathLength="100"/></svg>')})})();
 
 </script>
 <script>
@@ -1605,6 +1642,7 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
   const slug=get('slug')||'your-salon';
   $('builderAddress').textContent='ayneh-salon.site/s/'+slug;
   live.style.setProperty('--salon-brand',get('brand'));
+  $('builderBrandHex').textContent=get('brand').toUpperCase();
   $('liveName').textContent=name;$('liveInitial').textContent=get('name')[0]||'س';
   $('liveBio').textContent=get('bio')||'مدل دلخواهت را روی عکس خودت ببین و انتخابت را برای سالن بفرست.';
   for(const [id,key] of [['liveAddress','address'],['liveHours','hours'],['liveManager','manager'],['livePhone','phone']]){
@@ -1626,7 +1664,12 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
    card.append(img,label,title,text);return card;
   });
   $('liveWorks').replaceChildren(...cards);$('liveEmpty').hidden=cards.length>0;
-  const kept=new Set([...form.querySelectorAll('input[type=file]')].map(input=>input.files[0]));
+  const kept=new Set();
+  for(const input of form.querySelectorAll('input[type=file]')){
+   const file=input.files[0];
+   if(file)kept.add(file);
+   input.closest('.upload-control').querySelector('.upload-name').textContent=file?.name||'JPG، PNG یا WebP';
+  }
   for(const [file,url] of objectURLs)if(!kept.has(file)){URL.revokeObjectURL(url);objectURLs.delete(file)}
  }
  function change(event){

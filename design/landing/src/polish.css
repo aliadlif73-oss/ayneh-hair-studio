@@ -4,9 +4,9 @@
 /* A right chevron lives at the physical right edge; a left one at the left. */
 .cinema-arrows{inset:0;display:block;pointer-events:none;z-index:7}.cinema-arrows button{position:absolute;top:50%;transform:translateY(-50%);pointer-events:auto;width:48px;height:48px;background:#211811b8;backdrop-filter:blur(8px);display:grid;place-items:center;transition:background .2s,border-color .2s,box-shadow .2s}
 .cinema-arrows [data-slide-prev]{right:24px;left:auto}.cinema-arrows [data-slide-next]{left:24px;right:auto}.cinema-arrows button:hover{background:#3c2d1d;border-color:#d7b975;box-shadow:0 0 25px #d7b97520}
-.btn.orbit-cta{position:relative;isolation:isolate;overflow:hidden;border-color:#b9975b80;box-shadow:0 5px 20px #0002;transition:background .22s,box-shadow .22s,transform .22s}
-.btn.orbit-cta:hover{transform:translateY(-2px);box-shadow:0 9px 25px #b9975b30}.btn.orbit-cta:focus-visible,.nav-btn:focus-visible,.cinema-arrows button:focus-visible{outline:2px solid #d8b878;outline-offset:4px}
-.cta-ring{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}.cta-ring rect{x:1px;y:1px;width:calc(100% - 2px);height:calc(100% - 2px);rx:28px;fill:none;stroke:#f8d98c;stroke-width:1.35;stroke-dasharray:14 86;animation:gold-orbit 5s linear infinite;filter:drop-shadow(0 0 3px #d8b36d80)}
+
+.nav-btn:focus-visible,.cinema-arrows button:focus-visible{outline:2px solid #d8b878;outline-offset:4px}
+
 .journey-actions{display:flex;flex-direction:column;gap:10px;margin-top:22px}.journey-copy .journey-actions .btn{display:inline-flex;justify-content:center;align-items:center;gap:18px;min-height:50px;width:100%;padding:12px 18px;border:1px solid #c8a86b88;border-radius:999px;background:#1a120d;color:#fff1d8;font:inherit;font-size:13px;font-weight:700;text-decoration:none;text-shadow:none;line-height:1.7}.journey-copy .journey-actions a span{margin:0}.journey-copy .journey-actions .salon-action{align-self:center;display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:44px;color:#edd5a4;font-size:11px;line-height:1.8;text-decoration:none;text-shadow:none;border-bottom:1px solid #c8a86b45;transition:color .2s,border-color .2s}.journey-copy .journey-actions .salon-action:hover{color:#fff3d9;border-color:#e2c180}
 /* All autoplay film cards share the same hierarchy and dimensions. */
 .auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{display:block;top:auto;bottom:80px;right:6%;left:auto;width:33%;max-width:400px;padding:26px;border:1px solid #d3b67e45;border-radius:20px;background:linear-gradient(140deg,#21170fe8,#21170fc9);backdrop-filter:blur(12px);box-shadow:0 20px 60px #0003}
@@ -16,15 +16,15 @@
 .svc,.feat li,.faq details,.phone{transition:border-color .25s,box-shadow .25s,background .25s}.svc:hover,.feat li:hover,.faq details[open]{border-color:#b9975b70;box-shadow:0 14px 34px #30201412}.faq details[open] summary{color:#936b2f}.s2-points li{transition:border-color .25s,transform .25s}.s2-points li:hover{border-color:#d5b06c;transform:translateX(-3px)}.salon-invite-card.rv{transition:opacity .7s,transform .7s}
 @media(max-width:900px){.auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{width:40%;right:5%;padding:22px}.salon-invite-card{grid-template-columns:1fr}.salon-invite-art{min-height:320px}.salon-invite-copy{padding:30px}.salon-invite-copy h2 br{display:none}.salon-invite-copy h2{font-size:34px}.salon-invite-copy .btn{max-width:420px}}
 @media(max-width:600px){.brand{gap:6px}.brand-symbol{width:31px;height:35px}.brand .brand-name small{font-size:8px;margin-top:3px}.brand-name{font-size:20px}.cinema-arrows button{width:40px;height:40px}.cinema-arrows [data-slide-prev]{right:10px}.cinema-arrows [data-slide-next]{left:10px}.cinema-copy,.is-current .cinema-copy{right:62px;left:62px;width:auto;max-width:none}.auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{position:relative;inset:auto;width:auto;max-width:none;margin:18px 18px 0;padding:22px;border-radius:18px}.auto-film .journey-copy h3,.auto-film .journey-copy[data-journey-copy=lashes] h3{font-size:25px}.salon-invite{padding:38px 18px}.salon-invite-card{border-radius:22px}.salon-invite-art{min-height:260px}.salon-invite-copy{padding:25px}.salon-invite-copy h2{font-size:30px}.salon-invite-copy>p:not(.journey-kicker){font-size:14px}.salon-invite-copy .btn{font-size:12px}.journey-copy .journey-actions .btn{font-size:12px}}
-@media(prefers-reduced-motion:reduce){.cta-ring rect{animation:none;stroke-dasharray:none;opacity:.5}.type-live:after{animation:none}.salon-invite-card:hover .salon-invite-art>img,.btn.orbit-cta:hover,.s2-points li:hover{transform:none}.svc,.feat li,.faq details,.phone{transition:none}}
+@media(prefers-reduced-motion:reduce){.type-live:after{animation:none}.salon-invite-card:hover .salon-invite-art>img,.s2-points li:hover{transform:none}.svc,.feat li,.faq details,.phone{transition:none}}
 
 @media(max-width:600px){.rail-wrap .nav-btn{display:grid;width:36px;height:36px;margin-top:0}.rail-wrap .nav-r{right:6px}.rail-wrap .nav-l{left:6px}}
 
 /* Long Persian actions must wrap inside their grid column on small screens. */
-.btn.orbit-cta{max-width:100%;min-width:0;white-space:normal;text-align:center;line-height:1.8}.btn.orbit-cta>span:first-child{min-width:0}.s2-grid>*{min-width:0}.cta-ring rect{rx:999px;ry:999px}.film{overflow-x:clip}.demo-file:not(.visible){display:none}
-.btn.orbit-cta{overflow:visible}
-.cta-ring{inset:-5px;width:calc(100% + 10px);height:calc(100% + 10px)}
-.cta-ring rect{stroke:#fff0ae;stroke-width:1.8;filter:drop-shadow(0 0 2px #fff3a9) drop-shadow(0 0 5px #ffa526)}
+.s2-grid>*{min-width:0}.film{overflow-x:clip}.demo-file:not(.visible){display:none}
+
+
+
 .benefits-five{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
 .benefits-five .benefit{padding:clamp(14px,2vw,24px);gap:10px}
 .benefit h3{font-size:clamp(16px,1.55vw,21px)}
@@ -57,3 +57,23 @@
 @media(prefers-reduced-motion:reduce){.is-playing button[aria-pressed=true] .film-icon::after{animation:none}}
 .rv:focus-within{opacity:1;transform:none;transition:none}
 .mobile-menu:not([hidden]){max-height:calc(100vh - var(--hh,72px) - 24px);max-height:calc(100dvh - var(--hh,72px) - 24px);overflow-y:auto;overscroll-behavior:contain}
+@property --button-orbit{syntax:"<angle>";inherits:false;initial-value:0deg}
+:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button){
+ --button-top:#6c492e;--button-base:#452b1b;--button-text:#fffaf2;--button-depth:#2e1a0f;--button-edge:#8d633e;--button-light:#ffe3a3;
+ position:relative;isolation:isolate;overflow:visible;color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base));border:1px solid var(--button-edge);box-shadow:inset 0 1px 0 #ffffff38,0 4px 0 var(--button-depth),0 8px 14px #25160e31;text-shadow:none;
+}
+:where(.page,body) :is(.sticky-cta,.nav-btn){position:fixed}
+:where(.page,body) .nav-btn{position:absolute}
+:where(.page,body) :is(.on-dark,.salon-invite,.builder-preview,.mirror-invite,.site-footer) :is(.btn,.close,.mirror-invite button){
+ --button-top:#fffefa;--button-base:#f2e5d2;--button-text:#4c3020;--button-depth:#a08465;--button-edge:#d7b992;--button-light:#ffe3a3;
+ color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base));border-color:var(--button-edge);box-shadow:inset 0 1px 0 #fff,0 4px 0 var(--button-depth),0 8px 14px #160e083e;
+}
+:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:disabled):hover{filter:brightness(1.11)}
+:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:disabled):active{box-shadow:inset 0 1px 3px #160e0840,0 1px 0 var(--button-depth)}
+@supports (mask-composite:exclude){
+ :where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:disabled)::after{
+  content:"";position:absolute;inset:-4px;padding:1px;border-radius:inherit;pointer-events:none;background:conic-gradient(from var(--button-orbit),transparent 0deg 295deg,#c28c4a55 315deg,var(--button-light) 347deg,transparent 360deg);mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;animation:button-orbit 4s linear infinite;
+ }
+}
+@keyframes button-orbit{to{--button-orbit:360deg}}
+@media(prefers-reduced-motion:reduce){:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button)::after{animation:none}}

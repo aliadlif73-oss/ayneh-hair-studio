@@ -53,6 +53,7 @@
   const slug=get('slug')||'your-salon';
   $('builderAddress').textContent='ayneh-salon.site/s/'+slug;
   live.style.setProperty('--salon-brand',get('brand'));
+  $('builderBrandHex').textContent=get('brand').toUpperCase();
   $('liveName').textContent=name;$('liveInitial').textContent=get('name')[0]||'س';
   $('liveBio').textContent=get('bio')||'مدل دلخواهت را روی عکس خودت ببین و انتخابت را برای سالن بفرست.';
   for(const [id,key] of [['liveAddress','address'],['liveHours','hours'],['liveManager','manager'],['livePhone','phone']]){
@@ -74,7 +75,12 @@
    card.append(img,label,title,text);return card;
   });
   $('liveWorks').replaceChildren(...cards);$('liveEmpty').hidden=cards.length>0;
-  const kept=new Set([...form.querySelectorAll('input[type=file]')].map(input=>input.files[0]));
+  const kept=new Set();
+  for(const input of form.querySelectorAll('input[type=file]')){
+   const file=input.files[0];
+   if(file)kept.add(file);
+   input.closest('.upload-control').querySelector('.upload-name').textContent=file?.name||'JPG، PNG یا WebP';
+  }
   for(const [file,url] of objectURLs)if(!kept.has(file)){URL.revokeObjectURL(url);objectURLs.delete(file)}
  }
  function change(event){

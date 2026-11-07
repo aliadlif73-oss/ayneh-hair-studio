@@ -34,4 +34,3 @@
 })();
 
 /* Shared gold motion follows the button outline, keeping the label still. */
-(()=>{document.querySelectorAll('a.btn[href="#start"],.journey-actions a.btn').forEach(a=>{a.classList.add('orbit-cta');a.insertAdjacentHTML('beforeend','<svg class="cta-ring" aria-hidden="true"><rect pathLength="100"/></svg>')})})();
