@@ -1,20 +1,8 @@
-/* "Make an image on my photo" links: open the demo salon on the line (and look) the visitor picked. */
+/* The gallery, phone verification and result stay inside this landing page. */
 (()=>{
  const links=[...document.querySelectorAll('[data-try]')];if(!links.length)return;
- const PREVIEW=!!window.__AYN_PREVIEW;
- function href(line){
-  const sel=window.__AYN_SEL||{};
-  // the salon page has separate hairstyle and hair-colour services: a picked style opens the first, a colour alone the second
-  if(line==='hair'&&sel.styleIdx==null&&sel.color)return '/s/demo?l=color&c='+encodeURIComponent(sel.color);
-  const q=['l='+line];if(line==='hair'&&sel.styleIdx!=null)q.push('s='+sel.styleIdx);
-  return '/s/demo?'+q.join('&');
- }
- function sync(){links.forEach(a=>{a.href=href(a.dataset.try)})}
- addEventListener('ayneh:selection',sync);sync();
- links.forEach(a=>a.addEventListener('click',e=>{
-  if(!PREVIEW)return;e.preventDefault();
-  let n=a.parentElement.querySelector('.try-note');
-  if(!n){n=document.createElement('small');n.className='try-note';a.after(n)}
-  n.textContent='در پیش‌نمایش کار نمی‌کند. روی سایت اصلی به صفحهٔ نمونه می‌رود و آنجا بعد از تأیید موبایل تصویر ساخته می‌شود.';
- }));
+ const input=document.createElement('input');input.type='file';input.accept='image/jpeg,image/png,image/webp';input.hidden=true;input.setAttribute('aria-label','انتخاب تصویر خودم');document.body.append(input);let line='hair',opener;
+ const dialog=document.createElement('dialog');dialog.className='personal-try';dialog.setAttribute('aria-label','ساخت تصویر خودم');dialog.innerHTML='<div class="personal-head"><strong>این بار، تصویر خودتان.</strong><button type="button" aria-label="بستن تجربهٔ تصویر من">×</button></div><iframe title="عکس من، انتخاب من" allow="camera"></iframe>';document.body.append(dialog);const frame=dialog.querySelector('iframe');dialog.querySelector('button').onclick=()=>dialog.close();dialog.addEventListener('close',()=>{document.documentElement.classList.remove('try-open');opener?.focus({preventScroll:true})});
+ links.forEach(a=>{a.addEventListener('click',e=>{if(e.button!==0||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey)return;e.preventDefault();line=a.dataset.try;opener=a;input.value='';input.click()})});
+ input.addEventListener('change',async()=>{const file=input.files[0];if(!file)return;if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>25*1024*1024){alert('یک تصویر JPG، PNG یا WebP با حجم کمتر از ۲۵ مگابایت انتخاب کنید.');return}try{const selection={...(window.__AYN_SEL||{})};await window.__AYN_DRAFT.put({file,line,selection});const q=new URLSearchParams({l:line,draft:'1',embed:'1'});if(line==='hair'){q.set('s',selection.styleIdx??0);if(selection.color)q.set('c',selection.color)}frame.src='/s/demo?'+q;dialog.showModal();document.documentElement.classList.add('try-open')}catch(_){alert('باز کردن تصویر ممکن نشد. دوباره انتخاب کنید.')}});
 })();

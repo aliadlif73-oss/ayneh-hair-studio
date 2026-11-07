@@ -31,6 +31,18 @@ id = "ded9d8ee91da4d3ebb2a5f220ef90df2"
 [triggers]
 crons = ["*/10 * * * *"]
 
+# Pull-request previews (wrangler preview) use their own empty database and KV,
+# so a preview can never read or change production salons, customers or photos.
+[[previews.d1_databases]]
+binding = "DB"
+database_name = "ayneh-preview"
+database_id = "fd470bb3-9e5e-4dd7-b9d2-b7312c3aec80"
+migrations_dir = "drizzle"
+
+[[previews.kv_namespaces]]
+binding = "KV"
+id = "ae40a3715bf54972a105cdb9b8d5814b"
+
 # Catalog style photos (public/catalog/NN.webp) are served as static files before the worker.
 [assets]
 directory = "./public"

@@ -1,3 +1,4 @@
+import {saveActivation,activationAsset} from './activation.js';
 import {Problem,must,phone,text,safeLink,transferPrompt,uid,token,hash,digits,limited} from './domain.js';
 import {styles} from './legacy.js';
 import {identity,issueCookie,clearCookie,same,passwordLoginEnabled} from './auth.js';
@@ -92,6 +93,34 @@ async function uploadProvider(env,m){const object=await bucketFor(env).get(m.obj
 
 export async function api(req,env){const u=new URL(req.url),path=u.pathname;must(env.DB,'پایگاه داده هنوز آماده نیست',503);const db=env.DB;
  if(req.method!=='GET'){must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
+ if(path==='/api/activation'&&req.method==='GET'){
+  must(smsReady(env),'تأیید شماره هنوز فعال نشده است.',503);
+  must(await one(db,"SELECT 1 FROM sqlite_master WHERE type='table' AND name='salon_activations'"),'ثبت فعال‌سازی هنوز در این محیط راه‌اندازی نشده است.',503);
+  return J({ok:true});
+ }
+ if(path==='/api/activation'&&req.method==='POST'){
+  const demo=await one(db,"SELECT id FROM salons WHERE slug='demo' AND owner_id='system'");
+  must(demo,'ابتدا شمارهٔ موبایل را تأیید کنید.',401);
+  const verified=await session(req,db,demo);
+  await limited(db,'activation:'+verified.id,12);
+  return J(await saveActivation(req,db,verified));
+ }
+ if(path==='/api/owner/activations'&&req.method==='GET'){
+  await owner(req,env);
+  const before=u.searchParams.get('before');
+  const cursor=before?.match(/^(\d{1,15})\.([a-f0-9-]{36})$/);
+  must(!before||cursor,'صفحهٔ درخواست‌ها معتبر نیست.');
+  const rows=cursor
+   ?await all(db,'SELECT * FROM salon_activations WHERE (created_at,id)<(?,?) ORDER BY created_at DESC,id DESC LIMIT 31',Number(cursor[1]),cursor[2])
+   :await all(db,'SELECT * FROM salon_activations ORDER BY created_at DESC,id DESC LIMIT 31');
+  const page=rows.slice(0,30),last=page.at(-1);
+  return J({requests:page.map(row=>({...row,draft:parse(row.draft)})),next:rows.length>30?last.created_at+'.'+last.id:null});
+ }
+ const activationMedia=path.match(/^\/api\/owner\/activations\/([a-f0-9-]{36})\/(logo|cover|portrait|work-[0-5])$/);
+ if(activationMedia&&req.method==='GET'){
+  await owner(req,env);
+  return activationAsset(db,activationMedia[1],activationMedia[2]);
+ }
  if(path==='/api/inquiry'&&req.method==='POST'){
   await limited(db,'inquiry:'+clientIp(req),5,'درخواست‌های زیادی فرستاده‌ای؛ کمی بعد دوباره امتحان کن');
   const b=await req.json().catch(()=>({}));
@@ -262,7 +291,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   try{
    const images=[await uploadProvider(env,base)];if(reference)images.push(await uploadProvider(env,reference));
    const prompt=look?(line==='hair'?transferPrompt('catalog',look,''):line==='color'?linePrompt('color','catalog',look,{},''):linePrompt(line,line==='nails'?'salon':'catalog',look,opts,color))
-    :line==='hair'?transferPrompt(reference?'style':'catalog',styles[b.style]?.[1]||'','')
+    :line==='hair'?transferPrompt(reference?'style':'catalog',styles[b.style]?.[1]||'',demo&&b.apply_color===true?color:'')
     :line==='color'?linePrompt('color',mode,mode==='catalog'?lineStyles('color')[b.style][3]:'',{},color)
     :linePrompt(line,reference?'reference':'catalog',reference?'':lineStyles(line)[b.style][3],opts,color);
    const job=await createImageTask(env,cfg,{prompt,image_input:images,aspect_ratio:ratio,resolution:'2K',output_format:'jpg'});

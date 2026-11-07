@@ -1,3 +1,4 @@
+import {draftScript} from './draft.js';
 import {styles} from './legacy.js';
 import {NAIL_STYLES,LASH_STYLES,COLOR_STYLES,COLOR_SWATCHES,LINE_OPTIONS,LINE_COLORS,LINE_POPULAR,LINE_FILTERS,LINE_PHOTO,LINE_LABEL} from './lines.js';
 const lineJSON=(line,list)=>({styles:list.map(x=>[x[0],x[1],x[2]]),filters:LINE_FILTERS[line],options:(LINE_OPTIONS[line]||[]).map(o=>({key:o.key,label:o.label,items:o.items.map(i=>i[0])})),colors:(LINE_COLORS[line]||[]).map(c=>[c[0],c[1]]),popular:LINE_POPULAR[line]||[]});
@@ -502,7 +503,9 @@ const clientJS=String.raw`
 var STYLES=__STYLES__;
 var LINES=__LINES__;
 var MARK=__MARK__;
-var SLUG=location.pathname.split('/').filter(Boolean)[1]||'';
+var EMBED=/[?&]embed=1(?:&|$)/.test(location.search);if(EMBED)document.body.classList.add('embedded-demo');
+var STUDIO_PREVIEW=location.pathname==='/salon-preview';
+var SLUG=STUDIO_PREVIEW?'sanaz-salon':location.pathname.split('/').filter(Boolean)[1]||'';
 var ICO={
  camera:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.2a2 2 0 0 0 1.7-.9l.6-1a2 2 0 0 1 1.7-.9h2.6a2 2 0 0 1 1.7.9l.6 1a2 2 0 0 0 1.7.9h1.2A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg>',
  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><rect x="4.5" y="10" width="15" height="10" rx="2.6"/><path d="M8.5 10V7.8a3.5 3.5 0 0 1 7 0V10"/></svg>',
@@ -537,8 +540,9 @@ function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
 function tehranDate(d){var p={};new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d).forEach(function(x){p[x.type]=x.value});return p.year+'-'+p.month+'-'+p.day}
 function el(tag,attrs,children){var e=document.createElement(tag);attrs=attrs||{};Object.keys(attrs).forEach(function(k){var v=attrs[k];if(v===undefined||v===null)return;if(k==='text')e.textContent=v;else if(k==='html')e.innerHTML=v;else if(k==='class')e.className=v;else if(k.slice(0,2)==='on')e.addEventListener(k.slice(2),v);else if(k==='checked'||k==='disabled'||k==='hidden'||k==='required')e[k]=!!v;else e.setAttribute(k,v)});(children||[]).forEach(function(c){if(c!==null&&c!==undefined&&c!==false)e.append(c)});return e}
 function h(tag,text,cls){return el(tag,{class:cls||'',text:text})}
-function media(id){return '/api/s/'+SLUG+'/media/'+id}
+function media(id){return STUDIO_PREVIEW&&typeof id==='string'&&id.startsWith('blob:')?id:'/api/s/'+SLUG+'/media/'+id}
 function api(path,body,raw){
+ if(STUDIO_PREVIEW&&path!=='public')return Promise.reject(new Error('این صفحه پیش‌نمایش است.'));
  var init={};
  if(body!==undefined){init.method='POST';init.headers=raw?{}:{'Content-Type':'application/json'};init.body=raw?body:JSON.stringify(body)}
  return fetch('/api/s/'+SLUG+'/'+path,init).then(function(r){return r.json().catch(function(){return {}}).then(function(d){if(!r.ok)throw new Error(d.error||'خطای ارتباط با سرور');return d})})
@@ -557,10 +561,29 @@ document.addEventListener('error',function(e){var t=e.target;if(t&&t.tagName==='
 /* ---------- anonymous usage events (no name, phone or photo) ---------- */
 var VISITOR=(function(){var v='';try{v=localStorage.getItem('ayneh-v')||''}catch(e){}if(!/^[a-f0-9]{32}$/.test(v)){v=Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(16)),function(b){return b.toString(16).padStart(2,'0')}).join('');try{localStorage.setItem('ayneh-v',v)}catch(e){}}return v})();
 var tracked={};
-function track(kind,meta,once){if(once){if(tracked[kind+meta])return;tracked[kind+meta]=1}try{fetch('/api/s/'+SLUG+'/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:kind,v:VISITOR,meta:meta==null?'':String(meta)}),keepalive:true}).catch(function(){})}catch(e){}}
+function track(kind,meta,once){if(STUDIO_PREVIEW)return;if(once){if(tracked[kind+meta])return;tracked[kind+meta]=1}try{fetch('/api/s/'+SLUG+'/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kind:kind,v:VISITOR,meta:meta==null?'':String(meta)}),keepalive:true}).catch(function(){})}catch(e){}}
 
 /* ---------- boot ---------- */
 (async function boot(){
+ if(STUDIO_PREVIEW){
+  window.addEventListener('message',function(e){
+   if(e.source!==parent||e.origin!==location.origin||e.data?.type!=='ayneh-salon-draft')return;
+   state.pub=e.data.page;
+   applyBrand(e.data.brand);
+   state.step=1;
+   state.tab=hasLineWork(state.line)?'salon':'catalog';
+   renderAll();
+   parent.postMessage({type:'ayneh-salon-rendered',id:e.data.id},location.origin);
+  });
+  try{
+   var sample=await api('public');
+   if(state.pub||!sample.salon)return;
+   state.pub=sample;
+   state.tab=hasLineWork(state.line)?'salon':'catalog';
+   renderAll();
+  }catch(e){if(!state.pub?.salon)showFatal(e.message)}
+  return;
+ }
  try{state.pub=await api('public')}catch(e){showFatal(e.message);return}
  // Referral: who brought this visitor (kept by the server for good) and the tag for her own shares.
  var refIn=(location.search.match(/[?&]r=([a-z0-9]{1,20})/)||[])[1]||'';
@@ -581,6 +604,7 @@ function track(kind,meta,once){if(once){if(tracked[kind+meta])return;tracked[kin
  // Open on the salon's own work for this line when it has some, otherwise on the ready-made looks.
  state.tab=hasLineWork(state.line)?'salon':'catalog';
  renderAll();
+ if(SLUG==='demo'&&/[?&]draft=1/.test(location.search)){try{var draft=await window.__AYN_DRAFT.take();if(draft&&draft.file){state.style=draft.selection&&draft.selection.styleIdx!=null?draft.selection.styleIdx:state.style;state.color=draft.selection&&draft.selection.color||state.color;if(EMBED){state.preview=URL.createObjectURL(draft.file);renderFlow();var continuePhoto=async function(){await handleFile(draft.file,'original');if(state.original){clearTimeout(state.advT);state.justUploaded=false;go(3);generate()}};await ensureSession();if(state.verified)continuePhoto();else openOtp(continuePhoto)}else handleFile(draft.file,'original')}}catch(e){toast('عکس را دوباره از گالری انتخاب کن','error')}}
  if(pending){state.gen=pending;state.step=3;state.busy=true;state.genT0=Date.now()-8000;renderFlow();renderDock();poll(pending,true)}
  track('view',refIn?'share':'',true);
  renderInvite();
@@ -589,9 +613,12 @@ function track(kind,meta,once){if(once){if(tracked[kind+meta])return;tracked[kin
 })();
 
 /* ---------- free trial strip: brand colour, time left, images left ---------- */
-function trialBar(t){
+function applyBrand(brand){
  var root=document.documentElement;
- if(/^#[0-9a-f]{6}$/i.test(t.brand||'')){var n=parseInt(t.brand.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255,mix=function(k,to){return 'rgb('+[r,g,b].map(function(c){return Math.round(c+(to-c)*k)}).join(',')+')'};root.style.setProperty('--accent',mix(.18,0));root.style.setProperty('--accent-ink',mix(.45,0));root.style.setProperty('--accent-soft',mix(.82,255));root.style.setProperty('--accent-ring','rgba('+r+','+g+','+b+',.3)')}
+ if(/^#[0-9a-f]{6}$/i.test(brand||'')){var n=parseInt(brand.slice(1),16),r=n>>16,g=(n>>8)&255,b=n&255,mix=function(k,to){return 'rgb('+[r,g,b].map(function(c){return Math.round(c+(to-c)*k)}).join(',')+')'};root.style.setProperty('--accent',mix(.18,0));root.style.setProperty('--accent-ink',mix(.45,0));root.style.setProperty('--accent-soft',mix(.82,255));root.style.setProperty('--accent-ring','rgba('+r+','+g+','+b+',.3)')}
+}
+function trialBar(t){
+ applyBrand(t.brand);
  var bar=el('div',{class:'trialbar',role:'status'}),fa=function(x){return String(x).replace(/\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d]})};
  function paint(){var ms=t.expires_at-Date.now();if(t.expired||ms<=0){bar.textContent='مهلت صفحهٔ آزمایشی تمام شد. برای ادامه با آینه تماس بگیرید.';bar.classList.add('is-over');var main=$('#main');if(main&&!$('.trial-over')){main.replaceChildren(el('div',{class:'panel fatal trial-over'},[h('h1','مهلت صفحهٔ آزمایشی تمام شد'),h('p','این صفحه ۱۰ ساعت و ۵ تصویر برای امتحان داشت. برای نسخهٔ دائمی با آینه تماس بگیرید.','muted'),el('a',{class:'btn btn--primary',href:'/#start',text:'درخواست نسخهٔ دائمی'})]))}return}
   var m=Math.ceil(ms/60000),hh=Math.floor(m/60),mm=m%60;bar.textContent='صفحهٔ آزمایشی · '+fa(hh)+' ساعت و '+fa(mm)+' دقیقه مانده · '+fa(t.images_left)+' تصویر از '+fa(t.images_limit)}
@@ -841,7 +868,7 @@ function stepModel(){
   var fresh=state.justArrived;state.justArrived=false;
   box.append(el('div',{class:'selfie'+(fresh?' selfie--fresh':'')},[el('img',{src:state.preview||media(state.original),alt:''}),el('div',{},[el('b',{html:ICO.check+'<span>'+(fresh?'عکست ثبت شد':'عکست آماده است')+'</span>'}),el('span',{text:(L==='nails'?'طرح':L==='color'?'رنگ':'مدل')+' انتخابی روی همین عکس امتحان می‌شود.'})]),el('button',{class:'btn btn--ghost btn--sm',type:'button',onclick:function(){changePhoto();go(1)},text:'تغییر'})]));
  }
- box.append(flowHead(MODEL_HEAD[L][0],MODEL_HEAD[L][1]));
+ box.append(flowHead(MODEL_HEAD[L][0],L==='hair'&&state.pub.demo?'مدل مو و رنگ دلخواهت را انتخاب کن؛ هر دو روی همین عکس خودت ساخته می‌شوند.':MODEL_HEAD[L][1]));
  if(quotaLeft()===0&&!state.tourDemo)box.append(notice('warn',quotaOut()));
  if(L==='color'){var bc=baseChooser();if(bc)box.append(bc)}
  var seg=el('div',{class:'seg',role:'tablist'});
@@ -925,7 +952,7 @@ function stepModel(){
   box.append(el('div',{class:'opt'},[h('p',o.label+' (اختیاری)','lbl'),row]));
  });
  // Nails and lashes: a colour box for every way of choosing. Hair colour: a colour can also just be typed.
- if(L!=='hair')box.append(colorPicker());
+ if(L!=='hair'||state.pub.demo)box.append(colorPicker());
  if(state.reference&&!state.pub.reference&&state.pub.generation)box.append(notice('warn','ساخت تصویر از عکس مرجع یا کار سالن هنوز برای این سالن فعال نشده. می‌توانی از موارد آماده انتخاب کنی، یا همین را بدون شبیه‌سازی برای '+artist()+' بفرستی.'));
  var can=canGenerate()||!!state.tourDemo,ready=hasChoice()||!!state.tourDemo,left=quotaLeft();
  box.append(el('div',{class:'flow__nav'},[
@@ -1183,7 +1210,7 @@ function downloadLink(cls,label){
 function stepResult(){
  var box=el('div',{class:'panel flow'}),L=state.line;
  box.append(flowHead(state.result?({color:'خودت با رنگ جدید',nails:'ناخن‌هایت با طرح جدید',lashes:'خودت با مژهٔ جدید'}[L]||'خودت با مدل جدید'):state.busy?'دارم می‌سازم…':'نتیجه و ارسال','این تصویر یک شبیه‌سازی پیشنهادی است، نه تضمین اجرا. تصمیم نهایی با '+artist()+' است.'));
- var meta=L==='hair'?'رنگ موهایت همان می‌ماند':L==='color'?(baseId()?'روی مدل موی جدیدت':'روی عکس اصلی‌ات'):(state.color?'رنگ: '+state.color:'رنگ: هر چه به طرح بیاید');
+ var meta=L==='hair'?(state.pub.demo&&state.color?'رنگ: '+state.color:'رنگ موهایت همان می‌ماند'):L==='color'?(baseId()?'روی مدل موی جدیدت':'روی عکس اصلی‌ات'):(state.color?'رنگ: '+state.color:'رنگ: هر چه به طرح بیاید');
  box.append(el('div',{class:'summary'},[
   state.original?el('img',{src:media(state.original),alt:''}):null,
   el('div',{class:'grow'},[el('b',{text:(lookName()||'هنوز چیزی انتخاب نشده')}),el('div',{class:'summary__meta',text:meta})]),
@@ -1260,11 +1287,12 @@ function renderDock(){
 
 /* ---------- upload ---------- */
 function handleFile(file,kind){
+ if(STUDIO_PREVIEW){toast('این صفحه برای پیش‌نمایش چیدمان است. برای امتحان روی عکس، دموی سالن ساناز را باز کنید.');return Promise.resolve()}
  if(!file){toast('عکسی انتخاب نشد');return}
  if(['image/jpeg','image/png','image/webp'].indexOf(file.type)<0){toast('فقط JPG، PNG یا WebP','error');return}
  state.busy=true;renderDock();
  if(kind==='original'){try{if(state.preview)URL.revokeObjectURL(state.preview);state.preview=URL.createObjectURL(file)}catch(e){state.preview=null}state.original=null;state.justUploaded=false;clearTimeout(state.advT);if(state.step!==1){state.step=1;renderSteps()}renderFlow();focusFlow()}
- Promise.all([compress(file),ensureSession()]).then(function(r){
+ return Promise.all([compress(file),ensureSession()]).then(function(r){
   return api('upload?kind='+kind,r[0],true);
  }).then(function(d){
   if(kind==='original'){track('photo',state.line);state.original=d.id;state.ratio=compress.ratio||'';state.result=null;state.error='';state.idem=null;state.justUploaded=true;
@@ -1317,9 +1345,9 @@ function generate(){
  state.busy=true;state.error='';state.result=null;state.genT0=Date.now();state.genBase=baseId();renderFlow();renderDock();
  ensureSession().then(function(){
   state.idem=state.idem||uuid();
-  var col=state.line==='hair'?'':state.line==='color'?(typedColor()?state.color.trim():''):state.color;
+  var col=state.line==='hair'?(state.pub.demo?state.color:''):state.line==='color'?(typedColor()?state.color.trim():''):state.color;
   // The page's own note under «بساز» says the photo is sent for the simulation; no extra checkbox.
-  return api('generate',{v:VISITOR,image_consent:true,idem:state.idem,line:state.line,opts:state.opts,ratio:state.ratio||undefined,original_id:state.original,base_id:state.line==='color'?(state.genBase||undefined):undefined,reference_id:state.reference||undefined,style:state.reference?undefined:(state.style===null?undefined:state.style),color:col||undefined});
+  return api('generate',{apply_color:!!(state.pub.demo&&state.line==='hair'&&state.color),v:VISITOR,image_consent:true,idem:state.idem,line:state.line,opts:state.opts,ratio:state.ratio||undefined,original_id:state.original,base_id:state.line==='color'?(state.genBase||undefined):undefined,reference_id:state.reference||undefined,style:state.reference?undefined:(state.style===null?undefined:state.style),color:col||undefined});
  }).then(function(job){
   track('generate',state.reference?(state.refTitle?'salon':'upload'):'catalog');
   spentQuota(state.line);
@@ -1515,7 +1543,7 @@ function tourSteps(){
   {el:mobile?'#dock .dock__inner':'.hero__cta .btn',title:'شروع کنیم؟',text:'اول عکس خودت را بگذار. بعد از دیدن نتیجه، با یک دکمه برای سالن فرستاده می‌شود و خود سالن با تو تماس می‌گیرد.',last:true}
  ].filter(Boolean);
 }
-function maybeTour(){try{if(localStorage.getItem(TOUR_KEY))return}catch(e){return}if(state.busy)return;setTimeout(startTour,700)}
+function maybeTour(){if(SLUG==='demo'&&/[?&]draft=1/.test(location.search))return;try{if(localStorage.getItem(TOUR_KEY))return}catch(e){return}if(state.busy)return;setTimeout(startTour,700)}
 function startTour(){
  if($('.tour'))return;
  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1610,15 +1638,15 @@ function openOtp(next){
  var timer=null;
  function shut(){clearInterval(timer);closeSheet()}
  var panel=el('div',{class:'sheet__panel'});
- var head=el('div',{class:'sheet__head'},[h('h2','تأیید شمارهٔ موبایل'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:shut})]);
+ var head=el('div',{class:'sheet__head'},[h('h2','برای ساخت تصویر، ابتدا وارد شوید'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:shut})]);
  var me=state.me||{},bits=String(me.name||'').trim().split(/\s+/);
  var firstWrap=wrapField('otpFirst','نام','text',bits[0]||'','',{autocomplete:'given-name'});
  var lastWrap=wrapField('otpLast','نام خانوادگی','text',bits.slice(1).join(' '),'',{autocomplete:'family-name'});
  var phoneWrap=wrapField('otpPhone','شمارهٔ موبایل','tel',me.phone||'','۰۹۱۲۱۲۳۴۵۶۷',{inputmode:'tel',autocomplete:'tel'});
  var sendBtn=el('button',{class:'btn btn--primary btn--block',type:'submit',text:'ارسال کد تأیید'});
- var form=el('form',{novalidate:'true'},[firstWrap,lastWrap,phoneWrap,sendBtn]);
+ var form=el('form',{novalidate:'true'},state.pub.demo?[phoneWrap,sendBtn]:[firstWrap,lastWrap,phoneWrap,sendBtn]);
  var last=null;
- panel.append(head,h('p','برای ساخت شبیه‌سازی، اول شمارهٔ موبایلت را تأیید می‌کنیم. یک کد پیامکی برایت می‌فرستیم. نام و شماره‌ات فقط برای همین سالن و پیگیری درخواستت استفاده می‌شود و در سابقهٔ سالن می‌ماند.','muted'),form);
+ panel.append(head,h('p',state.pub.demo?'شمارهٔ موبایلت را وارد کن و کد پیامک‌شده را بزن. بعد از تأیید، همین تصویر با مدل و رنگ انتخابی‌ات ساخته می‌شود.':'برای ساخت شبیه‌سازی، اول شمارهٔ موبایلت را تأیید می‌کنیم. یک کد پیامکی برایت می‌فرستیم. نام و شماره‌ات فقط برای همین سالن و پیگیری درخواستت استفاده می‌شود و در سابقهٔ سالن می‌ماند.','muted'),form);
  function codeStep(){
   var codeWrap=wrapField('otpCode','کد پیامک‌شده','text','','',{autocomplete:'one-time-code',inputmode:'numeric'});
   codeWrap.querySelector('input').setAttribute('dir','ltr');
@@ -1655,7 +1683,7 @@ function openOtp(next){
  }
  form.addEventListener('submit',function(e){
   e.preventDefault();
-  var first=firstWrap.querySelector('input').value.trim(),lastName=lastWrap.querySelector('input').value.trim();
+  var first=state.pub.demo?'مشتری':firstWrap.querySelector('input').value.trim(),lastName=state.pub.demo?'آینه':lastWrap.querySelector('input').value.trim();
   var okFirst=validate(firstWrap,function(){return first.length>=2},'نام را بنویس');
   var okLast=validate(lastWrap,function(){return lastName.length>=2},'نام خانوادگی را بنویس');
   var num=normalizePhone(phoneWrap.querySelector('input').value);
@@ -1777,7 +1805,7 @@ var SHARE_IC={
  link:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>',
  more:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>'
 };
-function shareUrl(){return location.origin+'/s/'+SLUG+(state.tag?'?r='+state.tag:'')}
+function shareUrl(){if(STUDIO_PREVIEW)return 'https://ayneh-salon.site/s/'+state.pub.salon.slug;return location.origin+'/s/'+SLUG+(state.tag?'?r='+state.tag:'')}
 function shareText(){return 'این رو ببین! توی صفحهٔ «'+state.pub.salon.name+'» می‌تونی مدل مو، رنگ مو، طرح ناخن یا مژهٔ جدید رو روی عکس خودت امتحان کنی؛ رایگان و بدون نصب 👇'}
 function renderInvite(){
  var box=$('#invite');if(!box||!state.pub)return;
@@ -1832,6 +1860,7 @@ document.addEventListener('click',function(e){
 });
 `;
 
+const embeddedCSS='.embedded-demo .head,.embedded-demo #steps,.embedded-demo #invite,.embedded-demo .trialbar,.embedded-demo footer{display:none!important}.embedded-demo main{padding-top:20px}.embedded-demo{background:#f6f0e7}.embedded-demo .panel{box-shadow:none}';
 export const customerHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -1864,5 +1893,5 @@ export const customerHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><h
 <dialog class="sheet" id="sheet" aria-label="پنجره"></dialog>
 <script>__JS__</script>
 </body></html>`
- .replace('__CSS__',()=>baseCSS+customerCSS)
- .replace('__JS__',()=>clientJS.replace('__STYLES__',()=>JSON.stringify(styles)).replace('__LINES__',()=>LINES_JSON).replace('__MARK__',()=>JSON.stringify(markSVG)));
+ .replace('__CSS__',()=>baseCSS+customerCSS+embeddedCSS)
+ .replace('__JS__',()=>draftScript+';'+clientJS.replace('__STYLES__',()=>JSON.stringify(styles)).replace('__LINES__',()=>LINES_JSON).replace('__MARK__',()=>JSON.stringify(markSVG)));

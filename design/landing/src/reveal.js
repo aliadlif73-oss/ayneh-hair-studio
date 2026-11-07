@@ -2,8 +2,8 @@
    already on screen at load is left alone. */
 (()=>{
  if(matchMedia('(prefers-reduced-motion:reduce)').matches||!('IntersectionObserver' in window))return;
- const sel='.sec-head,.svc,.step,.feat li,.plan,.faq details,.cta-band__in,.s2-copy,.s2-demo,.trial-mock,#leadForm,.selection-copy,.compare';
- const els=[...document.querySelectorAll(sel)].filter(e=>e.getBoundingClientRect().top>innerHeight);
+ const sel='.sec-head,.svc,.step,.feat li,.plan,.faq details,.cta-band__in,.s2-copy,.s2-demo,.trial-mock,#leadForm,.selection-copy,.compare,.salon-invite-card';
+ const els=[...document.querySelectorAll(sel)].filter(e=>e.getBoundingClientRect().top>innerHeight&&(!e.closest('[data-cine]')||e.matches('.sec-head')));
  const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const el=e.target;
   const sib=[...el.parentElement.children].filter(x=>x.classList.contains('rv'));el.style.transitionDelay=Math.min(sib.indexOf(el),5)*70+'ms';
   el.classList.add('in');io.unobserve(el)}),{rootMargin:'0px 0px -8% 0px'});
@@ -23,7 +23,7 @@
   bar.style.transform='scaleX('+(h>0?Math.min(1,y/h):0)+')';
   header&&header.classList.toggle('is-tight',y>80);
   let cur=null;for(const s of secs){if(s.getBoundingClientRect().top<innerHeight*.4)cur=s.id}
-  links.forEach(a=>a.toggleAttribute('aria-current',a.getAttribute('href')==='#'+cur));
+  links.forEach(a=>{if(a.getAttribute('href')==='#'+cur)a.setAttribute('aria-current','location');else a.removeAttribute('aria-current')});
   for(const el of deep){const r=el.getBoundingClientRect();if(r.bottom<0||r.top>innerHeight)continue;
    const p=(r.top+r.height/2)/innerHeight-.5;el.style.transform='translate3d(0,'+(p*-28).toFixed(1)+'px,0)'}}
  const ask=()=>{if(!busy){busy=true;requestAnimationFrame(frame)}};addEventListener('scroll',ask,{passive:true});addEventListener('resize',ask);frame();

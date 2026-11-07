@@ -1,0 +1,64 @@
+/* ===== Glass finish on the existing 3D actions ===================================================
+   Colours, borders, depth shadow and position stay exactly as they were. A glass layer is added inside each
+   action (behind its label) with a curved specular highlight, and pressing sends water rings from the touch point. */
+.glass-layer{position:absolute;inset:0;border-radius:inherit;overflow:hidden;pointer-events:none;z-index:-1}
+.glass-layer::before{content:"";position:absolute;inset:1px 1px 50% 1px;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,.06) 70%,rgba(255,255,255,0));opacity:.9}
+.glass-layer::after{content:"";position:absolute;left:12%;right:12%;bottom:1px;height:38%;border-radius:50%;background:radial-gradient(ellipse at 50% 100%,rgba(255,236,200,.22),transparent 70%)}
+.ripple{position:absolute;border-radius:50%;transform:translate(-50%,-50%) scale(0);border:2px solid rgba(255,240,210,.8);background:radial-gradient(circle,rgba(255,255,255,.24) 0,rgba(255,255,255,.08) 38%,transparent 62%);animation:water .95s cubic-bezier(.15,.65,.3,1) forwards}
+:where(.on-dark,.salon-invite,.builder-preview,.mirror-invite,.site-footer) .ripple,.nav-btn .ripple,.copy .btn--ghost .ripple{border-color:rgba(150,108,60,.6);background:radial-gradient(circle,rgba(185,151,91,.22) 0,rgba(185,151,91,.06) 40%,transparent 62%)}
+@keyframes water{60%{opacity:.55}100%{transform:translate(-50%,-50%) scale(1);opacity:0;border-width:.5px}}
+.glass-layer.flash::before{animation:sheen-flash .5s ease}
+@keyframes sheen-flash{30%{opacity:1;filter:brightness(1.6)}}
+
+/* ===== Section entrances ========================================================================= */
+[data-cine]{--d:calc(var(--i,0) * 90ms)}
+/* 1. Benefits: cards lift out of the page with a slight tilt, icons pop, one gold glint passes */
+[data-cine=glint] .benefit{opacity:0;transform:perspective(900px) translateY(46px) rotateX(16deg);transform-origin:50% 100%;transition:opacity .7s var(--d),transform .9s cubic-bezier(.2,.8,.2,1) var(--d)}
+[data-cine=glint] .benefit .gold-icon{transform:scale(.55) rotate(-12deg);transition:transform .7s cubic-bezier(.3,1.6,.4,1) calc(var(--d) + .25s)}
+[data-cine=glint] .benefit{position:relative;overflow:hidden}
+[data-cine=glint] .benefit::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(105deg,transparent 35%,rgba(255,226,160,.45) 50%,transparent 65%);transform:translateX(120%)}
+@media(min-width:901px){[data-cine=glint].cine-in .benefit{opacity:1;transform:none}[data-cine=glint].cine-in .benefit .gold-icon{transform:none}[data-cine=glint].cine-in .benefit::after{animation:glint 1.3s ease calc(var(--d) + .55s) both}}
+[data-cine=glint] .benefit.k-in{opacity:1;transform:none}[data-cine=glint] .benefit.k-in .gold-icon{transform:none}[data-cine=glint] .benefit.k-in::after{animation:glint 1.3s ease .55s both}
+@keyframes glint{from{transform:translateX(120%)}to{transform:translateX(-120%)}}
+/* 2. Invitation: the photo opens like a curtain, the copy follows line by line, light runs the gold edge */
+[data-cine=curtain] .salon-invite-card{opacity:0;transform:scale(.96);transition:opacity .8s,transform 1.1s cubic-bezier(.2,.8,.2,1)}
+[data-cine=curtain] .salon-invite-art{clip-path:inset(0 100% 0 0);transition:clip-path 1.3s cubic-bezier(.7,0,.2,1) .2s}
+[data-cine=curtain] .salon-invite-art>img{transform:scale(1.18);transition:transform 2.2s cubic-bezier(.2,.8,.2,1) .2s}
+[data-cine=curtain] .salon-invite-copy>*{opacity:0;transform:translateX(-28px);transition:opacity .7s calc(.55s + var(--d)),transform .9s cubic-bezier(.2,.8,.2,1) calc(.55s + var(--d))}
+[data-cine=curtain] .salon-invite-card{position:relative}
+[data-cine=curtain] .salon-invite-card::before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1px;pointer-events:none;z-index:2;background:conic-gradient(from var(--sweep,0deg),transparent 0 300deg,#ffe3a3 340deg,transparent 360deg);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;opacity:0}
+@property --sweep{syntax:"<angle>";inherits:false;initial-value:0deg}
+[data-cine=curtain].cine-in .salon-invite-card{opacity:1;transform:none}
+[data-cine=curtain].cine-in .salon-invite-art{clip-path:inset(0 0 0 0)}
+[data-cine=curtain].cine-in .salon-invite-art>img{transform:none}
+@media(min-width:901px){[data-cine=curtain].cine-in .salon-invite-copy>*{opacity:1;transform:none}}[data-cine=curtain].cine-in .salon-invite-copy>.k-in{opacity:1;transform:none}
+[data-cine=curtain].cine-in .salon-invite-card::before{animation:edge-run 2.2s ease .9s both}
+@keyframes edge-run{0%{opacity:0;--sweep:0deg}15%{opacity:1}85%{opacity:1}100%{opacity:0;--sweep:360deg}}
+/* 3. Services: three cards fan in like a hand of cards, icons turn into place */
+[data-cine=fan] .cards3>.svc{opacity:0;transform:translateY(70px) rotate(calc((var(--i) - 1) * 5deg)) scale(.94);transform-origin:50% 120%;transition:opacity .7s var(--d),transform 1s cubic-bezier(.2,.9,.2,1) var(--d)}
+[data-cine=fan] .cards3>.svc .gold-icon{transform:rotate(-30deg) scale(.7);transition:transform .9s cubic-bezier(.3,1.5,.4,1) calc(var(--d) + .3s)}
+@media(min-width:901px){[data-cine=fan].cine-in .cards3>.svc{opacity:1;transform:none}[data-cine=fan].cine-in .cards3>.svc .gold-icon{transform:none}}
+[data-cine=fan] .cards3>.svc.k-in{opacity:1;transform:none}[data-cine=fan] .cards3>.svc.k-in .gold-icon{transform:none}
+/* 4. Films: the lights go down and the screen comes up out of the dark */
+[data-cine=lights] .film-screen{opacity:.15;transform:scale(.9);filter:brightness(.25) saturate(.6);transition:opacity 1s,transform 1.4s cubic-bezier(.2,.8,.2,1),filter 1.6s ease .2s}
+[data-cine=lights] .service-timeline>button{opacity:0;transform:translateY(-18px);transition:opacity .6s calc(.5s + var(--d)),transform .8s cubic-bezier(.3,1.4,.4,1) calc(.5s + var(--d))}
+[data-cine=lights].cine-in .film-screen{opacity:1;transform:none;filter:none}
+[data-cine=lights].cine-in .service-timeline>button,[data-cine=lights] .service-timeline>button.k-in{opacity:1;transform:none}
+/* 5. Builder: steps arrive in order, the preview device lands flat on the desk, the form slides in */
+[data-cine=desk] .builder-steps>li{opacity:0;transform:translateX(-26px);transition:opacity .6s var(--d),transform .8s cubic-bezier(.2,.8,.2,1) var(--d)}
+[data-cine=desk] .builder-preview{opacity:0;transform:perspective(1200px) translateY(70px) rotateX(24deg);transform-origin:50% 100%;transition:opacity .8s .35s,transform 1.3s cubic-bezier(.2,.8,.2,1) .35s}
+[data-cine=desk] .builder-form{opacity:0;transform:translateX(40px);transition:opacity .8s .5s,transform 1s cubic-bezier(.2,.8,.2,1) .5s}
+[data-cine=desk].cine-in .builder-form,[data-cine=desk] .builder-steps>li.k-in{opacity:1;transform:none}@media(min-width:901px){[data-cine=desk].cine-in .builder-steps>li{opacity:1;transform:none}}
+[data-cine=desk].cine-in .builder-preview{opacity:1;transform:none}
+@media(max-width:850px){[data-cine=desk] .builder-preview{transform:translateY(40px)}[data-cine=desk].cine-in .builder-preview{transform:none}}
+/* 6. FAQ: questions come into focus one after another */
+[data-cine=focus] .faq>details,[data-cine=focus] .faq-next{opacity:0;filter:blur(8px);transform:translateY(18px);transition:opacity .6s calc(var(--i) * 55ms),filter .8s calc(var(--i) * 55ms),transform .8s cubic-bezier(.2,.8,.2,1) calc(var(--i) * 55ms)}
+@media(min-width:901px){[data-cine=focus].cine-in .faq>details,[data-cine=focus].cine-in .faq-next{opacity:1;filter:none;transform:none}}[data-cine=focus] :is(.faq>details,.faq-next).k-in{opacity:1;filter:none;transform:none}
+/* 7. Footer: the mark draws itself, links settle */
+[data-cine=draw] .brand-symbol path{stroke-dasharray:var(--len,200);stroke-dashoffset:var(--len,200);transition:stroke-dashoffset 1.8s cubic-bezier(.6,0,.2,1)}
+[data-cine=draw] :is(.foot ul li,.legal){opacity:0;transform:translateY(10px);transition:opacity .6s calc(.6s + var(--d)),transform .7s calc(.6s + var(--d))}
+[data-cine=draw].cine-in .brand-symbol path{stroke-dashoffset:0}
+[data-cine=draw].cine-in :is(.foot ul li,.legal){opacity:1;transform:none}
+/* Anything focused by keyboard is shown at once. */
+[data-cine] :is(.benefit,.svc,.faq>details,.builder-steps>li,.builder-form,.builder-preview,.salon-invite-copy>*):focus-within{opacity:1!important;filter:none!important;transform:none!important}
+@media(prefers-reduced-motion:reduce){.ripple,.glass-layer.flash::before{animation:none!important}[data-cine] *{transition:none!important;animation:none!important}}

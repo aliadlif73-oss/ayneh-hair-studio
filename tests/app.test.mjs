@@ -724,7 +724,7 @@ test('without SMS invites the bot offers messenger buttons and /i/ is a send pag
 // ---------- landing page and salon inquiries ----------
 test('landing page is public at / and the owner console stays at /admin',async()=>{const e=tgEnv(fixture());
  const r=await app.fetch(new Request(origin+'/'),e);assert.equal(r.status,200);const html=await r.text();
- assert.match(html,/id="leadForm"/);assert.match(html,/مشتری‌تان قبل از نشستن روی صندلی می‌داند چه می‌خواهد/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
+ assert.match(html,/id="builderLive"/);assert.match(html,/مدل دلخواه مشتری، روی عکس خودش و پیش از مراجعه/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
  new Function(html.match(/<script>([\s\S]*?)<\/script>/g).map(s=>s.replace(/<\/?script>/g,'')).join('\n'));
  assert.equal((await app.fetch(new Request(origin+'/admin'),e)).status,200);});
 
@@ -774,14 +774,16 @@ test('demo salon behind the landing: mobile confirmation first, 3 images a day p
  const e=tgEnv(fixture());e.KIE_API_KEY='mock';const s={slug:'demo'};
  const pub=await call(e,'/api/s/demo/public');assert.equal(pub.status,200);assert.equal(pub.data.demo,true);assert.equal(pub.data.generation,false,'no SMS configured: demo generation stays off');
  let g=await guest(e,s);const original=await upload(e,s,g);
- const gen=()=>call(e,'/api/s/demo/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:1},g);
+ const gen=(extra={})=>call(e,'/api/s/demo/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:1,...extra},g);
  assert.equal((await gen()).status,503,'without SMS nobody can spend paid images');
  smsEnv(e);assert.equal((await call(e,'/api/s/demo/public')).data.generation,true);
  const need=await gen();assert.equal(need.status,403);assert.match(need.data.error,/را تأیید کن/,'the page opens its mobile dialog on this message');
- const sms=mockSms(),net=globalThis.fetch;
- globalThis.fetch=async(url,opts)=>{const u=String(url);if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(u.includes('createTask'))return Response.json({code:200,data:{taskId:'t'+crypto.randomUUID()}});return net(url,opts)};
+ const sms=mockSms(),net=globalThis.fetch,prompts=[];
+ globalThis.fetch=async(url,opts)=>{const u=String(url);if(u.includes('createTask'))prompts.push(JSON.parse(opts.body).input.prompt);if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(u.includes('createTask'))return Response.json({code:200,data:{taskId:'t'+crypto.randomUUID()}});return net(url,opts)};
  try{assert.equal((await call(e,'/api/s/demo/otp/send',otpBody(),g)).status,200);assert.equal((await call(e,'/api/s/demo/otp/verify',{code:'48213'},g)).status,200);
-  for(let i=0;i<3;i++)assert.equal((await gen()).status,200);
+  assert.equal((await gen({apply_color:true,color:'شرابی'})).status,200);assert.match(prompts[0],/burgundy/i);
+  assert.equal((await gen()).status,200);assert.match(prompts[1],/original.*colou?r|colou?r.*original/i);
+  assert.equal((await gen()).status,200);
   const fourth=await gen();assert.equal(fourth.status,429);
   const v=await call(e,'/api/s/demo/views',{idem:crypto.randomUUID(),parent:'x'},g);assert.equal(v.status,400,'no 360 view in the demo');
  }finally{globalThis.fetch=net;sms.restore()}
@@ -793,8 +795,9 @@ test('customer page: four services, «بساز» starts building with no consent
  assert(!/id:'consent'|id:'dataConsent'|type:'checkbox'/.test(js),'no consent checkboxes');
  assert.match(js,/function build\(\)\{[\s\S]*?go\(3\);generate\(\)/);
  assert(!/download:'ayneh\.png'/.test(js));assert.match(js,/function saveName\(id\)/);
- // Hairstyle never sends a colour; hair colour carries its base photo.
- assert.match(js,/var col=state\.line==='hair'\?''/);assert.match(js,/base_id:state\.line==='color'/);
+ // Only the landing demo explicitly combines hairstyle and colour; salon hair keeps its original colour.
+ assert.match(js,/var col=state\.line==='hair'\?\(state\.pub\.demo\?state\.color:''\)/);assert.match(js,/base_id:state\.line==='color'/);
+ assert.match(js,/function maybeTour\(\)\{if\(SLUG==='demo'&&/,'gallery handoff is not interrupted by the welcome tour');
  // Every service has its building scene and stages.
  for(const l of ['hair','color','nails','lashes'])assert.match(js,new RegExp('\\n '+l+":\\{title:'"));
 });
@@ -846,6 +849,62 @@ test('each person gets 3 images per service: a new session in the same browser s
   assert.equal((await gen(g,original)).status,200);
   assert.equal(tasks,5,'nothing paid beyond the quota');
  }finally{globalThis.fetch=previous}
+});
+
+test('activation requires verified mobile and stores the complete private draft and media once',async()=>{
+ const env=smsEnv(fixture()),sms=mockSms();
+ try{
+  assert.equal((await call(fixture(),'/api/activation')).status,503);
+  assert.equal((await call(env,'/api/activation')).status,200);
+  const g=await guest(env,{slug:'demo'}),id=crypto.randomUUID();
+  const draft={name:'سالن نمونه',slug:'sample-beauty',brand:'#ac923a',profile:{bio:'معرفی سالن',phone:'۰۲۱-۲۲۳۳۴۴۵۵',instagram:'https://instagram.com/test'},portfolio:[{title:'فرنچ کلاسیک',line:'nails',description:'طرح سفید'}]};
+  const submit=()=>{
+   const data=new FormData();
+   data.set('id',id);data.set('draft',JSON.stringify(draft));
+   data.set('logo',new Blob([png()],{type:'image/png'}),'logo.png');
+   data.set('work-0',new Blob([png()],{type:'image/png'}),'nails.png');
+   return app.fetch(new Request(origin+'/api/activation',{method:'POST',headers:{origin,cookie:g.cookie},body:data}),env);
+  };
+  assert.equal((await submit()).status,403);
+  assert.equal((await call(env,'/api/s/demo/otp/send',otpBody(),g)).status,200);
+  assert.equal((await call(env,'/api/s/demo/otp/verify',{code:'۴۸۲۱۳'},g)).status,200);
+  let cancelled=false;
+  const oversized=new ReadableStream({
+   start(controller){for(let i=0;i<5;i++)controller.enqueue(new Uint8Array(1_000_000));},
+   cancel(){cancelled=true;}
+  });
+  const rejected=await app.fetch(new Request(origin+'/api/activation',{method:'POST',headers:{origin,cookie:g.cookie,'Content-Type':'multipart/form-data; boundary=test'},body:oversized,duplex:'half'}),env);
+  assert.equal(rejected.status,413);
+  assert.equal(cancelled,true);
+  assert.deepEqual(await (await submit()).json(),{ok:true,id});
+  assert.deepEqual(await (await submit()).json(),{ok:true,id});
+  assert.equal((await call(env,'/api/owner/activations')).status,401);
+  const result=await call(env,'/api/owner/activations',undefined,OWNER);
+  assert.equal(result.data.requests.length,1);
+  const row=result.data.requests[0];
+  assert.equal(row.contact_phone,'+989121234567');
+  assert.equal(row.draft.profile.phone,'02122334455');
+  assert.deepEqual(row.draft.portfolio,[{...draft.portfolio[0],slot:'work-0'}]);
+  const path='/api/owner/activations/'+id+'/work-0';
+  assert.equal((await call(env,path)).status,401);
+  const asset=await app.fetch(new Request(origin+path,{headers:{'oai-authenticated-user-id':OWNER.user,'oai-authenticated-user-email':OWNER.email}}),env);
+  assert.equal(asset.status,200);
+  assert.deepEqual(new Uint8Array(await asset.arrayBuffer()),png());
+  assert.equal((await app.fetch(new Request(origin+'/s/'+draft.slug),env)).status,404);
+ }finally{sms.restore()}
+});
+
+test('activation pagination keeps requests with the same timestamp',async()=>{
+ const env=fixture();
+ for(let i=0;i<31;i++){
+  env.DB.sql.prepare('INSERT INTO salon_activations VALUES(?,?,?,?,?)').run(crypto.randomUUID(),'نام آزمون','+989121234567','{}',1000);
+ }
+ const first=await call(env,'/api/owner/activations',undefined,OWNER);
+ assert.equal(first.data.requests.length,30);
+ const last=await call(env,'/api/owner/activations?before='+first.data.next,undefined,OWNER);
+ assert.equal(last.data.requests.length,1);
+ assert.equal(last.data.next,null);
+ assert.equal(new Set([...first.data.requests,...last.data.requests].map(row=>row.id)).size,31);
 });
 test('salon daily image cap is an owner setting: 0 removes it, a number enforces it, other settings are kept',async()=>{
  const e=fixture(),s=await salon(e),g=await guest(e,s);e.KIE_API_KEY='mock';
