@@ -141,3 +141,5 @@ html{scroll-padding-top:var(--hh,68px)}
 /* The film always fits one desktop screen with its tabs and caption. */
 @media(min-width:641px){.film-player{max-width:min(1100px,calc((100svh - 360px) * 16 / 9 + 88px))}}
 .ref-try{white-space:nowrap}
+/* A modal dialog must stay fixed in the viewport; opening it must never scroll the page. */
+.builder-dialog:modal{position:fixed;inset:0;margin:auto;height:fit-content}
