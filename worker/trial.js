@@ -21,6 +21,19 @@ export async function spendTrialImage(db,t){
  must(r.meta.changes,'سهمیهٔ '+t.images_limit+' تصویر صفحهٔ آزمایشی تمام شده است؛ برای ادامه با ما تماس بگیرید',402);
 }
 
+// One page with its image budget (a trials row) and the owner's lead, written in one batch. Used by the
+// landing trial form above and, in the specialist editions only, by the bot's self-serve wizard
+// (worker/onboarding.js: 20 images, no expiry, `maker` = the bot user who built it).
+export const NO_EXPIRY=253402300799000;
+export async function makePage(db,{name,salon,city='',tel,brand=BRANDS[0],note='',chosen='',slug,profile={},settings,images,expires,maker=''}){
+ const salonId=uid(),now=Date.now(),q=[
+  db.prepare('INSERT INTO salons(id,slug,owner_id,name,created_at,profile,settings) VALUES(?,?,?,?,?,?,?)').bind(salonId,slug,'trial',salon,now,JSON.stringify(profile),settings),
+  db.prepare('INSERT INTO trials(id,salon_id,name,phone,brand,created_at,expires_at,images_limit) VALUES(?,?,?,?,?,?,?,?)').bind(uid(),salonId,name,tel,brand,now,expires,images),
+  db.prepare('INSERT INTO inquiries(id,name,salon,city,phone,note,chosen,created_at) VALUES(?,?,?,?,?,?,?,?)').bind(uid(),name,salon,city,tel,note,chosen,now)];
+ if(maker)q.push(db.prepare('UPDATE trials SET maker=? WHERE salon_id=?').bind(maker,salonId));
+ await db.batch(q);
+ return {id:salonId,slug};
+}
 const rand=()=>Array.from(crypto.getRandomValues(new Uint8Array(4)),x=>x.toString(16).padStart(2,'0')).join('');
 
 // POST /api/trial body: {name,salon,city,phone,brand,consent,note}. Creates the salon, its trial row
@@ -51,12 +64,8 @@ export async function createTrial(db,env,origin,b){
   must(await hash(o.id+':'+given)===o.code_hash,'کد درست نیست');
   await run(db,'DELETE FROM otps WHERE session_id=?',key);
  }
- const id=uid(),salonId=uid(),slug='t-'+rand(),now=Date.now(),expires=now+TRIAL_HOURS*3600000;
- await db.batch([
-  db.prepare('INSERT INTO salons(id,slug,owner_id,name,created_at,profile,settings) VALUES(?,?,?,?,?,?,?)').bind(salonId,slug,'trial',salon,now,JSON.stringify(city?{address:city}:{}),JSON.stringify({generation_enabled:true,reference_verified:true,trial:true})),
-  db.prepare('INSERT INTO trials(id,salon_id,name,phone,brand,created_at,expires_at,images_limit) VALUES(?,?,?,?,?,?,?,?)').bind(id,salonId,name,tel,brand,now,expires,TRIAL_IMAGES),
-  db.prepare('INSERT INTO inquiries(id,name,salon,city,phone,note,chosen,created_at) VALUES(?,?,?,?,?,?,?,?)').bind(uid(),name,salon,city,tel,note,'صفحهٔ آزمایشی '+slug+(chosen?' · '+chosen:''),now)
- ]);
+ const slug='t-'+rand(),expires=Date.now()+TRIAL_HOURS*3600000;
+ await makePage(db,{name,salon,city,tel,brand,note,slug,profile:city?{address:city}:{},settings:JSON.stringify({generation_enabled:true,reference_verified:true,trial:true}),images:TRIAL_IMAGES,expires,chosen:'صفحهٔ آزمایشی '+slug+(chosen?' · '+chosen:'')});
  const url=(env.APP_ORIGIN||origin)+'/s/'+slug;
  await notifyOwner(env,{kind:'trial',level:'good',text:'صفحهٔ آزمایشی «'+salon+'»'+(city?' ('+city+')':'')+' ساخته شد',detail:'👤 '+name+'\n📞 '+tel+'\n🔗 '+url+'\n⏳ '+TRIAL_HOURS+' ساعت · '+TRIAL_IMAGES+' تصویر'+(chosen?'\n✨ '+chosen:'')+(note?'\n📝 '+note:'')});
  return {ok:true,path:'/s/'+slug,url,expires_at:expires,images:TRIAL_IMAGES,hours:TRIAL_HOURS};

@@ -6,6 +6,7 @@ import {errorResponse,tick} from './server.js';
 import {LINE,ASSETS} from './edition-assets.js';
 import {bookingAPI,bookingWebhook,bookingTick} from './booking.js';
 import {bookingCSS,bookingJS} from './booking-ui.js';
+import {onboardingWebhook,freeAPI,freeGate,freeJSON} from './onboarding.js';
 const headers={'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self' data:; media-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",'Permissions-Policy':'camera=(self), microphone=()'};
 const html=value=>new Response(value,{headers});
 export default {
@@ -13,8 +14,9 @@ export default {
   const env=await editionEnv({...bindings,SERVICE_LINE:LINE}),u=new URL(request.url),e=edition(env);
   if(u.pathname.startsWith('/catalog/')){const b=ASSETS[u.pathname];if(!b)return new Response('Not found',{status:404});return new Response(request.method==='HEAD'?null:Uint8Array.from(atob(b),c=>c.charCodeAt(0)),{headers:{'Content-Type':'image/webp','Cache-Control':'public,max-age=86400','X-Content-Type-Options':'nosniff'}});}
   request=await scopeRequest(request,env);
-  // Booking exists only here (specialist editions): its API, its bot commands/buttons and its page.
-  const booked=await bookingWebhook(request,env)||await bookingAPI(request,env);if(booked)return booked;
+  // Booking and self-serve page creation in the bot exist only here (specialist editions): the bot
+  // wizard for unlinked chats, booking's API, commands/buttons and page, and the free-image allowance.
+  const booked=await onboardingWebhook(request,env)||await bookingWebhook(request,env)||await bookingAPI(request,env)||await freeAPI(request,env)||await freeGate(request,env);if(booked)return booked;
   const book=u.pathname.match(/^\/s\/([a-z0-9-]{1,64})\/book\/?$/),page=book||/^\/s\/[a-z0-9-]{1,64}\/?$/.test(u.pathname);
   if(book)request=new Request(new URL('/s/'+book[1],u.origin),{method:'GET',headers:request.headers});
   if(u.pathname==='/admin/setup')return html(setupHTML(env));
@@ -38,6 +40,7 @@ export default {
    const d=await response.json();
    if(d.error)d.error=specialistText(d.error);
    if(/\/public$/.test(u.pathname)){d.edition=e;if(d.portfolio)d.portfolio=d.portfolio.filter(p=>(p.line||'hair')===LINE);}
+   await freeJSON(u,env,d,response.status);
    return Response.json(d,{status:response.status,headers:response.headers});
   }
   return response;

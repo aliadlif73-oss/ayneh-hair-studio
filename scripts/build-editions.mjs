@@ -25,13 +25,22 @@ for(const line of lines){
  await change('ui.js',[
   ["[['hair','مدل مو'],['color','رنگ مو'],['nails','ناخن'],['lashes','مژه']].map(function(o)",`[['${line}',${JSON.stringify({hair:'مدل مو',color:'رنگ مو',nails:'ناخن',lashes:'مژه'}[line])}]].map(function(o)`],
   ["[['hair','مدل مو'],['color','رنگ مو'],['nails','ناخن'],['lashes','مژه']].map(function(o)",`[['${line}',${JSON.stringify({hair:'مدل مو',color:'رنگ مو',nails:'ناخن',lashes:'مژه'}[line])}]].map(function(o)`],
-  ["$('#app').replaceChildren(head,",`head.append(el('a',{class:'btn btn--ghost',href:'/admin/integrations',text:'تنظیم سرویس تصویر و ربات'}));$('#app').replaceChildren(head,`]
+  ["$('#app').replaceChildren(head,",`head.append(el('a',{class:'btn btn--ghost',href:'/admin/integrations',text:'تنظیم سرویس تصویر و ربات'}));$('#app').replaceChildren(head,`],
+  // Free images of a page built in the bot (onboarding.js): used/limit, the specialist's mobile, the cap or «فعال‌سازی کامل».
+  ["el('div',{class:'stack'},[tg,teamC,set,leads])","el('div',{class:'stack'},[tg,teamC,set,freeCard(d),leads].filter(Boolean))"],
+  ["function salonPage(){",`function freeCard(d){var f=d.free;if(!f)return null;var n=el('input',{id:'fr-n',type:'number',min:'0',step:'1',inputmode:'numeric',value:String(f.limit)});
+ return el('section',{class:'card'},[h('h2','تصویر رایگان (ساخته‌شده با ربات)'),h('p',(f.full?'فعال‌سازی کامل: بدون سقف کل؛ سهم هر مشتری سر جایش است.':fa(f.used)+' از '+fa(f.limit)+' تصویر رایگان مصرف شده.')+(f.phone?' موبایل متخصص: '+f.phone:''),'lead'),check('fr-full','فعال‌سازی کامل (بدون سقف کل)',f.full),el('label',{class:'field'},[el('span',{class:'lbl',text:'سقف تصویر رایگان کل صفحه'}),n]),el('button',{class:'btn btn--primary',type:'button',text:'ذخیره',onclick:act(function(){return api('/api/s/'+slug+'/owner/free',{full:$('#fr-full').checked,limit:Number(n.value)}).then(function(){toast('ذخیره شد.');salonPage()})})})]);}
+function salonPage(){`]
  ]);
  await change('server.js',[
   ["JSON.stringify({generation_enabled:true,reference_verified:true})","JSON.stringify({generation_enabled:true,reference_verified:false})"],
   ["const others=LINE_KEYS.filter(k=>k!==line&&left[k]>0).map(k=>'«'+LINE_LABEL[k]+'»');","const others=[];"],
   ["if(route==='views'&&req.method==='POST'){",`if(route==='views'&&req.method==='POST'){must('${line}'==='hair','نمای دور سر فقط برای مدل مو است',404);`],
-  ["const b=await req.json();const line=LINE_KEYS.includes(b.line)?b.line:'hair';",`const b=await req.json();must(!b.line||b.line==='${line}','خدمت دیگری در این نسخه وجود ندارد');const line='${line}';`]
+  ["const b=await req.json();const line=LINE_KEYS.includes(b.line)?b.line:'hair';",`const b=await req.json();must(!b.line||b.line==='${line}','خدمت دیگری در این نسخه وجود ندارد');const line='${line}';`],
+  // Pages built in the bot (onboarding.js) keep the per-customer quota on top of their free images.
+  ["if(!trial&&!demo&&!free)await spendQuota(db,salon,s,visitor,line);","if((!trial||cfg.bot_made)&&!demo&&!free)await spendQuota(db,salon,s,visitor,line);"],
+  ["if(!trial&&!free)await spendQuota(db,salon,s,visitor,'hair')","if((!trial||cfg.bot_made)&&!free)await spendQuota(db,salon,s,visitor,'hair')"],
+  ["quota:trial||demo||await unlimited(db,s)?null:","quota:(trial&&!cfg.bot_made)||demo||await unlimited(db,s)?null:"]
  ]);
  await change('trial.js',[["JSON.stringify({generation_enabled:true,reference_verified:true,trial:true})","JSON.stringify({generation_enabled:true,reference_verified:false,trial:true})"]]);
  await change('telegram.js',[

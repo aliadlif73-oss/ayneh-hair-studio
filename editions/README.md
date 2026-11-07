@@ -26,12 +26,21 @@ At the owner's request the editions (not the main app) have a standalone booking
 - Table `bookings` (migration `drizzle/0012_bookings.sql`); the deploy workflow applies migrations to each edition's D1 database before deploying.
 - Confirmation SMS (optional): set the GitHub secret `MELIPAYAMAK_BOOKING_BODY_ID` to the number of an approved shared-line text with two variables, {0} = the specialist's page name and {1} = Persian day, date and time. Suggested text: «نوبت شما نزد {0} برای {1} تأیید شد. آینه». It has no link (no starred eNamad). Without it nothing is texted and the page status still updates. Names, mobiles and photos are never written to `events_log`, and owner alerts about booking never contain them.
 
+## Self-serve pages in the bot (ساخت صفحه در ربات), editions only
+
+At the owner's request a specialist can build her own page inside the edition's bot (`worker/onboarding.js`, loaded only by `worker/edition-entry.js` and gated on `SERVICE_LINE`; the main bot is not changed). The owner just shares the bot link.
+
+- `/start` without a code (or `/new`) in a chat that is linked to no page: a short welcome and «✨ ساخت صفحهٔ من», then seven questions, each with «⬅️ قبلی» / «❌ انصراف»: name, page name, city (six buttons or typed), address (optional), mobile through the contact button (only the sender's own contact is accepted; this is the verification, no SMS), Instagram (optional), logo (optional). A summary offers «✅ ساخت صفحه» or «✏️ ویرایش». `/start <code>` and linked chats behave as before.
+- On ✅ the page is created with `trial.js makePage` (the landing trial's code), the slug comes from the Instagram handle, else the latinized page name, else `p-xxxxxx`; the chat becomes the page's chat, booking defaults apply, and the bot sends the page link, the booking link and three next steps. The owner gets an alert (page, name, city, line, link; no mobile) with «🔓 فعال‌سازی کامل».
+- One bot-made page per bot user and per mobile (they get their link again); wizard starts are rate-limited; bots are ignored. Unfinished wizards live in table `onboarding` (migration `drizzle/0013_onboarding.sql`) and are dropped after 24 idle hours.
+- Free images: the page's `trials` row holds 20 images for all customers together, no expiry (`settings.trial` + `settings.bot_made`); each customer's own quota still applies. When they are used up, customers see that generation is not available (page and booking keep working), the specialist gets one message and the owner one alert. «فعال‌سازی کامل» (owner's chat) or the «تصویر رایگان» card on the page in `/admin` removes the cap or sets another number; that card also shows the specialist's mobile.
+
 ## Initial operation
 
 1. Open the chosen subdomain's `/admin` and sign in with the configured owner password.
 2. Open `/admin/integrations` and add a **new** Telegram/Bale bot token. A bot attached to any different origin is refused; the old webhook is never replaced.
 3. Use the connect button. The provider must acknowledge webhook setup; this is not a delivery test.
-4. Create the specialist's page from the owner console; add name, image and profile; issue its one-time bot link.
+4. Create the specialist's page from the owner console; add name, image and profile; issue its one-time bot link. (Or share the bot link and let her build her own page in the bot, above.)
 5. The specialist opens that link in her own chat. Portfolio uploads and customer requests use that chat.
 6. Perform a permitted real image and message test before treating the integration as verified. Reference quality starts unverified and needs owner acceptance.
 

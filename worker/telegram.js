@@ -60,7 +60,7 @@ export async function call(env,p,method,payload){
  return d.result;
 }
 export const tg=(env,method,payload)=>call(env,'telegram',method,payload);
-async function fileBytes(env,p,file_id){
+export async function fileBytes(env,p,file_id){
  const P=PLATFORMS[p],f=await call(env,p,'getFile',{file_id});
  const res=await fetch(P.api+'/file/bot'+P.token(env)+'/'+f.file_path,{signal:AbortSignal.timeout(25000)});
  must(res.ok,'دریافت عکس از '+P.label+' ممکن نشد',502);
