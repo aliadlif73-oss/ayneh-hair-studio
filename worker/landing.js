@@ -673,12 +673,12 @@ html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #c8b48c;b
 /* All autoplay film cards share the same hierarchy and dimensions. */
 .auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{display:block;top:auto;bottom:80px;right:6%;left:auto;width:33%;max-width:400px;padding:26px;border:1px solid #d3b67e45;border-radius:20px;background:linear-gradient(140deg,#21170fe8,#21170fc9);backdrop-filter:blur(12px);box-shadow:0 20px 60px #0003}
 .auto-film .journey-copy h3,.auto-film .journey-copy[data-journey-copy=lashes] h3{font-size:clamp(26px,2.6vw,38px);margin:0 0 16px;line-height:1.6}.auto-film .journey-copy[data-journey-copy=lashes] h3 br{display:initial}.auto-film .journey-copy[data-journey-copy=lashes] .journey-kicker{margin:0 0 12px}.auto-film .journey-copy[data-journey-copy=lashes]>p:not(.journey-kicker){font-size:14px;margin:0 0 15px;max-width:35ch}.auto-film .journey-copy[data-journey-copy=lashes] a{margin-top:0}
-.salon-invite{padding:clamp(40px,7vw,100px) clamp(20px,6vw,90px);background:radial-gradient(ellipse at 75% 50%,#39291b60,transparent 65%),#17120e;color:#f8efe3;position:relative;isolation:isolate}.salon-invite-card{max-width:1180px;margin:auto;display:grid;grid-template-columns:1fr 1fr;direction:ltr;border:1px solid #b9975b66;border-radius:28px;overflow:hidden;background:linear-gradient(130deg,#38281c,#21180f);box-shadow:0 24px 65px #0003}.salon-invite-art{position:relative;min-height:460px;overflow:hidden}.salon-invite-art>img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:46% center;transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}.salon-invite-art:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#17110ebb,transparent 65%);pointer-events:none}.salon-invite-card:hover .salon-invite-art>img{transform:scale(1.035)}.invite-seal{position:absolute;bottom:28px;left:28px;z-index:1;display:flex;align-items:center;gap:14px;direction:rtl;color:#f0d5a2;line-height:1.8;font-size:14px}.invite-seal svg{width:47px;height:53px;flex:none}.salon-invite-copy{direction:rtl;align-self:center;padding:clamp(28px,4vw,60px)}.salon-invite-copy h2{font-size:clamp(32px,3.7vw,54px);line-height:1.6;margin:0 0 18px;color:#fff1da;letter-spacing:-.035em}.salon-invite-copy>p:not(.journey-kicker){font-size:16px;line-height:2;margin:0 0 16px}.salon-invite-copy>p.invite-detail{font-size:13px;color:#cfbda5}.salon-invite-copy .btn{width:100%;margin-top:14px;text-align:center;justify-content:center;line-height:1.8;white-space:normal}
+.salon-invite{padding:clamp(40px,7vw,100px) clamp(20px,6vw,90px);background:radial-gradient(ellipse at 75% 50%,#39291b60,transparent 65%),#17120e;color:#f8efe3;position:relative;isolation:isolate}.salon-invite-card{max-width:1180px;margin:auto;display:grid;grid-template-columns:1fr 1fr;direction:ltr;border:1px solid #b9975b66;border-radius:28px;overflow:hidden;background:linear-gradient(130deg,#38281c,#21180f);box-shadow:0 24px 65px #0003}.salon-invite-art{position:relative;min-height:460px;overflow:hidden}.salon-invite-art>:is(img,video){display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:46% center;transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}.salon-invite-art:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#17110ebb,transparent 65%);pointer-events:none}.salon-invite-card:hover .salon-invite-art>:is(img,video){transform:scale(1.035)}.invite-seal{position:absolute;bottom:28px;left:28px;z-index:1;display:flex;align-items:center;gap:14px;direction:rtl;color:#f0d5a2;line-height:1.8;font-size:14px}.invite-seal svg{width:47px;height:53px;flex:none}.salon-invite-copy{direction:rtl;align-self:center;padding:clamp(28px,4vw,60px)}.salon-invite-copy h2{font-size:clamp(32px,3.7vw,54px);line-height:1.6;margin:0 0 18px;color:#fff1da;letter-spacing:-.035em}.salon-invite-copy>p:not(.journey-kicker){font-size:16px;line-height:2;margin:0 0 16px}.salon-invite-copy>p.invite-detail{font-size:13px;color:#cfbda5}.salon-invite-copy .btn{width:100%;margin-top:14px;text-align:center;justify-content:center;line-height:1.8;white-space:normal}
 .type-wrap{position:relative}.type-reserve{display:block;visibility:hidden;pointer-events:none}.type-live{position:absolute;inset:0;display:block}.type-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.type-live.is-typing:after{content:"";display:inline-block;height:.85em;border-left:1px solid #e7c88e;margin-right:3px;vertical-align:-.05em;animation:typingCaret .7s steps(1) infinite}@keyframes typingCaret{50%{opacity:0}}
 .svc,.feat li,.faq details,.phone{transition:border-color .25s,box-shadow .25s,background .25s}.svc:hover,.feat li:hover,.faq details[open]{border-color:#b9975b70;box-shadow:0 14px 34px #30201412}.faq details[open] summary{color:#936b2f}.s2-points li{transition:border-color .25s,transform .25s}.s2-points li:hover{border-color:#d5b06c;transform:translateX(-3px)}.salon-invite-card.rv{transition:opacity .7s,transform .7s}
 @media(max-width:900px){.auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{width:40%;right:5%;padding:22px}.salon-invite-card{grid-template-columns:1fr}.salon-invite-art{min-height:320px}.salon-invite-copy{padding:30px}.salon-invite-copy h2 br{display:none}.salon-invite-copy h2{font-size:34px}.salon-invite-copy .btn{max-width:420px}}
 @media(max-width:600px){.brand{gap:6px}.brand-symbol{width:31px;height:35px}.brand .brand-name small{font-size:8px;margin-top:3px}.brand-name{font-size:20px}.cinema-arrows button{width:40px;height:40px}.cinema-arrows [data-slide-prev]{right:10px}.cinema-arrows [data-slide-next]{left:10px}.cinema-copy,.is-current .cinema-copy{right:62px;left:62px;width:auto;max-width:none}.auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{position:relative;inset:auto;width:auto;max-width:none;margin:18px 18px 0;padding:22px;border-radius:18px}.auto-film .journey-copy h3,.auto-film .journey-copy[data-journey-copy=lashes] h3{font-size:25px}.salon-invite{padding:38px 18px}.salon-invite-card{border-radius:22px}.salon-invite-art{min-height:260px}.salon-invite-copy{padding:25px}.salon-invite-copy h2{font-size:30px}.salon-invite-copy>p:not(.journey-kicker){font-size:14px}.salon-invite-copy .btn{font-size:12px}.journey-copy .journey-actions .btn{font-size:12px}}
-@media(prefers-reduced-motion:reduce){.type-live:after{animation:none}.salon-invite-card:hover .salon-invite-art>img,.s2-points li:hover{transform:none}.svc,.feat li,.faq details,.phone{transition:none}}
+@media(prefers-reduced-motion:reduce){.type-live:after{animation:none}.salon-invite-card:hover .salon-invite-art>:is(img,video),.s2-points li:hover{transform:none}.svc,.feat li,.faq details,.phone{transition:none}}
 
 @media(max-width:600px){.rail-wrap .nav-btn{display:grid;width:36px;height:36px;margin-top:0}.rail-wrap .nav-r{right:6px}.rail-wrap .nav-l{left:6px}}
 
@@ -803,6 +803,40 @@ html{scroll-padding-top:var(--hh,68px)}
 /* The film always fits one desktop screen with its tabs and caption. */
 @media(min-width:641px){.film-player{max-width:min(1100px,calc((100svh - 360px) * 16 / 9 + 88px))}}
 .ref-try{white-space:nowrap}
+/* A modal dialog must stay fixed in the viewport; opening it must never scroll the page. */
+.builder-dialog:modal{position:fixed;inset:0;margin:auto;height:fit-content}
+.salon-invite-art>video{object-position:center}
+/* Nothing may widen the page: animated words and cards are clipped at the viewport edge instead of
+   creating a sideways scroll (which in RTL pushed the whole hero off-screen on phones). */
+html,body{overflow-x:clip}
+@supports not (overflow:clip){html,body{overflow-x:hidden}}
+/* Invitation film on single-column layouts: show the whole 16:9 frame instead of cropping its sides,
+   and keep the seal off the film so it never covers the story. */
+@media(max-width:900px){
+ .salon-invite-art{min-height:0;aspect-ratio:16/9}
+ .salon-invite-art:after{display:none}
+ .salon-invite-art .invite-seal{display:none}
+}
+/* Kickers: the gold bar has its own lane, so the typed text never runs over it (it crossed out the first word). */
+.copy .eyebrow,.sec-head .kicker,.salon-invite-copy .journey-kicker{display:inline-block;position:relative;padding-inline-start:40px}
+.copy .eyebrow::before,.sec-head .kicker::before,.salon-invite-copy .journey-kicker::before{position:absolute;inset-inline-start:0;top:50%;margin-top:-1px}
+:is(.copy .eyebrow,.sec-head .kicker,.salon-invite-copy .journey-kicker)>.type-live{inset-inline-start:40px}
+/* Comfortable touch targets for disclosures and the reference-card link. */
+.builder-form summary{min-height:44px}
+.ref-try{display:inline-flex;align-items:center;min-height:36px}
+/* Two-column invitation: the film is shown whole, centred on its own dark backdrop, never cropped. */
+@media(min-width:901px){
+ .salon-invite-card{grid-template-columns:1fr;max-width:1100px}
+ .salon-invite-art{min-height:0;aspect-ratio:16/9}
+ .salon-invite-art:after{background:linear-gradient(0deg,#17110e99,transparent 30%)}
+ .salon-invite-copy{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);column-gap:clamp(28px,4vw,64px);align-items:end;padding:clamp(28px,3.4vw,48px)}
+ .salon-invite-copy{align-items:start}
+ .salon-invite-copy>.journey-kicker{grid-column:1;grid-row:1}
+ .salon-invite-copy>h2{grid-column:1;grid-row:2 / span 2;margin:0}
+ .salon-invite-copy>p:not(.journey-kicker):not(.invite-detail){grid-column:2;grid-row:1 / span 2;align-self:end;margin:0 0 10px}
+ .salon-invite-copy>.invite-detail{grid-column:2;grid-row:3;margin:0}
+ .salon-invite-copy>.btn{grid-column:1 / -1;grid-row:4;margin-top:22px}
+}
 
 /* 1. Frosted Glass Specular Layer & Water Ripples */
 :where(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button){--glass-inset:1px}
@@ -917,7 +951,7 @@ html{scroll-padding-top:var(--hh,68px)}
 @keyframes invite-card-scrub{0%{opacity:0;transform:perspective(1400px) translateY(64px) rotateX(18deg) scale(.91)}100%{opacity:1;transform:none}}
 [data-cine=curtain] .salon-invite-art{animation:invite-art-scrub 1000ms cubic-bezier(.65,0,.2,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
 @keyframes invite-art-scrub{0%{clip-path:inset(15% 45% 15% 45% round 180px 180px 24px 24px)}78%,100%{clip-path:inset(0% 0% 0% 0% round 24px)}}
-[data-cine=curtain] .salon-invite-art>img{animation:invite-img-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+[data-cine=curtain] .salon-invite-art>:is(img,video){animation:invite-img-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
 @keyframes invite-img-scrub{0%{transform:scale(1.28)}100%{transform:scale(1)}}
 [data-cine=curtain] .invite-seal{animation:invite-seal-scrub 1000ms cubic-bezier(.34,1.56,.64,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
 @keyframes invite-seal-scrub{0%,42%{opacity:0;filter:blur(5px);transform:perspective(600px) translate3d(0,-38px,140px) scale(2.1) rotate(-16deg)}82%{opacity:1;filter:blur(0);transform:perspective(600px) translate3d(0,2px,-6px) scale(.96) rotate(2deg)}100%{opacity:1;filter:blur(0);transform:none}}
@@ -1093,7 +1127,7 @@ html{scroll-padding-top:var(--hh,68px)}
   </section>
 <section class="salon-invite" aria-labelledby="salon-invite-title">
  <div class="salon-invite-card">
-  <div class="salon-invite-art"><img src="/landing/salon-film-05.webp" alt="بررسی انتخاب مشتری در سالن زیبایی" width="1920" height="1080" loading="lazy"><span class="invite-seal"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M18 52V27a14 14 0 0 1 28 0v25H18Z" stroke="currentColor" stroke-width="2.5"/><path d="M13 51H8V32a10 10 0 0 1 6-9M51 51h5V32a10 10 0 0 0-6-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m25 43 14-18M26 32l8-10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".65"/><path d="M32 5v4M30 7h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>این تجربه،<br>با نام سالن شما.</span></span></div>
+  <div class="salon-invite-art"><video class="invite-video" muted loop playsinline disablepictureinpicture disableremoteplayback preload="none" poster="/landing/invite-promo-poster.webp" width="1280" height="720" aria-label="ساخت صفحهٔ یک سالن نمونه، از پر کردن فرم تا صفحهٔ آماده"><source src="/landing/video/invite-promo-a565b22c.webm" type="video/webm"><source src="/landing/video/invite-promo-a565b22c.mp4" type="video/mp4"></video><span class="invite-seal"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" aria-hidden="true"><path d="M18 52V27a14 14 0 0 1 28 0v25H18Z" stroke="currentColor" stroke-width="2.5"/><path d="M13 51H8V32a10 10 0 0 1 6-9M51 51h5V32a10 10 0 0 0-6-9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m25 43 14-18M26 32l8-10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".65"/><path d="M32 5v4M30 7h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>این تجربه،<br>با نام سالن شما.</span></span></div>
   <div class="salon-invite-copy"><p class="journey-kicker">آینه برای سالن زیبایی شما</p><h2 id="salon-invite-title">قبل از راه‌اندازی، صفحهٔ سالن‌تان را ببینید</h2><p>اسم، رنگ برند و نمونه‌کارهایتان را اضافه کنید و ببینید مشتری‌ها صفحهٔ سالن شما را چطور می‌بینند.</p><p class="invite-detail">پیش‌نمایش رایگان است و به ثبت‌نام نیاز ندارد. راه‌اندازی پس از بررسی درخواست و هماهنگی با شما انجام می‌شود.</p><a class="btn btn--lg" href="#salon-example"><span>ساخت پیش‌نمایش سالن من</span><span class="arrow" aria-hidden="true">←</span></a></div>
  </div>
 </section>
@@ -1786,6 +1820,22 @@ html{scroll-padding-top:var(--hh,68px)}
 
 </script>
 <script>
+/* Invitation film: loads only when the section is near, plays only while it is on screen, and never plays for
+   visitors who ask for reduced motion or data saving (they keep the poster frame). */
+(()=>{
+ const v=document.querySelector('.invite-video');if(!v)return;
+ const still=matchMedia('(prefers-reduced-motion:reduce)').matches||navigator.connection?.saveData;
+ if(still||!('IntersectionObserver' in window))return;
+ let loaded=false;
+ new IntersectionObserver(es=>es.forEach(e=>{
+  if(e.isIntersecting){if(!loaded){v.preload='auto';v.load();loaded=true}v.play().catch(()=>{})}
+  else if(loaded)v.pause();
+ }),{rootMargin:'200px 0px'}).observe(v);
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)v.pause()});
+})();
+
+</script>
+<script>
 /* Interactive Bidirectional Scroll-Scrubbed Cinema Engine */
 (()=>{
  const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -1876,7 +1926,8 @@ html{scroll-padding-top:var(--hh,68px)}
   requestAnimationFrame(bootTick);
   addTrack(0,()=>{
    const r=heroCopy.getBoundingClientRect(),vh=window.innerHeight||800;
-   const sf=r.bottom<vh*0.72?clamp((r.bottom-vh*0.14)/(vh*0.58),0,1):1;
+   // Fade out only once the copy is actually scrolling away; a short phone screen must still show it at load.
+   const sf=r.top>=-8?1:clamp((r.bottom-vh*0.12)/Math.max(120,Math.min(r.height,vh*0.5)),0,1);
    return Math.min(boot,sf);
   },p=>{
    heroCopy.style.setProperty('--kp',subP(p,0,0.45).toFixed(3));

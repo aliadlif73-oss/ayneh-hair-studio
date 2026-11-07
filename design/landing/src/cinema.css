@@ -111,7 +111,7 @@
 @keyframes invite-card-scrub{0%{opacity:0;transform:perspective(1400px) translateY(64px) rotateX(18deg) scale(.91)}100%{opacity:1;transform:none}}
 [data-cine=curtain] .salon-invite-art{animation:invite-art-scrub 1000ms cubic-bezier(.65,0,.2,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
 @keyframes invite-art-scrub{0%{clip-path:inset(15% 45% 15% 45% round 180px 180px 24px 24px)}78%,100%{clip-path:inset(0% 0% 0% 0% round 24px)}}
-[data-cine=curtain] .salon-invite-art>img{animation:invite-img-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
+[data-cine=curtain] .salon-invite-art>:is(img,video){animation:invite-img-scrub 1000ms cubic-bezier(.16,1,.3,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
 @keyframes invite-img-scrub{0%{transform:scale(1.28)}100%{transform:scale(1)}}
 [data-cine=curtain] .invite-seal{animation:invite-seal-scrub 1000ms cubic-bezier(.34,1.56,.64,1) both paused;animation-delay:calc(var(--p,1) * -999ms)}
 @keyframes invite-seal-scrub{0%,42%{opacity:0;filter:blur(5px);transform:perspective(600px) translate3d(0,-38px,140px) scale(2.1) rotate(-16deg)}82%{opacity:1;filter:blur(0);transform:perspective(600px) translate3d(0,2px,-6px) scale(.96) rotate(2deg)}100%{opacity:1;filter:blur(0);transform:none}}
