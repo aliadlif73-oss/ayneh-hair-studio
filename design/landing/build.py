@@ -22,7 +22,7 @@ css = st.group(1)
 drop = re.compile(r'^\s*(\.hero|\.swatch|\.style-dock|\.lines-row|\.lead\{|h1\{|\.eyebrow|\.fineprint|\.hero-copy)')
 css = NL.join(l for l in css.split(NL) if not drop.match(l))
 css += NL + R('src/hero.css') + NL + R('src/lead.css') + NL + R('src/trial.css') + NL + R('src/cta.css')
-css += NL + R('src/polish.css')
+css += NL + R('src/polish.css') + NL + R('src/cinema.css')
 css += NL + '.compare{margin-top:0}' + NL + '@media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}' + NL
 h = h.replace(st.group(0), '<style>' + css + '</style>')
 h = re.sub(r'  <!-- 1\. Hero -->.*?(?=  <!-- 2\. Experience -->)', lambda m: R('src/hero.html') + NL, h, flags=re.S)
@@ -53,7 +53,7 @@ LOOKS = sorted(int(m.group(1)) for f in os.listdir('assets') for m in [re.match(
 asset_version = hashlib.sha256(b''.join(open('assets/' + f, 'rb').read() for f in sorted(os.listdir('assets')) if re.match(r'(hero\.webp|hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', f))).hexdigest()[:12]
 # Include film contents so unchanged poster frames cannot leave stale video URLs.
 asset_version = hashlib.sha256((asset_version + ''.join(hashlib.sha256(open('../../public/landing/video/' + n + '.mp4', 'rb').read()).hexdigest() for n in ['hair', 'lashes', 'nails'])).encode()).hexdigest()[:12]
-scripts = '<script>window.__AYN_ASSET_VERSION=' + json.dumps(asset_version) + ';window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/draft.js', 'src/portrait.js', 'src/hair-color.js', 'src/hero.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/reveal.js', 'src/builder.js'])
+scripts = '<script>window.__AYN_ASSET_VERSION=' + json.dumps(asset_version) + ';window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/draft.js', 'src/portrait.js', 'src/hair-color.js', 'src/hero.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/cinema.js', 'src/reveal.js', 'src/builder.js'])
 h = h.replace('</body>', scripts + '</body>')
 W('out/v2.html', h.replace('__ORIGIN__', ''))
 

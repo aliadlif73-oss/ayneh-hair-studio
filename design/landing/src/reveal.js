@@ -3,7 +3,7 @@
 (()=>{
  if(matchMedia('(prefers-reduced-motion:reduce)').matches||!('IntersectionObserver' in window))return;
  const sel='.sec-head,.svc,.step,.feat li,.plan,.faq details,.cta-band__in,.s2-copy,.s2-demo,.trial-mock,#leadForm,.selection-copy,.compare,.salon-invite-card';
- const els=[...document.querySelectorAll(sel)].filter(e=>e.getBoundingClientRect().top>innerHeight);
+ const els=[...document.querySelectorAll(sel)].filter(e=>e.getBoundingClientRect().top>innerHeight&&(!e.closest('[data-cine]')||e.matches('.sec-head')));
  const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const el=e.target;
   const sib=[...el.parentElement.children].filter(x=>x.classList.contains('rv'));el.style.transitionDelay=Math.min(sib.indexOf(el),5)*70+'ms';
   el.classList.add('in');io.unobserve(el)}),{rootMargin:'0px 0px -8% 0px'});
