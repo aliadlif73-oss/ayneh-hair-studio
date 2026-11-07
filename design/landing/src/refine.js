@@ -1,4 +1,6 @@
-/* AYN-D063 — Studio wizard, live-preview feedback, and crisp asset loading. */
+/* AYN-D063 — Studio wizard: one-screen console, fitted live preview, instant feedback.
+   The preview is scaled to fit its box so the WHOLE salon page stays visible while
+   typing; nothing inside the studio ever needs its own scrollbar. */
 (()=>{
  /* ---- 1. Decode images asynchronously; defer the ones below the fold ---- */
  const imgs=[...document.querySelectorAll('img')];
@@ -18,11 +20,56 @@
  const q=$('wizardQuestion'),hint=$('wizardHintText'),count=$('wizardCount'),bar=$('wizardBar');
  const err=$('wizardError'),prev=$('wizardPrev'),next=$('wizardNext'),skip=$('wizardSkip');
  const build=$('builderBuild'),preview=$('builderPreview'),live=$('builderLive');
+ const page=$('livePage');
  const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[+d]);
- /* Hidden steps would otherwise block a native submit on their required inputs. */
  form.noValidate=true;
+
+ /* ---- 2. Fit the entire mini salon page into the preview box ---- */
+ /* transform does not change layout height, so offsetHeight stays measurable.
+    Width is compensated (100%/scale) so the mock still fills the frame. */
+ let fitRaf=0;
+ const queueFit=()=>{if(fitRaf)return;fitRaf=requestAnimationFrame(()=>{fitRaf=0;fit()})};
+ function fit(){
+  if(!page)return;
+  /* Desktop, very narrow and very short screens show the mock at natural size;
+     only roomy phone viewports need the fitted scale. */
+  if(innerWidth>850||innerWidth<=380||innerHeight<=720){
+   page.style.removeProperty('--fit');return
+  }
+  const box=live.clientHeight;
+  if(!box)return;
+  let z=1;
+  for(let k=0;k<6;k++){
+   page.style.setProperty('--fit',z.toFixed(3));
+   const need=page.offsetHeight||1;
+   const target=Math.max(.58,Math.min(1.65,(box-6)/need));
+   if(Math.abs(target-z)<.012){z=target;break}
+   z+=(target-z)*.72;
+  }
+  page.style.setProperty('--fit',z.toFixed(3));
+ }
+ addEventListener('resize',queueFit,{passive:true});
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(queueFit);
+ if(window.ResizeObserver){
+  new ResizeObserver(queueFit).observe(live);
+  let lastH=0;
+  new ResizeObserver(es=>{
+   const h=es[0].contentRect.height;
+   if(Math.abs(h-lastH)>2){lastH=h;remeasure();queueFit()}
+  }).observe(form);
+ }
+ if(page){
+  /* Content changes (name, bio, works, hidden contact block) resize the mock. */
+  new MutationObserver(queueFit).observe(page,{
+   childList:true,subtree:true,characterData:true,
+   attributes:true,attributeFilter:['hidden','src']
+  });
+ }
+
  let i=0,reflow=0;
- const remeasure=()=>{clearTimeout(reflow);reflow=setTimeout(()=>dispatchEvent(new Event('resize')),260)};
+ /* Only content-driven height changes need a synthetic resize; a real viewport
+    resize is already handled by cinema.js / reveal.js. */
+ const remeasure=()=>{clearTimeout(reflow);reflow=setTimeout(()=>dispatchEvent(new Event('resize')),220)};
 
  function show(n,focus=true){
   i=Math.max(0,Math.min(steps.length-1,n));
@@ -34,13 +81,16 @@
   prev.hidden=i===0;
   next.hidden=last;skip.hidden=last||!st.dataset.optional;build.hidden=!last;
   err.textContent='';
-  if(focus){
+  /* No scrollIntoView: the console is already a single screen. A page jump on
+     every "ادامه" was the main reason working with the studio felt awkward. */
+  if(focus&&innerWidth>850){
    const field=st.querySelector('input:not([type=hidden]),textarea,select');
-   if(field&&innerWidth>850)field.focus({preventScroll:true});
-   const stage=preview&&preview.parentElement;
-   if(stage&&innerWidth<=850)stage.scrollIntoView({block:'start'});
+   if(field)field.focus({preventScroll:true});
   }
-  remeasure();
+  /* Show where this answer will land before the user starts typing. */
+  const first=st.querySelector('input,textarea,select');
+  if(first)setTimeout(()=>flash(first),240);
+  remeasure();queueFit();
  }
  function validate(st){
   const key=st.dataset.key,ctrl=st.querySelector('input,textarea,select');
@@ -60,9 +110,9 @@
  skip.addEventListener('click',()=>show(i+1));
  prev.addEventListener('click',()=>show(i-1));
 
- /* ---- 2. Every answered field is visibly acknowledged in the live preview ---- */
+ /* ---- 3. Every answered field is visibly acknowledged in the live preview ---- */
  const flashFor={
-  name:'liveName',slug:'builderAddress',brand:'builderLive',logo:'liveLogo',cover:'liveCover',
+  name:'liveName',slug:'builderAddress',brand:'liveInitial',logo:'liveLogo',cover:'liveCover',
   bio:'liveBio',manager:'liveManager',phone:'livePhone',hours:'liveHours',address:'liveAddress',
   portrait:'livePortrait',map:'liveLinks',instagram:'liveLinks',telegram:'liveLinks',website:'liveLinks'
  };
@@ -70,10 +120,14 @@
   if(!target)return;
   const key=target.name||(target.hasAttribute('data-work')?'works':'');
   const id=flashFor[key]||(key==='works'?'liveWorks':'');
-  const el=id&&$(id);if(!el)return;
-  el.classList.remove('live-flash');void el.offsetWidth;el.classList.add('live-flash');
+  const el=id&&$(id);if(!el||el.hidden)return;
+  /* Exactly one highlight at a time; overlapping flashes smear the preview. */
+  for(const old of live.querySelectorAll('.live-flash'))old.classList.remove('live-flash');
+  if(preview)for(const old of preview.querySelectorAll('.live-flash'))old.classList.remove('live-flash');
+  void el.offsetWidth;el.classList.add('live-flash');
  }
  form.addEventListener('input',e=>flash(e.target));
  form.addEventListener('change',e=>flash(e.target));
  show(0,false);
+ queueFit();
 })();

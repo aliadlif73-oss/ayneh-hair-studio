@@ -93,15 +93,8 @@
  }
  function change(event){
   render();
-  if(event?.target instanceof HTMLElement){
-   const key=event.target.name;
-   const row=event.target.closest('.builder-work');
-   const target=row?$('liveWorks').children[[...works.children].indexOf(row)]
-    :['manager','portrait','phone','map','instagram','website','telegram'].includes(key)?$('liveContact')
-    :['name','bio','address','hours'].includes(key)?$('liveName'):null;
-   if(target)live.scrollTop+=target.getBoundingClientRect().top-live.getBoundingClientRect().top-8;
-   else if(['logo','cover','brand','slug'].includes(key))live.scrollTop=0;
-  }
+  /* The fitted preview shows the whole page at once. Highlighting the changed
+     element (refine.js) replaces the old scroll-jump on every keystroke. */
   if(!draft)return;
   dirty=true;activate.hidden=true;
   hint.textContent='پیش‌نمایش به‌روز شد. برای ادامه، اطلاعات را تأیید کنید.';

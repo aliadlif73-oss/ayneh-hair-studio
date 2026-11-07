@@ -200,3 +200,154 @@ summary>.glass-layer::before{display:none}
 .service-timeline button[aria-pressed=true]{color:var(--gold-soft)!important}
 .service-timeline button[aria-pressed=true] .film-icon{box-shadow:inset 0 2px 2px rgba(255,250,226,.9),
   inset 0 -3px 5px rgba(94,62,10,.5),0 3px 0 #8A641E,0 0 0 4px var(--gold),0 0 0 8px var(--gold-glow)!important}
+
+/* ---------- 10. Studio console: one screen, no inner scrollbar, whole preview visible ----------
+   The wizard used to be a fixed-height flex box with overflow-y:auto on the form:
+   even the "name" step needed scrolling inside the card, and each "ادامه" jumped
+   the whole page with scrollIntoView. This is a single compact unit instead. */
+
+/* scroll-padding on the scroller AND scroll-margin on the target were both
+   applied, so every anchor jump stopped ~90px too low. One offset only. */
+html{scroll-padding-top:calc(var(--hh) + 12px)}
+section[id],.site-footer{scroll-margin-top:0}
+/* Focus must not yank the page away from the preview while typing. */
+.salon-builder .builder-form,
+.salon-builder .builder-form :is(input,select,textarea,button,summary){scroll-margin:0!important}
+
+/* A form must never be scroll-scrubbed: keep it perfectly still and opaque. */
+[data-cine=desk] :is(.builder-form,.builder-preview){
+  animation:none!important;opacity:1!important;transform:none!important;
+  filter:none!important;will-change:auto!important}
+
+/* Fit the entire mini salon page into the device frame. transform leaves layout
+   height measurable; the compensated width keeps the mock full-bleed. */
+.live-page{box-sizing:border-box;transform-origin:top left;
+  transform:scale(var(--fit,1));width:calc(100% / var(--fit,1))}
+.builder-preview .builder-live{scroll-behavior:auto!important}
+
+@media(max-width:850px){
+  .salon-builder{padding-block:44px 54px!important}
+  .salon-builder .sec-head{margin-bottom:16px!important}
+  .salon-builder .sec-head .kicker{font-size:12px;margin:0!important}
+  .salon-builder .sec-head h2{font-size:clamp(20px,5.4vw,27px)!important;
+    line-height:1.4!important;margin:6px 0 0!important}
+  .salon-builder .sec-head .sub{display:none!important}
+  .salon-builder .builder-steps{display:none!important}
+
+  .salon-builder .builder-grid{
+    display:flex!important;flex-direction:column!important;gap:0!important;
+    height:auto!important;min-height:0!important;overflow:visible!important;
+    border:1px solid rgba(198,172,116,.8);border-radius:22px;background:#FFFDF8;
+    box-shadow:0 14px 38px rgba(16,30,56,.12);
+    scroll-margin-top:0!important}
+  .salon-builder .builder-preview{
+    order:1;position:relative!important;top:auto!important;z-index:auto;
+    flex:none!important;height:clamp(230px,33svh,300px);padding:8px!important;
+    display:flex!important;flex-direction:column;gap:6px!important;
+    border:0!important;border-radius:20px 20px 0 0!important;box-shadow:none!important;
+    overflow:hidden!important;background:#191e2a!important}
+  .salon-builder .builder-preview .builder-browser{flex:none;min-height:22px;font-size:10px}
+  .salon-builder .builder-preview .builder-live{
+    flex:1 1 auto;min-height:0;height:auto!important;max-height:none!important;
+    overflow:hidden!important;border-radius:12px}
+  .salon-builder .builder-preview #builderHint{display:none!important}
+  .salon-builder .builder-preview>.btn{flex:none;min-height:34px;margin:0!important;
+    padding:4px 10px!important;font-size:12px!important}
+
+  .salon-builder .builder-form{
+    order:2;flex:none;overflow:visible!important;padding:12px 14px 14px!important;
+    border:0!important;border-radius:0 0 20px 20px!important;box-shadow:none!important;
+    background:#FCFBF7!important;scroll-margin-top:0!important}
+  .salon-builder .builder-form>.builder-note,
+  .salon-builder .builder-form>.builder-error:empty,
+  .salon-builder .builder-form .builder-availability{display:none!important}
+  .salon-builder .builder-form #builderBuild{margin-top:10px!important}
+
+  .salon-builder .wizard{display:flex!important;flex-direction:column!important;gap:7px!important}
+  .salon-builder .wizard-top{height:14px}
+  .salon-builder .wizard-track{height:5px}
+  .salon-builder .wizard-count{font-size:11px}
+  .salon-builder .wizard-top{order:0}
+  .salon-builder .wizard-question{order:1;font-size:17px!important;
+    line-height:1.45!important;margin:0!important}
+  .salon-builder .wizard-hint{display:none!important}
+  .salon-builder .wizard-step.is-active{order:2;gap:8px}
+  .salon-builder .wizard-error{order:3;min-height:0;font-size:12px;line-height:1.4}
+  .salon-builder .wizard-step label{font-size:11px;gap:2px;font-weight:700;line-height:1.3}
+  .salon-builder .wizard-step fieldset{gap:7px!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;margin:0!important}
+  .salon-builder .builder-form input:not([type=file]):not([type=color]),
+  .salon-builder .builder-form textarea,
+  .salon-builder .builder-form select{min-height:38px!important;
+    padding:5px 9px!important;font-size:14px!important}
+  /* Compact upload rows: keep the chosen file name visible, lose the bulk. */
+  .salon-builder .builder-upload{gap:2px!important}
+  .salon-builder .upload-control{grid-template-rows:auto auto!important;gap:2px!important;
+    min-height:50px!important;padding:5px 8px!important;align-content:center!important}
+  .salon-builder .upload-action{min-height:28px!important;padding:2px 8px!important;font-size:12px}
+  .salon-builder .upload-name{font-size:10px;line-height:1.25;white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;overflow-wrap:normal}
+  .salon-builder .wizard-actions{order:4;gap:7px!important;margin-top:0!important;
+    flex-wrap:nowrap!important}
+  .salon-builder .wizard-actions .btn{min-height:40px!important;font-size:13px!important;
+    padding:0 8px!important;flex:1!important;min-width:0!important}
+}
+
+/* Very short/narrow phones: show the mock at natural size instead of shrinking
+   it; the page (never the card) may scroll a little. */
+@media(max-width:850px) and (max-height:720px),(max-width:850px) and (max-width:380px){
+  .salon-builder .builder-preview{height:auto!important}
+  .salon-builder .builder-preview .builder-live{height:auto!important;overflow:visible!important}
+  .salon-builder .sec-head h2{font-size:19px!important}
+}
+
+/* Soft in-place acknowledgement: no thick spread ring around full-width blocks. */
+.live-flash{animation:live-flash 1.05s ease-out;border-radius:8px}
+@keyframes live-flash{
+  0%{background:rgba(242,223,175,.55);box-shadow:inset 0 0 0 2px var(--gold)}
+  65%{background:rgba(242,223,175,.20);box-shadow:inset 0 0 0 2px rgba(216,166,60,.55)}
+  100%{background:transparent;box-shadow:inset 0 0 0 2px transparent}
+}
+@media(max-width:400px){
+  .salon-builder{padding-block:32px 44px!important}
+  .salon-builder .sec-head{margin-bottom:12px!important}
+}
+
+/* ---------- 11. One-shot entrances instead of per-frame scroll scrubbing ----------
+   Paused animations re-timed by --p/--wp on every scroll frame forced a full
+   style + paint pass for hundreds of elements. All those variables default to
+   1, so the elements can simply render in their final state. A single, cheap
+   opacity/transform entrance plays once per block on first view. */
+@media(prefers-reduced-motion:no-preference){
+  :where(.cine-word,.type-live,.sec-head[data-stage],.sec-head[data-stage] .sub,
+    .copy .reveal,.benefit,.svc,.builder-steps>li,.faq>details,.faq-next,
+    .film-player,.film-screen,.film-caption,.salon-invite-card,.salon-invite-art,
+    .salon-invite-art>:is(img,video),.invite-seal,.salon-invite-copy>*,.gold-icon,
+    .service-timeline>button,.foot ul li,.legal,.cards3>.svc .gold-icon,
+    .cards3>.svc h3,.cards3>.svc p,.cards3>.svc .svc-try,
+    .benefit .gold-icon,.benefit h3,.benefit p){
+      animation:none!important;filter:none!important;will-change:auto!important}
+}
+.cine-wait{opacity:0;transform:translate3d(0,14px,0);
+  transition:opacity .55s var(--ease),transform .55s var(--ease);
+  transition-delay:var(--enter,0ms)}
+.cine-wait.is-in{opacity:1;transform:none}
+
+/* ---------- 12. Cheap compositing while scrolling ----------
+   backdrop-filter:blur() on decorative glass forces a full backdrop repaint on
+   every scroll frame. These surfaces are already near-opaque: a slightly more
+   solid fill looks the same and scrolls smoothly. */
+.glass,.style-dock,.demo-caption,.cinema-arrows button,
+.auto-film .journey-copy,.invite-seal{
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+.glass{background:rgba(217,224,231,.92)!important}
+.style-dock{background:rgba(212,220,228,.92)!important}
+.demo-caption{background:#f7f9fbee!important}
+.cinema-arrows button{background:#121720dc!important}
+.auto-film .journey-copy{background:linear-gradient(140deg,#101620f5,#101620e8)!important}
+.invite-seal{background:linear-gradient(155deg,rgba(17,23,35,.97),rgba(9,12,17,.99))!important}
+.gold-icon svg,.film-icon svg,.frame .orbit{filter:none!important}
+/* Content is simply always present: no hidden state, no observer, no timer,
+   and no chance of an item staying invisible when the visitor scrolls to it. */
+.cine-wait,.cine-wait.is-in{opacity:1!important;transform:none!important;
+  transition:none!important}

@@ -328,16 +328,28 @@
  new IntersectionObserver(entries=>{if(!entries[0].isIntersecting&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')},{threshold:0}).observe(studio);
  film.addEventListener('pointerdown',()=>{played=true},{once:true});
  /* ---------- scroll plays the scene (desktop pin only) ---------- */
- const hdr=document.querySelector('.site-header');let tick=false;
+ const hdr=document.querySelector('.site-header');let tick=false,geo=null,hh=76;
+ /* --hh is a root custom property: rewriting it every scroll frame invalidates
+    the whole document's style. Measure it, and the film geometry, only on
+    real layout changes. */
+ function measureGeo(){
+  hh=hdr?hdr.offsetHeight:76;
+  document.documentElement.style.setProperty('--hh',hh+'px');
+  geo={span:film.offsetHeight-stage.offsetHeight,top:film.getBoundingClientRect().top+window.scrollY};
+ }
  function frameUpdate(){tick=false;
-  const hh=hdr?hdr.offsetHeight:76;document.documentElement.style.setProperty('--hh',hh+'px');
+  if(!geo)measureGeo();
   if(mobile.matches){stage.style.setProperty('--p','0');stage.style.setProperty('--z','1');return}
-  const span=film.offsetHeight-stage.offsetHeight;if(span<=0)return;
-  const p=cl((hh-film.getBoundingClientRect().top)/span,0,1);
+  if(geo.span<=0)return;
+  const p=cl((hh-(geo.top-window.scrollY))/geo.span,0,1);
   stage.style.setProperty('--p',p.toFixed(4));stage.style.setProperty('--z',(1+p*.08).toFixed(4));
   $('fade').style.opacity=sm(.6,1,p).toFixed(3)}
  const req=()=>{if(!tick){tick=true;requestAnimationFrame(frameUpdate)}};
  addEventListener('scroll',req,{passive:true});
- new ResizeObserver(()=>{layout();req()}).observe(mirror);
- layout();frameUpdate();
+ addEventListener('resize',()=>{measureGeo();req()},{passive:true});
+ addEventListener('load',()=>{measureGeo();req()});
+ if(hdr&&window.ResizeObserver)new ResizeObserver(()=>{measureGeo();req()}).observe(hdr);
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{measureGeo();req()});
+ new ResizeObserver(()=>{layout();measureGeo();req()}).observe(mirror);
+ layout();measureGeo();frameUpdate();
 })();
