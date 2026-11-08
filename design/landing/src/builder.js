@@ -200,7 +200,7 @@
   await api('/api/activation',payload);
   window.__AYN_TRACK?.('lead_submit',{path:'activation'});
   if(draft!==sentDraft||dirty)return;
-  submitted=true;phone.hidden=true;otp.hidden=true;thanks.hidden=false;
+  submitted=true;phone.hidden=true;otp.hidden=true;window.__AYN_FOLLOWUP?.(thanks);
   $('builderDialogTitle').textContent='درخواست راه‌اندازی ثبت شد';
   if(!dialog.open)dialog.showModal();
   activate.disabled=true;hint.textContent='درخواست راه‌اندازی ثبت شد.';

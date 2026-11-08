@@ -1075,3 +1075,29 @@ test('funnel step 7: hero speaks to the salon owner and has one clear primary CT
  assert.doesNotMatch(landingHTML,/href="#start"/);
  assert.ok(landingHTML.length<240000);
 });
+
+test('funnel step 8: every success state answers what happens next, with no new claims',()=>{
+ const tpl=(landingHTML.match(/<template id="followUpTemplate">([\s\S]*?)<\/template>/)||[])[1]||'';
+ assert.ok(tpl,'the follow-up copy has a single source of truth');
+ assert.equal((tpl.match(/<li>/g)||[]).length,3,'three steps: received/reviewed, who calls, what is needed');
+ for(const label of ['دریافت و بررسی','تماس تیم آینه','از طرف شما'])assert.ok(tpl.includes(label),label);
+ assert.match(tpl,/کارشناسان ما/,'who reviews');
+ assert.match(tpl,/اعلام هزینه و هماهنگی راه\u200cاندازی/,'who calls and why');
+ assert.match(tpl,/نیازی به پرداخت یا کاری از طرف شما نیست/,'nothing needed from the owner');
+ assert.match(tpl,/شماره فقط برای پیگیری همین درخواست استفاده می\u200cشود/,'existing privacy line');
+ // No invented proof, price, timeframe or social proof anywhere in the new copy.
+ assert.doesNotMatch(tpl,/میلیون|تومان|شارژ ماهانه|[۰-۹0-9]+\s*(روز|ساعت|دقیقه|هفته|ماه)/);
+ assert.doesNotMatch(tpl,/رضایت|ستاره|نظر مشتری|مشتریان ما|سالن\u200cهای همکار|تضمین/);
+ // Both success paths use the same template; neither writes a drifting sentence.
+ assert.match(landingHTML,/id="builderThanks" class="follow-up-slot" role="status" hidden/);
+ assert.match(landingHTML,/class="lf-done follow-up-slot" id="lf-done" role="status" hidden/);
+ assert.match(landingHTML,/window\.__AYN_FOLLOWUP=slot=>/,'helper bundled');
+ assert.match(landingHTML,/__AYN_FOLLOWUP\?\.\(thanks\)/,'OTP dialog path');
+ assert.match(landingHTML,/__AYN_FOLLOWUP\?\.\(done\)/,'always-available phone path');
+ // Analytics and every earlier funnel step are unchanged.
+ assert.equal((landingHTML.match(/lead_submit'/g)||[]).length>=2,true);
+ assert.match(landingHTML,/مشتری پیش از مراجعه، انتخابش را با عکس برای شما می\u200cفرستد/);
+ assert.match(landingHTML,/<ul class="reassure reveal"/);
+ assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
+ assert.ok(landingHTML.length<240000,'bloat guard still respected');
+});

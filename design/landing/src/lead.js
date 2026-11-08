@@ -22,8 +22,7 @@
    if(!response.ok||!result.ok)throw Error(result.error||'ثبت درخواست ممکن نشد. دوباره تلاش کنید.');
    window.__AYN_TRACK?.('lead_submit',{path:'inquiry'});
    const done=$('lf-done');
-   done.textContent='درخواستتان ثبت شد. برای هماهنگی و اعلام هزینه با شما تماس می‌گیریم. نیازی به پرداخت یا کاری از طرف شما نیست.';
-   done.hidden=false; /* role=status announces it; no focus ring on a static message */
+   window.__AYN_FOLLOWUP?.(done); /* role=status announces it; no focus ring on a static message */
    form.querySelectorAll('input,button').forEach(i=>i.disabled=true);send.hidden=true;
   }catch(error){window.__AYN_TRACK?.('lead_submit_failed',{path:'inquiry'});err.textContent=error.message}
   finally{send.disabled=false;send.removeAttribute('aria-busy')}

@@ -153,5 +153,19 @@
   <button type="button" id="builderRetry" class="btn btn--ghost">ارسال دوبارهٔ کد</button>
  </form>
  <p id="builderDialogError" class="builder-error" role="alert"></p>
- <p id="builderThanks" role="status" hidden>از اعتمادتان ممنونیم. درخواست راه‌اندازی صفحهٔ اختصاصی سالن برای کارشناسان ما ارسال شد. پس از بررسی برای اعلام هزینه و هماهنگی با شما تماس می‌گیریم.</p>
+ <div id="builderThanks" class="follow-up-slot" role="status" hidden></div>
 </dialog>
+
+<!-- Funnel step 8: one source of truth for "what happens next". Both success
+     paths (OTP dialog + always-available phone form) clone this template. -->
+<template id="followUpTemplate">
+ <div class="follow-up">
+  <p class="follow-up-lead">درخواستتان ثبت شد. بعد از این:</p>
+  <ol class="follow-up-steps">
+   <li><span class="follow-up-num" aria-hidden="true">۱</span><div><b>دریافت و بررسی</b><span>درخواست راه‌اندازی صفحهٔ اختصاصی سالن برای کارشناسان ما ارسال شد و بررسی می‌شود.</span></div></li>
+   <li><span class="follow-up-num" aria-hidden="true">۲</span><div><b>تماس تیم آینه</b><span>پس از بررسی، برای اعلام هزینه و هماهنگی راه‌اندازی با شما تماس می‌گیریم. هزینه پیش از هر تصمیمی اعلام می‌شود.</span></div></li>
+   <li><span class="follow-up-num" aria-hidden="true">۳</span><div><b>از طرف شما</b><span>نیازی به پرداخت یا کاری از طرف شما نیست. ثبت درخواست شامل پرداخت یا انتشار صفحه نیست.</span></div></li>
+  </ol>
+  <p class="follow-up-note">شماره فقط برای پیگیری همین درخواست استفاده می‌شود.</p>
+ </div>
+</template>
