@@ -724,7 +724,7 @@ test('without SMS invites the bot offers messenger buttons and /i/ is a send pag
 // ---------- landing page and salon inquiries ----------
 test('landing page is public at / and the owner console stays at /admin',async()=>{const e=tgEnv(fixture());
  const r=await app.fetch(new Request(origin+'/'),e);assert.equal(r.status,200);const html=await r.text();
- assert.match(html,/id="builderLive"/);assert.match(html,/مدل دلخواه مشتری، روی عکس خودش و پیش از مراجعه/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
+ assert.match(html,/id="builderLive"/);assert.match(html,/مشتری پیش از مراجعه، انتخابش را با عکس برای شما می\u200cفرستد/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
  new Function(html.match(/<script>([\s\S]*?)<\/script>/g).map(s=>s.replace(/<\/?script>/g,'')).join('\n'));
  assert.equal((await app.fetch(new Request(origin+'/admin'),e)).status,200);});
 
@@ -1055,4 +1055,23 @@ test('funnel step 6: cost, time and privacy are answered beside the CTA with no 
  // The canonical CTA label from step 3 is untouched.
  assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
  assert.ok(landingHTML.length<240000,'raised bloat guard still respected');
+});
+
+test('funnel step 7: hero speaks to the salon owner and has one clear primary CTA',()=>{
+ const h1=(landingHTML.match(/<h1 id="h1"[^>]*>([\s\S]*?)<\/h1>/)||[])[1]||'';
+ assert.equal(h1,'مشتری پیش از مراجعه، انتخابش را با عکس برای شما می\u200cفرستد');
+ // The cinema gold-word engine keys off these tokens; keep them in the headline.
+ assert.ok(h1.includes('مشتری')&&h1.includes('عکس'),'gold highlight words survive');
+ assert.match(landingHTML,/صفحه\u200cای با نام و رنگ سالن شما/,'lead is owner-framed');
+ const row=(landingHTML.match(/<div class="cta-row reveal">([\s\S]*?)<\/div>/)||[])[1]||'';
+ assert.match(row,/class="btn btn--lg" href="#salon-example"><span>ساخت پیش\u200cنمایش سالن من/);
+ assert.match(row,/class="btn btn--ghost btn--quiet" data-try="hair"/,'demo CTA demoted but still a .btn');
+ assert.doesNotMatch(row,/class="btn btn--lg"[^>]*data-try/,'primary and demo are not both prominent');
+ // Everything from the earlier steps stays intact.
+ assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
+ assert.match(landingHTML,/<ul class="reassure reveal"/);
+ assert.match(landingHTML,/id="builderDetails"/);
+ assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
+ assert.doesNotMatch(landingHTML,/href="#start"/);
+ assert.ok(landingHTML.length<240000);
 });
