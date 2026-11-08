@@ -5,10 +5,39 @@
  const loading=$('builderLoading'),activate=$('builderActivate'),hint=$('builderHint');
  const dialog=$('builderDialog'),phone=$('builderPhone'),otp=$('builderOtp'),thanks=$('builderThanks'),dialogError=$('builderDialogError');
  const availability=$('builderAvailability');
+ const fallback=$('leadFallback'),fallbackToggle=$('leadFallbackToggle'),
+       fallbackBody=$('leadFallbackBody'),fallbackLead=$('leadFallbackLead');
  const add=$('builderAdd'),works=$('builderWorks'),build=$('builderBuild');
  const profileFields=['bio','manager','address','hours','phone','instagram','website','map','telegram'];
  const brandFields=['logo','cover','portrait'];
  let draft,otpBody,busy=false,submitted=false,dirty=false,canActivate=false,checkingAvailability=false,availabilityKnown=false;
+ let availabilityState=null,lastWizardName='';
+ /* OTP stays primary. A quiet request form is ALWAYS offered and becomes the
+    primary route whenever SMS activation is unavailable. */
+ function setFallback(primary){
+  if(!fallback||availabilityState===primary)return;
+  availabilityState=primary;
+  fallback.hidden=false;
+  fallback.classList.toggle('is-primary',primary);
+  fallback.classList.toggle('is-secondary',!primary);
+  fallbackLead.hidden=primary;
+  fallbackLead.textContent='همچنین می‌توانید، بدون تأیید پیامکی:';
+  fallbackToggle.hidden=primary;
+  fallbackToggle.setAttribute('aria-expanded',String(primary));
+  fallbackBody.hidden=!primary;
+ }
+ if(fallbackToggle)fallbackToggle.addEventListener('click',()=>{
+  const open=fallbackBody.hidden;
+  fallbackBody.hidden=!open;
+  fallbackToggle.setAttribute('aria-expanded',String(open));
+  fallbackLead.hidden=open;
+  if(open){
+   fallbackLead.hidden=true;
+   const name=form.elements.name?.value.trim();
+   if(name&&!$('lf-salon').value)$('lf-salon').value=name;
+   $('lf-salon').focus({preventScroll:true});
+  }
+ });
  const objectURLs=new Map();
  const imageTypes=['image/jpeg','image/png','image/webp'];
  const validPhoto=file=>imageTypes.includes(file.type)&&file.size>0&&file.size<=12_000_000;
@@ -25,11 +54,12 @@
   canActivate=available;
   availability.textContent=available
    ?'پیش‌نمایش رایگان است. برای درخواست راه‌اندازی، تأیید شمارهٔ موبایل لازم است.'
-   :'پیش‌نمایش رایگان است و همین حالا ساخته می‌شود. ثبت درخواست راه‌اندازی موقتاً در دسترس نیست؛ کمی بعد دوباره سر بزنید.';
+   :'پیش‌نمایش رایگان است. برای درخواست راه‌اندازی، شماره‌تان را همین‌جا بگذارید؛ بدون پرداخت و بدون انتشار صفحه، برای هماهنگی با شما تماس می‌گیریم.';
   activate.hidden=!available||!draft||dirty;
+  setFallback(!available);
   if(draft&&!dirty&&!submitted)hint.textContent=available
    ?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.'
-   :'پیش‌نمایش آماده است. ثبت درخواست راه‌اندازی فعلاً در دسترس نیست.';
+   :'پیش‌نمایش آماده است. درخواست‌تان را از فرم زیر بفرستید.';
  }
  async function checkAvailability(){
   if(checkingAvailability)return;
@@ -55,6 +85,9 @@
   const get=key=>fields[key].value.trim();
   const name=get('name')||'نام سالن شما';
   const slug=get('slug')||'your-salon';
+  const lfSalon=$('lf-salon');
+  if(lfSalon&&(!lfSalon.value||lfSalon.value===lastWizardName))lfSalon.value=get('name')||'';
+  lastWizardName=get('name')||'';
   $('builderAddress').textContent='ayneh-salon.site/s/'+slug;
   live.style.setProperty('--salon-brand',get('brand'));
   $('builderBrandHex').textContent=get('brand').toUpperCase();
@@ -158,7 +191,7 @@
    draft={id:crypto.randomUUID(),data:{name,slug,brand:form.elements.brand.value,profile,portfolio},files};
    dirty=false;submitted=false;
    activate.hidden=!canActivate;activate.disabled=false;
-   hint.textContent=canActivate?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.':'پیش‌نمایش آماده است. در این نسخه فقط پیش‌نمایش در دسترس است.';
+   hint.textContent=canActivate?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.':'پیش‌نمایش آماده است. درخواست‌تان را از فرم زیر بفرستید.';
    (canActivate?activate:live).focus();
    if(!canActivate&&availabilityKnown)checkAvailability();
   }catch(error){$('builderError').textContent=error.message;$('builderError').focus();}
@@ -191,7 +224,7 @@
   if(submitted||dirty||!canActivate)return;
   try{await api('/api/activation')}catch{
    showAvailability(false);
-   throw new Error('ثبت فعال‌سازی در این محیط در دسترس نیست. پیش‌نمایش شما آماده است.');
+   throw new Error('ثبت فعال‌سازی از این مسیر در دسترس نیست. می‌توانید درخواست‌تان را از فرم زیر بفرستید.');
   }
   const current=await session();
   if(current.verified){await send();return}

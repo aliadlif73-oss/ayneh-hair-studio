@@ -15,10 +15,12 @@ test('review Site serves the real customer flow, restricts its proxy, and labels
   const page=await app.fetch(new Request('https://review.example/s/demo?draft=1'));assert.equal(page.status,200);assert.match(await page.text(),/برای ساخت تصویر، ابتدا وارد شوید/);
   const landing=await app.fetch(new Request('https://review.example/'));
   assert.equal(landing.headers.get('X-Robots-Tag'),'noindex, nofollow');
-  // Budget for the real production landing (not the 3 MB single-file artifact);
-  // it carries the complementary-gold system, the studio wizard and the full
-  // scroll-linked cinema engine (word slams, fan/curtain/lights/desk/focus/draw).
-  assert((await landing.text()).length<220_000,'review serves the lightweight production HTML');
+  // Budget for the real production landing (not the 3 MB single-file artifact).
+  // It carries the complementary-gold system, the studio wizard, the full
+  // scroll-linked cinema engine (word slams, fan/curtain/lights/desk/focus/draw)
+  // and the always-available low-friction activation request that keeps the
+  // funnel open when SMS OTP is unavailable. Raised from 220k with that form.
+  assert((await landing.text()).length<230_000,'review serves the lightweight production HTML');
   assert.equal((await app.fetch(new Request('https://review.example/api/s/demo/otp/send',{method:'POST'}))).status,403);
   const video=await app.fetch(new Request('https://review.example/assets/video/hair.mp4'));assert.equal(video.headers.get('Content-Type'),'video/mp4');assert.match(calls[0].url,/raw\.githubusercontent\.com.*\/public\/landing\/video\/hair.mp4$/);
   assert.equal((await app.fetch(new Request('https://review.example/api/login',{method:'POST'}))).status,404);
