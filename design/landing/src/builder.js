@@ -51,6 +51,7 @@
   return data;
  };
  function showAvailability(available){
+  window.__AYN_TRACK?.('activation_available',{available:!!available});
   canActivate=available;
   availability.textContent=available
    ?'پیش‌نمایش رایگان است. برای درخواست راه‌اندازی، تأیید شمارهٔ موبایل لازم است.'
@@ -188,7 +189,8 @@
     files.set(slot,await photo(get('file').files[0]));
     portfolio.push({title,line:get('line').value,description:get('description').value.trim(),slot});
    }
-   draft={id:crypto.randomUUID(),data:{name,slug,brand:form.elements.brand.value,profile,portfolio},files};
+   draft={id:crypto.randomUUID(),data:{name,slug,brand:form.elements.brand.value,profile,portfolio,attribution:window.__AYN_ATTR?.()||{}},files};
+   window.__AYN_TRACK?.('preview_ready');
    dirty=false;submitted=false;
    activate.hidden=!canActivate;activate.disabled=false;
    hint.textContent=canActivate?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.':'پیش‌نمایش آماده است. درخواست‌تان را از فرم زیر بفرستید.';
@@ -208,6 +210,7 @@
   for(const [key,file] of draft.files)payload.append(key,file,key);
   const sentDraft=draft;
   await api('/api/activation',payload);
+  window.__AYN_TRACK?.('lead_submit',{path:'activation'});
   if(draft!==sentDraft||dirty)return;
   submitted=true;phone.hidden=true;otp.hidden=true;thanks.hidden=false;
   $('builderDialogTitle').textContent='درخواست فعال‌سازی ثبت شد';
@@ -224,6 +227,7 @@
   if(submitted||dirty||!canActivate)return;
   try{await api('/api/activation')}catch{
    showAvailability(false);
+   window.__AYN_TRACK?.('lead_submit_failed',{reason:'activation_unavailable'});
    throw new Error('ثبت فعال‌سازی از این مسیر در دسترس نیست. می‌توانید درخواست‌تان را از فرم زیر بفرستید.');
   }
   const current=await session();
@@ -236,13 +240,13 @@
   e.preventDefault();
   run(async()=>{
    const data=Object.fromEntries(new FormData(phone));
-   await api('/api/s/demo/otp/send',data);otpBody=data;
+   await api('/api/s/demo/otp/send',data);otpBody=data;window.__AYN_TRACK?.('otp_sent');
    phone.hidden=true;otp.hidden=false;otp.elements.code.focus();
   },e.submitter);
  });
  otp.addEventListener('submit',e=>{
   e.preventDefault();
-  run(async()=>{if(!(await api(sessionPath)).verified)await api('/api/s/demo/otp/verify',{code:otp.elements.code.value});await send()},e.submitter);
+  run(async()=>{if(!(await api(sessionPath)).verified)await api('/api/s/demo/otp/verify',{code:otp.elements.code.value});window.__AYN_TRACK?.('otp_verified');await send()},e.submitter);
  });
  $('builderRetry').onclick=e=>run(async()=>{await api('/api/s/demo/otp/send',otpBody);dialogError.textContent='کد جدید فرستاده شد.'},e.currentTarget);
  dialog.querySelector('.builder-close').onclick=()=>dialog.close();

@@ -23,6 +23,10 @@
  const page=$('livePage');
  const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[+d]);
  form.noValidate=true;
+ let funnelStarted=false;
+ const funnelStart=()=>{if(!funnelStarted){funnelStarted=true;window.__AYN_TRACK?.('wizard_start')}};
+ form.addEventListener('input',funnelStart,{passive:true});
+ form.addEventListener('change',funnelStart,{passive:true});
 
  /* ---- 2. Fit the entire mini salon page into the preview box ---- */
  /* transform does not change layout height, so offsetHeight stays measurable.
@@ -106,8 +110,8 @@
   }
   return true;
  }
- next.addEventListener('click',()=>{if(validate(steps[i]))show(i+1)});
- skip.addEventListener('click',()=>show(i+1));
+ next.addEventListener('click',()=>{if(validate(steps[i])){window.__AYN_TRACK?.('wizard_step_complete',{step:i+1,key:steps[i].dataset.key});show(i+1)}});
+ skip.addEventListener('click',()=>{window.__AYN_TRACK?.('wizard_skip',{step:i+1,key:steps[i].dataset.key});show(i+1)});
  prev.addEventListener('click',()=>show(i-1));
 
  /* ---- 3. Every answered field is visibly acknowledged in the live preview ---- */

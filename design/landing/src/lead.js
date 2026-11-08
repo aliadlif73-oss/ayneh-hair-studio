@@ -10,7 +10,7 @@
   const phone=digits($('lf-phone').value).replace(/[\s-]/g,'');
   const slug=$('slugHintInput')?.value.trim();
   const chosen='صفحهٔ اختصاصی سالن · '+salon+(slug?' ('+slug+')':'');
-  const data={name,salon,phone,city:$('lf-city').value.trim(),website:$('lf-web').value,consent:$('lf-consent').checked,chosen};
+  const data={name,salon,phone,city:$('lf-city').value.trim(),website:$('lf-web').value,consent:$('lf-consent').checked,chosen,attribution:window.__AYN_ATTR?.()||{}};
   if(name.length<2){err.textContent='نام خودتان را بنویسید.';return}
   if(salon.length<2){err.textContent='نام سالن را بنویسید.';return}
   if(!/^(\+98|0098|98|0)?9\d{9}$/.test(phone)){err.textContent='شمارهٔ موبایل درست را وارد کنید.';return}
@@ -20,11 +20,12 @@
    const response=await fetch('/api/inquiry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
    const result=await response.json();
    if(!response.ok||!result.ok)throw Error(result.error||'ثبت درخواست ممکن نشد. دوباره تلاش کنید.');
+   window.__AYN_TRACK?.('lead_submit',{path:'inquiry'});
    const done=$('lf-done');
    done.textContent='درخواستتان ثبت شد. برای هماهنگی و اعلام هزینه با شما تماس می‌گیریم. نیازی به پرداخت یا کاری از طرف شما نیست.';
    done.hidden=false; /* role=status announces it; no focus ring on a static message */
    form.querySelectorAll('input,button').forEach(i=>i.disabled=true);send.hidden=true;
-  }catch(error){err.textContent=error.message}
+  }catch(error){window.__AYN_TRACK?.('lead_submit_failed',{path:'inquiry'});err.textContent=error.message}
   finally{send.disabled=false;send.removeAttribute('aria-busy')}
  });
 })();

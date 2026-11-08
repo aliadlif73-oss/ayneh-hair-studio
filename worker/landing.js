@@ -30,6 +30,48 @@ compact.addEventListener('change',e=>{if(!e.matches&&!menu.hidden)setOpen(false)
 })();
 </script><script>window.__AYN_ASSET_VERSION="990d3abd8e27";window.__AYN_LOOKS=[2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19];</script><script>
 (()=>{
+const KINDS=['cta_click','demo_open','wizard_start','wizard_step_complete','wizard_skip',
+'preview_ready','activation_available','otp_sent','otp_verified','lead_submit','lead_submit_failed'];
+let session='';
+try{
+session=sessionStorage.getItem('ayneh_funnel')||'';
+if(!session){
+session=crypto.randomUUID?crypto.randomUUID():String(Date.now())+Math.random().toString(36).slice(2);
+sessionStorage.setItem('ayneh_funnel',session);
+}
+}catch{session=''}
+const q=new URLSearchParams(location.search),p=k=>(q.get(k)||'').slice(0,80);
+let ref='';try{ref=new URL(document.referrer).origin}catch{}
+const attribution={utm_source:p('utm_source'),utm_medium:p('utm_medium'),
+utm_campaign:p('utm_campaign'),utm_content:p('utm_content'),utm_term:p('utm_term'),
+referrer:ref.slice(0,120),landing:location.pathname.slice(0,60),host:location.hostname.slice(0,80)};
+const send=(kind,extra)=>{
+if(!KINDS.includes(kind))return;
+const e=extra&&typeof extra==='object'?extra:{};
+const meta=JSON.stringify(e).slice(0,300);
+const step=Number.isInteger(e.step)&&e.step>=0&&e.step<=20?e.step:null;
+const body=JSON.stringify({session,kind,step,meta,attribution});
+try{fetch('/api/event',{method:'POST',headers:{'Content-Type':'application/json'},body,keepalive:true}).catch(()=>{})}catch{}
+};
+window.__AYN_TRACK=send;
+window.__AYN_ATTR=()=>({...attribution});
+document.addEventListener('click',e=>{
+const t=e.target instanceof Element?e.target:e.target?.parentElement;if(!t)return;
+const a=t.closest('a,button');if(!a)return;
+const href=a.getAttribute('href')||'';
+const label=(a.textContent||'').trim().replace(/\\s+/g,' ').slice(0,60);
+if(href.startsWith('/s/')||/ayneh-salon\\.site\\/s\\//.test(href)){
+send('demo_open',{label,href:href.slice(0,120)});return
+}
+if(href==='#salon-example'||href==='#start'||a.id==='builderActivate'||
+a.classList.contains('sticky-cta')||a.id==='leadFallbackToggle'){
+send('cta_click',{label,href:href.slice(0,60),
+where:a.classList.contains('sticky-cta')?'sticky':(a.closest('header')?'header':'page')});
+}
+},{capture:true,passive:true});
+})();
+</script><script>
+(()=>{
 const db=()=>new Promise((resolve,reject)=>{const r=indexedDB.open('ayneh-photo-handoff',1);r.onupgradeneeded=()=>r.result.createObjectStore('drafts');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});
 async function transaction(mode,fn){const d=await db();return new Promise((resolve,reject)=>{const t=d.transaction('drafts',mode),r=fn(t.objectStore('drafts'));let result;r.onsuccess=()=>{result=r.result};t.oncomplete=()=>{d.close();resolve(result)};t.onerror=t.onabort=()=>{d.close();reject(t.error)}})}
 window.__AYN_DRAFT={put:entry=>transaction('readwrite',s=>s.put({...entry,created:Date.now()},'current')),async take(){const e=await transaction('readwrite',s=>{const r=s.get('current');s.delete('current');return r});return e&&Date.now()-e.created<15*60*1000?e:null}};
@@ -798,6 +840,7 @@ if(!response.ok||!data.ok)throw new Error(data.error||'ارتباط با آین�
 return data;
 };
 function showAvailability(available){
+window.__AYN_TRACK?.('activation_available',{available:!!available});
 canActivate=available;
 availability.textContent=available
 ?'پیش‌نمایش رایگان است. برای درخواست راه‌اندازی، تأیید شمارهٔ موبایل لازم است.'
@@ -933,7 +976,8 @@ if(title.length<2)throw new Error('برای هر نمونه‌کار عنوان 
 files.set(slot,await photo(get('file').files[0]));
 portfolio.push({title,line:get('line').value,description:get('description').value.trim(),slot});
 }
-draft={id:crypto.randomUUID(),data:{name,slug,brand:form.elements.brand.value,profile,portfolio},files};
+draft={id:crypto.randomUUID(),data:{name,slug,brand:form.elements.brand.value,profile,portfolio,attribution:window.__AYN_ATTR?.()||{}},files};
+window.__AYN_TRACK?.('preview_ready');
 dirty=false;submitted=false;
 activate.hidden=!canActivate;activate.disabled=false;
 hint.textContent=canActivate?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.':'پیش‌نمایش آماده است. درخواست‌تان را از فرم زیر بفرستید.';
@@ -953,6 +997,7 @@ payload.append('id',draft.id);payload.append('draft',JSON.stringify(draft.data))
 for(const [key,file] of draft.files)payload.append(key,file,key);
 const sentDraft=draft;
 await api('/api/activation',payload);
+window.__AYN_TRACK?.('lead_submit',{path:'activation'});
 if(draft!==sentDraft||dirty)return;
 submitted=true;phone.hidden=true;otp.hidden=true;thanks.hidden=false;
 $('builderDialogTitle').textContent='درخواست فعال‌سازی ثبت شد';
@@ -969,6 +1014,7 @@ activate.onclick=()=>run(async()=>{
 if(submitted||dirty||!canActivate)return;
 try{await api('/api/activation')}catch{
 showAvailability(false);
+window.__AYN_TRACK?.('lead_submit_failed',{reason:'activation_unavailable'});
 throw new Error('ثبت فعال‌سازی از این مسیر در دسترس نیست. می‌توانید درخواست‌تان را از فرم زیر بفرستید.');
 }
 const current=await session();
@@ -981,13 +1027,13 @@ phone.addEventListener('submit',e=>{
 e.preventDefault();
 run(async()=>{
 const data=Object.fromEntries(new FormData(phone));
-await api('/api/s/demo/otp/send',data);otpBody=data;
+await api('/api/s/demo/otp/send',data);otpBody=data;window.__AYN_TRACK?.('otp_sent');
 phone.hidden=true;otp.hidden=false;otp.elements.code.focus();
 },e.submitter);
 });
 otp.addEventListener('submit',e=>{
 e.preventDefault();
-run(async()=>{if(!(await api(sessionPath)).verified)await api('/api/s/demo/otp/verify',{code:otp.elements.code.value});await send()},e.submitter);
+run(async()=>{if(!(await api(sessionPath)).verified)await api('/api/s/demo/otp/verify',{code:otp.elements.code.value});window.__AYN_TRACK?.('otp_verified');await send()},e.submitter);
 });
 $('builderRetry').onclick=e=>run(async()=>{await api('/api/s/demo/otp/send',otpBody);dialogError.textContent='کد جدید فرستاده شد.'},e.currentTarget);
 dialog.querySelector('.builder-close').onclick=()=>dialog.close();
@@ -1006,7 +1052,7 @@ const salon=$('lf-salon').value.trim(),name=$('lf-name').value.trim();
 const phone=digits($('lf-phone').value).replace(/[\\s-]/g,'');
 const slug=$('slugHintInput')?.value.trim();
 const chosen='صفحهٔ اختصاصی سالن · '+salon+(slug?' ('+slug+')':'');
-const data={name,salon,phone,city:$('lf-city').value.trim(),website:$('lf-web').value,consent:$('lf-consent').checked,chosen};
+const data={name,salon,phone,city:$('lf-city').value.trim(),website:$('lf-web').value,consent:$('lf-consent').checked,chosen,attribution:window.__AYN_ATTR?.()||{}};
 if(name.length<2){err.textContent='نام خودتان را بنویسید.';return}
 if(salon.length<2){err.textContent='نام سالن را بنویسید.';return}
 if(!/^(\\+98|0098|98|0)?9\\d{9}$/.test(phone)){err.textContent='شمارهٔ موبایل درست را وارد کنید.';return}
@@ -1016,11 +1062,12 @@ try{
 const response=await fetch('/api/inquiry',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
 const result=await response.json();
 if(!response.ok||!result.ok)throw Error(result.error||'ثبت درخواست ممکن نشد. دوباره تلاش کنید.');
+window.__AYN_TRACK?.('lead_submit',{path:'inquiry'});
 const done=$('lf-done');
 done.textContent='درخواستتان ثبت شد. برای هماهنگی و اعلام هزینه با شما تماس می‌گیریم. نیازی به پرداخت یا کاری از طرف شما نیست.';
 done.hidden=false; /* role=status announces it; no focus ring on a static message */
 form.querySelectorAll('input,button').forEach(i=>i.disabled=true);send.hidden=true;
-}catch(error){err.textContent=error.message}
+}catch(error){window.__AYN_TRACK?.('lead_submit_failed',{path:'inquiry'});err.textContent=error.message}
 finally{send.disabled=false;send.removeAttribute('aria-busy')}
 });
 })();
@@ -1045,6 +1092,10 @@ const build=$('builderBuild'),preview=$('builderPreview'),live=$('builderLive');
 const page=$('livePage');
 const fa=n=>String(n).replace(/\\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[+d]);
 form.noValidate=true;
+let funnelStarted=false;
+const funnelStart=()=>{if(!funnelStarted){funnelStarted=true;window.__AYN_TRACK?.('wizard_start')}};
+form.addEventListener('input',funnelStart,{passive:true});
+form.addEventListener('change',funnelStart,{passive:true});
 let fitRaf=0;
 const queueFit=()=>{if(fitRaf)return;fitRaf=requestAnimationFrame(()=>{fitRaf=0;fit()})};
 function fit(){
@@ -1114,8 +1165,8 @@ if(v&&!/^https?:\\/\\//i.test(v)){err.textContent='لینکها باید با ht
 }
 return true;
 }
-next.addEventListener('click',()=>{if(validate(steps[i]))show(i+1)});
-skip.addEventListener('click',()=>show(i+1));
+next.addEventListener('click',()=>{if(validate(steps[i])){window.__AYN_TRACK?.('wizard_step_complete',{step:i+1,key:steps[i].dataset.key});show(i+1)}});
+skip.addEventListener('click',()=>{window.__AYN_TRACK?.('wizard_skip',{step:i+1,key:steps[i].dataset.key});show(i+1)});
 prev.addEventListener('click',()=>show(i-1));
 const flashFor={
 name:'liveName',slug:'builderAddress',brand:'liveInitial',logo:'liveLogo',cover:'liveCover',

@@ -958,3 +958,33 @@ test('the team\'s own verified mobiles (app_settings unlimited_phones) have no i
   assert.equal((await other()).status,200);assert.equal((await other()).status,200);assert.equal((await other()).status,429,'the daily cap of 2 still applies to others');
  }finally{globalThis.fetch=previous}
 });
+
+test('landing funnel events are first-party, validated and attributed',async()=>{
+ const e=fixture();
+ const sid='abcdef12-3456-7890-abcd-ef1234567890';
+ const attribution={utm_source:'instagram',utm_medium:'social',utm_campaign:'salon-launch',
+  referrer:'https://t.me',landing:'/',host:'test.example'};
+ const ok=await call(e,'/api/event',{session:sid,kind:'wizard_step_complete',step:3,meta:'{"key":"bio"}',attribution});
+ assert.equal(ok.status,200,JSON.stringify(ok));assert.equal(ok.data.ok,true);
+ const row=e.DB.sql.prepare('SELECT session,kind,step,utm_source,attribution FROM landing_events').get();
+ assert.equal(row.kind,'wizard_step_complete');assert.equal(row.step,3);
+ assert.equal(row.utm_source,'instagram');
+ assert.equal(row.session,sid);
+ assert.equal(JSON.parse(row.attribution).utm_campaign,'salon-launch');
+ assert.equal(JSON.parse(row.attribution).referrer,'https://t.me');
+ assert.equal((await call(e,'/api/event',{session:sid,kind:'not_a_real_event'})).status,400,'unknown kind rejected');
+ assert.equal((await call(e,'/api/event',{session:'x',kind:'cta_click'})).status,400,'bogus session rejected');
+ // Attribution travels with the fallback lead, not only with events.
+ const lead=await call(e,'/api/inquiry',{name:'علی رضایی',salon:'سالن تست',phone:'09123456789',
+  city:'',website:'',consent:true,chosen:'صفحهٔ اختصاصی سالن',attribution});
+ assert.equal(lead.status,200,JSON.stringify(lead));
+ const inquiry=e.DB.sql.prepare('SELECT attribution FROM inquiries').get();
+ assert.equal(JSON.parse(inquiry.attribution).utm_source,'instagram');
+ assert.equal(JSON.parse(inquiry.attribution).host,'test.example');
+ // Oversized / hostile values are clamped, never stored verbatim.
+ await call(e,'/api/event',{session:sid,kind:'cta_click',meta:'x'.repeat(2000),
+  attribution:{utm_source:'y'.repeat(500)}});
+ const stored=e.DB.sql.prepare("SELECT meta,utm_source FROM landing_events WHERE kind='cta_click'").get();
+ assert.equal(stored.meta.length,300);
+ assert.equal(stored.utm_source.length,60);
+});

@@ -16,6 +16,19 @@ const J=(v,s=200,h={})=>new Response(JSON.stringify(v),{status:s,headers:{'Conte
 const parse=s=>{try{return JSON.parse(s||'{}')}catch{return {}}};
 const one=(db,sql,...args)=>db.prepare(sql).bind(...args).first();
 const run=(db,sql,...args)=>db.prepare(sql).bind(...args).run();
+
+/* Anonymous landing-funnel telemetry. Values are clamped before text() so a
+   malicious payload cannot overflow a column or smuggle a long identifier. */
+const LANDING_EVENTS=['cta_click','demo_open','wizard_start','wizard_step_complete',
+ 'wizard_skip','preview_ready','activation_available','otp_sent','otp_verified',
+ 'lead_submit','lead_submit_failed'];
+const attributionOf=b=>{
+ const a=b&&typeof b==='object'&&b.attribution&&typeof b.attribution==='object'&&!Array.isArray(b.attribution)?b.attribution:{};
+ const val=(k,max)=>text(String(a[k]??'').slice(0,max),max);
+ return JSON.stringify({utm_source:val('utm_source',60),utm_medium:val('utm_medium',60),
+  utm_campaign:val('utm_campaign',80),utm_content:val('utm_content',80),utm_term:val('utm_term',80),
+  referrer:val('referrer',120),landing:val('landing',60),host:val('host',80)});
+};
 const all=async(db,sql,...args)=>(await db.prepare(sql).bind(...args).all()).results;
 const cookie=t=>'ayneh='+t+'; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800';
 const PROFILE_TEXT=['bio','address','hours','manager'],PROFILE_LINKS=['map','instagram','website','telegram'],PROFILE_IMAGES=['logo','cover','portrait'];
@@ -93,6 +106,19 @@ async function uploadProvider(env,m){const object=await bucketFor(env).get(m.obj
 
 export async function api(req,env){const u=new URL(req.url),path=u.pathname;must(env.DB,'پایگاه داده هنوز آماده نیست',503);const db=env.DB;
  if(req.method!=='GET'){must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
+ if(path==='/api/event'&&req.method==='POST'){
+  await limited(db,'event:'+clientIp(req),1200);
+  const b=await req.json().catch(()=>({}));
+  must(LANDING_EVENTS.includes(b.kind),'رویداد معتبر نیست',400);
+  const session=String(b.session||'').slice(0,64);
+  must(/^[a-f0-9-]{8,64}$/.test(session),'نشست معتبر نیست',400);
+  const meta=typeof b.meta==='string'?b.meta.slice(0,300):'';
+  const step=Number.isInteger(b.step)&&b.step>=0&&b.step<=20?b.step:null;
+  const attribution=attributionOf(b),source=(parse(attribution).utm_source||'').slice(0,60);
+  await run(db,'INSERT INTO landing_events(id,session,kind,step,meta,utm_source,attribution,created_at) VALUES(?,?,?,?,?,?,?,?)',
+   uid(),session,b.kind,step,meta,source,attribution,Date.now());
+  return J({ok:true});
+ }
  if(path==='/api/activation'&&req.method==='GET'){
   must(smsReady(env),'تأیید شماره هنوز فعال نشده است.',503);
   must(await one(db,"SELECT 1 FROM sqlite_master WHERE type='table' AND name='salon_activations'"),'ثبت فعال‌سازی هنوز در این محیط راه‌اندازی نشده است.',503);
@@ -129,7 +155,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   const name=text(String(b.name||''),60),salon=text(String(b.salon||''),80),city=text(String(b.city||''),40),note=text(String(b.note||''),300),chosen=text(String(b.chosen||''),90);
   must(name.length>=2,'نام را بنویس');must(salon.length>=2,'نام سالن را بنویس');
   const tel=phone(b.phone),id=uid();
-  await run(db,'INSERT INTO inquiries(id,name,salon,city,phone,note,chosen,created_at) VALUES(?,?,?,?,?,?,?,?)',id,name,salon,city,tel,note,chosen,Date.now());
+  await run(db,'INSERT INTO inquiries(id,name,salon,city,phone,note,chosen,created_at,attribution) VALUES(?,?,?,?,?,?,?,?,?)',id,name,salon,city,tel,note,chosen,Date.now(),attributionOf(b));
   await notifyOwner(env,{kind:'inquiry',level:'good',text:'درخواست معرفی آینه از «'+salon+'»'+(city?' ('+city+')':'')+' ثبت شد',detail:'👤 '+name+'\n📞 '+tel+(chosen?'\n✨ انتخاب در آینه: '+chosen:'')+(note?'\n📝 '+note:'')});
   return J({ok:true});
  }
