@@ -415,18 +415,6 @@ section[id],.site-footer{scroll-margin-top:0}
 .reassure-inline{margin:10px 0 0;padding:8px 10px;border-inline-start:3px solid var(--gold);
   border-radius:0 10px 10px 0;background:#FFFBF0;color:#35455F;font-size:12.5px;line-height:1.8}
 @media(max-width:900px){
-  /* .copy becomes display:contents on mobile, so the strip needs its own flex order.
-     Step 12: one shared card with a 3D gold medallion per fact, not three loose boxes. */
-  .stage .copy .reassure{order:5;padding:8px;margin:12px 12px 0;text-align:right;
-    display:grid;grid-template-columns:1fr;gap:0;
-    border:1px solid rgba(198,172,116,.55);border-radius:14px;
-    background:rgba(255,253,246,.92);box-shadow:0 8px 22px rgba(16,30,56,.06)}
-  .reassure li{display:grid;grid-template-columns:40px 1fr;grid-template-rows:auto auto;
-    gap:0 10px;align-items:center;padding:6px 4px;border:0;border-radius:0;background:none;
-    font-size:12.5px;line-height:1.5}
-  .reassure li+li{border-top:1px solid rgba(198,172,116,.35)}
-  .reassure li+li::before{content:none}
-  .reassure b{white-space:nowrap;font-size:12.5px}
   .reassure-inline{margin:8px 0 0;font-size:11.5px;line-height:1.65;padding:7px 9px}
 }
 @media(min-width:901px) and (max-height:800px){
@@ -575,8 +563,6 @@ section[id],.site-footer{scroll-margin-top:0}
 .identity-url span,.identity-address small{font-size:11px!important}
 
 /* ---------- 21. Funnel step 12: the first three seconds belong to the mirror ---------- */
-/* The medallions are decorative; the desktop reassure band stays untouched. */
-.reassure .gold-icon{display:none}
 .hero-teaser,.hero-scroll-cue{display:none}
 @media(max-width:900px){
  /* .copy is display:contents, so each child is a flex item of .stage. Previously
@@ -595,24 +581,49 @@ section[id],.site-footer{scroll-margin-top:0}
   margin:4px 0 0;color:#A87C22}
  .hero-scroll-cue svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.2;
   stroke-linecap:round;stroke-linejoin:round;animation:cue-bob 1.9s ease-in-out infinite}
- .reassure .gold-icon{display:grid;grid-column:1;grid-row:1/span 2;justify-self:center;
-  width:38px;height:38px;border-radius:12px;
-  box-shadow:inset 0 1px 1px rgba(255,250,226,.95),inset 0 -3px 5px rgba(94,62,10,.5),
-   0 3px 0 #8A641E,0 4px 0 rgba(16,30,56,.4),0 0 0 2px #EFE4C9,
-   0 0 0 3px rgba(216,166,60,.6),0 6px 12px rgba(11,21,40,.24)!important}
- .reassure .gold-icon::before{border-radius:9px}
- .reassure .gold-icon svg{width:24px;height:24px;stroke-width:2.6}
- .reassure li>b{grid-column:2;grid-row:1}
- .reassure li>span:last-child{grid-column:2;grid-row:2;color:#35455F;font-size:12.5px;line-height:1.45}
 }
 @keyframes cue-bob{0%,100%{transform:translateY(-2px)}50%{transform:translateY(3px)}}
 @media(prefers-reduced-motion:reduce){.hero-scroll-cue svg{animation:none}}
 @media(max-width:360px){
  .hero-teaser{height:150px}
- .stage .copy .reassure{padding:6px;margin-top:8px}
- .reassure li{padding:4px 3px;grid-template-columns:32px 1fr}
- .reassure .gold-icon{width:32px;height:32px}
- .reassure .gold-icon svg{width:20px;height:20px}
- .reassure li>span:last-child{font-size:11.5px}
  .hero-scroll-cue{height:22px}
+}
+
+/* ---------- 22. Funnel step 13: typed opening line + facts in section three ---------- */
+/* The gold dash that lived in the old eyebrow now closes the short headline. */
+.copy h1::after{content:"";display:block;width:46px;height:3px;border-radius:2px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-soft));margin:14px 0 0}
+@media(max-width:900px){.copy h1::after{margin-inline:auto}}
+/* The three decision objections now belong to the dark invitation card, directly
+   before its CTA. Same 3D gold medallions, tuned for the dark surface. */
+.salon-invite-copy>.reassure{margin:20px 0 0;padding:6px 12px;list-style:none;
+  display:grid;grid-template-columns:1fr;gap:0;text-align:right;
+  border:1px solid rgba(216,166,60,.4);border-radius:14px;
+  background:rgba(255,253,246,.045);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.salon-invite-copy .reassure li{display:grid;grid-template-columns:36px 1fr;
+  grid-template-rows:auto auto;gap:0 10px;align-items:center;padding:7px 2px;
+  border:0;border-radius:0;background:none;color:#DDE6F0;font-size:12.5px;line-height:1.5}
+.salon-invite-copy .reassure li+li{border-top:1px solid rgba(216,166,60,.24)}
+.salon-invite-copy .reassure li+li::before{content:none}
+.salon-invite-copy .reassure b{grid-column:2;grid-row:1;color:#E7C892;
+  font-size:12.5px;white-space:nowrap}
+.salon-invite-copy .reassure li>span:last-child{grid-column:2;grid-row:2;
+  color:#DDE6F0;font-size:12.5px;line-height:1.45}
+.salon-invite-copy .reassure .gold-icon{display:grid;grid-column:1;grid-row:1/span 2;
+  justify-self:center;width:34px;height:34px;border-radius:11px;
+  box-shadow:inset 0 1px 1px rgba(255,250,226,.95),inset 0 -3px 5px rgba(94,62,10,.5),
+   0 3px 0 #8A641E,0 4px 0 rgba(16,30,56,.4),0 0 0 2px #EFE4C9,
+   0 0 0 3px rgba(216,166,60,.6),0 6px 12px rgba(0,0,0,.32)!important}
+.salon-invite-copy .reassure .gold-icon::before{border-radius:8px}
+.salon-invite-copy .reassure .gold-icon svg{width:22px;height:22px;stroke-width:2.8}
+@media(min-width:901px){
+ .salon-invite-copy>.reassure{grid-column:1 / -1;grid-row:4;margin-top:18px}
+ .salon-invite-copy>.btn{grid-row:5;margin-top:16px}
+}
+@media(max-width:360px){
+ .salon-invite-copy>.reassure{padding:5px 9px}
+ .salon-invite-copy .reassure li{grid-template-columns:30px 1fr;padding:5px 1px}
+ .salon-invite-copy .reassure .gold-icon{width:30px;height:30px}
+ .salon-invite-copy .reassure .gold-icon svg{width:19px;height:19px}
+ .salon-invite-copy .reassure li>span:last-child{font-size:11.5px}
 }

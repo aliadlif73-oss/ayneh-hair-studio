@@ -98,7 +98,8 @@
 
  const heroCopy=$('#copy'),heroH1=$('#h1'),heroEyebrow=$('#intro .eyebrow');
  if(heroCopy){
-  const slamHero=prepareSlam(heroH1),typeHero=prepareType(heroEyebrow);
+  // Step 13: the opening line is the typed headline, not a word-slam.
+  const typeH1=prepareType(heroH1),typeHero=prepareType(heroEyebrow);
   let boot=0;const t0=performance.now();
   const bootTick=now=>{boot=clamp((now-t0)/900,0,1);if(boot<1)requestAnimationFrame(bootTick);scheduleScrub()};
   requestAnimationFrame(bootTick);
@@ -111,7 +112,7 @@
   },p=>{
    heroCopy.style.setProperty('--kp',subP(p,0,0.45).toFixed(3));
    typeHero(subP(p,0.02,0.62));
-   slamHero(subP(p,0.08,0.82));
+   typeH1(subP(p,0.08,0.82));
    heroCopy.style.setProperty('--lp',subP(p,0.32,0.88).toFixed(3));
    heroCopy.style.setProperty('--cp',subP(p,0.46,0.96).toFixed(3));
    heroCopy.style.setProperty('--fp',subP(p,0.58,1).toFixed(3));
@@ -153,7 +154,10 @@
    invite.style.setProperty('--kp',subP(p,0.1,0.5).toFixed(3));
    typeInv(subP(p,0.14,0.66));
    slamInv(subP(p,0.20,0.86));
-   copyEls.forEach((el,i)=>{const s=0.26+i*0.12;el.style.setProperty('--cp',subP(p,s,s+0.46).toFixed(3))});
+   // Step 13 added one more copy element; keep the last one (the CTA) fully
+   // revealed by the time the card is fully in view, whatever the count.
+   const n=copyEls.length||1,step=(0.54-0.2)/Math.max(1,n-1);
+   copyEls.forEach((el,i)=>{const s=0.2+i*step;el.style.setProperty('--cp',subP(p,s,s+0.46).toFixed(3))});
   });
  }
 
