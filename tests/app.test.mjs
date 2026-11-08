@@ -1101,3 +1101,30 @@ test('funnel step 8: every success state answers what happens next, with no new 
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
  assert.ok(landingHTML.length<240000,'bloat guard still respected');
 });
+
+test('final funnel audit: structure, anchors, labels and the two legibility fixes hold',()=>{
+ const ids=[...landingHTML.matchAll(/\sid="([^"]+)"/g)].map(m=>m[1]);
+ assert.equal(new Set(ids).size,ids.length,'no duplicate id in the shipped page');
+ const idSet=new Set(ids);
+ const anchors=[...landingHTML.matchAll(/href="#([^"]+)"/g)].map(m=>m[1]);
+ assert.ok(anchors.length>=20,'internal navigation is present');
+ for(const a of new Set(anchors))assert.ok(idSet.has(a),'anchor #'+a+' resolves');
+ for(const attr of ['aria-controls','aria-labelledby','aria-describedby']){
+  const refs=[...landingHTML.matchAll(new RegExp(attr+'="([^"]+)"','g'))].flatMap(m=>m[1].split(/\s+/));
+  for(const r of refs)assert.ok(idSet.has(r),attr+' '+r+' resolves');
+ }
+ assert.equal((landingHTML.match(/<h1[\s>]/g)||[]).length,1,'exactly one h1');
+ assert.match(landingHTML,/<img id="roomImg2"[^>]*alt=""[^>]*aria-hidden="true"/);
+ assert.doesNotMatch(landingHTML,/R0lGODlhAQABAAAAACw=/,'truncated 1x1 GIF placeholder is gone');
+ assert.match(landingHTML,/R0lGODlhAQABAIAAAAAAAP/, 'valid transparent GIF placeholder');
+ // .builder-note has an !important dark colour; the dark preview panel needs an
+ // equally important, more specific light override or its runtime hint is unreadable.
+ assert.match(landingHTML,/\.builder-preview>\.builder-note\{color:#E4ECF5!important\}/);
+ assert.ok(landingHTML.indexOf('.builder-preview>.builder-note{color:#E4ECF5!important}')>
+          landingHTML.indexOf('.builder-note{color:#39455A!important}'),'override comes later');
+ assert.doesNotMatch(landingHTML,/href="#start"/);
+ assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
+ assert.match(landingHTML,/<template id="followUpTemplate">/);
+ assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
+ assert.ok(landingHTML.length<240000);
+});

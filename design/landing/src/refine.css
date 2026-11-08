@@ -465,3 +465,8 @@ section[id],.site-footer{scroll-margin-top:0}
   .follow-up .follow-up-steps{gap:7px}
   .follow-up .follow-up-note{margin-top:8px;padding-top:8px}
 }
+
+
+/* 18. Final audit: the runtime hint in the dark preview panel was dark-on-dark.
+   .builder-note's !important colour beat trial.css; restore light text there. */
+.builder-preview>.builder-note{color:#E4ECF5!important}
