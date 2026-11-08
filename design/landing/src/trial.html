@@ -1,6 +1,6 @@
 <section id="salon-example" class="section salon-builder" aria-labelledby="h-example" tabindex="-1">
  <div class="wrap">
-  <header class="sec-head"><p class="kicker">استودیوی صفحهٔ سالن</p><h2 id="h-example">صفحهٔ سالن‌تان را از چشم مشتری ببینید</h2><p class="sub">هر پاسخ، همان لحظه در پیش‌نمایش دیده می‌شود. یکی‌یکی جلو بروید.</p></header>
+  <header class="sec-head"><p class="kicker">استودیوی صفحهٔ سالن</p><h2 id="h-example">صفحهٔ سالن‌تان را از چشم مشتری ببینید</h2><p class="sub">با نام و نشانی سالن، پیش‌نمایش همان لحظه آماده می‌شود. جزئیات را بعداً هم می‌توانید اضافه کنید.</p></header>
   <ol class="builder-steps" aria-label="مراحل راه‌اندازی صفحه">
    <li><strong>پیش‌نمایش رایگان</strong><span>ظاهر صفحه را با اطلاعات سالن‌تان ببینید.</span></li>
    <li><strong>درخواست راه‌اندازی</strong><span>شماره‌تان را بگذارید یا با پیامک تأیید کنید؛ پرداختی لازم نیست.</span></li>
@@ -32,42 +32,58 @@
     <p id="builderAvailability" class="builder-availability" role="status">پیش‌نمایش رایگان است. وضعیت ثبت درخواست در حال بررسی است.</p>
     <noscript><p>برای ساخت پیش‌نمایش، جاوااسکریپت مرورگر را فعال کنید.</p></noscript>
     <div class="wizard" id="builderWizard">
-     <div class="wizard-top"><span class="wizard-track"><i id="wizardBar"></i></span><span class="wizard-count" id="wizardCount">۱ از ۹</span></div>
+     <div class="wizard-top"><span class="wizard-track"><i id="wizardBar"></i></span><span class="wizard-count" id="wizardCount">۱ از ۲</span></div>
      <p class="wizard-question" id="wizardQuestion"></p>
      <p class="wizard-hint" id="wizardHintText"></p>
 
-     <div class="wizard-step is-active" data-key="name" data-required="1"
+<div class="wizard-step is-active" data-key="name" data-required="1"
           data-q="نام سالن شما چیست؟" data-h="همان لحظه که تایپ می‌کنید، نام سالن در پیش‌نمایش دیده می‌شود.">
       <label class="identity-name"><span>نام سالن</span><input name="name" required minlength="2" maxlength="100" autocomplete="organization" placeholder="مثلاً استودیو آینه"></label>
      </div>
 
-     <div class="wizard-step" data-key="slug" data-required="1"
+<div class="wizard-step" data-key="slug" data-required="1"
           data-q="نشانی اختصاصی صفحه چه باشد؟" data-h="۳ تا ۴۶ کاراکتر انگلیسی، عدد یا خط تیره. با حرف شروع کنید و با حرف یا عدد تمام کنید.">
       <label class="identity-address"><span>نشانی اختصاصی پیشنهادی</span><span class="identity-url" dir="ltr"><span>ayneh-salon.site/s/</span><input name="slug" id="slugHintInput" aria-describedby="slugHint" dir="ltr" required pattern="[a-z][a-z0-9\-]{1,44}[a-z0-9]" maxlength="46" placeholder="my-salon" autocapitalize="none" spellcheck="false"></span><small id="slugHint">این نشانی، آدرس صفحه‌ای است که مشتری‌ها می‌بینند.</small></label>
      </div>
 
-     <div class="wizard-step" data-key="brand"
-          data-q="رنگ برند سالن را انتخاب کنید" data-h="رنگ کارت‌ها و دکمه‌های صفحهٔ مشتری فوراً هماهنگ می‌شود.">
+     <p class="wizard-ready" id="wizardReady" role="status" hidden>پیش‌نمایشتان آماده است. جزئیات را هر وقت خواستید اضافه کنید؛ هیچ‌کدام اجباری نیست.</p>
+     <p class="wizard-error" id="wizardError" role="alert"></p>
+     <div class="wizard-actions">
+      <button type="button" class="btn btn--ghost wizard-prev" id="wizardPrev" hidden>قبلی</button>
+      <button type="button" class="btn wizard-skip" id="wizardSkip" hidden>رد کردن</button>
+      <button type="button" class="btn wizard-next" id="wizardNext">ادامه</button>
+     </div>
+    </div>
+    <details class="builder-details" id="builderDetails">
+     <summary>تکمیل جزئیات صفحه (اختیاری)</summary>
+     <p class="detail-hint detail-lead">هرچه اینجا بنویسید، همان لحظه در پیش‌نمایش بالا دیده می‌شود. برای درخواست راه‌اندازی نیازی به پر کردن این بخش نیست.</p>
+      <div class="detail-group">
+       <h4>رنگ برند سالن را انتخاب کنید</h4>
+       <p class="detail-hint">رنگ کارت‌ها و دکمه‌های صفحهٔ مشتری فوراً هماهنگ می‌شود.</p>
       <label class="builder-color"><span>رنگ برند</span><span class="identity-color"><input type="color" name="brand" value="#7c8998"><output id="builderBrandHex" dir="ltr">#7c8998</output></span></label>
-     </div>
 
-     <div class="wizard-step" data-key="logo" data-optional="1"
-          data-q="لوگوی سالن را اضافه کنید" data-h="اختیاری · JPG، PNG یا WebP تا ۱۲ مگابایت.">
+      </div>
+      <div class="detail-group">
+       <h4>لوگوی سالن را اضافه کنید</h4>
+       <p class="detail-hint">اختیاری · JPG، PNG یا WebP تا ۱۲ مگابایت.</p>
       <label class="builder-upload"><span>لوگو</span><span class="upload-control"><span class="upload-action">انتخاب لوگو</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="logo" accept="image/jpeg,image/png,image/webp"></span></label>
-     </div>
 
-     <div class="wizard-step" data-key="cover" data-optional="1"
-          data-q="عکس کاور صفحه را انتخاب کنید" data-h="اختیاری · همین عکس بالای صفحهٔ مشتری دیده می‌شود.">
+      </div>
+      <div class="detail-group">
+       <h4>عکس کاور صفحه را انتخاب کنید</h4>
+       <p class="detail-hint">اختیاری · همین عکس بالای صفحهٔ مشتری دیده می‌شود.</p>
       <label class="builder-upload"><span>عکس کاور</span><span class="upload-control"><span class="upload-action">انتخاب عکس کاور</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="cover" accept="image/jpeg,image/png,image/webp"></span></label>
-     </div>
 
-     <div class="wizard-step" data-key="bio" data-optional="1"
-          data-q="سالن را در یک جمله معرفی کنید" data-h="اختیاری · زیر نام سالن در پیش‌نمایش نوشته می‌شود.">
+      </div>
+      <div class="detail-group">
+       <h4>سالن را در یک جمله معرفی کنید</h4>
+       <p class="detail-hint">اختیاری · زیر نام سالن در پیش‌نمایش نوشته می‌شود.</p>
       <label class="wide">دربارهٔ سالن<textarea name="bio" maxlength="1000" rows="3" placeholder="تخصص ما رنگ و کوپ‌های طبیعی است."></textarea></label>
-     </div>
 
-     <div class="wizard-step" data-key="phone" data-optional="1"
-          data-q="مشتری چطور با شما تماس بگیرد؟" data-h="اختیاری · هر چیزی که پر کنید در کارت «دربارهٔ سالن» پیش‌نمایش می‌آید.">
+      </div>
+      <div class="detail-group">
+       <h4>مشتری چطور با شما تماس بگیرد؟</h4>
+       <p class="detail-hint">اختیاری · هر چیزی که پر کنید در کارت «دربارهٔ سالن» پیش‌نمایش می‌آید.</p>
       <fieldset><legend class="sr-only">مشخصات سالن</legend>
        <label>نام مدیر<input name="manager" maxlength="100"></label>
        <label>تلفن سالن<input type="tel" name="phone" dir="ltr" maxlength="24"></label>
@@ -75,31 +91,27 @@
        <label>آدرس<input name="address" maxlength="250"></label>
        <label class="builder-upload wide"><span>عکس مدیر</span><span class="upload-control"><span class="upload-action">انتخاب عکس مدیر</span><span class="upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="portrait" accept="image/jpeg,image/png,image/webp"></span></label>
       </fieldset>
-     </div>
 
-     <div class="wizard-step" data-key="instagram" data-optional="1"
-          data-q="لینک‌ها و شبکه‌های اجتماعی" data-h="اختیاری · لینک‌ها باید با http:// یا https:// شروع شوند.">
+      </div>
+      <div class="detail-group">
+       <h4>لینک‌ها و شبکه‌های اجتماعی</h4>
+       <p class="detail-hint">اختیاری · لینک‌ها باید با http:// یا https:// شروع شوند.</p>
       <fieldset><legend class="sr-only">لینک‌ها</legend>
        <label>لینک نقشه<input type="url" name="map" dir="ltr" maxlength="350" placeholder="https://"></label>
        <label>لینک اینستاگرام<input type="url" name="instagram" dir="ltr" maxlength="350" placeholder="https://"></label>
        <label>لینک تلگرام<input type="url" name="telegram" dir="ltr" maxlength="350" placeholder="https://"></label>
        <label>وب‌سایت<input type="url" name="website" dir="ltr" maxlength="350" placeholder="https://"></label>
       </fieldset>
-     </div>
 
-     <div class="wizard-step" data-key="works" data-optional="1"
-          data-q="نمونه‌کارهای سالن را اضافه کنید" data-h="اختیاری · تا ۶ مورد؛ عکس و توضیح هرکدام در پیش‌نمایش دیده می‌شود.">
+      </div>
+      <div class="detail-group">
+       <h4>نمونه‌کارهای سالن را اضافه کنید</h4>
+       <p class="detail-hint">اختیاری · تا ۶ مورد؛ عکس و توضیح هرکدام در پیش‌نمایش دیده می‌شود.</p>
       <div id="builderWorks"></div>
       <button id="builderAdd" class="btn btn--ghost" type="button">افزودن نمونه‌کار +</button>
-     </div>
 
-     <p class="wizard-error" id="wizardError" role="alert"></p>
-     <div class="wizard-actions">
-      <button type="button" class="btn btn--ghost wizard-prev" id="wizardPrev" hidden>قبلی</button>
-      <button type="button" class="btn wizard-skip" id="wizardSkip">رد کردن</button>
-      <button type="button" class="btn wizard-next" id="wizardNext">ادامه</button>
-     </div>
-    </div>
+      </div>
+    </details>
     <p class="builder-error" id="builderError" role="alert" tabindex="-1"></p>
     <button type="submit" class="btn btn--lg" id="builderBuild" disabled hidden>آماده‌کردن پیش‌نمایش</button>
     <p class="builder-note">تا پیش از ارسال درخواست، پیش‌نمایش و عکس‌ها فقط در مرورگر شما می‌مانند.</p>

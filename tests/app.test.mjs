@@ -1016,3 +1016,25 @@ test('funnel step 4: demos keep the owner on the landing and give demo visitors 
  // Bar and CTA render from the same script that is syntax-checked above.
  new Function(customerHTML.match(/<script>([\s\S]*?)<\/script>\s*<\/body>/)[1]);
 });
+
+test('funnel step 5: two questions reach a ready preview, optional details stay live and are never lost',()=>{
+ const landing=landingHTML;
+ assert.equal((landing.match(/class="wizard-step/g)||[]).length,2,'only name + slug gate the preview');
+ assert.match(landing,/id="wizardCount">۱ از ۲</);
+ assert.match(landing,/id="builderDetails"/);
+ assert.equal((landing.match(/class="detail-group"/g)||[]).length,7,'seven optional groups moved into one panel');
+ assert.match(landing,/id="builderBuild"[^>]*disabled hidden/,'no extra build click');
+ // Every field of the old nine-step wizard survives, so the draft keeps all of it.
+ for(const key of ['name','slug','brand','logo','cover','bio','manager','phone','hours','address',
+  'portrait','map','instagram','telegram','website'])
+  assert.match(landing,new RegExp('name="'+key+'"'),'field '+key+' kept');
+ const scripts=[...landing.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+ for(const src of scripts)new Function(src);
+ const bundle=scripts.join('\n');
+ assert.match(bundle,/ayneh:wizard-ready/);
+ assert.match(bundle,/async function packageDraft/);
+ assert.match(bundle,/draft=await packageDraft\(\)/,'request is packaged from current values at click time');
+ assert.doesNotMatch(bundle,/activate\.hidden=!available\|\|!draft\|\|dirty/,'no rebuild-after-edit dead end');
+ assert.doesNotMatch(bundle,/href="#start"/);
+ assert.ok(landing.length<230000,'landing stays inside its size budget');
+});

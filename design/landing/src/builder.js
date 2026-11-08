@@ -11,7 +11,7 @@
  const profileFields=['bio','manager','address','hours','phone','instagram','website','map','telegram'];
  const brandFields=['logo','cover','portrait'];
  let draft,otpBody,busy=false,submitted=false,dirty=false,canActivate=false,checkingAvailability=false,availabilityKnown=false;
- let availabilityState=null,lastWizardName='';
+ let availabilityState=null,lastWizardName='',wizardReady=false;
  /* OTP stays primary. A quiet request form is ALWAYS offered and becomes the
     primary route whenever SMS activation is unavailable. */
  function setFallback(primary){
@@ -56,9 +56,9 @@
   availability.textContent=available
    ?'پیش‌نمایش رایگان است. برای درخواست راه‌اندازی، تأیید شمارهٔ موبایل لازم است.'
    :'پیش‌نمایش رایگان است. برای درخواست راه‌اندازی، شماره‌تان را همین‌جا بگذارید؛ بدون پرداخت و بدون انتشار صفحه، برای هماهنگی با شما تماس می‌گیریم.';
-  activate.hidden=!available||!draft||dirty;
+  activate.hidden=!available||!wizardReady;
   setFallback(!available);
-  if(draft&&!dirty&&!submitted)hint.textContent=available
+  if(wizardReady&&!submitted)hint.textContent=available
    ?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.'
    :'پیش‌نمایش آماده است. درخواست‌تان را از فرم زیر بفرستید.';
  }
@@ -125,13 +125,12 @@
   }
   for(const [file,url] of objectURLs)if(!kept.has(file)){URL.revokeObjectURL(url);objectURLs.delete(file)}
  }
- function change(event){
+ function change(){
   render();
-  /* The fitted preview shows the whole page at once. Highlighting the changed
-     element (refine.js) replaces the old scroll-jump on every keystroke. */
-  if(!draft)return;
-  dirty=true;activate.hidden=true;
-  hint.textContent='پیش‌نمایش به‌روز شد. برای ادامه، اطلاعات را تأیید کنید.';
+  /* The fitted preview shows the whole page at once; refine.js highlights the
+     changed element instead of jumping the page on every keystroke. Optional
+     details stay editable after 'ready' — packageDraft() reads the CURRENT
+     form whenever the owner actually asks for setup. */
  }
  form.elements.slug.addEventListener('input',e=>{
   e.target.value=e.target.value.toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
@@ -161,50 +160,39 @@
    throw new Error('یکی از عکس‌ها خیلی حجیم است. نسخهٔ کوچک‌تر آن را انتخاب کنید.');
   }finally{image.close()}
  }
- form.addEventListener('submit',async e=>{
-  e.preventDefault();if(build.disabled||busy)return;
-  if(draft&&!dirty){
-   activate.hidden=!canActivate;
-   if(canActivate&&!submitted)activate.focus();
-   else if(!canActivate&&availabilityKnown)checkAvailability();
-   return;
+ async function packageDraft(){
+  const name=form.elements.name.value.trim(),slug=form.elements.slug.value;
+  if(name.length<2)throw new Error('نام سالن را وارد کنید.');
+  if(!/^[a-z][a-z0-9-]{1,44}[a-z0-9]$/.test(slug))throw new Error('نشانی صفحه را با حروف انگلیسی، عدد یا خط تیره وارد کنید.');
+  const profile=Object.fromEntries(profileFields.map(key=>[key,form.elements[key].value.trim()]));
+  for(const key of ['instagram','website','map','telegram'])if(profile[key]&&!/^https?:\/\//i.test(profile[key]))throw new Error('لینک‌ها باید با http:// یا https:// شروع شوند.');
+  const files=new Map();
+  for(const key of brandFields){const file=form.elements[key].files[0];if(file)files.set(key,await photo(file))}
+  const portfolio=[];
+  for(const row of works.children){
+   const get=key=>row.querySelector('[data-work="'+key+'"]');
+   const slot='work-'+portfolio.length;
+   const title=get('title').value.trim();
+   if(title.length<2)throw new Error('برای هر نمونه‌کار عنوان وارد کنید.');
+   files.set(slot,await photo(get('file').files[0]));
+   portfolio.push({title,line:get('line').value,description:get('description').value.trim(),slot});
   }
-  $('builderError').textContent='';build.disabled=true;activate.hidden=true;hint.textContent='';
-  loading.hidden=false;
-  const fields=[...form.elements].filter(input=>!input.disabled);fields.forEach(input=>input.disabled=true);
-  try{
-   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-   const name=form.elements.name.value.trim(),slug=form.elements.slug.value;
-   if(name.length<2)throw new Error('نام سالن را وارد کنید.');
-   const profile=Object.fromEntries(profileFields.map(key=>[key,form.elements[key].value.trim()]));
-   for(const key of ['instagram','website','map','telegram'])if(profile[key]&&!/^https?:\/\//i.test(profile[key]))throw new Error('لینک‌ها باید با http:// یا https:// شروع شوند.');
-   const files=new Map();
-   for(const key of brandFields){const file=form.elements[key].files[0];if(file)files.set(key,await photo(file))}
-   const portfolio=[];
-   for(const row of works.children){
-    const get=key=>row.querySelector('[data-work="'+key+'"]');
-    const slot='work-'+portfolio.length;
-    const title=get('title').value.trim();
-    if(title.length<2)throw new Error('برای هر نمونه‌کار عنوان وارد کنید.');
-    files.set(slot,await photo(get('file').files[0]));
-    portfolio.push({title,line:get('line').value,description:get('description').value.trim(),slot});
-   }
-   draft={id:crypto.randomUUID(),data:{name,slug,brand:form.elements.brand.value,profile,portfolio,attribution:window.__AYN_ATTR?.()||{}},files};
-   window.__AYN_TRACK?.('preview_ready');
-   dirty=false;submitted=false;
-   activate.hidden=!canActivate;activate.disabled=false;
-   hint.textContent=canActivate?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.':'پیش‌نمایش آماده است. درخواست‌تان را از فرم زیر بفرستید.';
-   (canActivate?activate:live).focus();
-   if(!canActivate&&availabilityKnown)checkAvailability();
-  }catch(error){$('builderError').textContent=error.message;$('builderError').focus();}
-  finally{build.disabled=false;loading.hidden=true;fields.forEach(input=>input.disabled=false);add.disabled=works.children.length>=6}
+  dirty=false;
+  return {id:crypto.randomUUID(),data:{name,slug,brand:form.elements.brand.value,profile,portfolio,attribution:window.__AYN_ATTR?.()||{}},files};
+ }
+ form.addEventListener('submit',e=>{
+  e.preventDefault();
+  /* Enter advances the two-question wizard; once ready it opens the request. */
+  if(busy)return;
+  if(!wizardReady){document.getElementById('wizardNext')?.click();return}
+  if(canActivate&&!activate.hidden)activate.click();
  });
  const sessionPath='/api/s/demo/session';
  async function session(){
   try{return await api(sessionPath)}catch(error){await api(sessionPath,{});return api(sessionPath)}
  }
  async function send(){
-  if(dirty||!draft)throw new Error('پیش‌نمایش را دوباره بسازید.');
+  if(dirty||!draft)throw new Error('اطلاعات کامل نیست. دوباره تلاش کنید.');
   const payload=new FormData();
   payload.append('id',draft.id);payload.append('draft',JSON.stringify(draft.data));
   for(const [key,file] of draft.files)payload.append(key,file,key);
@@ -219,17 +207,18 @@
  }
  async function run(action,control){
   if(busy)return;
-  busy=true;control.disabled=true;dialogError.textContent='';
-  try{await action()}catch(error){if(dialog.open)dialogError.textContent=error.message;else hint.textContent=error.message}
+  busy=true;control.disabled=true;dialogError.textContent='';$('builderError').textContent='';
+  try{await action()}catch(error){if(dialog.open)dialogError.textContent=error.message;else hint.textContent=error.message;$('builderError').textContent=error.message}
   finally{busy=false;control.disabled=control===activate&&submitted}
  }
  activate.onclick=()=>run(async()=>{
-  if(submitted||dirty||!canActivate)return;
+  if(submitted||!canActivate)return;
   try{await api('/api/activation')}catch{
    showAvailability(false);
    window.__AYN_TRACK?.('lead_submit_failed',{reason:'activation_unavailable'});
    throw new Error('ثبت فعال‌سازی از این مسیر در دسترس نیست. می‌توانید درخواست‌تان را از فرم زیر بفرستید.');
   }
+  draft=await packageDraft();
   const current=await session();
   if(current.verified){await send();return}
   thanks.hidden=true;phone.hidden=false;otp.hidden=true;
@@ -251,6 +240,13 @@
  $('builderRetry').onclick=e=>run(async()=>{await api('/api/s/demo/otp/send',otpBody);dialogError.textContent='کد جدید فرستاده شد.'},e.currentTarget);
  dialog.querySelector('.builder-close').onclick=()=>dialog.close();
  dialog.addEventListener('close',()=>{if(!activate.hidden&&!activate.disabled)activate.focus({preventScroll:true})});
+ addEventListener('ayneh:wizard-ready',()=>{
+  if(wizardReady)return;
+  wizardReady=true;
+  window.__AYN_TRACK?.('preview_ready');
+  activate.hidden=!canActivate;
+  hint.textContent=canActivate?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.':'پیش‌نمایش آماده است. درخواست‌تان را از فرم زیر بفرستید.';
+ });
  build.disabled=false;
  checkAvailability();
 })();

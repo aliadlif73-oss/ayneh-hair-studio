@@ -70,7 +70,7 @@
   });
  }
 
- let i=0,reflow=0;
+ let i=0,reflow=0,ready=false;
  /* Only content-driven height changes need a synthetic resize; a real viewport
     resize is already handled by cinema.js / reveal.js. */
  const remeasure=()=>{clearTimeout(reflow);reflow=setTimeout(()=>dispatchEvent(new Event('resize')),220)};
@@ -83,7 +83,11 @@
   count.textContent=fa(i+1)+' از '+fa(steps.length);
   bar.style.width=(((i+1)/steps.length)*100).toFixed(1)+'%';
   prev.hidden=i===0;
-  next.hidden=last;skip.hidden=last||!st.dataset.optional;build.hidden=!last;
+  /* Two questions only; the last one confirms the preview instead of walking
+     through seven optional screens. Details live in a separate open-on-demand panel. */
+  skip.hidden=true;build.hidden=true;
+  next.hidden=last&&ready;
+  next.textContent=last&&ready?'پیشنمایش آماده است':(last?'تأیید پیشنمایش':'ادامه');
   err.textContent='';
   /* No scrollIntoView: the console is already a single screen. A page jump on
      every "ادامه" was the main reason working with the studio felt awkward. */
@@ -110,7 +114,19 @@
   }
   return true;
  }
- next.addEventListener('click',()=>{if(validate(steps[i])){window.__AYN_TRACK?.('wizard_step_complete',{step:i+1,key:steps[i].dataset.key});show(i+1)}});
+ next.addEventListener('click',()=>{
+  if(!validate(steps[i]))return;
+  window.__AYN_TRACK?.('wizard_step_complete',{step:i+1,key:steps[i].dataset.key});
+  if(i<steps.length-1){show(i+1);return}
+  if(ready)return;
+  ready=true;
+  const note=$('wizardReady');if(note)note.hidden=false;
+  wizard.classList.add('is-complete');
+  show(i,false);
+  /* builder.js packages the request from the CURRENT form values at click time,
+     so optional details added afterwards are never lost. */
+  dispatchEvent(new CustomEvent('ayneh:wizard-ready'));
+ });
  skip.addEventListener('click',()=>{window.__AYN_TRACK?.('wizard_skip',{step:i+1,key:steps[i].dataset.key});show(i+1)});
  prev.addEventListener('click',()=>show(i-1));
 

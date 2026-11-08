@@ -366,3 +366,34 @@ section[id],.site-footer{scroll-margin-top:0}
  .lead-fallback .lf-grid{grid-template-columns:1fr}
  .lead-fallback .btn{width:100%;justify-self:stretch}
 }
+
+/* ---------- 14. Funnel step 5: two questions, then a ready preview ----------
+   Seven optional steps became one open-on-demand panel. It expands the PAGE,
+   never the card: the one-screen console keeps no inner scrollbar. */
+.wizard-ready{margin:0;padding:10px 12px;border:1px solid rgba(216,166,60,.55);
+  border-radius:12px;background:linear-gradient(145deg,#FFFBF0,#F4F8FD);
+  color:#3A2A08;font-size:14px;font-weight:700;line-height:1.8}
+.builder-details{margin-top:var(--space-2);border:1px solid rgba(198,172,116,.6);
+  border-radius:14px;background:#FFFCF4;padding:2px 14px}
+.builder-details>summary{cursor:pointer;list-style:none;padding:12px 2px;display:flex;
+  align-items:center;gap:8px;font-size:14px;font-weight:800;color:#7A5712}
+.builder-details>summary::-webkit-details-marker{display:none}
+.builder-details>summary::before{content:'＋';font-size:16px;line-height:1;color:#A87C22}
+.builder-details[open]>summary::before{content:'−'}
+.builder-details>summary:focus-visible{outline:2px solid #A87C22;outline-offset:3px;border-radius:8px}
+.detail-lead{margin:0 0 4px;font-size:12.5px;color:#46566F;line-height:1.8}
+.detail-group{display:grid;gap:8px;padding:14px 2px;border-top:1px dashed rgba(198,172,116,.55)}
+.detail-group:first-of-type{border-top:0}
+.detail-group h4{margin:0;font-family:var(--display);font-size:15px;font-weight:800;color:#152238}
+.detail-group .detail-hint,.detail-lead{font-size:12.5px;color:#46566F;line-height:1.8}
+.detail-group label,.detail-group fieldset{min-width:0}
+.detail-group .builder-upload{margin:0}
+@media(max-width:850px){
+  .salon-builder .builder-details{margin-top:10px;padding:0 12px}
+  .salon-builder .builder-details>summary{padding:11px 2px;font-size:13px}
+  .salon-builder .detail-group{padding:12px 0;gap:7px}
+  .salon-builder .detail-group h4{font-size:13px}
+  .salon-builder .detail-group .detail-hint,.salon-builder .detail-lead{font-size:11.5px;line-height:1.65}
+  .salon-builder .detail-group fieldset{gap:7px!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;margin:0!important}
+  .salon-builder .wizard-ready{font-size:12.5px;padding:8px 10px;line-height:1.65}
+}
