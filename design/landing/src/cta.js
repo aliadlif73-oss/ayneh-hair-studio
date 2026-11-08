@@ -7,7 +7,7 @@
  if(!bar||!hero||!inquiry)return;
  const mobile=matchMedia('(max-width:900px)');
  let queued=false,geo=null;
- const twins=[...document.querySelectorAll('main a[href="#salon-example"],main a[href="#start"]')];
+ const twins=[...document.querySelectorAll('main a[href="#salon-example"]')];
  const docTop=el=>el.getBoundingClientRect().top+window.scrollY;
  /* Geometry is measured only when the document actually changes. Reading
     getBoundingClientRect() inside a scroll handler forces a synchronous

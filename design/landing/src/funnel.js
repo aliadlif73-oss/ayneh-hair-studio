@@ -38,7 +38,7 @@
   if(href.startsWith('/s/')||/ayneh-salon\.site\/s\//.test(href)){
    send('demo_open',{label,href:href.slice(0,120)});return
   }
-  if(href==='#salon-example'||href==='#start'||a.id==='builderActivate'||
+  if(href==='#salon-example'||a.id==='builderActivate'||
      a.classList.contains('sticky-cta')||a.id==='leadFallbackToggle'){
    send('cta_click',{label,href:href.slice(0,60),
     where:a.classList.contains('sticky-cta')?'sticky':(a.closest('header')?'header':'page')});
