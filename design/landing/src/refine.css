@@ -522,3 +522,50 @@ section[id],.site-footer{scroll-margin-top:0}
  .identity-url input{min-height:44px!important}
  .identity-url>span{font-size:9px}
 }
+
+/* ---------- 20. Funnel step 11: one page-wide visual language, readable at every size ---------- */
+/* refine.css:34 forces the dark-gold kicker colour on every kicker. In the dark
+   invite section that is #7A5712 on #0F1116 (3:1). Restore the light gold. */
+.salon-invite-copy .journey-kicker,.salon-invite-copy .journey-kicker .type-live{color:#E7C892!important}
+
+/* FAQ was a silver "trench" with a blue-grey fold and a near-black minus button,
+   while the rest of the page (and the step-10 controls) is flat cream with a gold
+   hairline. Only surfaces change: the accordion and its fold/scrub animations stay. */
+.faq>details{background:#FFFDF8;border:1px solid rgba(198,172,116,.55);border-radius:16px;
+ box-shadow:0 8px 22px rgba(16,30,56,.06)}
+.faq>details>summary{background:#fff;border:1px solid transparent;border-radius:14px;box-shadow:none}
+.faq>details[open]{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-glow),0 14px 34px rgba(16,30,56,.09)}
+.faq>details[open]>summary{border:0;border-radius:14px 14px 8px 8px;box-shadow:none;color:#101E38}
+.faq>details>p{background:#FFFBF0;border:1px solid rgba(198,172,116,.35);border-radius:12px;box-shadow:none}
+@media(hover:hover){
+ .faq>details:not([open]):hover>summary{transform:none;border-color:rgba(198,172,116,.7);box-shadow:none}
+}
+.faq summary::after{background:linear-gradient(145deg,#F7E7BD,#D8A63C);border:1px solid #B98A22;
+ box-shadow:inset 0 1px 1px rgba(255,255,255,.75),0 2px 6px rgba(122,87,18,.28);color:#5C4210}
+.faq details[open] summary::after{background:linear-gradient(145deg,#E2C376,#B98A22);
+ color:#3D2C08;border-color:#A87C1D;box-shadow:inset 0 1px 2px rgba(255,255,255,.5),0 2px 6px rgba(122,87,18,.3)}
+
+/* A typographic floor for real UI labels. The miniature phone preview keeps its
+   scale (it is a preview of another site, not page copy). */
+.brand .brand-name small{font-size:11px!important}
+.demo-controls button,.demo-caption{font-size:13px!important}
+.ref-body small{font-size:13px!important}
+.preview-kind,.demo-file span,.film-caption span{font-size:12px!important}
+.upload-name,.salon-builder .upload-name{font-size:12px!important}
+.lead-fallback .lf-privacy{font-size:13px!important}
+.reassure li,.reassure b,.reassure-inline{font-size:12.5px!important}
+.salon-builder .wizard-count{font-size:12px!important}
+.palette .col-list span,.palette .col-list small{font-size:11px!important}
+.hero-playground .dock.mobile .d-item,.hero-playground .more{font-size:11px!important}
+.service-timeline button{font-size:13px!important}
+@media(max-width:600px){
+ .brand .brand-name small{font-size:10px!important}
+ .service-timeline button{font-size:12px!important}
+}
+
+/* The hero playground's swatch/model labels and the return-bar caption are page
+   UI, not miniature previews; 9–11px Persian is too small to scan. */
+.hero-playground .palette h2,.hero-playground .dock h2,.sw>span:not(.dot),
+.d-item,.d-item span,.more span,.inv-long,.inv-short{font-size:12px!important}
+.salon-builder .wizard-step label{font-size:12px!important}
+.identity-url span,.identity-address small{font-size:11px!important}

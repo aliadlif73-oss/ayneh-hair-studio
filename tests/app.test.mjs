@@ -1149,3 +1149,25 @@ test('funnel step 10: secondary buttons stay legible and controls share one visu
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
  assert.ok(landingHTML.length<240000);
 });
+
+test('funnel step 11: page-wide surfaces and readability floors',()=>{
+ // The light-section kicker colour was forced onto the dark invite section (3:1).
+ assert.match(landingHTML,/\.salon-invite-copy \.journey-kicker,\.salon-invite-copy \.journey-kicker \.type-live\{color:#E7C892!important\}/);
+ // FAQ now uses the same flat cream / gold-hairline language as every other card.
+ assert.match(landingHTML,/\.faq>details\{background:#FFFDF8/,'flat FAQ card');
+ assert.match(landingHTML,/\.faq>details>p\{background:#FFFBF0/,'flat FAQ panel');
+ assert.match(landingHTML,/\.faq summary::after\{background:linear-gradient\(145deg,#F7E7BD/,'gold accordion control');
+ // A floor for real UI labels (the miniature phone preview keeps its own scale).
+ assert.match(landingHTML,/\.salon-builder \.wizard-step label\{font-size:12px!important\}/);
+ assert.match(landingHTML,/\.upload-name,\.salon-builder \.upload-name\{font-size:12px!important\}/);
+ assert.match(landingHTML,/\.lead-fallback \.lf-privacy\{font-size:13px!important\}/);
+ assert.match(landingHTML,/\.reassure li,\.reassure b,\.reassure-inline\{font-size:12\.5px!important\}/);
+ // Steps 1-10 remain intact.
+ assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
+ assert.match(landingHTML,/\.upload-control\{border:1px solid rgba\(198,172,116,\.85\)!important/);
+ assert.match(landingHTML,/\.lead-fallback \.lf-check input\{appearance:none/);
+ assert.match(landingHTML,/مشتری پیش از مراجعه، انتخابش را با عکس برای شما می\u200cفرستد/);
+ assert.match(landingHTML,/<template id="followUpTemplate">/);
+ assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
+ assert.ok(landingHTML.length<240000);
+});
