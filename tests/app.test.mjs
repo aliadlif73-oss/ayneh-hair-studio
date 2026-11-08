@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync,readdirSync} from 'node:fs';
 import {database,memoryBucket} from '../scripts/local-adapter.mjs';import app from '../worker/index.js';
-import {phone,transferPrompt} from '../worker/domain.js';import {appHTML} from '../worker/ui.js';import {customerHTML} from '../worker/customer.js';import {tick} from '../worker/server.js';import {styles} from '../worker/legacy.js';
+import {phone,transferPrompt} from '../worker/domain.js';import {appHTML} from '../worker/ui.js';import {customerHTML} from '../worker/customer.js';import {landingHTML} from '../worker/landing.js';import {tick} from '../worker/server.js';import {styles} from '../worker/legacy.js';
 
 const origin='https://test.example';
 const migrations=readdirSync(new URL('../drizzle/',import.meta.url)).filter(f=>f.endsWith('.sql')).sort();
@@ -987,4 +987,32 @@ test('landing funnel events are first-party, validated and attributed',async()=>
  const stored=e.DB.sql.prepare("SELECT meta,utm_source FROM landing_events WHERE kind='cta_click'").get();
  assert.equal(stored.meta.length,300);
  assert.equal(stored.utm_source.length,60);
+});
+
+test('funnel step 4: demos keep the owner on the landing and give demo visitors a way back',()=>{
+ const canon='ساخت پیش\u200cنمایش سالن من';
+ // The three genuinely off-site demos open in a new tab and carry campaign attribution.
+ const offsite=[...landingHTML.matchAll(/<a class="btn btn--ghost svc-try" href="([^"]+)"([^>]*)>/g)];
+ assert.equal(offsite.length,3,'three service demo links');
+ for(const [,href,attrs] of offsite){
+  assert.match(href,/^https:\/\/ayneh-salon\.site\/s\//);
+  assert.match(href,/from=landing/);assert.match(href,/utm_source=landing/);
+  assert.match(href,/utm_campaign=owner_preview/);assert.match(href,/utm_content=(hair|nails|lashes)/);
+  assert.match(attrs,/target="_blank"/);assert.match(attrs,/rel="noopener noreferrer"/);
+ }
+ // The four in-page demo openers stay in-page, but their no-JS fallback is identified too.
+ assert.equal((landingHTML.match(/href="\/s\/demo\?l=hair&amp;from=landing"/g)||[]).length,4);
+ assert.match(landingHTML,/ببینید مشتری چه می\u200cبیند/,'hero secondary CTA is owner-framed');
+ assert.equal((landingHTML.match(/چطور کار می\u200cکند/g)||[]).length,3,'nav labels tell what the demo does');
+ assert.doesNotMatch(landingHTML,/تجربهٔ آینه/);
+ // The customer shell has exactly one owner-return bar, gated to demo / explicit landing visits.
+ assert.match(customerHTML,/var FROM_LANDING=\/\[\?&\]from=landing/);
+ assert.match(customerHTML,/\(state\.pub\.demo\|\|FROM_LANDING\)&&!\$\('\.trialbar'\)/);
+ assert.match(customerHTML,/class:'trialbar owner-return'/);
+ assert.match(customerHTML,/utm_medium=demo_return&utm_campaign=owner_preview#salon-example/);
+ assert.doesNotMatch(customerHTML,/\/#start/,'no stale studio anchor');
+ assert.doesNotMatch(customerHTML,/صفحهٔ آزمایشی رایگان سالن من/,'no rejected CTA label');
+ assert.ok(customerHTML.includes(canon),'canonical CTA label on the return bar');
+ // Bar and CTA render from the same script that is syntax-checked above.
+ new Function(customerHTML.match(/<script>([\s\S]*?)<\/script>\s*<\/body>/)[1]);
 });
