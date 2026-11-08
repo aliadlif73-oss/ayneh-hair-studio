@@ -1128,3 +1128,24 @@ test('final funnel audit: structure, anchors, labels and the two legibility fixe
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
  assert.ok(landingHTML.length<240000);
 });
+
+test('funnel step 10: secondary buttons stay legible and controls share one visual language',()=>{
+ // polish.css gives every .btn a blue gradient with --button-text:#F7FAFF; the
+ // old .btn--ghost !important dark navy produced 2.43:1 on six buttons.
+ assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
+ assert.doesNotMatch(landingHTML,/\.btn--ghost\{[^}]*color:#1B2B45!important\}/);
+ assert.match(landingHTML,/:where\(\.wizard-step,\.detail-group,\.builder-dialog,\.lead-fallback\)/,'section 19 shipped');
+ assert.match(landingHTML,/:is\(input,select,textarea\):not\(\[type=file\]\)/,'one field token');
+ assert.match(landingHTML,/\.lead-fallback \.lf-check input\{appearance:none/,'designed checkbox');
+ assert.doesNotMatch(landingHTML,/\.detail-group\{[^}]*border-top:1px dashed/,'no dashed group dividers');
+ // cinema.css paints the upload wells dashed/grey; the later override must win.
+ assert.match(landingHTML,/\.upload-control\{border:1px solid rgba\(198,172,116,\.85\)!important/);
+ assert.ok(landingHTML.indexOf('.upload-control{border:1px solid rgba(198,172,116,.85)!important')>
+          landingHTML.indexOf('border:1.5px dashed #6c757f'),'override is bundled later');
+ // Everything from the earlier steps survives.
+ assert.match(landingHTML,/مشتری پیش از مراجعه، انتخابش را با عکس برای شما می\u200cفرستد/);
+ assert.match(landingHTML,/<template id="followUpTemplate">/);
+ assert.match(landingHTML,/R0lGODlhAQABAIAAAAAAAP/);
+ assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
+ assert.ok(landingHTML.length<240000);
+});
