@@ -25,7 +25,7 @@
      </div>
     </div>
     <div class="builder-loading" id="builderLoading" role="status" hidden><span class="builder-spinner" aria-hidden="true"></span><p>در حال آماده‌کردن پیش‌نمایش…</p></div>
-    <button class="btn btn--lg" id="builderActivate" type="button" hidden>ثبت درخواست فعال‌سازی</button>
+    <button class="btn btn--lg" id="builderActivate" type="button" hidden>درخواست راه‌اندازی</button>
     <p class="builder-note" id="builderHint" aria-live="polite"></p>
    </div>
    <form id="start" class="builder-form" method="post" aria-describedby="builderAvailability">
@@ -54,6 +54,7 @@
       <button type="button" class="btn wizard-next" id="wizardNext">ادامه</button>
      </div>
     </div>
+    <p class="reassure-inline">پیش‌نمایش و درخواست رایگان است · هزینه پیش از تصمیم اعلام می‌شود · عکس‌ها تا پیش از درخواست فقط در مرورگر شماست</p>
     <details class="builder-details" id="builderDetails">
      <summary>تکمیل جزئیات صفحه (اختیاری)</summary>
      <p class="detail-hint detail-lead">هرچه اینجا بنویسید، همان لحظه در پیش‌نمایش بالا دیده می‌شود. برای درخواست راه‌اندازی نیازی به پر کردن این بخش نیست.</p>
@@ -140,7 +141,7 @@
  <button class="builder-close" type="button" aria-label="بستن">×</button>
  <h2 id="builderDialogTitle">تأیید شمارهٔ موبایل</h2>
  <form id="builderPhone" method="post">
-  <p>برای پیگیری درخواست فعال‌سازی، شمارهٔ موبایل‌تان را تأیید کنید.</p>
+  <p>برای پیگیری درخواست راه‌اندازی، شمارهٔ موبایل‌تان را تأیید کنید.</p>
   <label>نام<input name="first_name" required minlength="2" maxlength="40" autocomplete="given-name"></label>
   <label>نام خانوادگی<input name="last_name" required minlength="2" maxlength="60" autocomplete="family-name"></label>
   <label>شمارهٔ موبایل<input name="phone" type="tel" required dir="ltr" maxlength="20" autocomplete="tel"></label>
@@ -152,5 +153,5 @@
   <button type="button" id="builderRetry" class="btn btn--ghost">ارسال دوبارهٔ کد</button>
  </form>
  <p id="builderDialogError" class="builder-error" role="alert"></p>
- <p id="builderThanks" role="status" hidden>از اعتمادتان ممنونیم. درخواست فعال‌سازی صفحهٔ اختصاصی سالن برای کارشناسان ما ارسال شد. پس از بررسی برای اعلام هزینه و هماهنگی با شما تماس می‌گیریم.</p>
+ <p id="builderThanks" role="status" hidden>از اعتمادتان ممنونیم. درخواست راه‌اندازی صفحهٔ اختصاصی سالن برای کارشناسان ما ارسال شد. پس از بررسی برای اعلام هزینه و هماهنگی با شما تماس می‌گیریم.</p>
 </dialog>

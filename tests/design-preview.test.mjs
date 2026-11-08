@@ -19,8 +19,11 @@ test('review Site serves the real customer flow, restricts its proxy, and labels
   // It carries the complementary-gold system, the studio wizard, the full
   // scroll-linked cinema engine (word slams, fan/curtain/lights/desk/focus/draw)
   // and the always-available low-friction activation request that keeps the
-  // funnel open when SMS OTP is unavailable. Raised from 220k with that form.
-  assert((await landing.text()).length<230_000,'review serves the lightweight production HTML');
+  // funnel open when SMS OTP is unavailable. Raised from 220k with that form,
+  // then to 240k when funnel steps 3-6 added the unified CTA, demo return path,
+  // two-question wizard and the cost/time/privacy strip (229.6k). Still far
+  // below the Worker script limit; this is a self-imposed bloat guard.
+  assert((await landing.text()).length<240_000,'review serves the lightweight production HTML');
   assert.equal((await app.fetch(new Request('https://review.example/api/s/demo/otp/send',{method:'POST'}))).status,403);
   const video=await app.fetch(new Request('https://review.example/assets/video/hair.mp4'));assert.equal(video.headers.get('Content-Type'),'video/mp4');assert.match(calls[0].url,/raw\.githubusercontent\.com.*\/public\/landing\/video\/hair.mp4$/);
   assert.equal((await app.fetch(new Request('https://review.example/api/login',{method:'POST'}))).status,404);

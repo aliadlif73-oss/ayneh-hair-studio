@@ -397,3 +397,27 @@ section[id],.site-footer{scroll-margin-top:0}
   .salon-builder .detail-group fieldset{gap:7px!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;margin:0!important}
   .salon-builder .wizard-ready{font-size:12.5px;padding:8px 10px;line-height:1.65}
 }
+
+/* 15. Funnel step 6: three decision objections beside the CTA. Desktop is a compact band: the sticky stage has fixed height + overflow:hidden. */
+.reassure{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:4px 14px}
+.reassure li{display:inline-flex;align-items:baseline;gap:5px;padding:0;border:0;background:none;
+  color:#2C3B55;font-size:11.5px;line-height:1.7}
+.reassure li+li::before{content:'·';color:#A87C22;font-weight:800}
+.reassure b{font-size:11.5px;font-weight:800;color:#7A5712;white-space:nowrap}
+.reassure-inline{margin:10px 0 0;padding:8px 10px;border-inline-start:3px solid var(--gold);
+  border-radius:0 10px 10px 0;background:#FFFBF0;color:#35455F;font-size:12.5px;line-height:1.8}
+@media(max-width:900px){
+  /* .copy becomes display:contents on mobile, so the strip needs its own flex order. */
+  .stage .copy .reassure{order:6;padding-inline:0;margin:8px 20px 0;text-align:right}
+  .reassure{display:grid;grid-template-columns:1fr;gap:4px}
+  .reassure li{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:baseline;
+    padding:6px 10px;border:1px solid rgba(198,172,116,.6);border-radius:10px;
+    background:rgba(255,253,246,.92);font-size:11.5px;line-height:1.5}
+  .reassure li+li::before{content:none}
+  .reassure b{white-space:nowrap;font-size:11.5px}
+  .reassure-inline{margin:8px 0 0;font-size:11.5px;line-height:1.65;padding:7px 9px}
+}
+@media(min-width:901px) and (max-height:800px){
+  .reassure{margin-top:7px;gap:2px 10px}
+  .reassure li{font-size:11px;line-height:1.5}
+}

@@ -201,9 +201,9 @@
   window.__AYN_TRACK?.('lead_submit',{path:'activation'});
   if(draft!==sentDraft||dirty)return;
   submitted=true;phone.hidden=true;otp.hidden=true;thanks.hidden=false;
-  $('builderDialogTitle').textContent='درخواست فعال‌سازی ثبت شد';
+  $('builderDialogTitle').textContent='درخواست راه‌اندازی ثبت شد';
   if(!dialog.open)dialog.showModal();
-  activate.disabled=true;hint.textContent='درخواست فعال‌سازی ثبت شد.';
+  activate.disabled=true;hint.textContent='درخواست راه‌اندازی ثبت شد.';
  }
  async function run(action,control){
   if(busy)return;
@@ -216,7 +216,7 @@
   try{await api('/api/activation')}catch{
    showAvailability(false);
    window.__AYN_TRACK?.('lead_submit_failed',{reason:'activation_unavailable'});
-   throw new Error('ثبت فعال‌سازی از این مسیر در دسترس نیست. می‌توانید درخواست‌تان را از فرم زیر بفرستید.');
+   throw new Error('ثبت درخواست راه‌اندازی از این مسیر در دسترس نیست. می‌توانید درخواست‌تان را از فرم زیر بفرستید.');
   }
   draft=await packageDraft();
   const current=await session();

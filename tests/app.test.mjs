@@ -1036,5 +1036,23 @@ test('funnel step 5: two questions reach a ready preview, optional details stay 
  assert.match(bundle,/draft=await packageDraft\(\)/,'request is packaged from current values at click time');
  assert.doesNotMatch(bundle,/activate\.hidden=!available\|\|!draft\|\|dirty/,'no rebuild-after-edit dead end');
  assert.doesNotMatch(bundle,/href="#start"/);
- assert.ok(landing.length<230000,'landing stays inside its size budget');
+ assert.ok(landing.length<240000,'landing stays inside its size budget');
+});
+
+test('funnel step 6: cost, time and privacy are answered beside the CTA with no new claims',()=>{
+ const strip=(landingHTML.match(/<ul class="reassure reveal"[\s\S]*?<\/ul>/)||[])[0]||'';
+ const inline=(landingHTML.match(/<p class="reassure-inline">[\s\S]*?<\/p>/)||[])[0]||'';
+ assert.equal((strip.match(/<li>/g)||[]).length,3,'three objections answered');
+ for(const label of ['هزینه','زمان','حریم خصوصی'])assert.ok(strip.includes(label),'answers '+label);
+ assert.ok(inline.includes('رایگان'),'studio restates the same promise');
+ // Owner decision: no figures and no time promise. Not even the real price range
+ // that exists in the design source (and is dropped by build.py) is surfaced.
+ for(const banned of [/میلیون/,/تومان/,/\d+\s*(?:روز|ساعت|دقیقه|هفته)/,/شارژ ماهانه/])
+  assert.doesNotMatch(strip+inline,banned);
+ // Step 3's "unify درخواست راهاندازی" is now complete in the OTP path too.
+ assert.doesNotMatch(landingHTML,/فعال\u200cسازی/);
+ assert.match(landingHTML,/id="builderActivate"[^>]*>درخواست راه\u200cاندازی</);
+ // The canonical CTA label from step 3 is untouched.
+ assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
+ assert.ok(landingHTML.length<240000,'raised bloat guard still respected');
 });
