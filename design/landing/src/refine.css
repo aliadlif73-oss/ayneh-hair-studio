@@ -658,7 +658,7 @@ section[id],.site-footer{scroll-margin-top:0}
 .foot-honest{margin:2px 0 0;font-size:12.5px;line-height:1.85;color:#B9C4D1;max-width:74ch}
 .sticky-cta-note{font-size:11.5px;font-weight:600;opacity:.82;line-height:1.3}
 @media(min-width:901px){
- .hero-honest-desktop{display:block;margin:10px 0 0;font-size:12.5px;line-height:1.75;color:#35455F}
+ .hero-honest-desktop{display:block;margin:10px 0 0;font-size:12.5px;line-height:1.75;color:#35455F!important;opacity:1!important;-webkit-text-fill-color:#35455F!important}
  .hero-honest-desktop b{margin-inline:2px}
 }
 @media(max-width:900px){

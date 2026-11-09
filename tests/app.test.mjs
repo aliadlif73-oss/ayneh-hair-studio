@@ -1279,6 +1279,11 @@ test('funnel step 14: one honest round against the picky-user audit',()=>{
  assert.match(landingHTML,/\.hero-teaser img\{transform:scale\(2\.05\)/);
  assert.match(landingHTML,/شبیه\u200cسازی تقریبی است و نتیجهٔ نهایی را تضمین نمی\u200cکند/);
  assert.match(landingHTML,/خدمات: <b>مو<\/b><b>ناخن<\/b><b>مژه<\/b>/);
+ // The desktop copy of the accuracy warning is static, not a scrubbed .reveal
+ // element: a measured screenshot caught a paused hero animation dimming it.
+ assert.match(landingHTML,/<p class="hero-honest-desktop">شبیه\u200cسازی تقریبی است/);
+ assert.doesNotMatch(landingHTML,/<p class="hero-honest-desktop reveal">/,'no scrubbed opacity on the desktop warning');
+ assert.match(landingHTML,/\.hero-honest-desktop\{[^}]*opacity:1!important/,'warning stays fully opaque');
  // 7/9. The cue is last in the fold and the dark-card text is larger.
  assert.match(landingHTML,/\.hero-scroll-cue\{order:9\}/);
  assert.match(landingHTML,/\.salon-invite-copy \.reassure li>span:last-child,\.salon-invite-copy \.reassure b\{font-size:13\.5px!important/);
