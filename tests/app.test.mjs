@@ -1354,7 +1354,7 @@ test('funnel step 15: zero-criticism round against the second picky-user review'
  // 6. Form moved before services; page compacted; cue brought into the fold.
  assert.ok(landingHTML.indexOf('id="salon-example"')<landingHTML.indexOf('id="services"'),
   'form no longer sits after all service chapters');
- assert.match(landingHTML,/\.section\{padding-block:28px\}/);
+ assert.match(landingHTML,/\.section\{padding-block:36px\}/);
  assert.match(landingHTML,/\.hero-teaser\{height:200px!important/);
  assert.match(landingHTML,/\.hero-scroll-cue\{order:9;height:24px/);
  assert.match(landingHTML,/\.hero-honesty\{order:5/);
@@ -1368,5 +1368,10 @@ test('funnel step 15: zero-criticism round against the second picky-user review'
  assert.equal((landingHTML.match(/<details/g)||[]).length,11,'FAQ kept');
  assert.equal((landingHTML.match(/class="detail-group"/g)||[]).length,7,'7 optional groups kept');
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2,'two-question wizard kept');
+ assert.match(landingHTML,/alt="نمونهٔ آزمایشی سالن: مو، ناخن و مژه"/,'informative teaser alt');
+ assert.match(landingHTML,/\.copy \.fineprint\{[^}]*font-size:14px/,'14px body copy');
+ assert.match(landingHTML,/\.salon-builder \.wizard-step label,[^}]*font-size:14px!important/,'14px form labels');
+ assert.match(landingHTML,/\.foot-samples>div\{[^}]*border:1px solid/,'solid sample panels');
+ assert.match(landingHTML,/دموی تعاملی فعلاً مخصوص مو است/,'desktop hair-only demo disclosed');
  assert.ok(landingHTML.length<250000);
 });

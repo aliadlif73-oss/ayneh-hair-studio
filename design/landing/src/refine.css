@@ -759,3 +759,39 @@ section[id],.site-footer{scroll-margin-top:0}
  .benefits-five .benefit p{font-size:12px;line-height:1.6}
  .foot-samples{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
 }
+
+/* ---------- 26. Step 16: one design for the picky buyer AND the UI/UX pro ---------- */
+/* Readable Persian body copy, one primary action, compact-but-standard rhythm. */
+.copy .fineprint{font-size:14px;line-height:1.7}
+/* One primary CTA on every viewport: the demo stays a real ripple .btn but
+   reads as a quiet text link instead of a second competing button. */
+.copy .cta-row .btn--quiet:not(:disabled){background:transparent!important;border:0!important;
+ box-shadow:none!important;color:#35455F!important;text-decoration:underline;
+ text-underline-offset:4px;min-height:36px;padding:0 6px;font-size:13px;font-weight:700}
+.copy .cta-row .btn--quiet::after{opacity:0}
+/* Keep the ripple layer (binding requirement) but remove its button-like sheen. */
+.copy .cta-row .btn--quiet>.glass-layer{background:none!important;box-shadow:none!important}
+.copy .cta-row .btn--quiet>.glass-layer::before{display:none!important}
+/* Sample proof is an intentional labelled panel, not unfinished dashes. */
+.foot-samples>div{padding:8px 10px;border:1px solid rgba(216,166,60,.38);
+ background:rgba(255,255,255,.06)}
+@media(max-width:900px){
+ .section{padding-block:36px}
+ .sec-head{margin-bottom:16px}
+ .faq>details{padding-block:8px}
+ /* The sub-line already carries the value; the duplicate lead leaves the fold. */
+ .stage .copy .lead{display:none}
+ .stage .copy .hero-sub{font-size:15px;line-height:1.6}
+ .stage .copy .fineprint{font-size:14px;line-height:1.55;padding-bottom:6px}
+ .foot-honest{font-size:13px}
+ .foot-samples dt{font-size:11.5px}
+ .foot-samples dd{font-size:12.5px;line-height:1.6}
+}
+@media(max-width:360px){
+ .stage .copy .hero-sub{font-size:14px;line-height:1.5}
+ .stage .copy .fineprint{font-size:14px;line-height:1.45;padding-bottom:4px}
+}
+@media(min-width:901px){.section{padding-block:64px}}
+/* Accessibility floor: Persian form labels should not sit at 12px. */
+.salon-builder .wizard-step label,
+.upload-name,.salon-builder .upload-name{font-size:14px!important}
