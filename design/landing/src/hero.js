@@ -307,19 +307,11 @@
  const human=e=>{if(!e.isTrusted||e.target.closest('.demo-controls'))return;if(demonstrating)endDemo('حالا خودتان مدل و رنگ را انتخاب کنید.');if(e.target.closest('#dock,#colors,#styles')){revealPortrait();showFront()}};
  film.addEventListener('pointerdown',human,true);film.addEventListener('keydown',human,true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')});
- const loader=$('siteLoader');
- const essential=Promise.allSettled([prepare('base'),prepare('s06')]);
- loader.hidden=false;
- document.documentElement.classList.add('hero-loading');
- let loadingTimeout;
- const deadline=new Promise(resolve=>{loadingTimeout=setTimeout(()=>resolve(false),1100)});
- window.__AYN_HERO_READY=Promise.race([essential.then(results=>results.every(result=>result.status==='fulfilled'&&result.value)),deadline]).finally(()=>{
-  clearTimeout(loadingTimeout);
-  $('loaderProgress').style.width='100%';
-  document.documentElement.classList.remove('hero-loading');
-  loader.classList.add('is-done');
-  setTimeout(()=>loader.remove(),250);
- });
+ // Step 15: no loading overlay and no timed boot. Preload the two essential
+ // frames without blocking the page, then report "not played" so the optional
+ // walkthrough only starts on a real user action.
+ Promise.allSettled([prepare('base'),prepare('s06')]);
+ window.__AYN_HERO_READY=Promise.resolve(false);
  window.__AYN_HERO_READY.then(ready=>{
   // Never steal attention back if the visitor started interacting or scrolled past the hero while loading.
   const r=film.getBoundingClientRect();if(!ready||played||r.bottom<innerHeight*.5||r.top>innerHeight){endDemo();return}

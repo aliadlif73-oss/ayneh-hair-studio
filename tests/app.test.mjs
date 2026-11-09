@@ -724,7 +724,7 @@ test('without SMS invites the bot offers messenger buttons and /i/ is a send pag
 // ---------- landing page and salon inquiries ----------
 test('landing page is public at / and the owner console stays at /admin',async()=>{const e=tgEnv(fixture());
  const r=await app.fetch(new Request(origin+'/'),e);assert.equal(r.status,200);const html=await r.text();
- assert.match(html,/id="builderLive"/);assert.match(html,/آینه، انتخابی که به مشتریان شما می\u200cآید/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
+ assert.match(html,/id="builderLive"/);assert.match(html,/پیش از مراجعه، انتخاب مشتریان\u200cتان را با عکس ببینید/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
  new Function(html.match(/<script>([\s\S]*?)<\/script>/g).map(s=>s.replace(/<\/?script>/g,'')).join('\n'));
  assert.equal((await app.fetch(new Request(origin+'/admin'),e)).status,200);});
 
@@ -1062,11 +1062,11 @@ test('funnel step 7: hero speaks to the salon owner and has one clear primary CT
  const h1=(landingHTML.match(/<h1 id="h1"[^>]*>([\s\S]*?)<\/h1>/)||[])[1]||'';
  // Step 13 explicitly replaced the step-7 owner-fact headline with the owner's
  // short brand line. The owner framing still lives in the lead below it.
- assert.equal(h1,'آینه، انتخابی که به مشتریان شما می\u200cآید');
- assert.ok(h1.includes('شما')&&h1.includes('مشتری'),'owner and customer both named');
- assert.equal((h1.match(/<span/g)||[]).length,0,'headline stays plain text for prepareType');
+ assert.equal(h1,'پیش از مراجعه، انتخاب مشتریان\u200cتان را با عکس ببینید');
+ assert.ok((h1.includes('شما')||h1.includes('تان'))&&h1.includes('مشتری'),'owner and customer both named');
+ assert.equal((h1.match(/<span/g)||[]).length,0,'headline stays plain static text');
  assert.match(landingHTML,/صفحه\u200cای با نام و رنگ سالن شما/,'lead is owner-framed');
- const row=(landingHTML.match(/<div class="cta-row reveal">([\s\S]*?)<\/div>/)||[])[1]||'';
+ const row=(landingHTML.match(/<div class="cta-row">([\s\S]*?)<\/div>/)||[])[1]||'';
  assert.match(row,/class="btn btn--lg" href="#salon-example"><span>ساخت پیش\u200cنمایش سالن من/);
  assert.match(row,/class="btn btn--ghost btn--quiet" data-try="hair"/,'demo CTA demoted but still a .btn');
  assert.doesNotMatch(row,/class="btn btn--lg"[^>]*data-try/,'primary and demo are not both prominent');
@@ -1099,7 +1099,7 @@ test('funnel step 8: every success state answers what happens next, with no new 
  assert.match(landingHTML,/__AYN_FOLLOWUP\?\.\(done\)/,'always-available phone path');
  // Analytics and every earlier funnel step are unchanged.
  assert.equal((landingHTML.match(/lead_submit'/g)||[]).length>=2,true);
- assert.match(landingHTML,/آینه، انتخابی که به مشتریان شما می\u200cآید/);
+ assert.match(landingHTML,/پیش از مراجعه، انتخاب مشتریان\u200cتان را با عکس ببینید/);
  assert.match(landingHTML,/<ul class="reassure"/,'three-fact strip survives (step 13 moved it)');
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
  assert.ok(landingHTML.length<250000,'bloat guard still respected');
@@ -1146,7 +1146,7 @@ test('funnel step 10: secondary buttons stay legible and controls share one visu
  assert.ok(landingHTML.indexOf('.upload-control{border:1px solid rgba(198,172,116,.85)!important')>
           landingHTML.indexOf('border:1.5px dashed #6c757f'),'override is bundled later');
  // Everything from the earlier steps survives.
- assert.match(landingHTML,/آینه، انتخابی که به مشتریان شما می\u200cآید/);
+ assert.match(landingHTML,/پیش از مراجعه، انتخاب مشتریان\u200cتان را با عکس ببینید/);
  assert.match(landingHTML,/<template id="followUpTemplate">/);
  assert.match(landingHTML,/R0lGODlhAQABAIAAAAAAAP/);
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
@@ -1169,7 +1169,7 @@ test('funnel step 11: page-wide surfaces and readability floors',()=>{
  assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
  assert.match(landingHTML,/\.upload-control\{border:1px solid rgba\(198,172,116,\.85\)!important/);
  assert.match(landingHTML,/\.lead-fallback \.lf-check input\{appearance:none/);
- assert.match(landingHTML,/آینه، انتخابی که به مشتریان شما می\u200cآید/);
+ assert.match(landingHTML,/پیش از مراجعه، انتخاب مشتریان\u200cتان را با عکس ببینید/);
  assert.match(landingHTML,/<template id="followUpTemplate">/);
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
  assert.ok(landingHTML.length<250000);
@@ -1203,10 +1203,10 @@ test('funnel step 12: the mirror leads the mobile first fold and three gold meda
  assert.match(landingHTML,/\.salon-invite-copy \.reassure \.gold-icon\{display:grid;grid-column:1;grid-row:1\/span 2/);
  // No copy was rewritten, added or deleted: all three approved sentences, the
  // owner-framed h1 and the canonical CTA are byte-identical.
- assert.match(landingHTML,/هزینه بعد از گفتگو و پیش از هر تصمیمی اعلام می\u200cشود\./);
+ assert.match(landingHTML,/هزینه ثابت از قبل وجود ندارد؛ پس از گفتگو و پیش از هر تصمیمی، مبلغ متناسب با سالن شما گفته می\u200cشود\./);
  assert.match(landingHTML,/همین حالا ببینید؛ راه\u200cاندازی بعد از گفتگو و هماهنگی\./);
  assert.match(landingHTML,/عکس\u200cها و اطلاعات تا پیش از درخواست فقط در مرورگر شماست\./);
- assert.match(landingHTML,/آینه، انتخابی که به مشتریان شما می\u200cآید/);
+ assert.match(landingHTML,/پیش از مراجعه، انتخاب مشتریان\u200cتان را با عکس ببینید/);
  assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
  // Steps 1-11 remain intact, including the ripple on every button.
  assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
@@ -1216,10 +1216,10 @@ test('funnel step 12: the mirror leads the mobile first fold and three gold meda
  assert.ok(landingHTML.length<250000);
 });
 
-test('funnel step 13: typed brand headline and the three facts before the third-section CTA',()=>{
+test('funnel step 13: static benefit headline and the three facts before the third-section CTA',()=>{
  // Owner decisions: headline (new h1), inplace_keep (image and demo stay),
  // invite (third section), approve. No other copy is rewritten.
- assert.match(landingHTML,/<h1 id="h1" class="reveal">آینه، انتخابی که به مشتریان شما می\u200cآید<\/h1>/);
+ assert.match(landingHTML,/<h1 id="h1">پیش از مراجعه، انتخاب مشتریان\u200cتان را با عکس ببینید<\/h1>/);
  assert.doesNotMatch(landingHTML,/<p class="eyebrow reveal">/,'bland opening kicker is gone');
  const intro=(landingHTML.match(/<section id="intro"[\s\S]*?<\/section>/)||[])[0]||'';
  assert.ok(intro&&!intro.includes('class="reassure"'),'the three facts left the hero');
@@ -1233,8 +1233,9 @@ test('funnel step 13: typed brand headline and the three facts before the third-
  assert.match(landingHTML,/\.copy h1::after\{content:"";display:block;width:46px/,'gold dash survives');
  assert.match(landingHTML,/\.salon-invite-copy>\.reassure\{margin:20px 0 0/,'dark-card restyle shipped');
  assert.match(landingHTML,/\.salon-invite-copy>\.btn\{grid-row:5/,'desktop grid made room');
- // The existing typing engine is reused on the h1; no new animation system.
- assert.match(landingHTML,/const typeH1=prepareType\(heroH1\)/);
+ // Step 15 removed the typing engine from the h1; section cinema stays.
+ assert.doesNotMatch(landingHTML,/prepareType\(heroH1\)/,'no typing ceremony');
+ assert.match(landingHTML,/window\.__AYN_HERO_READY=Promise\.resolve\(false\)/,'loader is gone');
  assert.doesNotMatch(landingHTML,/slamHero/);
  assert.match(landingHTML,/if\(still\)return;/,'reduced motion still short-circuits cinema');
  assert.match(landingHTML,/const n=copyEls\.length\|\|1/,'invite reveal reaches the CTA');
@@ -1242,7 +1243,7 @@ test('funnel step 13: typed brand headline and the three facts before the third-
  assert.match(landingHTML,/\.hero-teaser\{order:4\}/);
  assert.match(landingHTML,/\.hero-playground\{order:10\}/);
  // The three approved sentences, the canonical CTA and the rest of the funnel.
- for(const t of ['هزینه بعد از گفتگو و پیش از هر تصمیمی اعلام می\u200cشود.',
+ for(const t of ['هزینه ثابت از قبل وجود ندارد؛ پس از گفتگو و پیش از هر تصمیمی، مبلغ متناسب با سالن شما گفته می\u200cشود.',
   'همین حالا ببینید؛ راه\u200cاندازی بعد از گفتگو و هماهنگی.',
   'عکس\u200cها و اطلاعات تا پیش از درخواست فقط در مرورگر شماست.'])assert.ok(landingHTML.includes(t));
  assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
@@ -1256,47 +1257,116 @@ test('funnel step 14: one honest round against the picky-user audit',()=>{
  // Owner decisions: honest_once (no invented price), give_all with real contact
  // details, keep_plus_sub, tune, dedupe_label, approve_all.
  // 1. The brand line stays but is no longer vague or repeated in the loader.
- assert.match(landingHTML,/<p class="hero-sub reveal">مشتری مدل، رنگ، ناخن یا مژه را روی عکس خودش امتحان می\u200cکند/);
- assert.match(landingHTML,/<p>در حال آماده\u200cسازی آینه<\/p>/);
+ assert.match(landingHTML,/<p class="hero-sub">مشتری مدل، رنگ، ناخن یا مژه را روی عکس خودش امتحان می\u200cکند/);
+ assert.doesNotMatch(landingHTML,/id="siteLoader"/,'loader markup removed');
+ assert.doesNotMatch(landingHTML,/site-loader/,'loader styles removed');
  assert.doesNotMatch(landingHTML,/انتخابی که به شما می\u200cآید/,'loader no longer repeats the headline');
  // 2/11. No invented price or timeframe; the cost sentence survives exactly once.
  assert.doesNotMatch(landingHTML,/تومان|میلیون|شارژ ماهانه/);
- assert.equal((landingHTML.match(/هزینه بعد از گفتگو و پیش از هر تصمیمی اعلام می\u200cشود\./g)||[]).length,1);
+ assert.equal((landingHTML.match(/هزینه ثابت از قبل وجود ندارد؛ پس از گفتگو و پیش از هر تصمیمی، مبلغ متناسب با سالن شما گفته می\u200cشود\./g)||[]).length,1);
  assert.equal((landingHTML.match(/هزینه/g)||[]).length,1,'the word cost appears once in the whole shipped page');
  assert.equal((landingHTML.match(/رایگان/g)||[]).length,1,'free is defined once');
- assert.match(landingHTML,/منظور از رایگان: ساخت پیش\u200cنمایش و ثبت درخواست بدون پرداخت و بدون ثبت\u200cنام است/);
+ assert.match(landingHTML,/منظور از رایگان: ساخت پیش\u200cنمایش، ثبت درخواست و امتحان خدمات روی عکس خودتان، بدون پرداخت و بدون ثبت\u200cنام است/);
  assert.match(landingHTML,/class="sticky-cta" id="stickyCta" href="#start" hidden/,'contextual CTA jumps to the form');
- assert.match(landingHTML,/امتحان خدمات روی عکس خودتان نیاز به تأیید شمارهٔ موبایل دارد/,'the no-signup / OTP contradiction is explicit');
+ assert.match(landingHTML,/تنها تأیید شمارهٔ موبایل لازم دارد/,'free boundary and OTP are explicit');
  assert.doesNotMatch(landingHTML,/پیش\u200cنمایش و درخواست رایگان است؛/,'step-6 repetition removed');
  // 4. Real owner-supplied identity, plus honest disclosure where data was absent.
  assert.match(landingHTML,/href="tel:09105647497" dir="ltr"/);
  assert.match(landingHTML,/href="mailto:omidadli78@gmail.com" dir="ltr"/);
  assert.match(landingHTML,/تیم سازنده: <b>آینه<\/b>/);
- assert.match(landingHTML,/هنوز نام سالن نمونه، عکس قبل و بعد، یا تصویری از ربات تلگرام و بله منتشر نکرده\u200cایم/);
+ assert.doesNotMatch(landingHTML,/منتشر نکرده\u200cایم/,'temporary samples replaced the unpublished labels');
  assert.match(landingHTML,/نمونهٔ آزمایشی/,'demo imagery is labelled');
- assert.match(landingHTML,/sticky-cta-note">پشتیبانی آینه/,'persistent real contact');
+ assert.doesNotMatch(landingHTML,/sticky-cta-note/,'phone is no longer repeated on the sticky bar');
  // 5/6. Distinct crop, accuracy warning beside the image, three services named.
- assert.match(landingHTML,/\.hero-teaser img\{transform:scale\(2\.05\)/);
+ assert.match(landingHTML,/\.hero-teaser img\{transform:scale\(1\.04\)!important/);
  assert.match(landingHTML,/شبیه\u200cسازی تقریبی است و نتیجهٔ نهایی را تضمین نمی\u200cکند/);
  assert.match(landingHTML,/خدمات: <b>مو<\/b><b>ناخن<\/b><b>مژه<\/b>/);
  // The desktop copy of the accuracy warning is static, not a scrubbed .reveal
  // element: a measured screenshot caught a paused hero animation dimming it.
- assert.match(landingHTML,/<p class="hero-honest-desktop">شبیه\u200cسازی تقریبی است/);
- assert.doesNotMatch(landingHTML,/<p class="hero-honest-desktop reveal">/,'no scrubbed opacity on the desktop warning');
- assert.match(landingHTML,/\.hero-honest-desktop\{[^}]*opacity:1!important/,'warning stays fully opaque');
+ assert.match(landingHTML,/<p class="hero-honesty">شبیه\u200cسازی تقریبی است/);
+ assert.doesNotMatch(landingHTML,/hero-honest-desktop/,'one honesty line, no duplicate');
+ assert.match(landingHTML,/\.hero-honesty\{[^}]*opacity:1!important/,'warning stays fully opaque');
  // 7/9. The cue is last in the fold and the dark-card text is larger.
  assert.match(landingHTML,/\.hero-scroll-cue\{order:9\}/);
- assert.match(landingHTML,/\.salon-invite-copy \.reassure li>span:last-child,\.salon-invite-copy \.reassure b\{font-size:13\.5px!important/);
+ assert.match(landingHTML,/\.salon-invite-copy \.reassure li>span:last-child,\.salon-invite-copy \.reassure b\{font-size:15\.5px!important/);
  // 10. Faster typing and loader, but no cinema/ripple deletion.
- assert.match(landingHTML,/clamp\(\(now-t0\)\/450,0,1\)/);
- assert.match(landingHTML,/resolve\(false\),1100\)/);
- assert.match(landingHTML,/loader\.remove\(\),250\)/);
+ assert.doesNotMatch(landingHTML,/clamp\(\(now-t0\)/,'no typing boot track');
+ assert.doesNotMatch(landingHTML,/resolve\(false\),1100\)/,'no loader deadline');
+ assert.doesNotMatch(landingHTML,/loader\.remove\(\),250\)/,'no delayed loader removal');
  assert.match(landingHTML,/invite-play/,'film is visibly a film');
- assert.match(landingHTML,/const typeH1=prepareType\(heroH1\)/);
+ assert.doesNotMatch(landingHTML,/const typeH1=prepareType\(heroH1\)/,'typing removed');
  assert.match(landingHTML,/if\(still\)return;/);
  assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
  assert.match(landingHTML,/<template id="followUpTemplate">/);
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2,'step-5 form unchanged');
  assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
+ assert.ok(landingHTML.length<250000);
+});
+
+test('funnel step 15: zero-criticism round against the second picky-user review',()=>{
+ // Owner decisions: no_number_clear, all (temporary samples), new_composite,
+ // full. Free boundary confirmed as free_yes. PR #41 stays open, not merged.
+ // 1. A benefit-oriented static headline, with no typing or loader ceremony.
+ assert.match(landingHTML,/<h1 id="h1">پیش از مراجعه، انتخاب مشتریان\u200cتان را با عکس ببینید<\/h1>/);
+ assert.doesNotMatch(landingHTML,/prepareType\(heroH1\)/,'no typing');
+ assert.doesNotMatch(landingHTML,/clamp\(\(now-t0\)/,'no boot track');
+ assert.doesNotMatch(landingHTML,/resolve\(false\),1100\)/,'no loader deadline');
+ assert.doesNotMatch(landingHTML,/loader\.remove\(\),250\)/,'no delayed loader removal');
+ assert.match(landingHTML,/window\.__AYN_HERO_READY=Promise\.resolve\(false\)/,'loader removed at once');
+ assert.doesNotMatch(landingHTML,/id="siteLoader"|site-loader/,'no loader markup or styles');
+ assert.match(landingHTML,/if\(still\)return;/,'section cinema and reduced-motion path survive');
+ assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/,'ripples/buttons survive');
+ // 2. Why there is no number, plus an unambiguous free boundary.
+ assert.doesNotMatch(landingHTML,/تومان|میلیون|شارژ ماهانه/);
+ assert.equal((landingHTML.match(/هزینه/g)||[]).length,1,'still only one cost word');
+ assert.equal((landingHTML.match(/رایگان/g)||[]).length,1,'free defined once');
+ assert.match(landingHTML,/قیمت ثابت از قبل اعلام نمی\u200cشود/);
+ assert.match(landingHTML,/چرا عدد ثابت اعلام نمی\u200cشود؟/);
+ assert.match(landingHTML,/امتحان خدمات روی عکس خودتان، بدون پرداخت و بدون ثبت\u200cنام است/);
+ assert.match(landingHTML,/تنها تأیید شمارهٔ موبایل لازم دارد/);
+ // 3. Real contact stays verbatim; temporary sample values are explicitly labelled.
+ assert.match(landingHTML,/href="tel:09105647497" dir="ltr"/);
+ assert.match(landingHTML,/href="mailto:omidadli78@gmail.com" dir="ltr"/);
+ assert.match(landingHTML,/تیم سازنده: <b>آینه<\/b>/);
+ assert.match(landingHTML,/data-sample="hours"/);
+ assert.match(landingHTML,/data-sample="salon"/);
+ assert.match(landingHTML,/data-sample="email" dir="ltr">sample@ayneh\.example/);
+ assert.match(landingHTML,/data-sample="beforeafter"/);
+ assert.match(landingHTML,/data-sample="bot"/);
+ assert.equal((landingHTML.match(/نمونهٔ موقت/g)||[]).length>=5,true);
+ assert.match(landingHTML,/نمونهٔ آزمایشی/,'generated composite is labelled');
+ // 4. New composite asset; the studio mirror keeps hero.webp for mask alignment.
+ assert.match(landingHTML,/src="\/landing\/hero-teaser\.webp"/);
+ assert.match(landingHTML,/src="\/landing\/hero\.webp"/,'hair canvas base image unchanged');
+ const buildScript=readFileSync(new URL('../design/landing/build.py',import.meta.url),'utf8');
+ assert.match(buildScript,/imgmap\['hero-teaser'\]/,'single-file artifact maps the new asset');
+ assert.match(buildScript,/hero-teaser\\\.webp/,'sync + cache-busting hash include it');
+ assert.ok(readFileSync(new URL('../public/landing/hero-teaser.webp',import.meta.url)).length>100000,
+  'synced static asset exists');
+ assert.match(landingHTML,/window\.__AYN_ASSET_VERSION="[a-f0-9]{12}"/);
+ // 5. One honesty line on every viewport, larger type, no duplicate FAQ wording.
+ assert.equal((landingHTML.match(/تقریبی/g)||[]).length,1);
+ assert.match(landingHTML,/<p class="hero-honesty">شبیه\u200cسازی تقریبی است/);
+ assert.match(landingHTML,/\.hero-honesty\{[^}]*font-size:14px/);
+ assert.match(landingHTML,/\.salon-invite-copy \.reassure li>span:last-child,\.salon-invite-copy \.reassure b\{font-size:15\.5px!important/);
+ assert.doesNotMatch(landingHTML,/hero-honest-desktop|hero-teaser-note/,'duplicates gone');
+ assert.match(landingHTML,/دموی تعاملی این صفحه مخصوص مو است/,'hair-only interactive demo disclosed');
+ // 6. Form moved before services; page compacted; cue brought into the fold.
+ assert.ok(landingHTML.indexOf('id="salon-example"')<landingHTML.indexOf('id="services"'),
+  'form no longer sits after all service chapters');
+ assert.match(landingHTML,/\.section\{padding-block:28px\}/);
+ assert.match(landingHTML,/\.hero-teaser\{height:200px!important/);
+ assert.match(landingHTML,/\.hero-scroll-cue\{order:9;height:24px/);
+ assert.match(landingHTML,/\.hero-honesty\{order:5/);
+ // 7. Phone appears twice (visible text + tel href), sticky bar is one line again.
+ assert.equal((landingHTML.match(/09105647497/g)||[]).length,2);
+ assert.doesNotMatch(landingHTML,/sticky-cta-note/);
+ assert.match(landingHTML,/\.sticky-cta:not\(\[hidden\]\)\{flex-direction:row/);
+ assert.match(landingHTML,/class="sticky-cta" id="stickyCta" href="#start" hidden/);
+ assert.equal((landingHTML.match(/href="#start"/g)||[]).length,1,'contextual jump still unique');
+ // Scope guards: no invented proof, no removed sections/FAQ/form groups, no merge.
+ assert.equal((landingHTML.match(/<details/g)||[]).length,11,'FAQ kept');
+ assert.equal((landingHTML.match(/class="detail-group"/g)||[]).length,7,'7 optional groups kept');
+ assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2,'two-question wizard kept');
  assert.ok(landingHTML.length<250000);
 });

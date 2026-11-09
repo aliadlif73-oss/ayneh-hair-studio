@@ -96,13 +96,11 @@
   return clamp((s-(docTop(el)-window.scrollY))/((s-e)||1),0,1);
  };
 
- const heroCopy=$('#copy'),heroH1=$('#h1'),heroEyebrow=$('#intro .eyebrow');
+ const heroCopy=$('#copy');
  if(heroCopy){
-  // Step 13: the opening line is the typed headline, not a word-slam.
-  const typeH1=prepareType(heroH1),typeHero=prepareType(heroEyebrow);
-  let boot=0;const t0=performance.now();
-  const bootTick=now=>{boot=clamp((now-t0)/450,0,1);if(boot<1)requestAnimationFrame(bootTick);scheduleScrub()};
-  requestAnimationFrame(bootTick);
+  // Step 15: the opening line is static. No typing, no boot delay; section
+  // choreography and ripples stay intact.
+  const boot=1;
   addTrack(0,()=>{
    const vh=window.innerHeight||800;if(!heroH)heroH=heroCopy.getBoundingClientRect().height;
    // Fade out only once the copy is actually scrolling away; a short phone screen must still show it at load.
@@ -111,8 +109,6 @@
    return Math.min(boot,sf);
   },p=>{
    heroCopy.style.setProperty('--kp',subP(p,0,0.45).toFixed(3));
-   typeHero(subP(p,0.02,0.62));
-   typeH1(subP(p,0.08,0.82));
    heroCopy.style.setProperty('--lp',subP(p,0.32,0.88).toFixed(3));
    heroCopy.style.setProperty('--cp',subP(p,0.46,0.96).toFixed(3));
    heroCopy.style.setProperty('--fp',subP(p,0.58,1).toFixed(3));

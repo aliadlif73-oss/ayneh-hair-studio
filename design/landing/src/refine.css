@@ -632,14 +632,12 @@ section[id],.site-footer{scroll-margin-top:0}
 /* The short brand line stays, but it now has a concrete sub-line; the loader no
    longer repeats it. The gold dash still closes the headline. */
 .hero-sub{margin:0 0 6px;color:#35455F;font-size:16px;font-weight:600;line-height:1.75}
-.hero-teaser-note,.hero-teaser-badge,.hero-honest-desktop{display:none}
+.hero-teaser-badge{display:none}
 .hero-teaser-badge{position:absolute;z-index:2;top:10px;inset-inline-start:10px;
   padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:800;
   color:#3B2A08;background:linear-gradient(145deg,#FFF6D8,#E6BC58);
   border:1px solid var(--gold-rim);box-shadow:0 4px 10px rgba(16,30,56,.22)}
-.hero-teaser-note b,.hero-honest-desktop b{display:inline-block;padding:1px 7px;margin-inline:2px;border-radius:999px;
-  font-size:11.5px;font-weight:800;color:#7A5712;background:#FFF6D8;
-  border:1px solid rgba(198,172,116,.75)}
+
 /* A visible play mark so the invitation film does not read as a blank dark panel. */
 .invite-play{position:absolute;z-index:2;top:50%;left:50%;transform:translate(-50%,-50%);
   width:62px;height:62px;border-radius:50%;display:grid;place-items:center;pointer-events:none;
@@ -656,35 +654,108 @@ section[id],.site-footer{scroll-margin-top:0}
 .foot-contact-lines a{color:#DDE6F0;text-decoration:underline;text-underline-offset:4px}
 .foot-contact-lines a:hover{color:#F2DFAF}
 .foot-honest{margin:2px 0 0;font-size:12.5px;line-height:1.85;color:#B9C4D1;max-width:74ch}
-.sticky-cta-note{font-size:11.5px;font-weight:600;opacity:.82;line-height:1.3}
-@media(min-width:901px){
- .hero-honest-desktop{display:block;margin:10px 0 0;font-size:12.5px;line-height:1.75;color:#35455F!important;opacity:1!important;-webkit-text-fill-color:#35455F!important}
- .hero-honest-desktop b{margin-inline:2px}
-}
 @media(max-width:900px){
  .stage .copy h1{order:2}
  .stage .copy .hero-sub{order:3;padding-inline:20px;text-align:center;
   font-size:14.5px;line-height:1.75;margin:0 0 4px}
  .hero-teaser{order:4}
  .hero-teaser-badge{display:block}
- .hero-teaser-note{display:block;order:5;margin:8px 16px 0;text-align:center;
-  color:#35455F;font-size:12.5px;line-height:1.7}
- .hero-honest-desktop{display:none}
  .stage .copy .cta-row{order:6}
  .stage .copy .lead{order:7}
  .stage .copy .fineprint{order:8}
  .hero-scroll-cue{order:9}
  .hero-playground{order:10}
  /* A tighter crop so the first-fold visual is not the same framing as the demo. */
- .hero-teaser img{transform:scale(2.05);object-position:50% 39%}
- .sticky-cta:not([hidden]){flex-direction:column;gap:1px;white-space:normal;min-height:62px;line-height:1.25}
- .sticky-cta-row{display:inline-flex;align-items:center;justify-content:center;gap:10px}
+ .hero-teaser img{transform:scale(1.04);object-position:50% 48%}
 }
 @media(max-width:360px){
  .hero-sub{font-size:13.5px}
- .hero-teaser-note{font-size:11.5px;margin-inline:10px}
  .foot-honest{font-size:12px}
 }
 /* The dark third-section card: the picky reader asked for larger labels. */
+
+/* ---------- 24. Funnel step 15: zero-criticism round ---------- */
+/* One honesty line on every viewport. No duplicate note, no scrubbed opacity. */
+.hero-honesty{display:block;margin:8px 0 0;font-size:14px;line-height:1.65;
+ color:#35455F!important;opacity:1!important;-webkit-text-fill-color:#35455F!important}
+.hero-honesty b{display:inline-block;padding:1px 7px;margin-inline:2px;border-radius:999px;
+ font-size:12px;font-weight:800;color:#7A5712;background:#FFF6D8;
+ border:1px solid rgba(198,172,116,.75)}
+.hero-teaser img{transform:scale(1.04)!important;object-position:50% 48%!important}
+/* Larger dark-card labels, larger footer copy, clearly temporary sample fields. */
 .salon-invite-copy .reassure li>span:last-child,
-.salon-invite-copy .reassure b{font-size:13.5px!important;line-height:1.6}
+.salon-invite-copy .reassure b{font-size:15.5px!important;line-height:1.6}
+.foot-honest{font-size:13px;line-height:1.8;color:#C7D1DD;max-width:78ch}
+.foot-sample-note{margin:10px 0 4px;font-size:13px;color:#F2DFAF}
+.foot-sample-note b{color:#FFE9A8}
+.foot-samples{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px 16px}
+.foot-samples>div{padding:8px 10px;border:1px dashed rgba(216,166,60,.55);border-radius:10px;
+ background:rgba(255,255,255,.045)}
+.foot-samples dt{font-size:11.5px;font-weight:800;color:#B9C4D1;margin:0 0 3px}
+.foot-samples dd{margin:0;font-size:12.5px;line-height:1.6;color:#E6EDF5;overflow-wrap:anywhere}
+/* Sticky bar is a single quiet line again; the phone number lives once, in the footer. */
+@media(max-width:900px){
+ .sticky-cta:not([hidden]){flex-direction:row;gap:10px;white-space:nowrap;min-height:52px;line-height:1.4}
+ /* Shorten the fold so the cue is actually visible on a 390x844 phone. */
+ .hero-teaser{height:200px!important;margin-top:4px!important}
+ .stage .copy h1{margin-top:4px}
+ .stage .copy .hero-sub{font-size:13.5px;line-height:1.6;margin-bottom:2px}
+ .hero-honesty{order:5;margin:6px 16px 0;text-align:center;font-size:14px}
+ .stage .copy .cta-row{order:6;margin-top:6px}
+ .stage .copy .lead{order:7;margin-top:4px;font-size:13.5px;line-height:1.65}
+ .stage .copy .fineprint{order:8;margin-top:4px;font-size:12px;line-height:1.55}
+ .hero-scroll-cue{order:9;height:24px;margin:2px 0 0}
+ .hero-playground{order:10}
+ /* Compact the long page without deleting a section, FAQ item or form group. */
+ .section{padding-block:42px}
+ .sec-head{margin-bottom:16px}
+ .faq details{padding-block:10px}
+ .foot-contact{margin-top:18px;padding-top:14px}
+}
+@media(min-width:901px){
+ .hero-honesty{text-align:right;margin-inline-start:auto;max-width:58ch}
+ .section{padding-block:56px}
+}
+@media(max-width:360px){
+ .hero-teaser{height:168px!important}
+ .hero-honesty{font-size:14px;margin-inline:10px}
+ .foot-samples{grid-template-columns:1fr}
+}
+
+/* ---------- 25. Step 15: measured fold + path compression (320/360) ---------- */
+@media(max-width:900px){
+ .section{padding-block:28px}
+ .sec-head{margin-bottom:12px}
+ .faq>details{padding-block:6px}
+ .faq>details>p{margin:4px 4px 2px;padding:10px 14px;line-height:1.7}
+ .salon-invite{padding-block:24px}
+ .site-footer{padding-block:28px 20px}
+ .foot-contact{margin-top:12px;padding-top:10px}
+ .foot-honest{font-size:12.5px;line-height:1.7}
+ .foot-samples>div{padding:6px 8px}
+ .foot-samples dt{font-size:10.5px}
+ .foot-samples dd{font-size:11.5px;line-height:1.5}
+}
+@media(max-width:360px){
+ /* The picky reviewer measured the cue below the fold on 320 and 360. */
+ .stage .copy h1{font-size:20px;line-height:1.35;margin:2px 0 4px}
+ .stage .copy .hero-sub{font-size:12px;line-height:1.45;margin-bottom:2px}
+ .hero-teaser{height:120px!important;margin-top:2px!important}
+ .hero-honesty{font-size:14px;line-height:1.4;margin:4px 10px 0}
+ .hero-honesty b{font-size:11px;padding:0 5px;margin-inline:1px}
+ .stage .copy .cta-row{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:6px;margin-top:4px}
+ .stage .copy .cta-row .btn{width:100%;flex:none;min-height:40px;padding:0 8px;font-size:12px}
+ .stage .copy .cta-row .btn--lg{font-size:12.5px}
+ .stage .copy .cta-row .arrow{font-size:14px}
+ .stage .copy .lead{display:none}
+ .stage .copy .fineprint{font-size:11.5px;line-height:1.4;padding-bottom:4px;margin-top:2px}
+ /* Two compact columns keep all five benefits without a 1,000px chapter. */
+ .benefits-five{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ .benefits-five .benefit{grid-template-columns:36px minmax(0,1fr);column-gap:8px;padding:10px}
+ .benefits-five .benefit:last-child{grid-column:auto}
+ .benefits-five .benefit .gold-icon{width:36px;height:36px;border-radius:12px}
+ .benefits-five .benefit .gold-icon svg{width:24px;height:24px}
+ .benefits-five .benefit h3{font-size:13px;line-height:1.4}
+ .benefits-five .benefit p{font-size:12px;line-height:1.6}
+ .foot-samples{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+}

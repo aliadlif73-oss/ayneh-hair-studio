@@ -8,7 +8,7 @@ W = lambda p, s: open(p, 'w', encoding='utf8').write(s)
 # Keep the shipped static assets synchronized with their design sources.
 import shutil
 for asset in os.listdir('assets'):
-    if re.match(r'(hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', asset):
+    if re.match(r'(hero-teaser\.webp|hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', asset):
         shutil.copyfile('assets/' + asset, '../../public/landing/' + asset)
 
 W('../../worker/brand.js', 'export const brandMark=' + json.dumps(R('assets/ayneh-mark.svg'), ensure_ascii=False) + ';' + NL + 'export const favicon=' + json.dumps(R('assets/ayneh-favicon.svg'), ensure_ascii=False) + ';' + NL)
@@ -31,7 +31,7 @@ def section(section_id):
     return re.search(r'  <section id="' + section_id + r'".*?</section>', h, re.S).group(0)
 
 trial = R('src/trial.html').replace('<!-- LEAD_FORM -->', R('src/lead.html'))
-funnel = NL.join([section('how'), R('src/invite.html'), section('services'), R('src/scenes.html'), trial, section('faq')])
+funnel = NL.join([section('how'), R('src/invite.html'), trial, section('services'), R('src/scenes.html'), section('faq')])
 icon_paths = {
     'mirror': 'M11 27V15a9 9 0 0 1 18 0v12ZM20 27v6m-6 0h12m-9-14 5-5',
     'talk': 'M9 10h22v15H19l-7 6v-6H9Zm6 6h10m-10 4h7',
@@ -51,7 +51,7 @@ h = h.replace('<!--AYNEH_MARK-->', R('assets/ayneh-mark.svg'))
 assert 'builderLive' in h and 'id="start"' in h, 'salon builder not inserted'
 # styles whose mirror render exists (assets/look-sNN.webp + mask-sNN.png): the hero shows their shape on the model
 LOOKS = sorted(int(m.group(1)) for f in os.listdir('assets') for m in [re.match(r'look-s(\d\d)\.webp$', f)] if m and os.path.exists('assets/mask-s%s.png' % m.group(1)))
-asset_version = hashlib.sha256(b''.join(open('assets/' + f, 'rb').read() for f in sorted(os.listdir('assets')) if re.match(r'(hero\.webp|hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', f))).hexdigest()[:12]
+asset_version = hashlib.sha256(b''.join(open('assets/' + f, 'rb').read() for f in sorted(os.listdir('assets')) if re.match(r'(hero\.webp|hero-teaser\.webp|hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', f))).hexdigest()[:12]
 # Include film contents so unchanged poster frames cannot leave stale video URLs.
 asset_version = hashlib.sha256((asset_version + ''.join(hashlib.sha256(open('../../public/landing/video/' + n + '.mp4', 'rb').read()).hexdigest() for n in ['hair', 'lashes', 'nails'])).encode()).hexdigest()[:12]
 scripts = '<script>window.__AYN_ASSET_VERSION=' + json.dumps(asset_version) + ';window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/funnel.js', 'src/followup.js', 'src/draft.js', 'src/portrait.js', 'src/hair-color.js', 'src/hero.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/invite-video.js', 'src/cinema.js', 'src/reveal.js', 'src/builder.js', 'src/lead.js', 'src/refine.js'])
@@ -65,13 +65,14 @@ def b64(f, m):
 
 # ---------------- single-file artifact (everything inlined, preview flag on) ----------------
 a = h.replace('__ORIGIN__', '').replace('assets/estedad.woff2', b64('estedad.woff2', 'font/woff2'))
-for f in ['hero', 'compare', 'a2'] + ['salon-film-%02d' % i for i in range(1, 6)] + [n + '-' + k for n in ['hair', 'lashes', 'nails'] for k in ['poster', 'end']] + ['journey-stone']:
+for f in ['hero', 'hero-teaser', 'compare', 'a2'] + ['salon-film-%02d' % i for i in range(1, 6)] + [n + '-' + k for n in ['hair', 'lashes', 'nails'] for k in ['poster', 'end']] + ['journey-stone']:
     a = a.replace('assets/%s.webp' % f, b64(f + '.webp', 'image/webp'))
 imgmap = {('s%02d' % i): b64('s%02d.webp' % i, 'image/webp') for i in range(1, 20)}
 imgmap.update({('ic%d' % i): b64('ic%d.webp' % i, 'image/webp') for i in range(1, 5)})
 imgmap.update({('salon-film-%02d' % i): b64('salon-film-%02d.webp' % i, 'image/webp') for i in range(1, 6)})
 imgmap['hair-mask'] = b64('hair-mask.png', 'image/png')
 imgmap['hero'] = b64('hero.webp', 'image/webp')
+imgmap['hero-teaser'] = b64('hero-teaser.webp', 'image/webp')
 for n in LOOKS:
     imgmap['look-s%02d' % n] = b64('look-s%02d.webp' % n, 'image/webp')
     imgmap['mask-s%02d' % n] = b64('mask-s%02d.png' % n, 'image/png')
