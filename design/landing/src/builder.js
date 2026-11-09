@@ -54,8 +54,8 @@
   window.__AYN_TRACK?.('activation_available',{available:!!available});
   canActivate=available;
   availability.textContent=available
-   ?'پیش‌نمایش رایگان است. برای درخواست راه‌اندازی، تأیید شمارهٔ موبایل لازم است.'
-   :'پیش‌نمایش رایگان است. برای درخواست راه‌اندازی، شماره‌تان را همین‌جا بگذارید؛ بدون پرداخت و بدون انتشار صفحه، برای هماهنگی با شما تماس می‌گیریم.';
+   ?'برای درخواست راه‌اندازی، تأیید شمارهٔ موبایل لازم است.'
+   :'برای درخواست راه‌اندازی، شماره‌تان را همین‌جا بگذارید؛ بدون پرداخت و بدون انتشار صفحه، برای هماهنگی با شما تماس می‌گیریم.';
   activate.hidden=!available||!wizardReady;
   setFallback(!available);
   if(wizardReady&&!submitted)hint.textContent=available

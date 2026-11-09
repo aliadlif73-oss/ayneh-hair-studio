@@ -101,7 +101,7 @@
   // Step 13: the opening line is the typed headline, not a word-slam.
   const typeH1=prepareType(heroH1),typeHero=prepareType(heroEyebrow);
   let boot=0;const t0=performance.now();
-  const bootTick=now=>{boot=clamp((now-t0)/900,0,1);if(boot<1)requestAnimationFrame(bootTick);scheduleScrub()};
+  const bootTick=now=>{boot=clamp((now-t0)/450,0,1);if(boot<1)requestAnimationFrame(bootTick);scheduleScrub()};
   requestAnimationFrame(bootTick);
   addTrack(0,()=>{
    const vh=window.innerHeight||800;if(!heroH)heroH=heroCopy.getBoundingClientRect().height;

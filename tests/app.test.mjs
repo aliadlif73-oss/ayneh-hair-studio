@@ -1044,8 +1044,8 @@ test('funnel step 6: cost, time and privacy are answered with no new claims',()=
  const strip=(landingHTML.match(/<ul class="reassure"[^>]*>[\s\S]*?<\/ul>/)||[])[0]||'';
  const inline=(landingHTML.match(/<p class="reassure-inline">[\s\S]*?<\/p>/)||[])[0]||'';
  assert.equal((strip.match(/<li>/g)||[]).length,3,'three objections answered');
- for(const label of ['هزینه','زمان','حریم خصوصی'])assert.ok(strip.includes(label),'answers '+label);
- assert.ok(inline.includes('رایگان'),'studio restates the same promise');
+ for(const label of ['اعلام مبلغ','زمان','حریم خصوصی'])assert.ok(strip.includes(label),'answers '+label);
+ assert.ok(inline.includes('درخواستتان'),'studio restates the next action without another free claim');
  // Owner decision: no figures and no time promise. Not even the real price range
  // that exists in the design source (and is dropped by build.py) is surfaced.
  for(const banned of [/میلیون/,/تومان/,/\d+\s*(?:روز|ساعت|دقیقه|هفته)/,/شارژ ماهانه/])
@@ -1075,7 +1075,7 @@ test('funnel step 7: hero speaks to the salon owner and has one clear primary CT
  assert.match(landingHTML,/<ul class="reassure"/,'three-fact strip survives (step 13 moved it)');
  assert.match(landingHTML,/id="builderDetails"/);
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
- assert.doesNotMatch(landingHTML,/href="#start"/);
+ assert.equal((landingHTML.match(/href="#start"/g)||[]).length,1,'only the step-14 sticky CTA jumps straight to the form');
  assert.ok(landingHTML.length<250000);
 });
 
@@ -1085,7 +1085,7 @@ test('funnel step 8: every success state answers what happens next, with no new 
  assert.equal((tpl.match(/<li>/g)||[]).length,3,'three steps: received/reviewed, who calls, what is needed');
  for(const label of ['دریافت و بررسی','تماس تیم آینه','از طرف شما'])assert.ok(tpl.includes(label),label);
  assert.match(tpl,/کارشناسان ما/,'who reviews');
- assert.match(tpl,/اعلام هزینه و هماهنگی راه\u200cاندازی/,'who calls and why');
+ assert.match(tpl,/گفتگو و هماهنگی راه\u200cاندازی/,'who calls and why');
  assert.match(tpl,/نیازی به پرداخت یا کاری از طرف شما نیست/,'nothing needed from the owner');
  assert.match(tpl,/شماره فقط برای پیگیری همین درخواست استفاده می\u200cشود/,'existing privacy line');
  // No invented proof, price, timeframe or social proof anywhere in the new copy.
@@ -1125,7 +1125,7 @@ test('final funnel audit: structure, anchors, labels and the two legibility fixe
  assert.match(landingHTML,/\.builder-preview>\.builder-note\{color:#E4ECF5!important\}/);
  assert.ok(landingHTML.indexOf('.builder-preview>.builder-note{color:#E4ECF5!important}')>
           landingHTML.indexOf('.builder-note{color:#39455A!important}'),'override comes later');
- assert.doesNotMatch(landingHTML,/href="#start"/);
+ assert.equal((landingHTML.match(/href="#start"/g)||[]).length,1,'only the step-14 sticky CTA jumps straight to the form');
  assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
  assert.match(landingHTML,/<template id="followUpTemplate">/);
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
@@ -1180,17 +1180,18 @@ test('funnel step 12: the mirror leads the mobile first fold and three gold meda
  // the medallions are suppressed there (the desktop reassure band is a tight
  // inline strip inside a fixed-height sticky stage).
  assert.match(landingHTML,/\.hero-teaser,\.hero-scroll-cue\{display:none\}/);
- // On phones/tablets .copy is display:contents, so orders are on .stage itself:
- // eyebrow 1, h1 2, product visual 3, CTA 4, facts 5, cue 6, copy 7/8, demo 9.
- assert.match(landingHTML,/\.hero-teaser\{display:block;order:3/);
+ // On phones/tablets .copy is display:contents, so orders are on .stage itself.
+ // Step 14 inserted a sub-line and a caption, so the effective order is now
+ // h1 2, sub 3, visual 4, note 5, CTA 6, copy 7/8, cue 9, demo 10.
+ assert.match(landingHTML,/\.hero-teaser\{order:4\}/);
  assert.match(landingHTML,/\.salon-invite-copy>\.reassure\{grid-column:1 \/ -1;grid-row:4/);
- assert.match(landingHTML,/\.hero-scroll-cue\{display:flex;order:6/);
+ assert.match(landingHTML,/\.hero-scroll-cue\{order:9\}/);
  assert.match(landingHTML,/\.stage \.copy \.lead\{order:7\}/);
  assert.match(landingHTML,/\.stage \.copy \.fineprint\{order:8\}/);
- assert.match(landingHTML,/\.hero-playground\{order:9\}/);
- // refine.css ships last, so its order wins over the older hero.css rule.
- assert.ok(landingHTML.indexOf('.hero-playground{order:9}')>
-          landingHTML.indexOf('.hero-playground{order:6}'),'later override wins');
+ assert.match(landingHTML,/\.hero-playground\{order:10\}/);
+ // Section 23 ships last, so its order wins over the section-21/hero.css rules.
+ assert.ok(landingHTML.indexOf('.hero-playground{order:10}')>
+          landingHTML.indexOf('.hero-playground{order:9}'),'section 23 wins');
  // The cue is decorative and must stop animating for reduced-motion users.
  assert.match(landingHTML,/@media\(prefers-reduced-motion:reduce\)\{\.hero-scroll-cue svg\{animation:none\}\}/);
  // Three new 3D medallions reuse the exact site component (8 already exist in
@@ -1202,7 +1203,7 @@ test('funnel step 12: the mirror leads the mobile first fold and three gold meda
  assert.match(landingHTML,/\.salon-invite-copy \.reassure \.gold-icon\{display:grid;grid-column:1;grid-row:1\/span 2/);
  // No copy was rewritten, added or deleted: all three approved sentences, the
  // owner-framed h1 and the canonical CTA are byte-identical.
- assert.match(landingHTML,/پیش\u200cنمایش و درخواست رایگان است؛ هزینه پیش از هر تصمیمی اعلام می\u200cشود\./);
+ assert.match(landingHTML,/هزینه بعد از گفتگو و پیش از هر تصمیمی اعلام می\u200cشود\./);
  assert.match(landingHTML,/همین حالا ببینید؛ راه\u200cاندازی بعد از گفتگو و هماهنگی\./);
  assert.match(landingHTML,/عکس\u200cها و اطلاعات تا پیش از درخواست فقط در مرورگر شماست\./);
  assert.match(landingHTML,/آینه، انتخابی که به مشتریان شما می\u200cآید/);
@@ -1237,16 +1238,60 @@ test('funnel step 13: typed brand headline and the three facts before the third-
  assert.doesNotMatch(landingHTML,/slamHero/);
  assert.match(landingHTML,/if\(still\)return;/,'reduced motion still short-circuits cinema');
  assert.match(landingHTML,/const n=copyEls\.length\|\|1/,'invite reveal reaches the CTA');
- // The teaser, the cue and the interactive demo keep their step-12 positions.
- assert.match(landingHTML,/\.hero-teaser\{display:block;order:3/);
- assert.match(landingHTML,/\.hero-playground\{order:9\}/);
+ // Step 14 shortens the step-6 sentence and moves the cue to the end of the fold.
+ assert.match(landingHTML,/\.hero-teaser\{order:4\}/);
+ assert.match(landingHTML,/\.hero-playground\{order:10\}/);
  // The three approved sentences, the canonical CTA and the rest of the funnel.
- for(const t of ['پیش\u200cنمایش و درخواست رایگان است؛ هزینه پیش از هر تصمیمی اعلام می\u200cشود.',
+ for(const t of ['هزینه بعد از گفتگو و پیش از هر تصمیمی اعلام می\u200cشود.',
   'همین حالا ببینید؛ راه\u200cاندازی بعد از گفتگو و هماهنگی.',
   'عکس\u200cها و اطلاعات تا پیش از درخواست فقط در مرورگر شماست.'])assert.ok(landingHTML.includes(t));
  assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
  assert.match(landingHTML,/<template id="followUpTemplate">/);
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
  assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
+ assert.ok(landingHTML.length<250000);
+});
+
+test('funnel step 14: one honest round against the picky-user audit',()=>{
+ // Owner decisions: honest_once (no invented price), give_all with real contact
+ // details, keep_plus_sub, tune, dedupe_label, approve_all.
+ // 1. The brand line stays but is no longer vague or repeated in the loader.
+ assert.match(landingHTML,/<p class="hero-sub reveal">مشتری مدل، رنگ، ناخن یا مژه را روی عکس خودش امتحان می\u200cکند/);
+ assert.match(landingHTML,/<p>در حال آماده\u200cسازی آینه<\/p>/);
+ assert.doesNotMatch(landingHTML,/انتخابی که به شما می\u200cآید/,'loader no longer repeats the headline');
+ // 2/11. No invented price or timeframe; the cost sentence survives exactly once.
+ assert.doesNotMatch(landingHTML,/تومان|میلیون|شارژ ماهانه/);
+ assert.equal((landingHTML.match(/هزینه بعد از گفتگو و پیش از هر تصمیمی اعلام می\u200cشود\./g)||[]).length,1);
+ assert.equal((landingHTML.match(/هزینه/g)||[]).length,1,'the word cost appears once in the whole shipped page');
+ assert.equal((landingHTML.match(/رایگان/g)||[]).length,1,'free is defined once');
+ assert.match(landingHTML,/منظور از رایگان: ساخت پیش\u200cنمایش و ثبت درخواست بدون پرداخت و بدون ثبت\u200cنام است/);
+ assert.match(landingHTML,/class="sticky-cta" id="stickyCta" href="#start" hidden/,'contextual CTA jumps to the form');
+ assert.match(landingHTML,/امتحان خدمات روی عکس خودتان نیاز به تأیید شمارهٔ موبایل دارد/,'the no-signup / OTP contradiction is explicit');
+ assert.doesNotMatch(landingHTML,/پیش\u200cنمایش و درخواست رایگان است؛/,'step-6 repetition removed');
+ // 4. Real owner-supplied identity, plus honest disclosure where data was absent.
+ assert.match(landingHTML,/href="tel:09105647497" dir="ltr"/);
+ assert.match(landingHTML,/href="mailto:omidadli78@gmail.com" dir="ltr"/);
+ assert.match(landingHTML,/تیم سازنده: <b>آینه<\/b>/);
+ assert.match(landingHTML,/هنوز نام سالن نمونه، عکس قبل و بعد، یا تصویری از ربات تلگرام و بله منتشر نکرده\u200cایم/);
+ assert.match(landingHTML,/نمونهٔ آزمایشی/,'demo imagery is labelled');
+ assert.match(landingHTML,/sticky-cta-note">پشتیبانی آینه/,'persistent real contact');
+ // 5/6. Distinct crop, accuracy warning beside the image, three services named.
+ assert.match(landingHTML,/\.hero-teaser img\{transform:scale\(2\.05\)/);
+ assert.match(landingHTML,/شبیه\u200cسازی تقریبی است و نتیجهٔ نهایی را تضمین نمی\u200cکند/);
+ assert.match(landingHTML,/خدمات: <b>مو<\/b><b>ناخن<\/b><b>مژه<\/b>/);
+ // 7/9. The cue is last in the fold and the dark-card text is larger.
+ assert.match(landingHTML,/\.hero-scroll-cue\{order:9\}/);
+ assert.match(landingHTML,/\.salon-invite-copy \.reassure li>span:last-child,\.salon-invite-copy \.reassure b\{font-size:13\.5px!important/);
+ // 10. Faster typing and loader, but no cinema/ripple deletion.
+ assert.match(landingHTML,/clamp\(\(now-t0\)\/450,0,1\)/);
+ assert.match(landingHTML,/resolve\(false\),1100\)/);
+ assert.match(landingHTML,/loader\.remove\(\),250\)/);
+ assert.match(landingHTML,/invite-play/,'film is visibly a film');
+ assert.match(landingHTML,/const typeH1=prepareType\(heroH1\)/);
+ assert.match(landingHTML,/if\(still\)return;/);
+ assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
+ assert.match(landingHTML,/<template id="followUpTemplate">/);
+ assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2,'step-5 form unchanged');
+ assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
  assert.ok(landingHTML.length<250000);
 });

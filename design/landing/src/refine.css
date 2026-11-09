@@ -627,3 +627,64 @@ section[id],.site-footer{scroll-margin-top:0}
  .salon-invite-copy .reassure .gold-icon svg{width:19px;height:19px}
  .salon-invite-copy .reassure li>span:last-child{font-size:11.5px}
 }
+
+/* ---------- 23. Funnel step 14: one honest round against the picky-user audit ---------- */
+/* The short brand line stays, but it now has a concrete sub-line; the loader no
+   longer repeats it. The gold dash still closes the headline. */
+.hero-sub{margin:0 0 6px;color:#35455F;font-size:16px;font-weight:600;line-height:1.75}
+.hero-teaser-note,.hero-teaser-badge,.hero-honest-desktop{display:none}
+.hero-teaser-badge{position:absolute;z-index:2;top:10px;inset-inline-start:10px;
+  padding:4px 10px;border-radius:999px;font-size:11.5px;font-weight:800;
+  color:#3B2A08;background:linear-gradient(145deg,#FFF6D8,#E6BC58);
+  border:1px solid var(--gold-rim);box-shadow:0 4px 10px rgba(16,30,56,.22)}
+.hero-teaser-note b,.hero-honest-desktop b{display:inline-block;padding:1px 7px;margin-inline:2px;border-radius:999px;
+  font-size:11.5px;font-weight:800;color:#7A5712;background:#FFF6D8;
+  border:1px solid rgba(198,172,116,.75)}
+/* A visible play mark so the invitation film does not read as a blank dark panel. */
+.invite-play{position:absolute;z-index:2;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:62px;height:62px;border-radius:50%;display:grid;place-items:center;pointer-events:none;
+  background:rgba(16,24,40,.42);border:1px solid rgba(216,166,60,.75);
+  box-shadow:0 8px 26px rgba(0,0,0,.38)}
+.invite-play::before{content:"";width:0;height:0;margin-inline-start:4px;
+  border-top:9px solid transparent;border-bottom:9px solid transparent;
+  border-inline-start:15px solid #F2DFAF}
+/* Real contact details supplied by the owner; nothing here is invented. */
+.foot-contact{margin-top:26px;padding-top:20px;border-top:1px solid rgba(167,176,187,.16);
+  display:grid;gap:6px;text-align:right}
+.foot-contact-title{font-size:15px;font-weight:800;color:#F2DFAF}
+.foot-contact-lines{font-size:15px;color:#DDE6F0;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.foot-contact-lines a{color:#DDE6F0;text-decoration:underline;text-underline-offset:4px}
+.foot-contact-lines a:hover{color:#F2DFAF}
+.foot-honest{margin:2px 0 0;font-size:12.5px;line-height:1.85;color:#B9C4D1;max-width:74ch}
+.sticky-cta-note{font-size:11.5px;font-weight:600;opacity:.82;line-height:1.3}
+@media(min-width:901px){
+ .hero-honest-desktop{display:block;margin:10px 0 0;font-size:12.5px;line-height:1.75;color:#35455F}
+ .hero-honest-desktop b{margin-inline:2px}
+}
+@media(max-width:900px){
+ .stage .copy h1{order:2}
+ .stage .copy .hero-sub{order:3;padding-inline:20px;text-align:center;
+  font-size:14.5px;line-height:1.75;margin:0 0 4px}
+ .hero-teaser{order:4}
+ .hero-teaser-badge{display:block}
+ .hero-teaser-note{display:block;order:5;margin:8px 16px 0;text-align:center;
+  color:#35455F;font-size:12.5px;line-height:1.7}
+ .hero-honest-desktop{display:none}
+ .stage .copy .cta-row{order:6}
+ .stage .copy .lead{order:7}
+ .stage .copy .fineprint{order:8}
+ .hero-scroll-cue{order:9}
+ .hero-playground{order:10}
+ /* A tighter crop so the first-fold visual is not the same framing as the demo. */
+ .hero-teaser img{transform:scale(2.05);object-position:50% 39%}
+ .sticky-cta:not([hidden]){flex-direction:column;gap:1px;white-space:normal;min-height:62px;line-height:1.25}
+ .sticky-cta-row{display:inline-flex;align-items:center;justify-content:center;gap:10px}
+}
+@media(max-width:360px){
+ .hero-sub{font-size:13.5px}
+ .hero-teaser-note{font-size:11.5px;margin-inline:10px}
+ .foot-honest{font-size:12px}
+}
+/* The dark third-section card: the picky reader asked for larger labels. */
+.salon-invite-copy .reassure li>span:last-child,
+.salon-invite-copy .reassure b{font-size:13.5px!important;line-height:1.6}

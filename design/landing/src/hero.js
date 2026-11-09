@@ -312,13 +312,13 @@
  loader.hidden=false;
  document.documentElement.classList.add('hero-loading');
  let loadingTimeout;
- const deadline=new Promise(resolve=>{loadingTimeout=setTimeout(()=>resolve(false),1800)});
+ const deadline=new Promise(resolve=>{loadingTimeout=setTimeout(()=>resolve(false),1100)});
  window.__AYN_HERO_READY=Promise.race([essential.then(results=>results.every(result=>result.status==='fulfilled'&&result.value)),deadline]).finally(()=>{
   clearTimeout(loadingTimeout);
   $('loaderProgress').style.width='100%';
   document.documentElement.classList.remove('hero-loading');
   loader.classList.add('is-done');
-  setTimeout(()=>loader.remove(),450);
+  setTimeout(()=>loader.remove(),250);
  });
  window.__AYN_HERO_READY.then(ready=>{
   // Never steal attention back if the visitor started interacting or scrolled past the hero while loading.
