@@ -1257,7 +1257,7 @@ test('funnel step 14: one honest round against the picky-user audit',()=>{
  // Owner decisions: honest_once (no invented price), give_all with real contact
  // details, keep_plus_sub, tune, dedupe_label, approve_all.
  // 1. The brand line stays but is no longer vague or repeated in the loader.
- assert.match(landingHTML,/<p class="hero-sub">مشتری مدل، رنگ، ناخن یا مژه را روی عکس خودش امتحان می\u200cکند/);
+ assert.match(landingHTML,/<p class="hero-sub">آینه صفحه\u200cای به نام سالن شماست\. مشتری مدل و رنگ مو، ناخن یا مژه را روی عکس خودش امتحان می\u200cکند/,'product is named in the first fold');
  assert.doesNotMatch(landingHTML,/id="siteLoader"/,'loader markup removed');
  assert.doesNotMatch(landingHTML,/site-loader/,'loader styles removed');
  assert.doesNotMatch(landingHTML,/انتخابی که به شما می\u200cآید/,'loader no longer repeats the headline');
@@ -1373,5 +1373,25 @@ test('funnel step 15: zero-criticism round against the second picky-user review'
  assert.match(landingHTML,/\.salon-builder \.wizard-step label,[^}]*font-size:14px!important/,'14px form labels');
  assert.match(landingHTML,/\.foot-samples>div\{[^}]*border:1px solid/,'solid sample panels');
  assert.match(landingHTML,/دموی تعاملی فعلاً مخصوص مو است/,'desktop hair-only demo disclosed');
+ assert.ok(landingHTML.length<250000);
+});
+
+
+test('funnel step 19: competitor-inspired first-glance clarity and one CTA hierarchy',()=>{
+ // Nearest competitors all open with "what it is / why a salon would use it",
+ // repeat ONE action and put the objections just before the final CTA.
+ assert.match(landingHTML,/<p class="hero-sub">آینه صفحه\u200cای به نام سالن شماست/);
+ assert.match(landingHTML,/خدمات: <b>مو<\/b><b>ناخن<\/b><b>مژه<\/b>/);
+ assert.match(landingHTML,/\.stage \.copy \.lead\{display:none!important\}/,'no duplicate lead on desktop');
+ assert.equal((landingHTML.match(/چطور کار می\u200cکند/g)||[]).length,3,'nav label still appears three times');
+ assert.match(landingHTML,/href="#how">چطور کار می\u200cکند/,'how it works jumps to the real section');
+ assert.match(landingHTML,/href="#studio">دموی زنده/,'live demo keeps its own door');
+ assert.match(landingHTML,/مشتری انتخاب می\u200cکند، شما همان را با عکس می\u200cبینید/);
+ assert.match(landingHTML,/عکس مشتری کجا می\u200cرود؟/,'photo handling is no longer a gap');
+ assert.match(landingHTML,/نسخهٔ فشردهٔ عکس/);
+ assert.doesNotMatch(landingHTML,/رضایت مشتری/,'no consent jargon in the owner copy');
+ assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
+ assert.equal((landingHTML.match(/href="#start"/g)||[]).length,1,'one sticky jump to the form');
+ assert.ok(landingHTML.indexOf('id="salon-example"')<landingHTML.indexOf('id="services"'),'form still before services');
  assert.ok(landingHTML.length<250000);
 });

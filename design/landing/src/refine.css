@@ -795,3 +795,11 @@ section[id],.site-footer{scroll-margin-top:0}
 /* Accessibility floor: Persian form labels should not sit at 12px. */
 .salon-builder .wizard-step label,
 .upload-name,.salon-builder .upload-name{font-size:14px!important}
+
+/* ---------- 27. Step 19: competitor-inspired first-glance clarity ---------- */
+/* The legacy owner-framed lead duplicated the hero message on desktop. Keep it
+   in the source for owner-framing guards, but never render it again. */
+.stage .copy .lead{display:none!important}
+/* Short, natural Persian notes that answer the buyer before the demo. */
+.section .sec-head .sub{max-width:74ch}
+.photo-tip{margin:14px 0 0;font-size:14px;line-height:1.7;color:#35455F}
