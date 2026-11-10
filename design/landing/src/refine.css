@@ -738,9 +738,9 @@ section[id],.site-footer{scroll-margin-top:0}
 }
 @media(max-width:360px){
  /* The picky reviewer measured the cue below the fold on 320 and 360. */
- .stage .copy h1{font-size:20px;line-height:1.35;margin:2px 0 4px}
+ .stage .copy h1{font-size:20px;line-height:1.25;margin:0 0 2px}
  .stage .copy .hero-sub{font-size:12px;line-height:1.45;margin-bottom:2px}
- .hero-teaser{height:120px!important;margin-top:2px!important}
+ .hero-teaser{height:116px!important;margin-top:2px!important}
  .hero-honesty{font-size:14px;line-height:1.4;margin:4px 10px 0}
  .hero-honesty b{font-size:11px;padding:0 5px;margin-inline:1px}
  .stage .copy .cta-row{flex-direction:column;flex-wrap:nowrap;align-items:stretch;gap:6px;margin-top:4px}

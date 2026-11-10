@@ -3,7 +3,7 @@
 (()=>{
  const still=matchMedia('(prefers-reduced-motion:reduce)').matches,header=document.querySelector('.site-header');
  const bar=document.createElement('div');bar.className='scroll-line';bar.setAttribute('aria-hidden','true');document.body.prepend(bar);
- const links=[...document.querySelectorAll('.site-header .nav a[href^="#"]')],secs=links.map(a=>document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
+ const links=[...document.querySelectorAll('.site-header .nav a[href^="#"]')].filter(a=>a.getAttribute('href')!=='#studio'),secs=links.map(a=>document.getElementById(a.getAttribute('href').slice(1))).filter(Boolean);
  let busy=false,docTops=[],docH=1,tight=false;
  const measure=()=>{docTops=secs.map(s=>s.getBoundingClientRect().top+scrollY);docH=Math.max(1,document.documentElement.scrollHeight-innerHeight)};
  addEventListener('resize',measure,{passive:true});addEventListener('load',measure);
