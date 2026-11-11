@@ -2,16 +2,31 @@
   <section id="intro" class="film" aria-labelledby="h1" tabindex="-1">
     <div class="stage" id="stage" data-demo="loading">
       <div class="copy" id="copy">
-        <h1 id="h1">صفحه‌ای به نام سالن شما؛ پیش از مراجعه، انتخاب مشتری را با عکس ببینید</h1>
-        <p class="hero-sub">آینه صفحه‌ای به نام سالن شماست. مشتری مدل و رنگ مو، طرح ناخن یا مدل مژه را روی عکس خودش امتحان می‌کند و همان انتخاب را با عکس برایتان می‌فرستد.</p>
-        <p class="lead">صفحه‌ای با نام و رنگ سالن شما. مشتری مدل و رنگ مو، طرح ناخن یا مدل مژه را روی عکس خودش امتحان می‌کند و همان انتخاب را با عکس، پیش از مراجعه، برایتان می‌فرستد.</p>
+        <h1 id="h1">انتخاب مشتری را با عکس ببینید</h1>
+        <p class="hero-sub">صفحه‌ای به نام سالن شما، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می‌دهد.</p>
         <div class="cta-row"><a class="btn btn--lg" href="#salon-example"><span>ساخت پیش‌نمایش سالن من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost btn--quiet" data-try="hair" href="/s/demo?l=hair&amp;from=landing" id="openHeroDemo"><span>ببینید مشتری چه می‌بیند</span></a></div>
-        <p class="fineprint"><span>منظور از رایگان: ساخت پیش‌نمایش، ثبت درخواست و امتحان خدمات روی عکس خودتان، بدون پرداخت و بدون ثبت‌نام است. تنها تأیید شمارهٔ موبایل لازم دارد.</span></p>
-        <p class="hero-honesty">شبیه‌سازی تقریبی است و نتیجهٔ نهایی را تضمین نمی‌کند. خدمات: <b>مو</b><b>ناخن</b><b>مژه</b>. دموی تعاملی این صفحه مخصوص مو است.</p>
+        <p class="lead">صفحه‌ای با نام و رنگ سالن شما.</p>
 
       </div>
 
-      <div class="hero-teaser"><img src="assets/hero-teaser.webp" alt="نمونهٔ آزمایشی سالن: مو، ناخن و مژه" width="1376" height="768" decoding="async"><span class="hero-teaser-badge">نمونهٔ آزمایشی</span></div>
+      <div class="hero-teaser" data-mock="customer-choice" aria-label="نمونهٔ موقت از رابط کاربری صفحهٔ سالن">
+        <div class="proof-top">
+          <span class="proof-salon">صفحهٔ سالن آینه · رابط کاربری</span>
+          <span class="hero-teaser-badge">نمونهٔ موقت</span>
+        </div>
+        <div class="proof-body">
+          <figure class="proof-photo">
+            <img src="assets/hair-poster.webp" alt="نمونهٔ موقت از عکس مشتری" width="960" height="540" decoding="async">
+            <figcaption>عکس خود مشتری · نمونهٔ موقت</figcaption>
+          </figure>
+          <div class="proof-panel">
+            <p class="proof-kicker">انتخاب مشتری</p>
+            <div class="proof-row" data-choice="style"><span>مدل مو</span><strong>لیر بلند</strong></div>
+            <div class="proof-row" data-choice="color"><span>رنگ مو</span><strong>بلوند شامپاینی</strong><i class="proof-color" aria-hidden="true"></i></div>
+            <p class="proof-sent"><span class="proof-check" aria-hidden="true">✓</span>همین انتخاب با عکس برای سالن فرستاده شد</p>
+          </div>
+        </div>
+      </div>
       <div class="hero-scroll-cue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></div>
       <div class="studio" id="studio" tabindex="-1" aria-label="دموی تعاملی آینه روی چهرهٔ نمونه">
         <div class="mirror" id="mirror">
@@ -75,4 +90,9 @@
       <noscript><style>.mirror-front{opacity:1!important}.demo-controls,.demo-caption,.dock,.palette,#openHeroDemo{display:none}</style></noscript>
       <div class="fade" id="fade" aria-hidden="true"></div>
     </div>
+      <div class="hero-details" aria-label="توضیحات پیش‌نمایش">
+        <p class="service-note">خدمات قابل امتحان: مدل و رنگ مو، طرح ناخن یا مدل مژه، روی عکس خود مشتری.</p>
+        <p class="fineprint"><span>منظور از رایگان: ساخت پیش‌نمایش، ثبت درخواست و امتحان خدمات روی عکس خودتان، بدون پرداخت و بدون ثبت‌نام است. تنها تأیید شمارهٔ موبایل لازم دارد.</span></p>
+        <p class="hero-honesty">شبیه‌سازی تقریبی است و نتیجهٔ نهایی را تضمین نمی‌کند. دموی تعاملی این صفحه مخصوص مو است.</p>
+      </div>
   </section>
