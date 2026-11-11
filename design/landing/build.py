@@ -7,8 +7,11 @@ W = lambda p, s: open(p, 'w', encoding='utf8').write(s)
 
 # Keep the shipped static assets synchronized with their design sources.
 import shutil
+# The four real before/simulation pairs used by the customer demo. The hero
+# shows these instead of a poster or a mocked interface.
+DEMOS = ['demo-%s-%s.webp' % (s, k) for s in ('style','color','lashes','nails') for k in ('before','after')]
 for asset in os.listdir('assets'):
-    if re.match(r'(hero-teaser\.webp|hair-poster\.webp|hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', asset):
+    if asset in DEMOS or re.match(r'(hero-teaser\.webp|hair-poster\.webp|hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', asset):
         shutil.copyfile('assets/' + asset, '../../public/landing/' + asset)
 
 W('../../worker/brand.js', 'export const brandMark=' + json.dumps(R('assets/ayneh-mark.svg'), ensure_ascii=False) + ';' + NL + 'export const favicon=' + json.dumps(R('assets/ayneh-favicon.svg'), ensure_ascii=False) + ';' + NL)
@@ -19,11 +22,12 @@ W('../../worker/draft.js', 'export const draftScript=' + json.dumps(R('src/draft
 h = R('index.html')
 st = re.search(r'<style>(.*?)</style>', h, re.S)
 css = st.group(1)
-drop = re.compile(r'^\s*(\.hero|\.swatch|\.style-dock|\.lines-row|\.lead\{|h1\{|\.eyebrow|\.fineprint|\.hero-copy)')
+# Legacy sections 2/3 are replaced by the funnel; their CSS is dead on the
+# shipped page. Dropping it keeps the minified payload small enough to review.
+drop = re.compile(r'^\s*(\.hero|\.swatch|\.style-dock|\.lines-row|\.lead\{|h1\{|\.eyebrow|\.fineprint|\.hero-copy|\.selection|\.chips|\.chip|\.split|\.plans|\.plan|\.start-grid|\.steps?|\.feat|\.msgrs|\.no-list|\.note-bar|\.svc \.(ico|picks|count))')
 css = NL.join(l for l in css.split(NL) if not drop.match(l))
 css += NL + R('src/hero.css') + NL + R('src/lead.css') + NL + R('src/trial.css') + NL + R('src/cta.css')
 css += NL + R('src/polish.css') + NL + R('src/cinema.css') + NL + R('src/refine.css')
-css += NL + '.compare{margin-top:0}' + NL + '@media (max-width:1100px){.selection{padding-top:56px}.compare{margin:0 auto}}' + NL
 h = h.replace(st.group(0), '<style>' + css + '</style>')
 h = re.sub(r'  <!-- 1\. Hero -->.*?(?=  <!-- 2\. Experience -->)', lambda m: R('src/hero.html') + NL, h, flags=re.S)
 # The service films are part of the service chapter; the builder follows the story.
@@ -51,10 +55,10 @@ h = h.replace('<!--AYNEH_MARK-->', R('assets/ayneh-mark.svg'))
 assert 'builderLive' in h and 'id="start"' in h, 'salon builder not inserted'
 # styles whose mirror render exists (assets/look-sNN.webp + mask-sNN.png): the hero shows their shape on the model
 LOOKS = sorted(int(m.group(1)) for f in os.listdir('assets') for m in [re.match(r'look-s(\d\d)\.webp$', f)] if m and os.path.exists('assets/mask-s%s.png' % m.group(1)))
-asset_version = hashlib.sha256(b''.join(open('assets/' + f, 'rb').read() for f in sorted(os.listdir('assets')) if re.match(r'(hero\.webp|hero-teaser\.webp|hair-poster\.webp|hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', f))).hexdigest()[:12]
+asset_version = hashlib.sha256(b''.join(open('assets/' + f, 'rb').read() for f in sorted(os.listdir('assets')) if f in DEMOS or re.match(r'(hero\.webp|hero-teaser\.webp|hair-poster\.webp|hair-mask\.png|look-s\d\d\.webp|mask-s\d\d\.png|salon-film-\d\d\.webp|(?:hair|lashes|nails)-(?:poster|end)\.webp|journey-stone\.webp)$', f))).hexdigest()[:12]
 # Include film contents so unchanged poster frames cannot leave stale video URLs.
 asset_version = hashlib.sha256((asset_version + ''.join(hashlib.sha256(open('../../public/landing/video/' + n + '.mp4', 'rb').read()).hexdigest() for n in ['hair', 'lashes', 'nails'])).encode()).hexdigest()[:12]
-scripts = '<script>window.__AYN_ASSET_VERSION=' + json.dumps(asset_version) + ';window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/funnel.js', 'src/followup.js', 'src/draft.js', 'src/portrait.js', 'src/hair-color.js', 'src/hero.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/invite-video.js', 'src/cinema.js', 'src/reveal.js', 'src/builder.js', 'src/lead.js', 'src/refine.js'])
+scripts = '<script>window.__AYN_ASSET_VERSION=' + json.dumps(asset_version) + ';window.__AYN_LOOKS=' + json.dumps(LOOKS) + ';</script>' + NL + ''.join('<script>' + NL + R(f) + NL + '</script>' + NL for f in ['src/funnel.js', 'src/followup.js', 'src/draft.js', 'src/portrait.js', 'src/hair-color.js', 'src/hero.js', 'src/compare.js', 'src/scenes.js', 'src/try.js', 'src/cta.js', 'src/invite-video.js', 'src/cinema.js', 'src/reveal.js', 'src/builder.js', 'src/lead.js', 'src/refine.js'])
 h = h.replace('</body>', scripts + '</body>')
 W('out/v2.html', h.replace('__ORIGIN__', ''))
 
@@ -65,7 +69,7 @@ def b64(f, m):
 
 # ---------------- single-file artifact (everything inlined, preview flag on) ----------------
 a = h.replace('__ORIGIN__', '').replace('assets/estedad.woff2', b64('estedad.woff2', 'font/woff2'))
-for f in ['hero', 'hero-teaser', 'compare', 'a2'] + ['salon-film-%02d' % i for i in range(1, 6)] + [n + '-' + k for n in ['hair', 'lashes', 'nails'] for k in ['poster', 'end']] + ['journey-stone']:
+for f in ['hero', 'hero-teaser', 'compare', 'a2'] + ['salon-film-%02d' % i for i in range(1, 6)] + [n + '-' + k for n in ['hair', 'lashes', 'nails'] for k in ['poster', 'end']] + ['journey-stone'] + [d[:-5] for d in DEMOS]:
     a = a.replace('assets/%s.webp' % f, b64(f + '.webp', 'image/webp'))
 imgmap = {('s%02d' % i): b64('s%02d.webp' % i, 'image/webp') for i in range(1, 20)}
 imgmap.update({('ic%d' % i): b64('ic%d.webp' % i, 'image/webp') for i in range(1, 5)})

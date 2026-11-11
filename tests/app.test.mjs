@@ -1184,7 +1184,7 @@ test('funnel step 12: the mirror leads the mobile first fold and three gold meda
  // On phones/tablets .copy is display:contents, so orders are on .stage itself.
  // Step 14 inserted a sub-line and a caption, so the effective order is now
  // h1 2, sub 3, visual 4, note 5, CTA 6, copy 7/8, cue 9, demo 10.
- assert.match(landingHTML,/\.hero-teaser\{[^}]*order:4/);
+ assert.match(landingHTML,/\.hero-proof\{[^}]*order:4/);
  assert.match(landingHTML,/\.salon-invite-copy>\.reassure\{grid-column:1 \/ -1;grid-row:4/);
  assert.match(landingHTML,/\.hero-scroll-cue\{[^}]*order:9/);
  assert.match(landingHTML,/\.stage \.copy \.lead\{display:none!important\}/);
@@ -1241,7 +1241,7 @@ test('funnel step 13: static benefit headline and the three facts before the thi
  assert.match(landingHTML,/if\(still\)return;/,'reduced motion still short-circuits cinema');
  assert.match(landingHTML,/const n=copyEls\.length\|\|1/,'invite reveal reaches the CTA');
  // Step 14 shortens the step-6 sentence and moves the cue to the end of the fold.
- assert.match(landingHTML,/\.hero-teaser\{[^}]*order:4/);
+ assert.match(landingHTML,/\.hero-proof\{[^}]*order:4/);
  assert.match(landingHTML,/\.hero-playground\{order:10\}/);
  // The three approved sentences, the canonical CTA and the rest of the funnel.
  for(const t of ['هزینه ثابت از قبل وجود ندارد؛ پس از گفتگو و پیش از هر تصمیمی، مبلغ متناسب با سالن شما گفته می\u200cشود.',
@@ -1279,7 +1279,7 @@ test('funnel step 14: one honest round against the picky-user audit',()=>{
  assert.match(landingHTML,/نمونهٔ موقت/,'temporary product UI is labelled');
  assert.doesNotMatch(landingHTML,/sticky-cta-note/,'phone is no longer repeated on the sticky bar');
  // 5/6. Distinct crop, accuracy warning beside the image, three services named.
- assert.match(landingHTML,/\.hero-teaser \.proof-photo img\{[^}]*transform:none!important/);
+ assert.match(landingHTML,/\.hero-proof \.live-img\{[^}]*transform:none!important/,'real before/after plates stay aligned');
  assert.match(landingHTML,/شبیه\u200cسازی تقریبی است و نتیجهٔ نهایی را تضمین نمی\u200cکند/);
  assert.match(landingHTML,/خدمات قابل امتحان: مدل و رنگ مو، طرح ناخن یا مدل مژه، روی عکس خود مشتری\./);
  // The desktop copy of the accuracy warning is static, not a scrubbed .reveal
@@ -1337,13 +1337,13 @@ test('funnel step 15: zero-criticism round against the second picky-user review'
  assert.equal((landingHTML.match(/نمونهٔ موقت/g)||[]).length>=5,true);
  assert.match(landingHTML,/نمونهٔ موقت/,'temporary product UI is labelled');
  // 4. New composite asset; the studio mirror keeps hero.webp for mask alignment.
- assert.match(landingHTML,/src="\/landing\/hair-poster\.webp"/);
+ assert.match(landingHTML,/src="\/landing\/demo-style-before\.webp"/,'real before plate shipped');
  assert.match(landingHTML,/src="\/landing\/hero\.webp"/,'hair canvas base image unchanged');
  const buildScript=readFileSync(new URL('../design/landing/build.py',import.meta.url),'utf8');
- assert.match(buildScript,/imgmap\['hair-poster'\]/,'single-file artifact maps the product sample');
- assert.match(buildScript,/hair-poster\\\.webp/,'sync + cache-busting hash include it');
- assert.ok(readFileSync(new URL('../public/landing/hair-poster.webp',import.meta.url)).length>50000,
-  'synced static asset exists');
+ assert.match(buildScript,/DEMOS = \[/,'real before/after pairs are declared once');
+ assert.match(buildScript,/asset in DEMOS or re\.match/,'pairs are synced to public/landing');
+ assert.ok(readFileSync(new URL('../public/landing/demo-style-before.webp',import.meta.url)).length>20000,
+  'synced real sample exists');
  assert.match(landingHTML,/window\.__AYN_ASSET_VERSION="[a-f0-9]{12}"/);
  // 5. One honesty line on every viewport, larger type, no duplicate FAQ wording.
  assert.equal((landingHTML.match(/تقریبی/g)||[]).length,1);
@@ -1351,12 +1351,12 @@ test('funnel step 15: zero-criticism round against the second picky-user review'
  assert.match(landingHTML,/\.hero-honesty\{[^}]*font-size:14px/);
  assert.match(landingHTML,/\.salon-invite-copy \.reassure li>span:last-child,\.salon-invite-copy \.reassure b\{font-size:15\.5px!important/);
  assert.doesNotMatch(landingHTML,/hero-honest-desktop|hero-teaser-note/,'duplicates gone');
- assert.match(landingHTML,/دموی تعاملی این صفحه مخصوص مو است/,'hair-only interactive demo disclosed');
+ assert.match(landingHTML,/آینهٔ تعاملی این صفحه مخصوص مو است/,'hair-only interactive mirror disclosed');
  // 6. Form moved before services; page compacted; cue brought into the fold.
  assert.ok(landingHTML.indexOf('id="salon-example"')<landingHTML.indexOf('id="services"'),
   'form no longer sits after all service chapters');
  assert.match(landingHTML,/\.section\{padding-block:36px\}/);
- assert.match(landingHTML,/height:clamp\(190px,32svh,260px\)!important/);
+ assert.match(landingHTML,/height:clamp\(210px,34svh,300px\)/,'mobile comparison sized for the fold');
  assert.match(landingHTML,/\.hero-scroll-cue\{[^}]*order:9;height:24px/);
  assert.match(landingHTML,/\.hero-details \.hero-honesty\{[^}]*order:initial!important/,'disclosures sit in the below-fold panel');
  // 7. Phone appears twice (visible text + tel href), sticky bar is one line again.
@@ -1373,7 +1373,7 @@ test('funnel step 15: zero-criticism round against the second picky-user review'
  assert.match(landingHTML,/\.hero-details \.fineprint/,'14px below-fold body copy');
  assert.match(landingHTML,/\.salon-builder \.wizard-step label,[^}]*font-size:14px!important/,'14px form labels');
  assert.match(landingHTML,/\.foot-samples>div\{[^}]*border:1px solid/,'solid sample panels');
- assert.match(landingHTML,/دموی تعاملی فعلاً مخصوص مو است/,'desktop hair-only demo disclosed');
+ assert.match(landingHTML,/آینهٔ تعاملی فعلاً مخصوص مو است/,'desktop hair-only mirror disclosed');
  assert.ok(landingHTML.length<250000);
 });
 
@@ -1414,30 +1414,47 @@ test('funnel step 20: self-audit closes the last first-glance and privacy object
  assert.ok(landingHTML.length<250000);
 });
 
-test('funnel step 21: the first fold is a labelled product UI, not an unrelated mood photo',()=>{
+test('funnel step 22: the first fold is the real before/simulation comparison, not a poster or a mock',()=>{
+ // Deep rethink: two rejected heroes were *pictures* of the product (a mood
+ // photo, then a mocked dashboard). The fold now IS the product: the real
+ // before/simulation pairs shipped in the customer demo, with a live divider.
  const h1=(landingHTML.match(/<h1 id="h1">([\s\S]*?)<\/h1>/)||[])[1]||'';
  assert.equal(h1,'انتخاب مشتری را با عکس ببینید','short, one-line owner benefit');
- assert.ok(h1.length<40,'headline is short enough for one line');
+ assert.ok(h1.length<40);
  assert.match(landingHTML,/<p class="hero-sub">صفحه\u200cای به نام سالن شما، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می\u200cدهد\./);
  assert.equal((landingHTML.match(/<p class="hero-sub">/g)||[]).length,1,'one support sentence');
- assert.match(landingHTML,/data-mock="customer-choice"/,'product UI mock is present');
- assert.match(landingHTML,/src="\/landing\/hair-poster\.webp"/,'customer photo sample is shipped');
- assert.doesNotMatch(landingHTML,/src="\/landing\/hero-teaser\.webp"/,'unrelated salon composite is gone');
- assert.match(landingHTML,/نمونهٔ موقت/,'mock is explicitly temporary');
- assert.match(landingHTML,/alt="نمونهٔ موقت از عکس مشتری"/);
- assert.match(landingHTML,/data-choice="style"[\s\S]*?لیر بلند/,'selected model is visible');
- assert.match(landingHTML,/data-choice="color"[\s\S]*?بلوند شامپاینی/,'selected colour is visible');
- assert.match(landingHTML,/همین انتخاب با عکس برای سالن فرستاده شد/,'owner-side outcome is visible');
  const stage=(landingHTML.match(/<div class="stage"[\s\S]*?<div class="hero-details"/)||[])[0]||'';
  assert.ok(stage,'stage and below-fold panel both exist');
+ assert.match(stage,/data-live="customer-simulation"/,'the live comparison is in the fold');
+ assert.doesNotMatch(landingHTML,/data-mock=|proof-photo|proof-sent|همین انتخاب با عکس برای سالن فرستاده شد/,'no mocked dashboard state');
+ assert.doesNotMatch(stage,/hero-teaser\.webp|hair-poster\.webp/,'no unrelated mood photo or stock poster');
+ assert.match(landingHTML,/src="\/landing\/demo-style-before\.webp"/);
+ assert.match(landingHTML,/src="\/landing\/demo-style-after\.webp"/);
+ assert.equal((landingHTML.match(/data-pair="/g)||[]).length,4,'four real services are selectable');
+ assert.match(landingHTML,/data-before="\/landing\/demo-color-before\.webp"/);
+ assert.match(landingHTML,/data-after="\/landing\/demo-nails-after\.webp"/);
+ assert.match(landingHTML,/before\.src=b\.dataset\.before/,'switching a service changes the real image');
+ assert.match(landingHTML,/id="compareRange" type="range"/,'keyboard-operable divider');
+ assert.match(landingHTML,/clip-path:inset\(0 calc\(100% - var\(--split,50%\)\) 0 0\)/,'live reveal, not a flattened screenshot');
+ assert.match(landingHTML,/live-tag--before">قبل/);
+ assert.match(landingHTML,/live-tag--after">شبیه\u200cسازی/);
+ assert.match(landingHTML,/نمونهٔ موقت/,'real samples are labelled temporary');
+ assert.match(landingHTML,/alt="نمونهٔ موقت از عکس مشتری"/);
  assert.doesNotMatch(stage,/class="fineprint"|class="hero-honesty"|class="service-note"/,'disclosures left the first fold');
- assert.match(landingHTML,/<div class="hero-details"/,'disclosures remain on the page below the fold');
+ assert.match(landingHTML,/<div class="hero-details"/,'disclosures remain below the fold');
  assert.match(stage,/class="btn btn--lg" href="#salon-example"/,'one primary action');
  assert.match(stage,/class="btn btn--ghost btn--quiet" data-try="hair"/,'one quiet demo link');
- assert.match(landingHTML,/\.hero-teaser\{[^}]*opacity:calc\(1 - var\(--p\)\*2\.4\)/,'product UI yields to the studio');
+ assert.match(landingHTML,/\.hero-proof\{[^}]*opacity:calc\(1 - var\(--p\)\*2\.4\)/,'comparison yields to the studio');
  assert.match(landingHTML,/\.studio\{[^}]*opacity:calc\(var\(--p\)\*2\.4\)/,'studio is the later demo layer');
  assert.match(landingHTML,/@media\(prefers-reduced-motion:reduce\)\{\.hero-scroll-cue svg\{animation:none\}\}/);
  assert.match(landingHTML,/window\.__AYN_HERO_READY=Promise\.resolve\(false\)/);
  assert.match(landingHTML,/if\(still\)return;/);
+ assert.doesNotMatch(landingHTML,/رضایت مشتری|اجازهٔ مشتری گرفته می\u200cشود/,'no passive consent wording');
+ assert.equal((landingHTML.match(/تقریبی/g)||[]).length,1,'one honesty line');
+ // The header box is part of the first impression, not a hairline strip.
+ assert.match(landingHTML,/\.site-header\{[^}]*--brand-fs:36px[^}]*--mark-w:56px/,'desktop brand lockup has real scale');
+ assert.match(landingHTML,/\.site-header::before\{[^}]*border-radius:22px/,'header reads as a deliberate box');
+ assert.match(landingHTML,/@media\(max-width:360px\)\{\.site-header\{[^}]*--mark-w:42px/,'small phones keep a full-size mark');
+ assert.match(landingHTML,/\.site-header \.header-cta\{min-height:56px/,'desktop header action is enlarged too');
  assert.ok(landingHTML.length<250000);
 });

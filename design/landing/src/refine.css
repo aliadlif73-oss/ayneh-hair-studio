@@ -677,43 +677,46 @@ section[id],.site-footer{scroll-margin-top:0}
 .section .sec-head .sub{max-width:74ch}
 .photo-tip{margin:14px 0 0;font-size:14px;line-height:1.7;color:#35455F}
 
-/* ---------- 28. Step 21: the first glance is a labelled product UI, not a mood photo ---------- */
-/* The photo, selection and sent-to-salon state are a temporary interface mock.
-   The unrelated salon-interior composite is no longer the hero proof. Details
-   and disclosures sit below the fold; the interactive mirror is the next scene. */
-.hero-teaser::after{display:none!important}
-.hero-teaser .hero-teaser-badge{position:static!important;display:inline-flex!important;
- align-items:center;gap:4px;padding:3px 9px;border-radius:999px;
- font-size:14px!important;line-height:1.4;font-weight:800;
- color:#3B2A08;background:#FFF4D4;border:1px solid rgba(198,172,116,.8);
- box-shadow:none!important}
-.hero-teaser .proof-top{display:flex;align-items:center;justify-content:space-between;
- gap:8px;min-height:46px;padding:7px 12px;border-bottom:1px solid rgba(198,172,116,.55);
- background:#FFFDF8;text-align:right}
-.hero-teaser .proof-salon{font-size:14px;font-weight:800;color:#24324B;line-height:1.5}
-.hero-teaser .proof-body{display:grid;grid-template-columns:minmax(0,1.04fr) minmax(0,1fr);
- min-height:0;background:#F8F7F2}
-.hero-teaser .proof-photo{position:relative;min-width:0;margin:0;overflow:hidden;background:#DEE5EB}
-.hero-teaser .proof-photo img{display:block!important;width:100%!important;height:100%!important;
- object-fit:cover!important;object-position:50% 34%!important;transform:none!important}
-.hero-teaser .proof-photo figcaption{position:absolute;inset-inline:8px;bottom:8px;
- padding:4px 8px;border-radius:8px;font-size:14px;line-height:1.4;font-weight:700;
- color:#FFFDF8;background:rgba(16,24,40,.76)}
-.hero-teaser .proof-panel{display:flex;flex-direction:column;justify-content:center;
- min-width:0;padding:12px 14px;background:#FFFDF8;text-align:right}
-.hero-teaser .proof-kicker{margin:0 0 6px;font-size:14px;font-weight:800;color:#7A5712}
-.hero-teaser .proof-row{display:flex;align-items:center;justify-content:space-between;
- gap:6px;flex-wrap:wrap;padding:7px 0;border-bottom:1px dashed rgba(198,172,116,.65);
- font-size:14px;line-height:1.5}
-.hero-teaser .proof-row span{color:#55627A;font-weight:600}
-.hero-teaser .proof-row strong{color:#18243B;font-weight:800}
-.hero-teaser .proof-color{width:14px;height:14px;flex:0 0 14px;border-radius:50%;
- background:linear-gradient(145deg,#F3E2B8,#D3B677);border:1px solid #B98A22}
-.hero-teaser .proof-sent{display:flex;align-items:center;gap:7px;margin:10px 0 0;
- padding:8px 9px;border:1px solid rgba(198,172,116,.7);border-radius:11px;
- background:#FFF6D8;color:#3B2A08;font-size:14px;font-weight:800;line-height:1.55}
-.hero-teaser .proof-check{display:grid;place-items:center;flex:0 0 20px;width:20px;height:20px;
- border-radius:50%;background:#D8A63C;color:#18243B;font-size:14px;font-weight:900}
+/* ---------- 28. Step 22: the first fold IS the product, not a picture of it ---------- */
+/* The real before/simulation pairs ship with the customer demo. Nothing here is a
+   poster, a mood photo or a mocked dashboard state: the visitor drags the gold
+   divider and switches the service, exactly as a customer compares a choice. */
+.hero-proof{display:flex;flex-direction:column;gap:9px;min-width:0}
+.hero-proof .proof-services{display:flex;gap:6px;align-items:center}
+.hero-proof .proof-service{flex:1 1 0;min-width:0;min-height:44px;padding:8px 6px;border:1px solid rgba(198,172,116,.75);
+ border-radius:999px;background:#FFFDF8;color:#35455F;font:inherit;font-size:15px;font-weight:700;
+ line-height:1.4;white-space:nowrap;cursor:pointer}
+.hero-proof .proof-service.is-active{background:#182B4A;color:#F7E7BD;border-color:#D8A63C}
+.hero-proof .proof-service:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.hero-proof .live-compare{position:relative;isolation:isolate;width:100%;overflow:hidden;
+ border:1px solid rgba(198,172,116,.8);border-radius:18px;background:#E7E4DE;
+ box-shadow:0 18px 44px rgba(16,30,56,.16)}
+.hero-proof .live-img{position:absolute;inset:0;display:block;width:100%;height:100%;
+ object-fit:cover;object-position:50% 45%;transform:none!important;pointer-events:none}
+.hero-proof .live-before{z-index:1}
+.hero-proof .live-after{z-index:2;clip-path:inset(0 calc(100% - var(--split,50%)) 0 0)}
+.hero-proof .live-tag{position:absolute;top:12px;z-index:4;padding:5px 13px;border-radius:999px;
+ font-size:15px;line-height:1.45;font-weight:800;color:#FFFDF8;background:rgba(16,24,40,.72);
+ pointer-events:none}
+.hero-proof .live-tag--before{right:10px}
+.hero-proof .live-tag--after{left:10px}
+.hero-proof .live-divider{position:absolute;top:0;bottom:0;left:var(--split,50%);z-index:5;width:2px;
+ transform:translateX(-1px);pointer-events:none;
+ background:linear-gradient(180deg,#F2DFAF,#D8A63C 55%,#F2DFAF);
+ box-shadow:0 0 0 1px rgba(255,253,248,.4),0 0 16px rgba(216,166,60,.55)}
+.hero-proof .live-handle{position:absolute;top:50%;left:50%;display:grid;place-items:center;
+ width:42px;height:42px;transform:translate(-50%,-50%);border-radius:50%;
+ background:#D8A63C;color:#18243B;border:2px solid #FFFDF8;box-shadow:0 4px 14px rgba(16,24,40,.35)}
+.hero-proof .live-handle svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;
+ stroke-linecap:round;stroke-linejoin:round}
+.hero-proof .live-range{position:absolute;inset:0;z-index:6;width:100%;height:100%;margin:0;
+ opacity:0;cursor:ew-resize;touch-action:pan-y;appearance:none;-webkit-appearance:none;background:transparent}
+.hero-proof .live-range::-webkit-slider-thumb{-webkit-appearance:none;width:42px;height:42px}
+.hero-proof .live-compare:focus-within{outline:3px solid var(--focus);outline-offset:3px}
+.hero-proof .proof-caption{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.hero-proof .hero-proof-badge{display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;
+ font-size:15px;line-height:1.4;font-weight:800;color:#3B2A08;background:#FFF4D4;
+ border:1px solid rgba(198,172,116,.8)}
 .hero-details{max-width:980px;margin-inline:auto;padding:16px 20px;
  background:#FFFDF8;border:1px solid rgba(198,172,116,.6);border-radius:18px;
  box-shadow:0 12px 34px rgba(16,30,56,.09);text-align:right}
@@ -726,14 +729,12 @@ section[id],.site-footer{scroll-margin-top:0}
 @media(min-width:901px){
  .film{height:auto}
  .stage{height:calc(100svh - var(--hh));min-height:540px}
- .copy h1{font-size:clamp(26px,2.1vw,34px);line-height:1.3;white-space:nowrap}
- .hero-teaser{display:grid!important;grid-template-rows:auto minmax(0,1fr);
-  grid-column:2;grid-row:1;align-self:center;justify-self:center;z-index:7;
-  width:min(88%,620px);height:min(60svh,470px);margin:0;
-  border:1px solid rgba(198,172,116,.75);border-radius:24px;overflow:hidden;
-  background:#FFFDF8;box-shadow:0 30px 70px rgba(16,30,56,.20);
+ .copy h1{font-size:clamp(30px,2.6vw,40px);line-height:1.3;white-space:normal;text-wrap:balance}
+ .hero-proof{grid-column:2;grid-row:1;align-self:center;justify-self:center;z-index:7;
+  width:min(86%,420px);margin:0;
   opacity:calc(1 - var(--p)*2.4);transform:translateY(calc(var(--p)*-26px));
-  transition:opacity .18s linear,transform .18s linear;pointer-events:none}
+  transition:opacity .18s linear,transform .18s linear}
+ .hero-proof .live-compare{height:clamp(300px,58svh,500px)}
  .studio{grid-column:2;grid-row:1;opacity:calc(var(--p)*2.4);transition:opacity .18s linear}
  .demo-caption,.demo-controls{opacity:calc(var(--p)*2.4);transition:opacity .18s linear}
  .hero-scroll-cue{display:none!important}
@@ -741,14 +742,12 @@ section[id],.site-footer{scroll-margin-top:0}
   margin-block:0;border-inline:0;border-radius:0;box-shadow:none;background:#F7F8F7}
 }
 @media(max-width:900px){
- .stage .copy h1{order:2;font-size:clamp(22px,6vw,30px);line-height:1.32;
+ .stage .copy h1{order:2;font-size:clamp(23px,6.2vw,32px);line-height:1.32;
   margin:0 0 3px;white-space:nowrap}
  .stage .copy .hero-sub{order:3;padding-inline:20px;text-align:center;
   font-size:14.5px;line-height:1.55;margin:0 0 4px}
- .hero-teaser{display:grid!important;grid-template-rows:auto minmax(0,1fr);
-  order:4;height:clamp(190px,32svh,260px)!important;margin:5px 12px 0!important;
-  border:1px solid rgba(198,172,116,.7);border-radius:18px;overflow:hidden;
-  background:#FFFDF8;box-shadow:0 14px 34px rgba(16,30,56,.14)}
+ .hero-proof{order:4;width:calc(100% - 24px);margin:5px 12px 0!important;z-index:7}
+ .hero-proof .live-compare{height:clamp(210px,34svh,300px)}
  .stage .copy .cta-row{order:6;margin-top:7px}
  .hero-scroll-cue{display:flex!important;order:9;height:24px;margin:3px 0 0}
  .hero-playground{order:10}
@@ -758,17 +757,39 @@ section[id],.site-footer{scroll-margin-top:0}
 @media(max-width:360px){
  .stage .copy h1{font-size:20px;line-height:1.25;white-space:nowrap}
  .stage .copy .hero-sub{font-size:14px;line-height:1.45}
- .hero-teaser{height:210px!important;margin-top:3px!important}
- .hero-teaser .proof-body{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);overflow:hidden}
- .hero-teaser .proof-photo,.hero-teaser .proof-panel{min-height:0;height:100%;overflow:hidden}
- .hero-teaser .proof-top{min-height:40px;padding:5px 9px}
- .hero-teaser .proof-panel{padding:6px 8px;justify-content:flex-start}
- .hero-teaser .proof-kicker{margin-bottom:2px;line-height:1.3}
- .hero-teaser .proof-row{padding:2px 0;line-height:1.35}
- .hero-teaser .proof-sent{margin-top:4px;padding:4px 6px;gap:4px;line-height:1.35}
+ .hero-proof .live-compare{height:210px}
+ .hero-proof .proof-service{font-size:14px;padding:6px 2px}
  .hero-details{margin:16px 10px 24px;padding:12px 13px}
 }
 @media(prefers-reduced-motion:reduce){
- .hero-teaser,.studio{transition:none!important}
+ .hero-proof,.studio{transition:none!important}
  .hero-scroll-cue svg{animation:none}
+}
+
+/* ---------- 29. Step 22: a real, generously scaled header box ---------- */
+.site-header{isolation:isolate;border-bottom-width:2px;box-shadow:0 10px 30px rgba(16,30,56,.1);
+ --brand-fs:36px;--mark-w:56px;--mark-h:60px;--tag-fs:13px;--menu:52px;
+ padding:22px clamp(24px,4vw,72px)}
+.site-header::before{content:"";position:absolute;z-index:-1;pointer-events:none;
+ inset:8px clamp(12px,3vw,44px);border:1px solid rgba(216,166,60,.18);border-radius:22px;
+ background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,.06))}
+.site-header .brand{gap:12px;font-size:var(--brand-fs)}
+.site-header .brand-name{font-size:var(--brand-fs)}
+.site-header .brand-symbol{width:var(--mark-w);height:var(--mark-h)}
+.site-header .brand .brand-name small{font-size:var(--tag-fs)!important;letter-spacing:.2em;margin-top:5px}
+.site-header .menu-toggle{width:var(--menu);height:var(--menu);flex-basis:var(--menu)}
+.site-header .nav{gap:clamp(20px,2.6vw,40px);font-size:18px}
+.site-header .nav a{padding:12px 2px}
+.site-header .header-cta{min-height:56px;padding:0 28px;font-size:17px}
+@media(max-width:900px){
+ .site-header{--brand-fs:30px;--mark-w:52px;--mark-h:56px;--tag-fs:12px;--menu:52px;padding:16px 28px}
+}
+@media(max-width:600px){
+ .site-header{--brand-fs:26px;--mark-w:46px;--mark-h:50px;--tag-fs:11px;--menu:50px;padding:14px 16px}
+ .site-header::before{inset:6px 10px;border-radius:18px}
+ .site-header .brand{gap:9px}
+}
+@media(max-width:360px){
+ .site-header{--brand-fs:24px;--mark-w:42px;--mark-h:46px;--tag-fs:10px;--menu:46px;padding:12px 14px}
+ .site-header .brand{gap:8px}
 }

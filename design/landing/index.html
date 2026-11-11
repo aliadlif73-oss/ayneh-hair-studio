@@ -102,11 +102,6 @@ h1{margin:0 0 18px;font-size:clamp(40px,4vw,60px);line-height:1.25;font-weight:8
 .selection-copy p{margin:0 0 26px;font-size:18px;line-height:2;color:var(--ivory-2);font-weight:500;max-width:520px}
 .chips{display:flex;flex-wrap:wrap;gap:12px}
 .chip{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:var(--r-pill);border:1px solid rgba(167,176,187,.55);background:linear-gradient(180deg,rgba(241,246,252,.08),rgba(241,246,252,.02));color:#dce4ed;font-size:15px;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
-.compare{position:relative;width:100%;max-width:580px;justify-self:center;z-index:8;filter:drop-shadow(0 30px 60px rgba(0,0,0,.45));align-self:start;margin-top:calc(-96px - min(49.65px,8.56%))}
-.compare img{width:100%;border-radius:28px}
-.compare::before{content:"";position:absolute;z-index:3;pointer-events:none;top:10.45%;left:8.45%;right:2.9%;height:75.5%;border:1.7px solid #b9ae9a;border-bottom:0;border-radius:15px 15px 0 0;-webkit-mask-image:linear-gradient(to right,#000 0%,#000 28%,transparent 34%,transparent 67%,#000 73%,#000 100%);mask-image:linear-gradient(to right,#000 0%,#000 28%,transparent 34%,transparent 67%,#000 73%,#000 100%)}
-.compare .tag{position:absolute;bottom:11.5%;font-size:16px;font-weight:700;color:#dfe8f1;text-shadow:0 2px 8px rgba(0,0,0,.65)}
-.compare .tag.before{left:9%}.compare .tag.after{right:8%}
 
 /* ---------- Generic sections ---------- */
 .section{padding:var(--sec-y) var(--gut)}
@@ -221,7 +216,6 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
   .selection-copy{order:2;text-align:center}
   .selection-copy p{margin-inline:auto}
   .chips{justify-content:center}
-  .compare{order:1;margin:max(-44.52px,-8.56%) auto 0;max-width:520px}
   .cards3,.steps,.plans{grid-template-columns:1fr}
   .split,.start-grid{grid-template-columns:1fr}
 }
@@ -239,8 +233,7 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
   .swatch .ring{width:76px;height:76px}.swatch span.t{font-size:25px}
   .style-dock{width:min(275px,72vw);margin-top:-50px;transform:translateX(clamp(24px,9vw,35px))}
   .style-dock h3{font-size:15px;top:7px}
-  .compare .tag{font-size:13px;bottom:12%}
-  .selection-copy p,.sec-head p.sub{font-size:17px}
+  .sec-head p.sub{font-size:17px}
 }
 @media (max-width:360px){
   .brand{font-size:20px}.brand small{font-size:13px;margin-inline-start:4px}
@@ -443,7 +436,7 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
         <details><summary>درخواست مشتری را کجا می‌بینم؟</summary><p>در ربات تلگرام یا بله خودتان. پنل جداگانه‌ای ندارید.</p></details>
         <details><summary>آینه نوبت می‌دهد؟</summary><p>نه. آینه فقط کمک می‌کند مشتری روشن بگوید چه می‌خواهد. نوبت، زمان و مبلغ خدمات مثل همیشه دست خود شماست.</p></details>
         <details><summary>نتیجهٔ شبیه‌سازی دقیق است؟</summary><p>خیر، نتیجه دقیق نیست. مثل یک عکس مرجع به گفتگو کمک می‌کند و نتیجهٔ نهایی را تضمین نمی‌کند؛ اخطار کامل را کنار تصویر فولد نوشته‌ایم.</p></details>
-        <details><summary>ناخن و مژه هم دارید؟</summary><p>بله. در صفحهٔ سالن بین مو، ناخن و مژه جابه‌جا می‌شوند و هر کدام عکس و انتخاب‌های خودش را دارد. تصویر آزمایشی این صفحه هر سه خدمت را نشان می‌دهد؛ دموی تعاملی فعلاً مخصوص مو است.</p></details>
+        <details><summary>ناخن و مژه هم دارید؟</summary><p>بله. در صفحهٔ سالن بین مو، ناخن و مژه جابه‌جا می‌شوند و هر کدام عکس و انتخاب‌های خودش را دارد. تصویر آزمایشی این صفحه هر سه خدمت را نشان می‌دهد؛ آینهٔ تعاملی فعلاً مخصوص مو است.</p></details>
         <details><summary>عکس مشتری کجا می‌رود؟</summary><p>عکس مشتری برای ساخت همان پیش‌نمایش و رساندن درخواست به سالن شما استفاده می‌شود. برای شبیه‌سازی، نسخهٔ فشردهٔ عکس به سرویس تصویر فرستاده می‌شود. پیش از ارسال درخواست، خود مشتری تأیید می‌کند. هر سالن خودش تصمیم می‌گیرد شبیه‌سازی روشن باشد؛ اگر خاموش باشد، باز هم انتخاب و درخواست می‌رسد.</p></details>
       </div>
       <p class="faq-next"><a class="btn btn--lg" href="#salon-example">ساخت پیش‌نمایش سالن من</a></p>
