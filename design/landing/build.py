@@ -107,6 +107,14 @@ FONT = '@font-face{font-family:"Estedad";src:url("assets/estedad.woff2") format(
 h = re.sub(r'<style>.*?</style>', lambda m: '<style>' + NL + FONT + NL + css + NL + '</style>', h, count=1, flags=re.S)
 assert '<!--AYNEH_MARK-->' in h
 h = h.replace('<!--AYNEH_MARK-->', R('assets/ayneh-mark.svg'))
+# A build stamp in the <head>, as a meta tag rather than a comment: ship_minify strips
+# comments, and the landing page is cacheable for a few minutes, so without a marker that
+# survives the build neither the owner nor I can tell a stale copy from the deployed one.
+import hashlib
+STAMP = hashlib.sha256(h.encode('utf-8')).hexdigest()[:12]
+h = h.replace('<head>', '<head><meta name="ayneh-build" content="' + STAMP + '">', 1)
+assert 'ayneh-build' in h
+
 
 SCRIPTS = ['funnel.js', 'followup.js', 'draft.js', 'portrait.js', 'hair-color.js', 'compare.js',
            'try.js', 'reveal.js', 'builder.js', 'lead.js', 'refine.js', 'pay.js']

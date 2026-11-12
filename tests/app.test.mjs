@@ -770,7 +770,15 @@ test('free trial salon: built from the landing form, one per mobile, 5 images an
   const done=await call(e,'/api/s/'+slug+'/public');assert.equal(done.status,200);assert.equal(done.data.trial.expired,true);
  }finally{globalThis.fetch=previous;tg.restore()}});
 
-test('landing carries an absolute share image and is cacheable',async()=>{const e=fixture();const r=await app.fetch(new Request(origin+'/'),e);const html=await r.text();assert.match(html,new RegExp('og:image" content="'+origin+'/landing/og.jpg"'));assert.doesNotMatch(html,/__ORIGIN__/);assert.match(r.headers.get('cache-control'),/max-age=300/);assert.ok(readFileSync(new URL('../public/landing/og.jpg',import.meta.url)).length>10000)});
+test('landing carries an absolute share image and revalidates instead of going stale',async()=>{const e=fixture();const r=await app.fetch(new Request(origin+'/'),e);const html=await r.text();
+ // Cacheable was the reason the owner kept seeing an old build: max-age=300 plus an hour of
+ // stale-while-revalidate meant a reload could serve a page from an hour ago.
+ assert.match(r.headers.get('cache-control'),/no-cache/);
+ assert.doesNotMatch(r.headers.get('cache-control'),/stale-while-revalidate/);
+ // And the served page names its build, so "is this the new one?" has an answer that does
+ // not need devtools. The stamp is a meta tag because the minifier strips comments.
+ assert.match(html,/<meta name="ayneh-build" content="[a-f0-9]{12}">/,'the page names its build');
+ assert.match(html,new RegExp('og:image" content="'+origin+'/landing/og.jpg"'));assert.doesNotMatch(html,/__ORIGIN__/);assert.ok(readFileSync(new URL('../public/landing/og.jpg',import.meta.url)).length>10000)});
 
 test('demo salon behind the landing: mobile confirmation first, 3 images a day per mobile, no 360 view, look handed over by the landing',async()=>{
  const e=tgEnv(fixture());e.KIE_API_KEY='mock';const s={slug:'demo'};
