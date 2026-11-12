@@ -24,7 +24,10 @@ const run=(db,sql,...args)=>db.prepare(sql).bind(...args).run();
    malicious payload cannot overflow a column or smuggle a long identifier. */
 const LANDING_EVENTS=['cta_click','demo_open','wizard_start','wizard_step_complete',
  'wizard_skip','preview_ready','activation_available','otp_sent','otp_verified',
- 'lead_submit','lead_submit_failed'];
+ 'lead_submit','lead_submit_failed',
+ /* the checkout: a priced plan opens an order, an unpriced «خرید» sends the visitor to the
+    demo form, and a paid order is what the salon panel is made of */
+ 'order_intent','order_open','order_receipt','order_paid','buy_unpriced'];
 const attributionOf=b=>{
  const a=b&&typeof b==='object'&&b.attribution&&typeof b.attribution==='object'&&!Array.isArray(b.attribution)?b.attribution:{};
  const val=(k,max)=>text(String(a[k]??'').slice(0,max),max);
@@ -108,7 +111,11 @@ async function createImageTask(env,cfg,input){const model=IMAGE_MODELS[cfg.image
 async function uploadProvider(env,m){const object=await bucketFor(env).get(m.object_key);must(object,'عکس در دسترس نیست',410);const bytes=new Uint8Array(await object.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.slice(i,i+8192));const res=await fetch('https://kieai.redpandaai.co/api/file-base64-upload',{method:'POST',headers:{Authorization:'Bearer '+env.KIE_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({base64Data:'data:'+m.mime+';base64,'+btoa(binary),uploadPath:'ayneh',fileName:uid()+'.jpg'})});const d=await res.json();must(d.success&&d.data?.downloadUrl,'ارسال عکس انجام نشد',502);return d.data.downloadUrl;}
 
 export async function api(req,env){const u=new URL(req.url),path=u.pathname;must(env.DB,'پایگاه داده هنوز آماده نیست',503);const db=env.DB;
- if(req.method!=='GET'){must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
+ /* The origin check is what makes the cookie-authenticated routes safe: a browser always
+    sends Origin on a cross-site POST. A server-to-server caller (the payment site's webhook)
+    sends none, and carries a bearer token instead, so the check is skipped only for that one
+    path — where the token, not a cookie, is the credential. */
+ if(req.method!=='GET'){if(path!=='/api/pay/confirm')must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
  if(path==='/api/event'&&req.method==='POST'){
   await limited(db,'event:'+clientIp(req),1200);
   const b=await req.json().catch(()=>({}));

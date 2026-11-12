@@ -65,11 +65,17 @@ for key, (amount, quota) in PANEL_FIGURES.items():
     plans = plans.replace('{{STATE_%s}}' % key.upper(), state)
     plans = plans.replace('{{AMOUNT_%s}}' % key.upper(), str(amount))
     plans = plans.replace('{{PLANNAME_%s}}' % key.upper(), PLAN_NAMES[key])
-    # The call to action tells the truth about the plan: a priced panel starts a payment,
-    # an unpriced panel asks for a demo instead and never opens a checkout.
-    plans = plans.replace('{{CTA_%s}}' % key.upper(), 'خرید و پرداخت' if amount else 'درخواست دمو')
+    # While a figure is unapproved the panel says so in words, instead of leaving a bare
+    # dashed box next to a button that reads «خرید».
+    plans = plans.replace('{{PENDING_%s}}' % key.upper(),
+                          '' if amount else 'مبلغ در حال نهایی‌شدن است؛ برای دیدن دمو بفرستید.')
+    # The button is the same word on every panel — «خرید» — because that is the one action
+    # the customer is being offered. What it does depends on the amount: priced opens the
+    # checkout, unpriced carries the visitor to the demo form with a note saying why. It is
+    # never a dead button and never a checkout that cannot take money.
+    plans = plans.replace('{{CTA_%s}}' % key.upper(), 'خرید')
 assert '{{PRICE' not in plans and '{{QUOTA' not in plans and '{{STATE' not in plans, 'every slot is filled'
-assert '{{AMOUNT' not in plans and '{{PLANNAME' not in plans
+assert '{{AMOUNT' not in plans and '{{PLANNAME' not in plans and '{{PENDING' not in plans
 # The same table feeds the server: worker/prices.js is generated, so the page can never show
 # one amount while the checkout believes another.
 plans_js = ''.join("  %s: {name: '%s', amount: %d, quota: %d},\n" % (k, PLAN_NAMES[k], a, q)

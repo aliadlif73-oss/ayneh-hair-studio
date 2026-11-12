@@ -32,7 +32,7 @@
   };
   const track = (kind, meta) => window.__AYN_TRACK?.(kind, meta);
 
-  const state = {order: null, plan: null, poll: null, tick: null, done: false, key: ''};
+  const state = {order: null, plan: null, poll: null, tick: null, done: false, key: '', entered: false};
   const view = {
     form: $('payForm'), live: $('payLive'), wait: $('payWait'), done: $('payDone'), expired: $('payExpired'),
   };
@@ -46,12 +46,12 @@
       const open = btn.dataset.state === 'open' && Number(btn.dataset.amount) > 0;
       const card = planOf(key);
       if (card) card.dataset.open = String(open);
-      btn.setAttribute('aria-disabled', open ? 'false' : 'true');
+      /* Not aria-disabled: an unpriced button still works, it opens the demo form. */
+      btn.setAttribute('aria-disabled', 'false');
+      /* The panel already says the amount is being finalized (build.py fills it), so the
+         note stays empty here and only speaks up if the visitor clicks the buy button. */
       const note = document.querySelector('.plan__state[data-for="' + key + '"]');
-      if (note && !open) {
-        note.textContent = 'پرداخت آنلاین این پنل به‌زودی باز می‌شود؛ تا آن زمان دمو رایگان است.';
-        note.hidden = false;
-      }
+      if (note && !open) note.hidden = true;
     }
   }
 
@@ -163,6 +163,15 @@
       page.href = order.page_url || '#';
       panel.hidden = false;
       page.hidden = !order.page_url;
+      /* The last step has to actually finish: the customer is standing on this page and
+         holds the key in memory, so open her panel door here instead of making her type
+         the key she just copied. The key is still in the URL for the panel to trade for
+         its cookie, then it is scrubbed from the address bar. */
+      if (shown && !state.entered) {
+        state.entered = true;
+        panel.href = '/panel?key=' + encodeURIComponent(shown);
+        panel.textContent = 'باز کردن پنل من';
+      }
       show('done');
       track('order_paid', order.ref);
       return;
@@ -202,7 +211,17 @@
     btn.addEventListener('click', e => {
       const key = btn.dataset.buy;
       const open = btn.dataset.state === 'open' && Number(btn.dataset.amount) > 0;
-      if (!open) return; // the demo form is the honest path until a price exists
+      /* No approved amount yet: the button still says «خرید», so the click must not look
+         broken. It follows the anchor to the demo form and says why, in the panel itself. */
+      if (!open) {
+        const note = document.querySelector('.plan__state[data-for="' + key + '"]');
+        if (note) {
+          note.textContent = 'مبلغ این پنل هنوز نهایی نشده؛ فرم دمو پایین صفحه است و بدون پرداخت می‌بینید.';
+          note.hidden = false;
+        }
+        track('buy_unpriced', key);
+        return; // the anchor still carries the visitor to #form-start
+      }
       e.preventDefault();
       /* The chosen plan is remembered here, so the details form below knows what it is for
          even when the customer fills it by hand. */

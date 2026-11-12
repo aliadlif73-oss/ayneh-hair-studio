@@ -100,8 +100,25 @@ function dash(d){
 
 const boot = String.raw`
 (function(){
- api('/api/panel/me').then(function(d){if(!d.salon)return gate('');dash(d)})
-  .catch(function(e){gate(e.status===401?'':e.message)});
+ /* The checkout hands the key over in the query string so the last step is one tap, not
+    "copy this, go there, paste it". It is traded for the cookie here, then scrubbed from
+    the address bar so it does not survive in history or in a shared screenshot. */
+ var fromUrl=(location.search.match(/[?&]key=([^&]+)/)||[])[1];
+ fromUrl=fromUrl?decodeURIComponent(fromUrl.replace(/\+/g,' ')).trim().toUpperCase():'';
+ function enter(){
+  api('/api/panel/login',{key:fromUrl}).then(function(){
+   try{history.replaceState(null,'',location.pathname)}catch(e){}
+   location.replace('/panel');
+  }).catch(function(){
+   try{history.replaceState(null,'',location.pathname)}catch(e){}
+   gate('این کلید پذیرفته نشد؛ کلید را دستی وارد کنید.');
+  });
+ }
+ api('/api/panel/me').then(function(d){
+  if(d.salon)return dash(d);
+  if(fromUrl)return enter();
+  gate('');
+ }).catch(function(e){gate('')});
 })();
 `;
 

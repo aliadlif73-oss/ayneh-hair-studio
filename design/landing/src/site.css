@@ -641,3 +641,9 @@ ul,ol{padding:0;list-style:none}
 .pay-key-lost{margin:0;font-size:12.5px;line-height:1.9;color:var(--muted)}
 .pay-key-lost[hidden]{display:none!important}
 body.is-paying .sticky-cta{display:none!important}
+
+/* An unpriced panel still sells — it asks for the demo — so the price block explains itself
+   in words rather than showing a bare dashed slot under a button that reads «خرید». */
+.plan__pending{margin:6px 0 0;font-size:12.5px;line-height:1.75;color:var(--muted)}
+.plan[data-open="false"] .plan__pending{display:block}
+.plan[data-open="true"] .plan__pending{display:none}

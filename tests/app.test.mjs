@@ -1194,19 +1194,26 @@ function priced(plan, amount, quota = 30) {
   return () => Object.assign(PLANS[plan], before);
 }
 
-test('step 25 funnel: every plan button still leads back to the demo form while no price is approved', () => {
-  // The owner's complaint that started this step: the site had drifted away from the demo
-  // request form. With all amounts at 0 the three plan buttons must be anchors to the form —
-  // never to #pay, never a dead button — and pay.js must leave an unpaid click alone.
-  const labels = [...landingHTML.matchAll(/<a\b[^>]*data-buy="([a-z]+)"[^>]*>/g)];
+test('step 25 funnel: the button says «خرید» and, with no price, still lands on the demo form', () => {
+  // The owner asked for one flow: the visitor sees the panels, clicks buy on the one she
+  // wants, and gets a card number with a deadline. With the amounts unapproved there is no
+  // money to take yet, so the same button carries her to the demo form and says why — never
+  // a dead button, never a checkout that cannot take payment, never an invented figure.
+  const labels = [...landingHTML.matchAll(/<a\b[^>]*data-buy="([a-z]+)"[^>]*>([^<]*)<\/a>/g)];
   assert.equal(labels.length, 3, 'three plan buttons');
-  for (const [, plan] of labels) {
+  for (const [, plan, text] of labels) {
     const tag = landingHTML.match(new RegExp('<a\\b[^>]*data-buy="' + plan + '"[^>]*>'))[0];
-    assert.match(tag, /href="#form-start"/, plan + ' links to the demo form, not to a checkout');
+    assert.equal(text.trim(), 'خرید', plan + ' is a buy button');
+    assert.match(tag, /href="#form-start"/, plan + ' falls back to the demo form');
     assert.doesNotMatch(tag, /href="#pay"/, plan + ' does not open a payment it cannot take');
   }
-  assert.match(payJS, /if \(!open\) return;/,
-    'an unpaid plan click falls through to the anchor instead of being swallowed');
+  // Every unpriced panel explains itself in words next to the button.
+  assert.equal((landingHTML.match(/مبلغ در حال نهایی‌شدن است؛ برای دیدن دمو بفرستید\./g) || []).length, 3,
+    'each unpriced panel says the amount is being finalized');
+  // The click is not swallowed: it falls through to the anchor and leaves a note behind.
+  assert.match(payJS, /if \(!open\) \{[\s\S]{0,400}?return; \/\/ the anchor still carries/,
+    'an unpriced click explains itself and then lets the anchor do the work');
+  assert.match(landingHTML, /data-state="soon"/, 'and the shipped panels are still unpriced');
   assert.equal(PLANS.solo.amount + PLANS.salon.amount + PLANS.chain.amount, 0,
     'no plan carries a figure the owner has not approved');
 });
@@ -1370,7 +1377,10 @@ test('step 25 webhook: the payment site confirms with its token; a wrong token, 
     const key = conf.data.webhook.key;
     assert.match(key, /^whk_[a-f0-9]{48}$/);
     assert.equal(conf.data.webhook.url, origin + '/api/pay/confirm');
-    const post = (body, headers = {}) => app.fetch(new Request(origin + '/api/pay/confirm', {method: 'POST', headers: {origin, 'content-type': 'application/json', ...headers}, body: JSON.stringify(body)}), e);
+    /* A real payment site is a server: it sends no Origin, only the bearer token. Sending one
+       here would hide the bug this test caught — the CSRF guard refusing every cross-origin
+       POST before the token was ever looked at. */
+    const post = (body, headers = {}) => app.fetch(new Request(origin + '/api/pay/confirm', {method: 'POST', headers: {'content-type': 'application/json', ...headers}, body: JSON.stringify(body)}), e);
     assert.equal((await post({ref: r.data.ref})).status, 401, 'no token');
     assert.equal((await post({ref: r.data.ref}, {authorization: 'Bearer wrong'})).status, 401);
     const ignored = await post({ref: r.data.ref, status: 'failed'}, {authorization: 'Bearer ' + key});
@@ -1386,6 +1396,50 @@ test('step 25 webhook: the payment site confirms with its token; a wrong token, 
     const rotated = await call(e, '/api/owner/payment', {rotate: true}, OWNER);
     assert.notEqual(rotated.data.key, key);
     assert.equal((await post({ref: r.data.ref}, {authorization: 'Bearer ' + key})).status, 401);
+  } finally { restore() }
+});
+
+test('step 25 webhook: a server with no Origin reaches the token; every other route still needs one', async () => {
+  const e = fixture();
+  const restore = priced('salon', 1100000);
+  try {
+    const r = await call(e, '/api/order', orderBody());
+    const key = (await call(e, '/api/owner/payment', undefined, OWNER)).data.webhook.key;
+    const post = (path, body, headers = {}) => app.fetch(new Request(origin + path, {method: 'POST', headers: {'content-type': 'application/json', ...headers}, body: JSON.stringify(body)}), e);
+    // Exactly what the payment site sends: no Origin, a bearer token.
+    const ok = await post('/api/pay/confirm', {ref: r.data.ref, status: 'paid'}, {authorization: 'Bearer ' + key});
+    assert.equal(ok.status, 200, 'a token-bearing webhook is not blocked for lacking an Origin');
+    assert.equal((await ok.json()).status, 'paid');
+    // The exemption is that one path only: a cross-site POST is still refused everywhere else.
+    const crossSite = await post('/api/order', orderBody(), {origin: 'https://evil.example'});
+    assert.equal(crossSite.status, 403);
+    assert.equal((await post('/api/panel/logout', {}, {origin: 'https://evil.example'})).status, 403);
+    // And the webhook is still worthless without the token, Origin or no Origin.
+    assert.equal((await post('/api/pay/confirm', {ref: r.data.ref}, {})).status, 401);
+    assert.equal((await post('/api/pay/confirm', {ref: r.data.ref}, {authorization: 'Bearer whk_' + '0'.repeat(48)})).status, 401);
+  } finally { restore() }
+});
+
+test('step 25 last step: the paid page opens the customer\'s own panel with one tap, then scrubs the key', async () => {
+  const e = fixture();
+  const restore = priced('solo', 800000);
+  try {
+    const r = await call(e, '/api/order', orderBody('solo'));
+    await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER);
+    // The done screen: the panel button carries the key, so the customer does not retype it.
+    assert.match(payJS, /panel\.href = '\/panel\?key=' \+ encodeURIComponent\(shown\)/,
+      'the paid screen hands the key to the panel door');
+    assert.match(payJS, /state\.entered/, 'it does it once, not on every poll');
+    // The panel trades the key for its cookie, then removes it from the address bar.
+    const panel = panelHTML;
+    assert.match(panel, /\[\?&\]key=\(\[\^&\]\+\)/, 'the panel reads the key from the URL');
+    assert.match(panel, /api\('\/api\/panel\/login',\{key:fromUrl\}\)/, 'and logs in with it');
+    assert.match(panel, /history\.replaceState\(null,'',location\.pathname\)/, 'then scrubs it from history');
+    // The key really is valid at that moment (that is what the button relies on).
+    const login = await call(e, '/api/panel/login', {key: r.data.access_key});
+    assert.equal(login.status, 200);
+    const me = await app.fetch(new Request(origin + '/api/panel/me', {headers: {cookie: login.cookie}}), e);
+    assert.equal((await me.json()).salon.name, 'سالن نمونه');
   } finally { restore() }
 });
 
