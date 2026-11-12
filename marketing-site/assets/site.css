@@ -225,3 +225,16 @@ p{color:#203b44}
 .hero-copy>p{max-width:525px}
 .hero:after{right:-134px;top:3px;opacity:.67}
 }
+
+@media(min-width:1250px){
+.hero .actions{display:flex;justify-content:center;margin:16px 0 0}
+.hero .btn-secondary{display:none}
+.hero .btn-hero{min-height:62px;min-width:330px}
+.hero .chips{flex-wrap:nowrap;gap:5px;justify-content:space-between;margin-top:20px}
+.hero .chip{font-size:10px;white-space:nowrap;gap:4px}
+.hero .check{width:18px;height:18px}
+.hero-fine{margin:0 auto}
+.hero .hero-copy{padding-top:9px}
+.hero h1{margin-bottom:13px}
+.trust-strip{margin-top:10px}
+}
