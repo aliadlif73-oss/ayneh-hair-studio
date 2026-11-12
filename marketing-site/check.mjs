@@ -22,6 +22,8 @@ test('the form sends to a protected server endpoint and displays status',()=>{
  assert.match(html,/aria-live="polite"/);
  assert.match(worker,/url\.pathname==='\/api\/inquiry'/);
  assert.match(worker,/request\.method!=='POST'/);
+ assert.match(worker,/request\.headers\.get\('Origin'\)/);
+ assert.match(worker,/'Origin':APP/);
 });
 test('responsiveness and accessible interaction',()=>{
  assert.match(html,/@media\(max-width:720px\)/);

@@ -7,12 +7,13 @@ export default {async fetch(request){
  const u=new URL(request.url);
  if(u.pathname==='/api/inquiry'){
   if(request.method!=='POST')return Response.json({error:'متد نامعتبر است'},{status:405,headers:safe});
+  if(request.headers.get('Origin')!==u.origin)return Response.json({error:'مبدأ درخواست مجاز نیست'},{status:403,headers:safe});
   if(Number(request.headers.get('content-length')||0)>8192)return Response.json({error:'درخواست طولانی است'},{status:413,headers:safe});
   const body=await request.text();
   if(body.length>8192)return Response.json({error:'درخواست طولانی است'},{status:413,headers:safe});
   let data;try{data=JSON.parse(body)}catch{return Response.json({error:'فرم نامعتبر است'},{status:400,headers:safe})}
   if(typeof data!=='object'||!data||!data.consent||!data.name||!data.salon||!data.phone)return Response.json({error:'فیلدهای ضروری را تکمیل کنید'},{status:400,headers:safe});
-  try{const remote=await fetch(APP+'/api/inquiry',{method:'POST',headers:{'Content-Type':'application/json'},body});return new Response(remote.body,{status:remote.status,headers:{...safe,'Content-Type':'application/json;charset=utf-8','Cache-Control':'no-store'}})}
+  try{const remote=await fetch(APP+'/api/inquiry',{method:'POST',headers:{'Content-Type':'application/json','Origin':APP},body});return new Response(remote.body,{status:remote.status,headers:{...safe,'Content-Type':'application/json;charset=utf-8','Cache-Control':'no-store'}})}
   catch{return Response.json({error:'سامانه ثبت درخواست در دسترس نیست'},{status:502,headers:safe})}
  }
  if(request.method!=='GET'&&request.method!=='HEAD')return new Response('Method Not Allowed',{status:405,headers:safe});
