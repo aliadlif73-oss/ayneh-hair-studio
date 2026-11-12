@@ -27,7 +27,73 @@ css = st.group(1)
 drop = re.compile(r'^\s*(\.hero|\.swatch|\.style-dock|\.lines-row|\.lead\{|h1\{|\.eyebrow|\.fineprint|\.hero-copy|\.selection|\.chips|\.chip|\.split|\.plans|\.plan|\.start-grid|\.steps?|\.feat|\.msgrs|\.no-list|\.note-bar|\.svc \.(ico|picks|count))')
 css = NL.join(l for l in css.split(NL) if not drop.match(l))
 css += NL + R('src/hero.css') + NL + R('src/lead.css') + NL + R('src/trial.css') + NL + R('src/cta.css')
-css += NL + R('src/polish.css') + NL + R('src/cinema.css') + NL + R('src/refine.css')
+css += NL + R('src/polish.css') + NL + R('src/cinema.css') + NL + R('src/refine.css') + NL + R('src/plans.css')
+
+# ---------- dead-CSS pruning ----------
+# Legacy hero/experience sections are replaced by the funnel (above), and several
+# redesign passes left behind styles for markup that no longer ships. Each name
+# below is a class used ONLY by removed markup; the build refuses to run if one of
+# them still appears in the shipped markup or in a bundled script, so a live class
+# can never be pruned by accident.
+DEAD_CLASSES = {
+    'auto-film', 'bp-label', 'brand-pick', 'builder-identity', 'cinema-arrows',
+    'cinema-copy', 'cta-band', 'is-current', 'journey-actions', 'journey-copy',
+    'lead-wrap', 'lf-micro', 'lf-resend', 'loader-brand', 'mock-note', 'num',
+    'rv', 's2-grid', 's2-points', 'salon-action', 'salon-card', 'sc-cover',
+    'sc-cta', 'sc-head', 'sc-lines', 'sc-logo', 'sc-works', 'service-preview-link',
+    'trial-col', 'trial-grid', 'trial-mock', 'wipe', 'wizard-summary',
+}
+
+def _blocks(src):
+    """Top-level `selector{body}` spans, brace-balanced (comments already stripped)."""
+    out, i, n = [], 0, len(src)
+    while i < n:
+        b = src.find('{', i)
+        if b < 0:
+            break
+        d, j = 0, b
+        while j < n:
+            if src[j] == '{':
+                d += 1
+            elif src[j] == '}':
+                d -= 1
+                if d == 0:
+                    break
+            j += 1
+        out.append((i, j + 1, src[i:b].strip(), b, src[b + 1:j]))
+        i = j + 1
+    return out
+
+def prune_dead(css):
+    """Drop rules whose every class is in DEAD_CLASSES, including inside @media."""
+    css = re.sub(r'/\*.*?\*/', '', css, flags=re.S)
+    kept, removed = [], 0
+    for start, end, sel, brace, inner in _blocks(css):
+        if sel.startswith('@media'):
+            inner2, cut = prune_dead(inner)
+            if not inner2.strip():
+                removed += end - start
+                continue
+            kept.append(css[start:brace + 1] + inner2 + '}')
+            removed += cut
+            continue
+        if sel.startswith('@'):
+            kept.append(css[start:end])
+            continue
+        names = set(re.findall(r'\.([A-Za-z][\w-]*)', sel))
+        if names and names <= DEAD_CLASSES:
+            removed += end - start
+            continue
+        kept.append(css[start:end])
+    return ''.join(kept), removed
+
+css, pruned = prune_dead(css)
+live = re.sub(r'<style>.*?</style>', '', h, flags=re.S) + NL + NL.join(R('src/' + f) for f in [
+    'funnel.js', 'followup.js', 'draft.js', 'portrait.js', 'hair-color.js', 'hero.js',
+    'compare.js', 'scenes.js', 'try.js', 'cta.js', 'invite-video.js', 'cinema.js',
+    'reveal.js', 'builder.js', 'lead.js', 'refine.js'])
+still = sorted(n for n in DEAD_CLASSES if re.search(r'(?<![\w-])' + re.escape(n) + r'(?![\w-])', live))
+assert not still, 'pruned a class that is still live: ' + ', '.join(still)
 h = h.replace(st.group(0), '<style>' + css + '</style>')
 h = re.sub(r'  <!-- 1\. Hero -->.*?(?=  <!-- 2\. Experience -->)', lambda m: R('src/hero.html') + NL, h, flags=re.S)
 # The service films are part of the service chapter; the builder follows the story.
@@ -35,7 +101,22 @@ def section(section_id):
     return re.search(r'  <section id="' + section_id + r'".*?</section>', h, re.S).group(0)
 
 trial = R('src/trial.html').replace('<!-- LEAD_FORM -->', R('src/lead.html'))
-funnel = NL.join([section('how'), R('src/invite.html'), trial, section('services'), R('src/scenes.html'), section('faq')])
+# The price panels carry figures as data, never as prose: only the slot lines
+# (marked data-price) survive, so editing a sentence cannot change a price. A slot
+# keeps its placeholder until its value is filled in src/plans.html.
+plans = R('src/plans.html')
+# The only place a price can enter the shipped page. Leave a value empty until the
+# owner approves a number: the panel then renders the measured placeholder text,
+# never a made-up digit. Format: '۱۲ میلیون' / '۱ میلیون'.
+PANEL_FIGURES = {'solo': ('', ''), 'salon': ('', ''), 'chain': ('', '')}
+PLACEHOLDER = ('مبلغ', 'سهمیه')
+for key, (amount, quota) in PANEL_FIGURES.items():
+    token = '{{PRICES_%s}}' % key.upper()
+    plans = plans.replace('{{PRICE_%s}}' % key.upper(), amount or PLACEHOLDER[0])
+    plans = plans.replace('{{QUOTA_%s}}' % key.upper(), quota or PLACEHOLDER[1])
+assert '{{PRICE' not in plans and '{{QUOTA' not in plans, 'every figure slot is filled'
+assert '{{PRICES_' not in plans, 'no card placeholder left unrendered'
+funnel = NL.join([section('how'), R('src/invite.html'), trial, plans, section('services'), R('src/scenes.html'), section('faq')])
 icon_paths = {
     'mirror': 'M11 27V15a9 9 0 0 1 18 0v12ZM20 27v6m-6 0h12m-9-14 5-5',
     'talk': 'M9 10h22v15H19l-7 6v-6H9Zm6 6h10m-10 4h7',

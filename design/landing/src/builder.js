@@ -84,7 +84,7 @@
  function render(){
   const fields=form.elements;
   const get=key=>fields[key].value.trim();
-  const name=get('name')||'نام سالن شما';
+  const name=get('name')||'نام شما';
   const slug=get('slug')||'your-salon';
   const lfSalon=$('lf-salon');
   if(lfSalon&&(!lfSalon.value||lfSalon.value===lastWizardName))lfSalon.value=get('name')||'';
@@ -162,7 +162,7 @@
  }
  async function packageDraft(){
   const name=form.elements.name.value.trim(),slug=form.elements.slug.value;
-  if(name.length<2)throw new Error('نام سالن را وارد کنید.');
+  if(name.length<2)throw new Error('نام خودتان یا آرایشگاه را وارد کنید.');
   if(!/^[a-z][a-z0-9-]{1,44}[a-z0-9]$/.test(slug))throw new Error('نشانی صفحه را با حروف انگلیسی، عدد یا خط تیره وارد کنید.');
   const profile=Object.fromEntries(profileFields.map(key=>[key,form.elements[key].value.trim()]));
   for(const key of ['instagram','website','map','telegram'])if(profile[key]&&!/^https?:\/\//i.test(profile[key]))throw new Error('لینک‌ها باید با http:// یا https:// شروع شوند.');

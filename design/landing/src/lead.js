@@ -9,10 +9,10 @@
   const salon=$('lf-salon').value.trim(),name=$('lf-name').value.trim();
   const phone=digits($('lf-phone').value).replace(/[\s-]/g,'');
   const slug=$('slugHintInput')?.value.trim();
-  const chosen='صفحهٔ اختصاصی سالن · '+salon+(slug?' ('+slug+')':'');
+  const chosen='صفحهٔ اختصاصی آرایشگر · '+salon+(slug?' ('+slug+')':'');
   const data={name,salon,phone,city:$('lf-city').value.trim(),website:$('lf-web').value,consent:$('lf-consent').checked,chosen,attribution:window.__AYN_ATTR?.()||{}};
   if(name.length<2){err.textContent='نام خودتان را بنویسید.';return}
-  if(salon.length<2){err.textContent='نام سالن را بنویسید.';return}
+  if(salon.length<2){err.textContent='نام خودتان یا آرایشگاه را بنویسید.';return}
   if(!/^(\+98|0098|98|0)?9\d{9}$/.test(phone)){err.textContent='شمارهٔ موبایل درست را وارد کنید.';return}
   if(!data.consent){err.textContent='تأیید تماس را انتخاب کنید.';return}
   send.disabled=true;send.setAttribute('aria-busy','true');

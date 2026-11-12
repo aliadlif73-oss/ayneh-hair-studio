@@ -105,7 +105,7 @@
   if(st.dataset.required&&ctrl&&!ctrl.checkValidity()){
    err.textContent=key==='slug'
     ?'نشانی باید ۳ تا ۴۶ کاراکتر انگلیسی، عدد یا خط تیره باشد و با حرف شروع شود.'
-    :'نام سالن را دستکم با دو حرف وارد کنید.';
+     :'نام خودتان یا آرایشگاه را دستکم با دو حرف وارد کنید.';
    ctrl.focus();return false;
   }
   for(const el of st.querySelectorAll('input[type=url]')){

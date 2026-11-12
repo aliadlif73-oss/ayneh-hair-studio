@@ -629,8 +629,8 @@ function trialBar(t){
 
 function ownerReturnBar(){
  var bar=el('div',{class:'trialbar owner-return',role:'status'},[
-  el('span',{class:'owner-return__note',text:'بازگشت به صفحهٔ سالن‌داران · اینجا نمونه‌ای از صفحه‌ای است که مشتری سالن می‌بیند.'+(state.pub.demo?' نسخهٔ نمونه، روزی ۳ تصویر.':'')}),
-  el('a',{class:'owner-return__cta',href:'/?utm_source=ayneh_demo&utm_medium=demo_return&utm_campaign=owner_preview#salon-example',text:'ساخت پیش‌نمایش سالن من'})
+  el('span',{class:'owner-return__note',text:'بازگشت به صفحهٔ آرایشگرها · اینجا نمونه‌ای از صفحه‌ای است که مشتری شما می‌بیند.'+(state.pub.demo?' نسخهٔ نمونه، روزی ۳ تصویر.':'')}),
+  el('a',{class:'owner-return__cta',href:'/?utm_source=ayneh_demo&utm_medium=demo_return&utm_campaign=owner_preview#salon-example',text:'ساخت صفحهٔ من'})
  ]);document.body.prepend(bar);return bar;
 }
 function showFatal(msg){
@@ -1714,7 +1714,7 @@ function openRequest(){
  panel.append(el('div',{class:'sheet__head'},[h('h2','فرستادن برای '+artist()),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:closeSheet})]));
  if(!state.pub.telegram){
   panel.append(notice('info',state.pub.demo?'این نسخهٔ نمونهٔ آینه است و سالنی برای دریافت ندارد. نتیجه را دانلود کن. برای اینکه مشتری‌های خودت به سالن خودت درخواست بفرستند، پیش‌نمایش سالن خودت را بساز.':'«'+s.name+'» هنوز دریافت آنلاین را فعال نکرده. عکس نتیجه را دانلود کن و از یکی از این راه‌ها برای سالن بفرست.'));
-  if(state.pub.demo)panel.append(el('a',{class:'btn btn--primary',href:'/?utm_source=ayneh_demo&utm_medium=demo_return&utm_campaign=owner_preview#salon-example',style:'margin-top:12px',text:'ساخت پیش‌نمایش سالن من'}));
+  if(state.pub.demo)panel.append(el('a',{class:'btn btn--primary',href:'/?utm_source=ayneh_demo&utm_medium=demo_return&utm_campaign=owner_preview#salon-example',style:'margin-top:12px',text:'ساخت صفحهٔ من'}));
   var ways=el('div',{class:'about__quick',style:'margin-top:14px'});
   if(p.phone)ways.append(el('a',{class:'btn btn--primary',href:'tel:'+p.phone,html:ICO.phone+'<span>تماس با سالن</span>'}));
   if(p.telegram)ways.append(el('a',{class:'btn btn--ghost',href:p.telegram,target:'_blank',rel:'noopener noreferrer',html:ICO.send+'<span>تلگرام سالن</span>'}));

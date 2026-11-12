@@ -781,6 +781,15 @@ section[id],.site-footer{scroll-margin-top:0}
 .site-header .nav{gap:clamp(20px,2.6vw,40px);font-size:18px}
 .site-header .nav a{padding:12px 2px}
 .site-header .header-cta{min-height:56px;padding:0 28px;font-size:17px}
+/* Between the mobile menu and wide desktop the sixth nav item no longer fits on
+   one 110px row; the box tightens instead of wrapping to two lines. */
+@media(max-width:1240px){
+ .site-header{--brand-fs:30px;--mark-w:48px;--mark-h:52px;gap:14px;padding:18px clamp(20px,3vw,40px)}
+ .site-header .brand{gap:9px}
+ .site-header .nav{gap:14px;font-size:16px}
+ .site-header .nav a{padding:10px 1px}
+ .site-header .header-cta{min-height:48px;padding:0 18px;font-size:15px}
+}
 @media(max-width:900px){
  .site-header{--brand-fs:30px;--mark-w:52px;--mark-h:56px;--tag-fs:12px;--menu:52px;padding:16px 28px}
 }

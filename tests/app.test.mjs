@@ -990,7 +990,7 @@ test('landing funnel events are first-party, validated and attributed',async()=>
 });
 
 test('funnel step 4: demos keep the owner on the landing and give demo visitors a way back',()=>{
- const canon='ساخت پیش\u200cنمایش سالن من';
+ const canon='ساخت صفحهٔ من';
  // The three genuinely off-site demos open in a new tab and carry campaign attribution.
  const offsite=[...landingHTML.matchAll(/<a class="btn btn--ghost svc-try" href="([^"]+)"([^>]*)>/g)];
  assert.equal(offsite.length,3,'three service demo links');
@@ -1046,15 +1046,16 @@ test('funnel step 6: cost, time and privacy are answered with no new claims',()=
  assert.equal((strip.match(/<li>/g)||[]).length,3,'three objections answered');
  for(const label of ['اعلام مبلغ','زمان','حریم خصوصی'])assert.ok(strip.includes(label),'answers '+label);
  assert.ok(inline.includes('درخواستتان'),'studio restates the next action without another free claim');
- // Owner decision: no figures and no time promise. Not even the real price range
- // that exists in the design source (and is dropped by build.py) is surfaced.
- for(const banned of [/میلیون/,/تومان/,/\d+\s*(?:روز|ساعت|دقیقه|هفته)/,/شارژ ماهانه/])
+ // Owner pivot: the strip points at the price panels instead of refusing a figure.
+ // No invented number or time promise is allowed in that strip either.
+ assert.match(strip,/href="#pricing">بخش قیمت/,'cost objection links to the panels');
+ for(const banned of [/میلیون/,/\d+\s*(?:روز|ساعت|دقیقه|هفته)/,/شارژ ماهانه/])
   assert.doesNotMatch(strip+inline,banned);
  // Step 3's "unify درخواست راهاندازی" is now complete in the OTP path too.
  assert.doesNotMatch(landingHTML,/فعال\u200cسازی/);
  assert.match(landingHTML,/id="builderActivate"[^>]*>درخواست راه\u200cاندازی</);
  // The canonical CTA label from step 3 is untouched.
- assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
+ assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
  assert.ok(landingHTML.length<250000,'raised bloat guard still respected');
 });
 
@@ -1064,15 +1065,15 @@ test('funnel step 7: hero speaks to the salon owner and has one clear primary CT
  // short brand line. The owner framing still lives in the lead below it.
  assert.equal(h1,'انتخاب مشتری را با عکس ببینید');
  assert.ok(h1.includes('مشتری')&&h1.includes('عکس'),'customer choice and photo are named');
- assert.match(landingHTML,/<p class="hero-sub">صفحه\u200cای به نام سالن شما، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می\u200cدهد\./,'one support sentence names the product and owner benefit');
+ assert.match(landingHTML,/<p class="hero-sub">صفحه\u200cای به نام شما یا آرایشگاه\u200cتان، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می\u200cدهد\./,'one support sentence names the product and owner benefit');
  assert.equal((h1.match(/<span/g)||[]).length,0,'headline stays plain static text');
- assert.match(landingHTML,/صفحه\u200cای با نام و رنگ سالن شما/,'lead is owner-framed');
+ assert.match(landingHTML,/صفحه\u200cای با نام و رنگ خودتان/,'lead is owner-framed');
  const row=(landingHTML.match(/<div class="cta-row">([\s\S]*?)<\/div>/)||[])[1]||'';
- assert.match(row,/class="btn btn--lg" href="#salon-example"><span>ساخت پیش\u200cنمایش سالن من/);
+ assert.match(row,/class="btn btn--lg" href="#salon-example"><span>ساخت صفحهٔ من/);
  assert.match(row,/class="btn btn--ghost btn--quiet" data-try="hair"/,'demo CTA demoted but still a .btn');
  assert.doesNotMatch(row,/class="btn btn--lg"[^>]*data-try/,'primary and demo are not both prominent');
  // Everything from the earlier steps stays intact.
- assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
+ assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
  assert.match(landingHTML,/<ul class="reassure"/,'three-fact strip survives (step 13 moved it)');
  assert.match(landingHTML,/id="builderDetails"/);
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
@@ -1127,7 +1128,7 @@ test('final funnel audit: structure, anchors, labels and the two legibility fixe
  assert.ok(landingHTML.indexOf('.builder-preview>.builder-note{color:#E4ECF5!important}')>
           landingHTML.indexOf('.builder-note{color:#39455A!important}'),'override comes later');
  assert.equal((landingHTML.match(/href="#start"/g)||[]).length,1,'only the step-14 sticky CTA jumps straight to the form');
- assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
+ assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
  assert.match(landingHTML,/<template id="followUpTemplate">/);
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
  assert.ok(landingHTML.length<250000);
@@ -1204,11 +1205,11 @@ test('funnel step 12: the mirror leads the mobile first fold and three gold meda
  assert.match(landingHTML,/\.salon-invite-copy \.reassure \.gold-icon\{display:grid;grid-column:1;grid-row:1\/span 2/);
  // No copy was rewritten, added or deleted: all three approved sentences, the
  // owner-framed h1 and the canonical CTA are byte-identical.
- assert.match(landingHTML,/هزینه ثابت از قبل وجود ندارد؛ پس از گفتگو و پیش از هر تصمیمی، مبلغ متناسب با سالن شما گفته می\u200cشود\./);
+ assert.match(landingHTML,/سه پنل در <a href="#pricing">بخش قیمت<\/a> آمده‌اند؛ مبلغ و سهمیهٔ تصویر پیش از هر پرداختی نوشته می\u200cشود\./,'panel pointer replaces the no-price sentence');
  assert.match(landingHTML,/همین حالا ببینید؛ راه\u200cاندازی بعد از گفتگو و هماهنگی\./);
  assert.match(landingHTML,/عکس\u200cها و اطلاعات پیش\u200cنمایش تا پیش از درخواست فقط در مرورگر شماست\./);
  assert.match(landingHTML,/انتخاب مشتری را با عکس ببینید/);
- assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
+ assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
  // Steps 1-11 remain intact, including the ripple on every button.
  assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
  assert.match(landingHTML,/<template id="followUpTemplate">/);
@@ -1228,7 +1229,7 @@ test('funnel step 13: static benefit headline and the three facts before the thi
  // They now sit in the third section, immediately before its own CTA.
  const invite=(landingHTML.match(/<section class="salon-invite"[\s\S]*?<\/section>/)||[])[0]||'';
  assert.ok(invite.includes('class="reassure"'),'facts are in the third section');
- assert.ok(invite.indexOf('class="reassure"')<invite.indexOf('ساخت پیش\u200cنمایش سالن من'),
+ assert.ok(invite.indexOf('class="reassure"')<invite.indexOf('ساخت صفحهٔ من'),
   'facts come before the CTA');
  assert.equal((invite.match(/class="gold-icon"/g)||[]).length,3,'all three medallions moved too');
  assert.match(landingHTML,/\.copy h1::after\{content:"";display:block;width:46px/,'gold dash survives');
@@ -1244,10 +1245,10 @@ test('funnel step 13: static benefit headline and the three facts before the thi
  assert.match(landingHTML,/\.hero-proof\{[^}]*order:4/);
  assert.match(landingHTML,/\.hero-playground\{order:10\}/);
  // The three approved sentences, the canonical CTA and the rest of the funnel.
- for(const t of ['هزینه ثابت از قبل وجود ندارد؛ پس از گفتگو و پیش از هر تصمیمی، مبلغ متناسب با سالن شما گفته می\u200cشود.',
+ for(const t of ['سه پنل در <a href="#pricing">بخش قیمت<\/a> آمده‌اند؛ مبلغ و سهمیهٔ تصویر پیش از هر پرداختی نوشته می\u200cشود.',
   'همین حالا ببینید؛ راه\u200cاندازی بعد از گفتگو و هماهنگی.',
   'عکس\u200cها و اطلاعات پیش\u200cنمایش تا پیش از درخواست فقط در مرورگر شماست.'])assert.ok(landingHTML.includes(t));
- assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
+ assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
  assert.match(landingHTML,/<template id="followUpTemplate">/);
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
  assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
@@ -1258,14 +1259,17 @@ test('funnel step 14: one honest round against the picky-user audit',()=>{
  // Owner decisions: honest_once (no invented price), give_all with real contact
  // details, keep_plus_sub, tune, dedupe_label, approve_all.
  // 1. The brand line stays but is no longer vague or repeated in the loader.
- assert.match(landingHTML,/<p class="hero-sub">صفحه\u200cای به نام سالن شما، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می\u200cدهد\./,'product is named in the first fold');
+ assert.match(landingHTML,/<p class="hero-sub">صفحه\u200cای به نام شما یا آرایشگاه\u200cتان، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می\u200cدهد\./,'product is named in the first fold');
  assert.doesNotMatch(landingHTML,/id="siteLoader"/,'loader markup removed');
  assert.doesNotMatch(landingHTML,/site-loader/,'loader styles removed');
  assert.doesNotMatch(landingHTML,/انتخابی که به شما می\u200cآید/,'loader no longer repeats the headline');
- // 2/11. No invented price or timeframe; the cost sentence survives exactly once.
- assert.doesNotMatch(landingHTML,/تومان|میلیون|شارژ ماهانه/);
- assert.equal((landingHTML.match(/هزینه ثابت از قبل وجود ندارد؛ پس از گفتگو و پیش از هر تصمیمی، مبلغ متناسب با سالن شما گفته می\u200cشود\./g)||[]).length,1);
- assert.equal((landingHTML.match(/هزینه/g)||[]).length,1,'the word cost appears once in the whole shipped page');
+ // 2/11. The pivot replaces "no price" with three panels whose figures are still
+ // empty: the structure ships, not a made-up number. Every amount is a slot.
+ assert.doesNotMatch(landingHTML,/میلیون|شارژ ماهانه/,'no invented figure ships');
+ assert.equal((landingHTML.match(/<p class="plan-amount" data-price="/g)||[]).length,3,'one amount slot per panel');
+ assert.equal((landingHTML.match(/<p class="plan-quota" data-price="/g)||[]).length,3,'one quota slot per panel');
+ assert.equal((landingHTML.match(/<b class="slot">/g)||[]).length,6,'six unfilled figures');
+ assert.doesNotMatch(landingHTML,/<b class="slot">[۰-۹0-9]/,'a slot never holds a digit');
  assert.equal((landingHTML.match(/رایگان/g)||[]).length,1,'free is defined once');
  assert.match(landingHTML,/منظور از رایگان: ساخت پیش\u200cنمایش، ثبت درخواست و امتحان خدمات روی عکس خودتان، بدون پرداخت و بدون ثبت\u200cنام است/);
  assert.match(landingHTML,/class="sticky-cta" id="stickyCta" href="#start" hidden/,'contextual CTA jumps to the form');
@@ -1300,7 +1304,7 @@ test('funnel step 14: one honest round against the picky-user audit',()=>{
  assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
  assert.match(landingHTML,/<template id="followUpTemplate">/);
  assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2,'step-5 form unchanged');
- assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
+ assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
  assert.ok(landingHTML.length<250000);
 });
 
@@ -1318,11 +1322,12 @@ test('funnel step 15: zero-criticism round against the second picky-user review'
  assert.match(landingHTML,/if\(still\)return;/,'section cinema and reduced-motion path survive');
  assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/,'ripples/buttons survive');
  // 2. Why there is no number, plus an unambiguous free boundary.
- assert.doesNotMatch(landingHTML,/تومان|میلیون|شارژ ماهانه/);
- assert.equal((landingHTML.match(/هزینه/g)||[]).length,1,'still only one cost word');
+ // Pricing is now a named section, and the old "no figure at all" stance is gone.
+ assert.doesNotMatch(landingHTML,/میلیون|شارژ ماهانه/);
+ assert.doesNotMatch(landingHTML,/قیمت ثابت از قبل اعلام نمی\u200cشود|چرا عدد ثابت اعلام نمی\u200cشود؟/,'stale no-price copy removed');
+ assert.match(landingHTML,/<section id="pricing"[^>]*class="section section--sunken pricing"/,'panels are a real section');
+ assert.match(landingHTML,/href="#pricing"/,'the funnel can reach the panels');
  assert.equal((landingHTML.match(/رایگان/g)||[]).length,1,'free defined once');
- assert.match(landingHTML,/قیمت ثابت از قبل اعلام نمی\u200cشود/);
- assert.match(landingHTML,/چرا عدد ثابت اعلام نمی\u200cشود؟/);
  assert.match(landingHTML,/امتحان خدمات روی عکس خودتان، بدون پرداخت و بدون ثبت\u200cنام است/);
  assert.match(landingHTML,/تنها تأیید شمارهٔ موبایل لازم دارد/);
  // 3. Real contact stays verbatim; temporary sample values are explicitly labelled.
@@ -1381,7 +1386,7 @@ test('funnel step 15: zero-criticism round against the second picky-user review'
 test('funnel step 19: competitor-inspired first-glance clarity and one CTA hierarchy',()=>{
  // Nearest competitors all open with "what it is / why a salon would use it",
  // repeat ONE action and put the objections just before the final CTA.
- assert.match(landingHTML,/<p class="hero-sub">صفحه\u200cای به نام سالن شما، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می\u200cدهد\./);
+ assert.match(landingHTML,/<p class="hero-sub">صفحه\u200cای به نام شما یا آرایشگاه\u200cتان، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می\u200cدهد\./);
  assert.match(landingHTML,/خدمات قابل امتحان: مدل و رنگ مو، طرح ناخن یا مدل مژه، روی عکس خود مشتری\./);
  assert.match(landingHTML,/\.stage \.copy \.lead\{display:none!important\}/,'no duplicate lead on desktop');
  assert.equal((landingHTML.match(/چطور کار می\u200cکند/g)||[]).length,3,'nav label still appears three times');
@@ -1391,7 +1396,7 @@ test('funnel step 19: competitor-inspired first-glance clarity and one CTA hiera
  assert.match(landingHTML,/عکس مشتری کجا می\u200cرود؟/,'photo handling is no longer a gap');
  assert.match(landingHTML,/نسخهٔ فشردهٔ عکس/);
  assert.doesNotMatch(landingHTML,/رضایت مشتری/,'no consent jargon in the owner copy');
- assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
+ assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
  assert.equal((landingHTML.match(/href="#start"/g)||[]).length,1,'one sticky jump to the form');
  assert.ok(landingHTML.indexOf('id="salon-example"')<landingHTML.indexOf('id="services"'),'form still before services');
  assert.ok(landingHTML.length<250000);
@@ -1408,7 +1413,7 @@ test('funnel step 20: self-audit closes the last first-glance and privacy object
  assert.doesNotMatch(landingHTML,/اجازهٔ مشتری گرفته می\u200cشود/,'passive consent wording is gone');
  assert.doesNotMatch(landingHTML,/رضایت مشتری/);
  assert.doesNotMatch(landingHTML,/ناخن یا مژه/,'every service list names the nail design and lash model');
- assert.equal((landingHTML.match(/ساخت پیش\u200cنمایش سالن من/g)||[]).length>=6,true);
+ assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
  assert.equal((landingHTML.match(/href="#start"/g)||[]).length,1);
  assert.ok(landingHTML.indexOf('id="salon-example"')<landingHTML.indexOf('id="services"'));
  assert.ok(landingHTML.length<250000);
@@ -1421,7 +1426,7 @@ test('funnel step 22: the first fold is the real before/simulation comparison, n
  const h1=(landingHTML.match(/<h1 id="h1">([\s\S]*?)<\/h1>/)||[])[1]||'';
  assert.equal(h1,'انتخاب مشتری را با عکس ببینید','short, one-line owner benefit');
  assert.ok(h1.length<40);
- assert.match(landingHTML,/<p class="hero-sub">صفحه\u200cای به نام سالن شما، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می\u200cدهد\./);
+ assert.match(landingHTML,/<p class="hero-sub">صفحه\u200cای به نام شما یا آرایشگاه\u200cتان، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می\u200cدهد\./);
  assert.equal((landingHTML.match(/<p class="hero-sub">/g)||[]).length,1,'one support sentence');
  const stage=(landingHTML.match(/<div class="stage"[\s\S]*?<div class="hero-details"/)||[])[0]||'';
  assert.ok(stage,'stage and below-fold panel both exist');
@@ -1457,4 +1462,39 @@ test('funnel step 22: the first fold is the real before/simulation comparison, n
  assert.match(landingHTML,/@media\(max-width:360px\)\{\.site-header\{[^}]*--mark-w:42px/,'small phones keep a full-size mark');
  assert.match(landingHTML,/\.site-header \.header-cta\{min-height:56px/,'desktop header action is enlarged too');
  assert.ok(landingHTML.length<250000);
+});
+
+test('funnel step 23: the buyer is the hairdresser, and the price panels ship as structure without invented figures',()=>{
+ // Owner pivot: «می‌خوایم به آرایشگرها بفروشیم و پنل‌های قیمتی مون هم مشخص می‌کنیم».
+ // The buyer sentence must name both a solo hairdresser and a salon/team.
+ assert.match(landingHTML,/صفحه\u200cای به نام شما یا آرایشگاه\u200cتان/,'hero names the hairdresser, not only the salon owner');
+ assert.match(landingHTML,/آرایشگر/,'the word hairdresser appears');
+ assert.doesNotMatch(landingHTML,/برای سالن\u200cها/,'the old salon-only section label is gone');
+ // The three panels are named for the solo hairdresser, the team and the chain.
+ assert.match(landingHTML,/<h3>آرایشگر<\/h3>/);
+ assert.match(landingHTML,/<h3>آرایشگاه<\/h3>/);
+ assert.match(landingHTML,/<h3>مجموعه<\/h3>/);
+ // Every panel promises what the code really does, and nothing more.
+ assert.match(landingHTML,/لینک شخصی برای هر آرایشگر/);
+ assert.match(landingHTML,/گزارش روزانهٔ درخواست\u200cها/);
+ assert.match(landingHTML,/جابه\u200cجایی درخواست\u200cهای بی\u200cپاسخ/);
+ // Figures are slots: the structure ships, a number only when the owner approves one.
+ assert.equal((landingHTML.match(/data-price="/g)||[]).length,6,'amount + quota for three panels');
+ assert.equal((landingHTML.match(/<b class="slot">/g)||[]).length,6);
+ assert.match(landingHTML,/مبلغ و سهمیهٔ تصویر در حال نهایی\u200cشدن است و پیش از هر پرداختی نوشته می\u200cشود/,'the open figure is stated plainly');
+ assert.equal((landingHTML.match(/تومان/g)||[]).length,3,'currency label only, once per amount slot');
+ assert.doesNotMatch(landingHTML,/میلیون|[۰-۹0-9]\s*تومان/,'no number is invented before the owner decides');
+ // The stale "we never name a price" stance must not come back.
+ assert.doesNotMatch(landingHTML,/هزینه ثابت از قبل وجود ندارد|قیمت ثابت از قبل اعلام نمی\u200cشود|چرا عدد ثابت اعلام نمی\u200cشود؟/);
+ // One canonical action label everywhere, including the customer demo's return bar.
+ assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true,'one canonical CTA label');
+ assert.doesNotMatch(landingHTML,/ساخت پیش\u200cنمایش سالن من/,'old owner-only CTA label retired');
+ assert.ok(customerHTML.includes('ساخت صفحهٔ من'),'demo return bar uses the same label');
+ // Panels are reachable from the header and the FAQ, and the section is real markup.
+ assert.match(landingHTML,/id="pricing"/);
+ assert.match(landingHTML,/href="#pricing"/);
+ assert.equal((landingHTML.match(/<section id="pricing"/g)||[]).length,1);
+ // The panel grid collapses to one column on phones.
+ assert.match(landingHTML,/@media\(max-width:860px\)\{\.plan-grid\{grid-template-columns:1fr;gap:12px\}/);
+ assert.ok(landingHTML.length<250000,'payload stays under the review cap');
 });
