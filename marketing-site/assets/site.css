@@ -205,3 +205,15 @@ p{color:#203b44}
 .dashboard-main{padding:7px 7px}.dashboard-head{font-size:11px;margin-bottom:5px}.dashboard-stats{gap:3px}.dashboard-stats>div{padding:3px;font-size:6px;border-radius:5px}.dashboard-stats strong{font-size:15px}.dashboard-caption{font-size:8px;margin:5px 0 3px}.dashboard-hair{gap:3px}.dashboard-hair img{height:53px;border-radius:5px}.dashboard-disclaimer{font-size:6px;margin-top:4px}
 .laptop-base{height:10px}
 }
+
+/* Pixel-position refinement against 1535×1024 approved concept */
+@media(min-width:1250px){
+.hero-visual{transform:translateX(144px)}
+.hero-grid{grid-template-columns:minmax(0,1.01fr) minmax(0,.99fr)}
+.hero:before{background:linear-gradient(90deg,transparent 63%,#fff8f2 100%),url("salon-film-04.webp") 38% center/cover no-repeat;opacity:1}
+.hero h1{font-size:clamp(48px,3.95vw,61px)}
+.hero-copy{padding-inline-end:0}
+.trust-strip{margin-top:24px}
+}
+@media(min-width:961px) and (max-width:1249px){.hero-visual{transform:translateX(45px)}}
+@media(max-width:720px){.hero-visual{transform:none}}
