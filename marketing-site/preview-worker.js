@@ -23,7 +23,7 @@ export default {async fetch(request){
  if(!upstream.ok)return new Response('Asset Not Found',{status:404,headers:safe});
  // GitHub raw adds a restrictive CSP/sandbox and disposition. Do not forward upstream headers.
  const ext=path.split('.').pop().toLowerCase();
- const mime=path==='/index.html'?'text/html;charset=utf-8':({webp:'image/webp',jpg:'image/jpeg',png:'image/png',woff2:'font/woff2'})[ext]||'application/octet-stream';
+ const mime=path==='/index.html'?'text/html;charset=utf-8':({webp:'image/webp',jpg:'image/jpeg',png:'image/png',woff2:'font/woff2',css:'text/css;charset=utf-8',js:'application/javascript;charset=utf-8'})[ext]||'application/octet-stream';
  const headers=new Headers({...safe,'Content-Type':mime,'Cache-Control':path==='/index.html'?'public,max-age=45':'public,max-age=86400'});
  if(path==='/index.html')headers.set('X-Robots-Tag','noindex,nofollow');
  return new Response(request.method==='HEAD'?null:upstream.body,{status:200,headers});

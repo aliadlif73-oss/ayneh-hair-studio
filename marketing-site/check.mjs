@@ -6,6 +6,8 @@ import {test} from 'node:test';
 const root=dirname(fileURLToPath(import.meta.url));
 const html=readFileSync(join(root,'index.html'),'utf8');
 const worker=readFileSync(join(root,'worker.js'),'utf8');
+const css=readFileSync(join(root,'assets/site.css'),'utf8');
+const client=readFileSync(join(root,'assets/site.js'),'utf8');
 const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(x=>x[1]);
 test('Persian RTL, standalone page and complete sales funnel',()=>{
  assert.match(html,/<html lang="fa" dir="rtl">/);assert.match(html,/<meta name="viewport"/);
@@ -27,13 +29,15 @@ test('the form sends to a protected server endpoint and displays status',()=>{
 });
 test('responsiveness and accessible interaction',()=>{
  assert.match(html,/@media\(max-width:720px\)/);
- assert.match(html,/prefers-reduced-motion/);
+ assert.match(css,/prefers-reduced-motion/);
  assert.match(html,/aria-expanded/);
+ assert.match(html,/src="assets\/site.js"/);
  assert.match(html,/aria-label="مقایسه/);
- assert.doesNotMatch(html,/left:-9999px/);
+ assert.doesNotMatch(css,/left:-9999px/);
  assert.match(html,/\.honeypot\{[^}]*clip-path:inset\(50%\)/);
 });
 test('only the separate marketing files are wired',()=>{
  assert.match(readFileSync(join(root,'wrangler.toml'),'utf8'),/name = "ayneh-marketing"/);
+ assert.ok(existsSync(join(root,'.assetsignore')));
  assert.match(worker,/if\(env\.ASSETS\)/);
 });
