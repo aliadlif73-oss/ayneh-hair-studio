@@ -1,6 +1,8 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync,readdirSync} from 'node:fs';
 import {database,memoryBucket} from '../scripts/local-adapter.mjs';import app from '../worker/index.js';
-import {phone,transferPrompt} from '../worker/domain.js';import {appHTML} from '../worker/ui.js';import {customerHTML} from '../worker/customer.js';import {landingHTML} from '../worker/landing.js';import {tick} from '../worker/server.js';import {styles} from '../worker/legacy.js';
+import {phone,transferPrompt} from '../worker/domain.js';import {appHTML} from '../worker/ui.js';import {customerHTML} from '../worker/customer.js';import {landingHTML} from '../worker/landing.js';
+import {brandMark as generatedMark,favicon as faviconMark} from '../worker/brand.js';
+const brand=()=>({brandMark:generatedMark,faviconMark});import {tick} from '../worker/server.js';import {styles} from '../worker/legacy.js';
 
 const origin='https://test.example';
 const migrations=readdirSync(new URL('../drizzle/',import.meta.url)).filter(f=>f.endsWith('.sql')).sort();
@@ -724,7 +726,7 @@ test('without SMS invites the bot offers messenger buttons and /i/ is a send pag
 // ---------- landing page and salon inquiries ----------
 test('landing page is public at / and the owner console stays at /admin',async()=>{const e=tgEnv(fixture());
  const r=await app.fetch(new Request(origin+'/'),e);assert.equal(r.status,200);const html=await r.text();
- assert.match(html,/id="builderLive"/);assert.match(html,/انتخاب مشتری را با عکس ببینید/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
+ assert.match(html,/id="builderLive"/);assert.match(html,/دستیار هوشمند رشد سالن زیبایی شما/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
  new Function(html.match(/<script>([\s\S]*?)<\/script>/g).map(s=>s.replace(/<\/?script>/g,'')).join('\n'));
  assert.equal((await app.fetch(new Request(origin+'/admin'),e)).status,200);});
 
@@ -989,512 +991,442 @@ test('landing funnel events are first-party, validated and attributed',async()=>
  assert.equal(stored.utm_source.length,60);
 });
 
-test('funnel step 4: demos keep the owner on the landing and give demo visitors a way back',()=>{
- const canon='ساخت صفحهٔ من';
- // The three genuinely off-site demos open in a new tab and carry campaign attribution.
- const offsite=[...landingHTML.matchAll(/<a class="btn btn--ghost svc-try" href="([^"]+)"([^>]*)>/g)];
- assert.equal(offsite.length,3,'three service demo links');
- for(const [,href,attrs] of offsite){
-  assert.match(href,/^https:\/\/ayneh-salon\.site\/s\//);
-  assert.match(href,/from=landing/);assert.match(href,/utm_source=landing/);
-  assert.match(href,/utm_campaign=owner_preview/);assert.match(href,/utm_content=(hair|nails|lashes)/);
-  assert.match(attrs,/target="_blank"/);assert.match(attrs,/rel="noopener noreferrer"/);
- }
- // The four in-page demo openers stay in-page, but their no-JS fallback is identified too.
- assert.equal((landingHTML.match(/href="\/s\/demo\?l=hair&amp;from=landing"/g)||[]).length,4);
- assert.match(landingHTML,/ببینید مشتری چه می\u200cبیند/,'hero secondary CTA is owner-framed');
- assert.equal((landingHTML.match(/چطور کار می\u200cکند/g)||[]).length,3,'nav labels tell what the demo does');
- assert.doesNotMatch(landingHTML,/تجربهٔ آینه/);
- // The customer shell has exactly one owner-return bar, gated to demo / explicit landing visits.
- assert.match(customerHTML,/var FROM_LANDING=\/\[\?&\]from=landing/);
- assert.match(customerHTML,/\(state\.pub\.demo\|\|FROM_LANDING\)&&!\$\('\.trialbar'\)/);
- assert.match(customerHTML,/class:'trialbar owner-return'/);
- assert.match(customerHTML,/utm_medium=demo_return&utm_campaign=owner_preview#salon-example/);
- assert.doesNotMatch(customerHTML,/\/#start/,'no stale studio anchor');
- assert.doesNotMatch(customerHTML,/صفحهٔ آزمایشی رایگان سالن من/,'no rejected CTA label');
- assert.ok(customerHTML.includes(canon),'canonical CTA label on the return bar');
- // Bar and CTA render from the same script that is syntax-checked above.
- new Function(customerHTML.match(/<script>([\s\S]*?)<\/script>\s*<\/body>/)[1]);
+// ---------- Step 24: the reference rebuild ----------
+// These guards replace the espresso/brass funnel audit. They lock the visual
+// system taken from the six reference sheets (cream/emerald, the teal face mark,
+// the section order 1 hero → 2 امکانات → 3 نحوهٔ کار → 4 مزایا → 5 نظرات →
+// 6 تعرفه → 7 فراخوان → FAQ → footer) and the honesty rules that still apply.
+
+test('step 24 reference: the page opens with one hero, one headline and the four benefit cards',()=>{
+ assert.equal((landingHTML.match(/<h1[\s>]/g)||[]).length,1,'exactly one h1');
+ assert.match(landingHTML,/آینه، دستیار هوشمند<span class="h1__accent">رشد سالن زیبایی شما<\/span>/,'the two-tone reference headline');
+ assert.match(landingHTML,/id="heroCompare"/,'the before/simulation card leads the visual');
+ assert.match(landingHTML,/compare__badge[^>]*>[\s\S]{0,200}نتیجه با هوش مصنوعی/,'the AI result badge is labelled');
+ assert.equal((landingHTML.match(/class="hero-thumb"/g)||[]).length,4,'four services in the hero thumbnail rail');
+ assert.equal((landingHTML.match(/class="hero-benefits__icon"/g)||[]).length,4,'four benefit cards under the fold');
+ for(const label of ['رشد رزروها و درآمد','مدیریت آسان مشتریان','نوبت‌دهی آنلاین ۲۴ ساعته','اعتماد و رضایت بیشتر'])
+  assert.ok(landingHTML.includes(label),'benefit '+label);
+ assert.match(landingHTML,/نمونهٔ موقت؛ شبیه‌سازی تقریبی است/,'the simulation is not sold as a guarantee');
 });
 
-test('funnel step 5: two questions reach a ready preview, optional details stay live and are never lost',()=>{
- const landing=landingHTML;
- assert.equal((landing.match(/class="wizard-step/g)||[]).length,2,'only name + slug gate the preview');
- assert.match(landing,/id="wizardCount">۱ از ۲</);
- assert.match(landing,/id="builderDetails"/);
- assert.equal((landing.match(/class="detail-group"/g)||[]).length,7,'seven optional groups moved into one panel');
- assert.match(landing,/id="builderBuild"[^>]*disabled hidden/,'no extra build click');
- // Every field of the old nine-step wizard survives, so the draft keeps all of it.
+test('step 24 reference: header, nav and the two header actions follow the sheet',()=>{
+ const header=(landingHTML.match(/<header class="site-header">[\s\S]*?<\/header>/)||[])[0]||'';
+ assert.ok(header,'header exists');
+ assert.match(header,/class="brand__mark"/);assert.match(header,/class="brand__word">آینه</);
+ for(const item of ['#intro">خانه','#features">امکانات','#why">چرا آینه؟','#services">تعرفه‌ها','#faq">سوالات متداول'])
+  assert.ok(header.includes(item),'nav '+item);
+ assert.match(header,/aria-current="page"/,'the active item keeps the underline');
+ const actions=(header.match(/<div class="header-cta">[\s\S]*?<\/div>/)||[])[0]||'';
+ assert.match(actions,/class="btn--login"[\s\S]*?ورود به پنل/,'login button');
+ assert.match(actions,/class="btn" href="#form-start"[\s\S]*?درخواست دمو/,'primary header CTA');
+ assert.match(header,/class="menu-toggle"/,'mobile menu hook');
+ assert.match(landingHTML,/@media\(max-width:1120px\)\{[\s\S]{0,120}\.nav\{display:none\}/,'nav collapses before it can crowd the bar');
+});
+
+test('step 24 reference: section order matches the six reference sheets',()=>{
+ const order=['id="intro"','id="features"','id="how"','id="why"','id="proof"','id="services"',
+  'id="cta"','id="faq"','id="form-start"','id="salon-example"'];
+ let at=-1;
+ for(const token of order){
+  const next=landingHTML.indexOf(token,at+1);
+  assert.ok(next>at,'section '+token+' appears in reference order');
+  at=next;
+ }
+ // The section titles of the sheets land verbatim.
+ for(const title of ['امکانات و خدمات <em>آینه</em>','آینه <em>چگونه کار می‌کند؟</em>',
+  'چرا سالن‌داران <em>«آینه»</em> را انتخاب می‌کنند؟','اعتماد حرفه‌ای‌ها <em>به آینه</em>',
+  'پرسش‌های متداول <em>صاحبان سالن‌های زیبایی</em>','یک قدم تا <em>مدیریت حرفه‌ای</em>'])
+  assert.ok(landingHTML.includes(title),'title '+title);
+});
+
+test('step 24 reference: the five service cards and the four numbered steps are all there',()=>{
+ for(const card of ['پیش‌نمایش مدل مو','خدمات مژه','پیش‌نمایش رنگ مو','درخواست مستقیم سالن','خدمات ناخن'])
+  assert.ok(landingHTML.includes(card),'service card '+card);
+ assert.equal((landingHTML.match(/class="svc[\s"]/g)||[]).length,5,'five service cards');
+ assert.equal((landingHTML.match(/class="step__num"/g)||[]).length,4,'four numbered steps');
+ for(const step of ['بارگذاری عکس مشتری','انتخاب خدمت و مدل','ساخت پیش‌نمایش با هوش مصنوعی','ارسال درخواست به سالن'])
+  assert.ok(landingHTML.includes(step),'step '+step);
+ assert.match(landingHTML,/<span class="step__num" aria-hidden="true">۱<\/span>/,'steps are numbered right-to-left');
+ assert.equal((landingHTML.match(/class="why__icon"/g)||[]).length,6,'six benefit cards in the why grid');
+});
+
+test('step 24 reference: social proof ships as clearly marked temporary samples',()=>{
+ // The owner's standing rule: no invented clients, quotes, ratings or totals.
+ assert.equal((landingHTML.match(/class="quote"/g)||[]).length,3,'three quote slots');
+ assert.equal((landingHTML.match(/نمونهٔ موقت<\/b>/g)||[]).length,3,'each quote is flagged as a sample');
+ assert.match(landingHTML,/نقل‌قول ساختگی منتشر نمی‌کنیم/,'no fabricated quote is presented as real');
+ for(const stat of ['+۱۲٬۰۰۰','۴.۸','+۱٬۵۰۰٬۰۰۰']){
+  assert.ok(landingHTML.includes(stat),'counter '+stat);
+  assert.match(landingHTML,new RegExp(stat.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'[\\s\\S]{0,160}نمونه'),'counter '+stat+' is marked نمونه');
+ }
+ assert.match(landingHTML,/ارقام این بخش نمونهٔ موقت‌اند/,'the counters are declared as samples in prose');
+ assert.match(landingHTML,/انتخاب مطمئن مدیران/,'the trust badge from the sheet');
+ assert.equal((landingHTML.match(/class="quote-dots"/g)||[]).length,1,'one dot navigator');
+});
+
+test('step 24 reference: FAQ answers the five sheet questions and never names a price',()=>{
+ const faq=(landingHTML.match(/<section id="faq"[\s\S]*?<\/section>/)||[])[0]||'';
+ assert.equal((faq.match(/class="faq-item"/g)||[]).length,7,'seven questions');
+ for(const q of ['آینه دقیقاً چه کمکی به مدیریت سالن من می‌کند؟','راه‌اندازی و آموزش چقدر زمان می‌برد؟',
+  'آیا امکان استفاده روی موبایل وجود دارد؟','هزینهٔ استفاده از آینه چگونه است؟',
+  'آیا پشتیبانی و مشاوره در طول استفاده دارم؟'])
+  assert.ok(faq.includes(q),'faq '+q);
+ assert.match(faq,/مبلغ و سهمیهٔ تصویر در حال نهایی‌شدن است/,'the cost answer stays honest');
+ assert.doesNotMatch(faq,/میلیون|\d+\s*تومان/,'no figure is invented');
+ assert.match(faq,/href="#services"/,'the cost answer points at the panels');
+});
+
+test('step 24 reference: footer keeps the four columns, contacts and the copyright line',()=>{
+ const foot=(landingHTML.match(/<footer class="site-footer">[\s\S]*?<\/footer>/)||[])[0]||'';
+ assert.ok(foot,'footer exists');
+ for(const col of ['دسترسی سریع','لینک‌های مفید','ارتباط با ما'])assert.ok(foot.includes(col),'column '+col);
+ assert.match(foot,/دستیار هوشمند مدیریت<br>سالن‌های زیبایی/);
+ assert.match(foot,/0910 564 7497/);assert.match(foot,/omidadli78@gmail\.com/);
+ assert.match(foot,/© ۱۴۰۵ آینه/);
+ assert.equal((foot.match(/class="foot-social"/g)||[]).length,1);
+ assert.equal((foot.match(/class="brand__mark"/g)||[]).length,1,'the teal mark returns in the footer');
+});
+
+test('step 24 brand: one teal face mark, no leftover brass mirror',()=>{
+ const {brandMark,faviconMark}=brand();
+ const svg=readFileSync(new URL('../design/landing/assets/ayneh-mark.svg',import.meta.url),'utf8');
+ assert.match(svg,/viewBox="0 0 64 64"/);
+ assert.match(svg,/fill="currentColor"/,'the disc takes the brand colour');
+ assert.equal((svg.match(/stroke="#FCF3EB"/g)||[]).length,1,'the strands are punched in cream');
+ assert.doesNotMatch(svg,/brass|#D6BE8C|#C9A227/i,'the brass mark is retired');
+ assert.ok(brandMark.includes('aynDisc'),'the generated mark is the traced face');
+ // Every place that prints the mark prints this one.
+ for(const slot of ['brand__mark','foot-brand']){
+  assert.ok(landingHTML.includes(slot),slot+' slot exists');
+ }
+ assert.equal((landingHTML.match(/aynDisc/g)||[]).length>=3,true,'header, footer and studio carry the mark');
+ assert.ok(faviconMark.length>100,'favicon is generated from the new brand');
+});
+
+test('step 24 palette: cream ground, ink type, a single emerald accent',()=>{
+ assert.match(landingHTML,/--cream:#FCF3EB/);
+ assert.match(landingHTML,/--ink:#0A202A/);
+ assert.match(landingHTML,/--emerald:#068F6C/);
+ assert.match(landingHTML,/--emerald-deep:#0A6B54/);
+ assert.match(landingHTML,/--emerald-soft:#9BD9C5/);
+ assert.match(landingHTML,/--font:"Estedad","Vazirmatn"/,'the app font stack is shared');
+ // The old espresso/brass tokens must not survive.
+ assert.doesNotMatch(landingHTML,/--brass:#/);
+ assert.doesNotMatch(landingHTML,/--espresso:#/);
+ assert.doesNotMatch(landingHTML,/16100B|101E38/i,'no left-over espresso surface');
+ assert.doesNotMatch(landingHTML,/#D8A63C|#7A5712/i,'no left-over brass');
+ // Contrast floor: body copy is the darker grey on cream.
+ assert.match(landingHTML,/--ink-soft:#4A5C5C/);
+});
+
+test('step 24 layout: the grids collapse cleanly at 1120 / 900 / 600',()=>{
+ for(const rule of [
+  /@media\(max-width:1120px\)\{[\s\S]{0,80}\.nav\{display:none\}/,
+  /@media\(max-width:900px\)\{[\s\S]{0,200}\.hero-grid\{grid-template-columns:1fr/,
+  /@media\(max-width:1000px\)\{\.steps\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,
+  /@media\(max-width:860px\)\{\.svc-grid\{grid-template-columns:1fr\}/,
+  /@media\(max-width:900px\)\{\.why-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}/,
+  /@media\(max-width:900px\)\{\.plans\{grid-template-columns:1fr/,
+  /@media\(max-width:940px\)\{\.foot-grid\{grid-template-columns:1fr 1fr\}\}/])
+  assert.match(landingHTML,rule);
+ assert.match(landingHTML,/:focus-visible\{outline:3px solid var\(--emerald\)/,'focus ring everywhere');
+ assert.match(landingHTML,/@media\(prefers-reduced-motion:reduce\)/,'motion is opt-out');
+ assert.match(landingHTML,/\[hidden\]\{display:none!important\}/,'hidden always wins over a display rule');
+});
+
+test('step 24 pricing: three named panels, two figure slots each, no invented number',()=>{
+ assert.equal((landingHTML.match(/data-price="(?:solo|salon|chain)"/g)||[]).length,6,'amount + quota for three panels');
+ assert.equal((landingHTML.match(/<b class="slot">/g)||[]).length,6,'all six slots render');
+ for(const name of ['<h3>آرایشگر</h3>','<h3>آرایشگاه</h3>','<h3>مجموعه</h3>'])
+  assert.ok(landingHTML.includes(name),'panel '+name);
+ assert.equal((landingHTML.match(/تومان/g)||[]).length,5,'three plan amounts, the checkout figure and its toman formatter');
+ assert.doesNotMatch(landingHTML,/میلیون|[۰-۹0-9]\s*تومان/,'no number before the owner decides');
+ assert.match(landingHTML,/مبلغ و سهمیهٔ تصویر در حال نهایی‌شدن است/);
+ assert.match(landingHTML,/لینک شخصی برای هر آرایشگر/);
+ assert.match(landingHTML,/جابه‌جایی درخواست‌های بی‌پاسخ/);
+});
+
+test('step 24 studio: the live salon preview survives the rebuild',()=>{
+ assert.match(landingHTML,/id="salon-example"/);
+ assert.match(landingHTML,/id="builderLive"/);assert.match(landingHTML,/id="livePage"/);
+ assert.equal((landingHTML.match(/class="wiz-step/g)||[]).length,2,'only name + slug gate the preview');
+ assert.match(landingHTML,/id="wizardCount">۱ از ۲</);
+ assert.match(landingHTML,/id="builderDetails"[\s\S]*?تکمیل جزئیات صفحه/);
  for(const key of ['name','slug','brand','logo','cover','bio','manager','phone','hours','address',
   'portrait','map','instagram','telegram','website'])
-  assert.match(landing,new RegExp('name="'+key+'"'),'field '+key+' kept');
- const scripts=[...landing.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
- for(const src of scripts)new Function(src);
- const bundle=scripts.join('\n');
+  assert.match(landingHTML,new RegExp('name="'+key+'"'),'field '+key+' kept');
+ const sections=[...landingHTML.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+ for(const src of sections)new Function(src);
+ const bundle=sections.join('\n');
  assert.match(bundle,/ayneh:wizard-ready/);
  assert.match(bundle,/async function packageDraft/);
- assert.match(bundle,/draft=await packageDraft\(\)/,'request is packaged from current values at click time');
- assert.doesNotMatch(bundle,/activate\.hidden=!available\|\|!draft\|\|dirty/,'no rebuild-after-edit dead end');
- assert.doesNotMatch(bundle,/href="#start"/);
- assert.ok(landing.length<250000,'landing stays inside its size budget');
+ assert.match(bundle,/querySelector\('\.upload-name'\)/,'the file label keeps a node to update');
 });
 
-test('funnel step 6: cost, time and privacy are answered with no new claims',()=>{
- // Step 13 moved the strip to the third section, directly before its CTA.
- const strip=(landingHTML.match(/<ul class="reassure"[^>]*>[\s\S]*?<\/ul>/)||[])[0]||'';
- const inline=(landingHTML.match(/<p class="reassure-inline">[\s\S]*?<\/p>/)||[])[0]||'';
- assert.equal((strip.match(/<li>/g)||[]).length,3,'three objections answered');
- for(const label of ['اعلام مبلغ','زمان','حریم خصوصی'])assert.ok(strip.includes(label),'answers '+label);
- assert.ok(inline.includes('درخواستتان'),'studio restates the next action without another free claim');
- // Owner pivot: the strip points at the price panels instead of refusing a figure.
- // No invented number or time promise is allowed in that strip either.
- assert.match(strip,/href="#pricing">بخش قیمت/,'cost objection links to the panels');
- for(const banned of [/میلیون/,/\d+\s*(?:روز|ساعت|دقیقه|هفته)/,/شارژ ماهانه/])
-  assert.doesNotMatch(strip+inline,banned);
- // Step 3's "unify درخواست راهاندازی" is now complete in the OTP path too.
- assert.doesNotMatch(landingHTML,/فعال\u200cسازی/);
- assert.match(landingHTML,/id="builderActivate"[^>]*>درخواست راه\u200cاندازی</);
- // The canonical CTA label from step 3 is untouched.
- assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
- assert.ok(landingHTML.length<250000,'raised bloat guard still respected');
+test('step 24 budget: payload and markup stay inside the review envelope',()=>{
+ assert.ok(landingHTML.length<250000,'landing under 250k ('+landingHTML.length+')');
+ assert.ok(landingHTML.length>60000,'the page still carries its content');
+ assert.match(landingHTML,/og:image" content="__ORIGIN__\/landing\/og\.jpg"/,'the share image is origin-relative in source');
+ assert.equal((landingHTML.match(/__ORIGIN__/g)||[]).length,4,'signup links and the share image carry the origin token');
+ assert.equal((landingHTML.match(/<h1[\s>]/g)||[]).length,1);
+ assert.doesNotMatch(landingHTML,/cinema|film-player|service-journey/,'the retired film sections are gone');
+ assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length,0,'the retired CTA label is gone');
+ assert.ok(customerHTML.includes('ساخت صفحهٔ من'),'the customer return bar keeps its own label');
 });
 
-test('funnel step 7: hero speaks to the salon owner and has one clear primary CTA',()=>{
- const h1=(landingHTML.match(/<h1 id="h1"[^>]*>([\s\S]*?)<\/h1>/)||[])[1]||'';
- // Step 13 explicitly replaced the step-7 owner-fact headline with the owner's
- // short brand line. The owner framing still lives in the lead below it.
- assert.equal(h1,'انتخاب مشتری را با عکس ببینید');
- assert.ok(h1.includes('مشتری')&&h1.includes('عکس'),'customer choice and photo are named');
- assert.match(landingHTML,/<p class="hero-sub">صفحه\u200cای به نام شما یا آرایشگاه\u200cتان، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می\u200cدهد\./,'one support sentence names the product and owner benefit');
- assert.equal((h1.match(/<span/g)||[]).length,0,'headline stays plain static text');
- assert.match(landingHTML,/صفحه\u200cای با نام و رنگ خودتان/,'lead is owner-framed');
- const row=(landingHTML.match(/<div class="cta-row">([\s\S]*?)<\/div>/)||[])[1]||'';
- assert.match(row,/class="btn btn--lg" href="#salon-example"><span>ساخت صفحهٔ من/);
- assert.match(row,/class="btn btn--ghost btn--quiet" data-try="hair"/,'demo CTA demoted but still a .btn');
- assert.doesNotMatch(row,/class="btn btn--lg"[^>]*data-try/,'primary and demo are not both prominent');
- // Everything from the earlier steps stays intact.
- assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
- assert.match(landingHTML,/<ul class="reassure"/,'three-fact strip survives (step 13 moved it)');
- assert.match(landingHTML,/id="builderDetails"/);
- assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
- assert.equal((landingHTML.match(/href="#start"/g)||[]).length,1,'only the step-14 sticky CTA jumps straight to the form');
- assert.ok(landingHTML.length<250000);
+/* ============================================================================
+   Step 25: paid plans — a card transfer, a 10-minute window, an owner or
+   webhook confirmation, and the salon panel the payment opens.
+   ========================================================================== */
+import {PLANS, PRICE_MINUTES} from '../worker/prices.js';
+import {cardValid} from '../worker/orders.js';
+import {panelHTML} from '../worker/panel.js';
+
+const CARD = '6037-9911-2233-4455';      // passes the Luhn check, expires nowhere
+const orderBody = (plan = 'salon', extra = {}) => ({plan, salon: 'سالن نمونه', name: 'سارا محمدی', phone: '۰۹۱۲۱۲۳۴۵۶۷', city: 'تهران', consent: true, ...extra});
+/* A priced plan is needed to test a checkout; the shipped page stays unpriced until the
+   owner approves numbers. This only mutates the in-memory import for these tests. */
+function priced(plan, amount, quota = 30) {
+  const before = {...PLANS[plan]};
+  PLANS[plan].amount = amount; PLANS[plan].quota = quota;
+  return () => Object.assign(PLANS[plan], before);
+}
+
+test('step 25 pricing: with no approved amount a plan cannot be bought, and the server says so', async () => {
+  const e = fixture();
+  assert.equal(PLANS.salon.amount, 0, 'the shipped table has no invented figure');
+  const r = await call(e, '/api/order', orderBody());
+  assert.equal(r.status, 409);
+  assert.match(r.data.error, /مبلغ این پنل هنوز نهایی نشده/);
+  const unknown = await call(e, '/api/order', orderBody('platinum'));
+  assert.equal(unknown.status, 404);
 });
 
-test('funnel step 8: every success state answers what happens next, with no new claims',()=>{
- const tpl=(landingHTML.match(/<template id="followUpTemplate">([\s\S]*?)<\/template>/)||[])[1]||'';
- assert.ok(tpl,'the follow-up copy has a single source of truth');
- assert.equal((tpl.match(/<li>/g)||[]).length,3,'three steps: received/reviewed, who calls, what is needed');
- for(const label of ['دریافت و بررسی','تماس تیم آینه','از طرف شما'])assert.ok(tpl.includes(label),label);
- assert.match(tpl,/کارشناسان ما/,'who reviews');
- assert.match(tpl,/گفتگو و هماهنگی راه\u200cاندازی/,'who calls and why');
- assert.match(tpl,/نیازی به پرداخت یا کاری از طرف شما نیست/,'nothing needed from the owner');
- assert.match(tpl,/شماره فقط برای پیگیری همین درخواست استفاده می\u200cشود/,'existing privacy line');
- // No invented proof, price, timeframe or social proof anywhere in the new copy.
- assert.doesNotMatch(tpl,/میلیون|تومان|شارژ ماهانه|[۰-۹0-9]+\s*(روز|ساعت|دقیقه|هفته|ماه)/);
- assert.doesNotMatch(tpl,/رضایت|ستاره|نظر مشتری|مشتریان ما|سالن\u200cهای همکار|تضمین/);
- // Both success paths use the same template; neither writes a drifting sentence.
- assert.match(landingHTML,/id="builderThanks" class="follow-up-slot" role="status" hidden/);
- assert.match(landingHTML,/class="lf-done follow-up-slot" id="lf-done" role="status" hidden/);
- assert.match(landingHTML,/window\.__AYN_FOLLOWUP=slot=>/,'helper bundled');
- assert.match(landingHTML,/__AYN_FOLLOWUP\?\.\(thanks\)/,'OTP dialog path');
- assert.match(landingHTML,/__AYN_FOLLOWUP\?\.\(done\)/,'always-available phone path');
- // Analytics and every earlier funnel step are unchanged.
- assert.equal((landingHTML.match(/lead_submit'/g)||[]).length>=2,true);
- assert.match(landingHTML,/انتخاب مشتری را با عکس ببینید/);
- assert.match(landingHTML,/<ul class="reassure"/,'three-fact strip survives (step 13 moved it)');
- assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
- assert.ok(landingHTML.length<250000,'bloat guard still respected');
+test('step 25 order: a valid order returns the amount in toman, a 10-minute window and a card once the owner sets one', async () => {
+  const e = fixture();
+  const restore = priced('salon', 2900000);
+  try {
+    // No card yet: the order still opens, the page is told to warn instead of inventing a number.
+    const first = await call(e, '/api/order', orderBody());
+    assert.equal(first.status, 200, JSON.stringify(first));
+    assert.equal(first.data.amount, 2900000, 'toman, not rial');
+    assert.equal(first.data.card, '');
+    assert.equal(first.data.status, 'open');
+    assert.equal(first.data.expires_at - first.data.created_at, PRICE_MINUTES * 60000, '10 minutes');
+    assert.match(first.data.ref, /^AY[2-9A-HJ-NP-Z]{6}$/);
+    assert.match(first.data.access_key, /^AY-[2-9A-HJ-NP-Z]{9}$/, 'the key is handed out once');
+
+    // The owner's card is normalised, owner name kept, and the same order now carries it.
+    assert.equal((await call(e, '/api/salon-a', {}, {})).status, 404); // sanity: no such shortcut
+    const saved = await call(e, '/api/owner/payment', {card: CARD, owner: 'علی ادلی'}, OWNER);
+    assert.equal(saved.status, 200, JSON.stringify(saved));
+    assert.deepEqual(saved.data.card, {number: '6037991122334455', owner: 'علی ادلی'});
+    const again = await call(e, '/api/order/' + first.data.id);
+    assert.equal(again.data.card, '6037991122334455');
+    assert.equal(again.data.card_owner, 'علی ادلی');
+    assert.equal(again.data.access_key, '', 'the key is never re-sent');
+  } finally { restore() }
 });
 
-test('final funnel audit: structure, anchors, labels and the two legibility fixes hold',()=>{
- const ids=[...landingHTML.matchAll(/\sid="([^"]+)"/g)].map(m=>m[1]);
- assert.equal(new Set(ids).size,ids.length,'no duplicate id in the shipped page');
- const idSet=new Set(ids);
- const anchors=[...landingHTML.matchAll(/href="#([^"]+)"/g)].map(m=>m[1]);
- assert.ok(anchors.length>=20,'internal navigation is present');
- for(const a of new Set(anchors))assert.ok(idSet.has(a),'anchor #'+a+' resolves');
- for(const attr of ['aria-controls','aria-labelledby','aria-describedby']){
-  const refs=[...landingHTML.matchAll(new RegExp(attr+'="([^"]+)"','g'))].flatMap(m=>m[1].split(/\s+/));
-  for(const r of refs)assert.ok(idSet.has(r),attr+' '+r+' resolves');
- }
- assert.equal((landingHTML.match(/<h1[\s>]/g)||[]).length,1,'exactly one h1');
- assert.match(landingHTML,/<img id="roomImg2"[^>]*alt=""[^>]*aria-hidden="true"/);
- assert.doesNotMatch(landingHTML,/R0lGODlhAQABAAAAACw=/,'truncated 1x1 GIF placeholder is gone');
- assert.match(landingHTML,/R0lGODlhAQABAIAAAAAAAP/, 'valid transparent GIF placeholder');
- // .builder-note has an !important dark colour; the dark preview panel needs an
- // equally important, more specific light override or its runtime hint is unreadable.
- assert.match(landingHTML,/\.builder-preview>\.builder-note\{color:#E4ECF5!important\}/);
- assert.ok(landingHTML.indexOf('.builder-preview>.builder-note{color:#E4ECF5!important}')>
-          landingHTML.indexOf('.builder-note{color:#39455A!important}'),'override comes later');
- assert.equal((landingHTML.match(/href="#start"/g)||[]).length,1,'only the step-14 sticky CTA jumps straight to the form');
- assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
- assert.match(landingHTML,/<template id="followUpTemplate">/);
- assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
- assert.ok(landingHTML.length<250000);
+test('step 25 card: 16 digits, Luhn-checked, and digits alone never become an owner name', () => {
+  assert.equal(cardValid(CARD), true);
+  assert.equal(cardValid('6037991122334456'), false, 'wrong check digit');
+  assert.equal(cardValid('1111111111111111'), false, 'repeated digits');
+  assert.equal(cardValid('603799112233445'), false, '15 digits');
+  assert.equal(cardValid('۶۰۳۷۹۹۱۱۲۲۳۳۴۴۵۵'), true, 'Persian digits are accepted');
 });
 
-test('funnel step 10: secondary buttons stay legible and controls share one visual language',()=>{
- // polish.css gives every .btn a blue gradient with --button-text:#F7FAFF; the
- // old .btn--ghost !important dark navy produced 2.43:1 on six buttons.
- assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
- assert.doesNotMatch(landingHTML,/\.btn--ghost\{[^}]*color:#1B2B45!important\}/);
- assert.match(landingHTML,/:where\(\.wizard-step,\.detail-group,\.builder-dialog,\.lead-fallback\)/,'section 19 shipped');
- assert.match(landingHTML,/:is\(input,select,textarea\):not\(\[type=file\]\)/,'one field token');
- assert.match(landingHTML,/\.lead-fallback \.lf-check input\{appearance:none/,'designed checkbox');
- assert.doesNotMatch(landingHTML,/\.detail-group\{[^}]*border-top:1px dashed/,'no dashed group dividers');
- // cinema.css paints the upload wells dashed/grey; the later override must win.
- assert.match(landingHTML,/\.upload-control\{border:1px solid rgba\(198,172,116,\.85\)!important/);
- assert.ok(landingHTML.indexOf('.upload-control{border:1px solid rgba(198,172,116,.85)!important')>
-          landingHTML.indexOf('border:1.5px dashed #6c757f'),'override is bundled later');
- // Everything from the earlier steps survives.
- assert.match(landingHTML,/انتخاب مشتری را با عکس ببینید/);
- assert.match(landingHTML,/<template id="followUpTemplate">/);
- assert.match(landingHTML,/R0lGODlhAQABAIAAAAAAAP/);
- assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
- assert.ok(landingHTML.length<250000);
+test('step 25 expiry: the window is enforced by the server, and a closed order cannot be confirmed or paid', async () => {
+  const e = fixture();
+  const restore = priced('salon', 1000000);
+  try {
+    const r = await call(e, '/api/order', orderBody());
+    assert.equal(r.status, 200);
+    e.DB.sql.prepare('UPDATE orders SET expires_at=? WHERE id=?').run(Date.now() - 1000, r.data.id);
+    const after = await call(e, '/api/order/' + r.data.id);
+    assert.equal(after.data.status, 'expired');
+    const confirm = await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER);
+    assert.equal(confirm.status, 409);
+    const receipt = await call(e, '/api/order/' + r.data.id + '/receipt', {note: '123456'});
+    assert.equal(receipt.status, 410);
+    const panel = await call(e, '/api/panel/me');
+    assert.equal(panel.data.salon, null, 'no panel before payment');
+  } finally { restore() }
 });
 
-test('funnel step 11: page-wide surfaces and readability floors',()=>{
- // The light-section kicker colour was forced onto the dark invite section (3:1).
- assert.match(landingHTML,/\.salon-invite-copy \.journey-kicker,\.salon-invite-copy \.journey-kicker \.type-live\{color:#E7C892!important\}/);
- // FAQ now uses the same flat cream / gold-hairline language as every other card.
- assert.match(landingHTML,/\.faq>details\{background:#FFFDF8/,'flat FAQ card');
- assert.match(landingHTML,/\.faq>details>p\{background:#FFFBF0/,'flat FAQ panel');
- assert.match(landingHTML,/\.faq summary::after\{background:linear-gradient\(145deg,#F7E7BD/,'gold accordion control');
- // A floor for real UI labels (the miniature phone preview keeps its own scale).
- assert.match(landingHTML,/\.salon-builder \.wizard-step label\{font-size:12px!important\}/);
- assert.match(landingHTML,/\.upload-name,\.salon-builder \.upload-name\{font-size:12px!important\}/);
- assert.match(landingHTML,/\.lead-fallback \.lf-privacy\{font-size:13px!important\}/);
- assert.match(landingHTML,/\.reassure li,\.reassure b,\.reassure-inline\{font-size:12\.5px!important\}/);
- // Steps 1-10 remain intact.
- assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
- assert.match(landingHTML,/\.upload-control\{border:1px solid rgba\(198,172,116,\.85\)!important/);
- assert.match(landingHTML,/\.lead-fallback \.lf-check input\{appearance:none/);
- assert.match(landingHTML,/انتخاب مشتری را با عکس ببینید/);
- assert.match(landingHTML,/<template id="followUpTemplate">/);
- assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
- assert.ok(landingHTML.length<250000);
+test('step 25 one open order per mobile: a second click resumes the first instead of stacking countdowns', async () => {
+  const e = fixture();
+  const restore = priced('solo', 500000);
+  try {
+    const a = await call(e, '/api/order', orderBody('solo'));
+    const b = await call(e, '/api/order', orderBody('solo'));
+    assert.equal(a.data.id, b.data.id);
+    assert.equal(b.data.access_key, '', 'a resumed order never re-issues the key');
+    const count = e.DB.sql.prepare('SELECT count(*) n FROM orders').get().n;
+    assert.equal(count, 1);
+  } finally { restore() }
 });
 
-test('funnel step 12: the mirror leads the mobile first fold and three gold medallions survived',()=>{
- // Desktop stays untouched: the teaser and the scroll cue are display:none, and
- // the medallions are suppressed there (the desktop reassure band is a tight
- // inline strip inside a fixed-height sticky stage).
- assert.match(landingHTML,/\.hero-scroll-cue\{display:none!important\}/,'the cue, not the product UI, is hidden on desktop');
- // On phones/tablets .copy is display:contents, so orders are on .stage itself.
- // Step 14 inserted a sub-line and a caption, so the effective order is now
- // h1 2, sub 3, visual 4, note 5, CTA 6, copy 7/8, cue 9, demo 10.
- assert.match(landingHTML,/\.hero-proof\{[^}]*order:4/);
- assert.match(landingHTML,/\.salon-invite-copy>\.reassure\{grid-column:1 \/ -1;grid-row:4/);
- assert.match(landingHTML,/\.hero-scroll-cue\{[^}]*order:9/);
- assert.match(landingHTML,/\.stage \.copy \.lead\{display:none!important\}/);
- assert.match(landingHTML,/\.hero-details \.fineprint/,'disclosures moved below the fold');
- assert.match(landingHTML,/\.hero-playground\{order:10\}/);
- // Section 23 ships last, so its order wins over the section-21/hero.css rules.
- assert.ok(landingHTML.indexOf('.hero-playground{order:10}')>
-          landingHTML.indexOf('.hero-playground{order:9}'),'section 23 wins');
- // The cue is decorative and must stop animating for reduced-motion users.
- assert.match(landingHTML,/@media\(prefers-reduced-motion:reduce\)\{\.hero-scroll-cue svg\{animation:none\}\}/);
- // Three new 3D medallions reuse the exact site component (8 already exist in
- // the services / benefits sections), with cost, time and privacy glyphs.
- assert.equal((landingHTML.match(/class="gold-icon"/g)||[]).length,11);
- assert.match(landingHTML,/M8 11h24v19H8V11Zm0 6h24M14 23h7/);
- assert.match(landingHTML,/M20 6a14 14 0 1 0 0 28 14 14 0 1 0 0-28Zm0 6v8l5 3/);
- assert.match(landingHTML,/M20 6l12 4v9c0 7-5 12-12 15/);
- assert.match(landingHTML,/\.salon-invite-copy \.reassure \.gold-icon\{display:grid;grid-column:1;grid-row:1\/span 2/);
- // No copy was rewritten, added or deleted: all three approved sentences, the
- // owner-framed h1 and the canonical CTA are byte-identical.
- assert.match(landingHTML,/سه پنل در <a href="#pricing">بخش قیمت<\/a> آمده‌اند؛ مبلغ و سهمیهٔ تصویر پیش از هر پرداختی نوشته می\u200cشود\./,'panel pointer replaces the no-price sentence');
- assert.match(landingHTML,/همین حالا ببینید؛ راه\u200cاندازی بعد از گفتگو و هماهنگی\./);
- assert.match(landingHTML,/عکس\u200cها و اطلاعات پیش\u200cنمایش تا پیش از درخواست فقط در مرورگر شماست\./);
- assert.match(landingHTML,/انتخاب مشتری را با عکس ببینید/);
- assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
- // Steps 1-11 remain intact, including the ripple on every button.
- assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
- assert.match(landingHTML,/<template id="followUpTemplate">/);
- assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
- // 241.2k shipped. The 250k cap is an internal bloat guard, not a Worker limit.
- assert.ok(landingHTML.length<250000);
+test('step 25 coupons: one code per order lowers the toman amount; a bad code is refused and a max:1 code is spent only on commit', async () => {
+  const e = fixture();
+  const restore = priced('salon', 2000000);
+  try {
+    e.DB.sql.prepare("INSERT INTO app_settings(key,value,updated_at) VALUES('pay_coupons','{\"AYNEH20\":{\"percent\":20,\"max\":1},\"OFF500\":{\"amount\":500000,\"max\":0}}',?)").run(Date.now());
+    const r = await call(e, '/api/order', orderBody());
+    const c = await call(e, '/api/order/' + r.data.id + '/coupon', {coupon: 'ayneh20'});
+    assert.equal(c.status, 200, JSON.stringify(c));
+    assert.equal(c.data.discount, 400000);
+    assert.equal(c.data.amount, 1600000);
+    const bad = await call(e, '/api/order/' + r.data.id + '/coupon', {coupon: 'NOPE'});
+    assert.equal(bad.status, 422);
+    // The code is spent when the customer commits (sends a receipt), not when a window opens.
+    assert.equal((await call(e, '/api/order/' + r.data.id + '/receipt', {note: '۱۲۳۴'})).data.status, 'reviewing');
+    const other = await call(e, '/api/order', orderBody('salon', {phone: '۰۹۱۲۰۰۰۰۰۰۰'}));
+    const used = await call(e, '/api/order/' + other.data.id + '/coupon', {coupon: 'AYNEH20'});
+    assert.equal(used.status, 422, 'max:1 is used up');
+    const fixed = await call(e, '/api/order/' + other.data.id + '/coupon', {coupon: 'OFF500'});
+    assert.equal(fixed.status, 200);
+    assert.equal(fixed.data.amount, 1500000);
+  } finally { restore() }
 });
 
-test('funnel step 13: static benefit headline and the three facts before the third-section CTA',()=>{
- // Owner decisions: headline (new h1), inplace_keep (image and demo stay),
- // invite (third section), approve. No other copy is rewritten.
- assert.match(landingHTML,/<h1 id="h1">انتخاب مشتری را با عکس ببینید<\/h1>/);
- assert.doesNotMatch(landingHTML,/<p class="eyebrow reveal">/,'bland opening kicker is gone');
- const intro=(landingHTML.match(/<section id="intro"[\s\S]*?<\/section>/)||[])[0]||'';
- assert.ok(intro&&!intro.includes('class="reassure"'),'the three facts left the hero');
- assert.equal((intro.match(/class="gold-icon"/g)||[]).length,0,'no medallions left in the hero');
- // They now sit in the third section, immediately before its own CTA.
- const invite=(landingHTML.match(/<section class="salon-invite"[\s\S]*?<\/section>/)||[])[0]||'';
- assert.ok(invite.includes('class="reassure"'),'facts are in the third section');
- assert.ok(invite.indexOf('class="reassure"')<invite.indexOf('ساخت صفحهٔ من'),
-  'facts come before the CTA');
- assert.equal((invite.match(/class="gold-icon"/g)||[]).length,3,'all three medallions moved too');
- assert.match(landingHTML,/\.copy h1::after\{content:"";display:block;width:46px/,'gold dash survives');
- assert.match(landingHTML,/\.salon-invite-copy>\.reassure\{margin:20px 0 0/,'dark-card restyle shipped');
- assert.match(landingHTML,/\.salon-invite-copy>\.btn\{grid-row:5/,'desktop grid made room');
- // Step 15 removed the typing engine from the h1; section cinema stays.
- assert.doesNotMatch(landingHTML,/prepareType\(heroH1\)/,'no typing ceremony');
- assert.match(landingHTML,/window\.__AYN_HERO_READY=Promise\.resolve\(false\)/,'loader is gone');
- assert.doesNotMatch(landingHTML,/slamHero/);
- assert.match(landingHTML,/if\(still\)return;/,'reduced motion still short-circuits cinema');
- assert.match(landingHTML,/const n=copyEls\.length\|\|1/,'invite reveal reaches the CTA');
- // Step 14 shortens the step-6 sentence and moves the cue to the end of the fold.
- assert.match(landingHTML,/\.hero-proof\{[^}]*order:4/);
- assert.match(landingHTML,/\.hero-playground\{order:10\}/);
- // The three approved sentences, the canonical CTA and the rest of the funnel.
- for(const t of ['سه پنل در <a href="#pricing">بخش قیمت<\/a> آمده‌اند؛ مبلغ و سهمیهٔ تصویر پیش از هر پرداختی نوشته می\u200cشود.',
-  'همین حالا ببینید؛ راه\u200cاندازی بعد از گفتگو و هماهنگی.',
-  'عکس\u200cها و اطلاعات پیش\u200cنمایش تا پیش از درخواست فقط در مرورگر شماست.'])assert.ok(landingHTML.includes(t));
- assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
- assert.match(landingHTML,/<template id="followUpTemplate">/);
- assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2);
- assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
- assert.ok(landingHTML.length<250000);
+test('step 25 confirm: the owner turns an order into a salon page + a working panel key, exactly once', async () => {
+  const e = fixture();
+  const restore = priced('salon', 1200000);
+  try {
+    const r = await call(e, '/api/order', orderBody());
+    assert.equal((await call(e, '/api/owner/orders', undefined, OWNER)).data.orders.length, 1);
+    assert.equal((await call(e, '/api/owner/orders')).status, 401);
+    const ok = await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER);
+    assert.equal(ok.status, 200, JSON.stringify(ok));
+    assert.equal(ok.data.order.status, 'paid');
+    assert.match(ok.data.order.page_url, /\/s\/salon$/);
+    // The salon exists and its public page answers.
+    assert.equal((await app.fetch(new Request(origin + ok.data.order.page_url.slice(origin.length)), e)).status, 200);
+    // Idempotent: a second confirm does not make a second salon.
+    const twice = await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER);
+    assert.equal(twice.data.order.status, 'paid');
+    assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM salons').get().n, 1);
+
+    // The key the customer kept opens the panel.
+    const login = await call(e, '/api/panel/login', {key: r.data.access_key});
+    assert.equal(login.status, 200, JSON.stringify(login));
+    // Only the exact cookie value (the key's hash) is accepted; a cookie without it is a 401.
+    assert.equal((await call(e, '/api/panel/me')).data.salon, null, 'no cookie, no panel');
+    assert.equal((await call(e, '/api/panel/me', undefined, {cookie: 'ayneh_panel=deadbeef'})).data.salon, null);
+    const me = await app.fetch(new Request(origin + '/api/panel/me', {headers: {cookie: login.cookie}}), e);
+    assert.equal(me.status, 200);
+    const authed = await app.fetch(new Request(origin + '/api/panel/me', {headers: {cookie: login.cookie}}), e);
+    const dash = await (authed).json();
+    assert.equal(dash.salon.name, 'سالن نمونه');
+    assert.match(dash.salon.url, /\/s\/salon$/);
+    assert.equal(dash.setup.total, 4);
+    assert.equal((await app.fetch(new Request(origin + '/panel'), e)).status, 200);
+  } finally { restore() }
 });
 
-test('funnel step 14: one honest round against the picky-user audit',()=>{
- // Owner decisions: honest_once (no invented price), give_all with real contact
- // details, keep_plus_sub, tune, dedupe_label, approve_all.
- // 1. The brand line stays but is no longer vague or repeated in the loader.
- assert.match(landingHTML,/<p class="hero-sub">صفحه\u200cای به نام شما یا آرایشگاه\u200cتان، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می\u200cدهد\./,'product is named in the first fold');
- assert.doesNotMatch(landingHTML,/id="siteLoader"/,'loader markup removed');
- assert.doesNotMatch(landingHTML,/site-loader/,'loader styles removed');
- assert.doesNotMatch(landingHTML,/انتخابی که به شما می\u200cآید/,'loader no longer repeats the headline');
- // 2/11. The pivot replaces "no price" with three panels whose figures are still
- // empty: the structure ships, not a made-up number. Every amount is a slot.
- assert.doesNotMatch(landingHTML,/میلیون|شارژ ماهانه/,'no invented figure ships');
- assert.equal((landingHTML.match(/<p class="plan-amount" data-price="/g)||[]).length,3,'one amount slot per panel');
- assert.equal((landingHTML.match(/<p class="plan-quota" data-price="/g)||[]).length,3,'one quota slot per panel');
- assert.equal((landingHTML.match(/<b class="slot">/g)||[]).length,6,'six unfilled figures');
- assert.doesNotMatch(landingHTML,/<b class="slot">[۰-۹0-9]/,'a slot never holds a digit');
- assert.equal((landingHTML.match(/رایگان/g)||[]).length,1,'free is defined once');
- assert.match(landingHTML,/منظور از رایگان: ساخت پیش\u200cنمایش، ثبت درخواست و امتحان خدمات روی عکس خودتان، بدون پرداخت و بدون ثبت\u200cنام است/);
- assert.match(landingHTML,/class="sticky-cta" id="stickyCta" href="#start" hidden/,'contextual CTA jumps to the form');
- assert.match(landingHTML,/تنها تأیید شمارهٔ موبایل لازم دارد/,'free boundary and OTP are explicit');
- assert.doesNotMatch(landingHTML,/پیش\u200cنمایش و درخواست رایگان است؛/,'step-6 repetition removed');
- // 4. Real owner-supplied identity, plus honest disclosure where data was absent.
- assert.match(landingHTML,/href="tel:09105647497" dir="ltr"/);
- assert.match(landingHTML,/href="mailto:omidadli78@gmail.com" dir="ltr"/);
- assert.match(landingHTML,/تیم سازنده: <b>آینه<\/b>/);
- assert.doesNotMatch(landingHTML,/منتشر نکرده\u200cایم/,'temporary samples replaced the unpublished labels');
- assert.match(landingHTML,/نمونهٔ موقت/,'temporary product UI is labelled');
- assert.doesNotMatch(landingHTML,/sticky-cta-note/,'phone is no longer repeated on the sticky bar');
- // 5/6. Distinct crop, accuracy warning beside the image, three services named.
- assert.match(landingHTML,/\.hero-proof \.live-img\{[^}]*transform:none!important/,'real before/after plates stay aligned');
- assert.match(landingHTML,/شبیه\u200cسازی تقریبی است و نتیجهٔ نهایی را تضمین نمی\u200cکند/);
- assert.match(landingHTML,/خدمات قابل امتحان: مدل و رنگ مو، طرح ناخن یا مدل مژه، روی عکس خود مشتری\./);
- // The desktop copy of the accuracy warning is static, not a scrubbed .reveal
- // element: a measured screenshot caught a paused hero animation dimming it.
- assert.match(landingHTML,/<p class="hero-honesty">شبیه\u200cسازی تقریبی است/);
- assert.doesNotMatch(landingHTML,/hero-honest-desktop/,'one honesty line, no duplicate');
- assert.match(landingHTML,/\.hero-honesty\{[^}]*opacity:1!important/,'warning stays fully opaque');
- // 7/9. The cue is last in the fold and the dark-card text is larger.
- assert.match(landingHTML,/\.hero-scroll-cue\{[^}]*order:9/);
- assert.match(landingHTML,/\.salon-invite-copy \.reassure li>span:last-child,\.salon-invite-copy \.reassure b\{font-size:15\.5px!important/);
- // 10. Faster typing and loader, but no cinema/ripple deletion.
- assert.doesNotMatch(landingHTML,/clamp\(\(now-t0\)/,'no typing boot track');
- assert.doesNotMatch(landingHTML,/resolve\(false\),1100\)/,'no loader deadline');
- assert.doesNotMatch(landingHTML,/loader\.remove\(\),250\)/,'no delayed loader removal');
- assert.match(landingHTML,/invite-play/,'film is visibly a film');
- assert.doesNotMatch(landingHTML,/const typeH1=prepareType\(heroH1\)/,'typing removed');
- assert.match(landingHTML,/if\(still\)return;/);
- assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/);
- assert.match(landingHTML,/<template id="followUpTemplate">/);
- assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2,'step-5 form unchanged');
- assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
- assert.ok(landingHTML.length<250000);
+test('step 25 webhook: the payment site confirms with its token; a wrong token, a bad status or an unknown ref changes nothing', async () => {
+  const e = fixture();
+  const restore = priced('chain', 3000000);
+  try {
+    const r = await call(e, '/api/order', orderBody('chain'));
+    const conf = await call(e, '/api/owner/payment', undefined, OWNER);
+    const key = conf.data.webhook.key;
+    assert.match(key, /^whk_[a-f0-9]{48}$/);
+    assert.equal(conf.data.webhook.url, origin + '/api/pay/confirm');
+    const post = (body, headers = {}) => app.fetch(new Request(origin + '/api/pay/confirm', {method: 'POST', headers: {origin, 'content-type': 'application/json', ...headers}, body: JSON.stringify(body)}), e);
+    assert.equal((await post({ref: r.data.ref})).status, 401, 'no token');
+    assert.equal((await post({ref: r.data.ref}, {authorization: 'Bearer wrong'})).status, 401);
+    const ignored = await post({ref: r.data.ref, status: 'failed'}, {authorization: 'Bearer ' + key});
+    assert.equal((await ignored.json()).ignored, true);
+    assert.equal((await call(e, '/api/owner/orders', undefined, OWNER)).data.orders[0].status, 'open');
+    const ok = await post({ref: r.data.ref, status: 'paid'}, {'x-webhook-key': key});
+    const body = await ok.json();
+    assert.equal(body.status, 'paid');
+    assert.match(body.page, /\/s\//);
+    // The webhook path never hands out the access key; the owner resends it instead.
+    assert.equal((await call(e, '/api/order/' + r.data.id)).data.access_key, '');
+    // Rotating the token invalidates the old one.
+    const rotated = await call(e, '/api/owner/payment', {rotate: true}, OWNER);
+    assert.notEqual(rotated.data.key, key);
+    assert.equal((await post({ref: r.data.ref}, {authorization: 'Bearer ' + key})).status, 401);
+  } finally { restore() }
 });
 
-test('funnel step 15: zero-criticism round against the second picky-user review',()=>{
- // Owner decisions: no_number_clear, all (temporary samples), new_composite,
- // full. Free boundary confirmed as free_yes. PR #41 stays open, not merged.
- // 1. A benefit-oriented static headline, with no typing or loader ceremony.
- assert.match(landingHTML,/<h1 id="h1">انتخاب مشتری را با عکس ببینید<\/h1>/);
- assert.doesNotMatch(landingHTML,/prepareType\(heroH1\)/,'no typing');
- assert.doesNotMatch(landingHTML,/clamp\(\(now-t0\)/,'no boot track');
- assert.doesNotMatch(landingHTML,/resolve\(false\),1100\)/,'no loader deadline');
- assert.doesNotMatch(landingHTML,/loader\.remove\(\),250\)/,'no delayed loader removal');
- assert.match(landingHTML,/window\.__AYN_HERO_READY=Promise\.resolve\(false\)/,'loader removed at once');
- assert.doesNotMatch(landingHTML,/id="siteLoader"|site-loader/,'no loader markup or styles');
- assert.match(landingHTML,/if\(still\)return;/,'section cinema and reduced-motion path survive');
- assert.match(landingHTML,/\.btn--ghost\{[^}]*color:var\(--button-text,#F7FAFF\)!important\}/,'ripples/buttons survive');
- // 2. Why there is no number, plus an unambiguous free boundary.
- // Pricing is now a named section, and the old "no figure at all" stance is gone.
- assert.doesNotMatch(landingHTML,/میلیون|شارژ ماهانه/);
- assert.doesNotMatch(landingHTML,/قیمت ثابت از قبل اعلام نمی\u200cشود|چرا عدد ثابت اعلام نمی\u200cشود؟/,'stale no-price copy removed');
- assert.match(landingHTML,/<section id="pricing"[^>]*class="section section--sunken pricing"/,'panels are a real section');
- assert.match(landingHTML,/href="#pricing"/,'the funnel can reach the panels');
- assert.equal((landingHTML.match(/رایگان/g)||[]).length,1,'free defined once');
- assert.match(landingHTML,/امتحان خدمات روی عکس خودتان، بدون پرداخت و بدون ثبت\u200cنام است/);
- assert.match(landingHTML,/تنها تأیید شمارهٔ موبایل لازم دارد/);
- // 3. Real contact stays verbatim; temporary sample values are explicitly labelled.
- assert.match(landingHTML,/href="tel:09105647497" dir="ltr"/);
- assert.match(landingHTML,/href="mailto:omidadli78@gmail.com" dir="ltr"/);
- assert.match(landingHTML,/تیم سازنده: <b>آینه<\/b>/);
- assert.match(landingHTML,/data-sample="hours"/);
- assert.match(landingHTML,/data-sample="salon"/);
- assert.match(landingHTML,/data-sample="email" dir="ltr">sample@ayneh\.example/);
- assert.match(landingHTML,/data-sample="beforeafter"/);
- assert.match(landingHTML,/data-sample="bot"/);
- assert.equal((landingHTML.match(/نمونهٔ موقت/g)||[]).length>=5,true);
- assert.match(landingHTML,/نمونهٔ موقت/,'temporary product UI is labelled');
- // 4. New composite asset; the studio mirror keeps hero.webp for mask alignment.
- assert.match(landingHTML,/src="\/landing\/demo-style-before\.webp"/,'real before plate shipped');
- assert.match(landingHTML,/src="\/landing\/hero\.webp"/,'hair canvas base image unchanged');
- const buildScript=readFileSync(new URL('../design/landing/build.py',import.meta.url),'utf8');
- assert.match(buildScript,/DEMOS = \[/,'real before/after pairs are declared once');
- assert.match(buildScript,/asset in DEMOS or re\.match/,'pairs are synced to public/landing');
- assert.ok(readFileSync(new URL('../public/landing/demo-style-before.webp',import.meta.url)).length>20000,
-  'synced real sample exists');
- assert.match(landingHTML,/window\.__AYN_ASSET_VERSION="[a-f0-9]{12}"/);
- // 5. One honesty line on every viewport, larger type, no duplicate FAQ wording.
- assert.equal((landingHTML.match(/تقریبی/g)||[]).length,1);
- assert.match(landingHTML,/<p class="hero-honesty">شبیه\u200cسازی تقریبی است/);
- assert.match(landingHTML,/\.hero-honesty\{[^}]*font-size:14px/);
- assert.match(landingHTML,/\.salon-invite-copy \.reassure li>span:last-child,\.salon-invite-copy \.reassure b\{font-size:15\.5px!important/);
- assert.doesNotMatch(landingHTML,/hero-honest-desktop|hero-teaser-note/,'duplicates gone');
- assert.match(landingHTML,/آینهٔ تعاملی این صفحه مخصوص مو است/,'hair-only interactive mirror disclosed');
- // 6. Form moved before services; page compacted; cue brought into the fold.
- assert.ok(landingHTML.indexOf('id="salon-example"')<landingHTML.indexOf('id="services"'),
-  'form no longer sits after all service chapters');
- assert.match(landingHTML,/\.section\{padding-block:36px\}/);
- assert.match(landingHTML,/height:clamp\(210px,34svh,300px\)/,'mobile comparison sized for the fold');
- assert.match(landingHTML,/\.hero-scroll-cue\{[^}]*order:9;height:24px/);
- assert.match(landingHTML,/\.hero-details \.hero-honesty\{[^}]*order:initial!important/,'disclosures sit in the below-fold panel');
- // 7. Phone appears twice (visible text + tel href), sticky bar is one line again.
- assert.equal((landingHTML.match(/09105647497/g)||[]).length,2);
- assert.doesNotMatch(landingHTML,/sticky-cta-note/);
- assert.match(landingHTML,/\.sticky-cta:not\(\[hidden\]\)\{flex-direction:row/);
- assert.match(landingHTML,/class="sticky-cta" id="stickyCta" href="#start" hidden/);
- assert.equal((landingHTML.match(/href="#start"/g)||[]).length,1,'contextual jump still unique');
- // Scope guards: no invented proof, no removed sections/FAQ/form groups, no merge.
- assert.equal((landingHTML.match(/<details/g)||[]).length,11,'FAQ kept');
- assert.equal((landingHTML.match(/class="detail-group"/g)||[]).length,7,'7 optional groups kept');
- assert.equal((landingHTML.match(/class="wizard-step/g)||[]).length,2,'two-question wizard kept');
- assert.match(landingHTML,/alt="نمونهٔ موقت از عکس مشتری"/,'temporary customer photo is labelled');
- assert.match(landingHTML,/\.hero-details \.fineprint/,'14px below-fold body copy');
- assert.match(landingHTML,/\.salon-builder \.wizard-step label,[^}]*font-size:14px!important/,'14px form labels');
- assert.match(landingHTML,/\.foot-samples>div\{[^}]*border:1px solid/,'solid sample panels');
- assert.match(landingHTML,/آینهٔ تعاملی فعلاً مخصوص مو است/,'desktop hair-only mirror disclosed');
- assert.ok(landingHTML.length<250000);
+test('step 25 receipt: sending one moves the order to reviewing and the panel stays shut until confirmation', async () => {
+  const e = fixture();
+  const restore = priced('solo', 900000);
+  try {
+    const r = await call(e, '/api/order', orderBody('solo'));
+    const v = await call(e, '/api/order/' + r.data.id + '/receipt', {note: '۴ رقم آخر ۴۵۵'});
+    assert.equal(v.data.status, 'reviewing');
+    assert.equal((await call(e, '/api/panel/me')).data.salon, null);
+    const list = (await call(e, '/api/owner/orders', undefined, OWNER)).data.orders[0];
+    assert.equal(list.receipt_note, '۴ رقم آخر ۴۵۵');
+    assert.equal(list.plan, 'آرایشگر', 'the console shows the Persian plan name');
+    assert.equal(list.contact_phone, '09121234567', 'and a local mobile, not +98');
+    assert.equal(list.amount, 900000, 'amount in toman');
+    e.DB.sql.prepare('UPDATE orders SET expires_at=? WHERE id=?').run(Date.now() - 1, r.data.id);
+    assert.equal((await call(e, '/api/order/' + r.data.id)).data.status, 'expired');
+  } finally { restore() }
 });
 
-
-test('funnel step 19: competitor-inspired first-glance clarity and one CTA hierarchy',()=>{
- // Nearest competitors all open with "what it is / why a salon would use it",
- // repeat ONE action and put the objections just before the final CTA.
- assert.match(landingHTML,/<p class="hero-sub">صفحه\u200cای به نام شما یا آرایشگاه\u200cتان، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می\u200cدهد\./);
- assert.match(landingHTML,/خدمات قابل امتحان: مدل و رنگ مو، طرح ناخن یا مدل مژه، روی عکس خود مشتری\./);
- assert.match(landingHTML,/\.stage \.copy \.lead\{display:none!important\}/,'no duplicate lead on desktop');
- assert.equal((landingHTML.match(/چطور کار می\u200cکند/g)||[]).length,3,'nav label still appears three times');
- assert.match(landingHTML,/href="#how">چطور کار می\u200cکند/,'how it works jumps to the real section');
- assert.match(landingHTML,/href="#studio">دموی زنده/,'live demo keeps its own door');
- assert.match(landingHTML,/مشتری انتخاب می\u200cکند، شما همان را با عکس می\u200cبینید/);
- assert.match(landingHTML,/عکس مشتری کجا می\u200cرود؟/,'photo handling is no longer a gap');
- assert.match(landingHTML,/نسخهٔ فشردهٔ عکس/);
- assert.doesNotMatch(landingHTML,/رضایت مشتری/,'no consent jargon in the owner copy');
- assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
- assert.equal((landingHTML.match(/href="#start"/g)||[]).length,1,'one sticky jump to the form');
- assert.ok(landingHTML.indexOf('id="salon-example"')<landingHTML.indexOf('id="services"'),'form still before services');
- assert.ok(landingHTML.length<250000);
+test('step 25 key: the panel key is handed out when the order opens (once), never on a plain read, and login exchanges it for a cookie', async () => {
+  const e = fixture();
+  const restore = priced('salon', 700000);
+  try {
+    const r = await call(e, '/api/order', orderBody());
+    assert.match(r.data.access_key, /^AY-[2-9A-HJ-NP-Z]{9}$/);
+    assert.equal((await call(e, '/api/order/' + r.data.id)).data.access_key, '', 'a plain read never returns the key');
+    assert.equal((await call(e, '/api/panel/login', {key: 'AY-AAAAAAAAA'})).status, 401);
+    assert.equal((await call(e, '/api/panel/login', {key: 'nonsense'})).status, 401);
+    await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER);
+    const login = await call(e, '/api/panel/login', {key: r.data.access_key.toLowerCase()});
+    assert.equal(login.status, 401, 'case matters; a mistyped key is not trusted');
+    const ok = await call(e, '/api/panel/login', {key: r.data.access_key});
+    assert.equal(ok.status, 200);
+    assert.match(ok.cookie, /^ayneh_panel=[a-f0-9]{64}$/, 'the cookie is the key hash, never the key');
+  } finally { restore() }
 });
 
-
-test('funnel step 20: self-audit closes the last first-glance and privacy objections',()=>{
- // Picky buyer: the H1 itself must name the product, not only the benefit.
- assert.match(landingHTML,/<h1 id="h1">انتخاب مشتری را با عکس ببینید<\/h1>/);
- assert.match(landingHTML,/مدل و رنگ مو، طرح ناخن یا مدل مژه، روی عکس خود مشتری\./);
- // UI/UX pro: the owner-preview privacy line must not contradict customer photo handling.
- assert.match(landingHTML,/عکس\u200cها و اطلاعات پیش\u200cنمایش تا پیش از درخواست فقط در مرورگر شماست/);
- assert.match(landingHTML,/پیش از ارسال درخواست، خود مشتری تأیید می\u200cکند/);
- assert.doesNotMatch(landingHTML,/اجازهٔ مشتری گرفته می\u200cشود/,'passive consent wording is gone');
- assert.doesNotMatch(landingHTML,/رضایت مشتری/);
- assert.doesNotMatch(landingHTML,/ناخن یا مژه/,'every service list names the nail design and lash model');
- assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true);
- assert.equal((landingHTML.match(/href="#start"/g)||[]).length,1);
- assert.ok(landingHTML.indexOf('id="salon-example"')<landingHTML.indexOf('id="services"'));
- assert.ok(landingHTML.length<250000);
+test('step 25 pages: /panel and /pay are real routes, the panel page parses, and the landing checkout is off until a price exists', () => {
+  new Function(panelHTML.split('<script>')[1].split('</script>')[0]);
+  assert.match(landingHTML, /id="pay"/);
+  assert.equal((landingHTML.match(/data-state="open"/g) || []).length, 0, 'no plan sells itself before the owner sets an amount');
+  assert.equal((landingHTML.match(/data-state="soon"/g) || []).length, 3);
+  assert.equal((landingHTML.match(/data-amount="0"/g) || []).length, 3);
+  assert.match(landingHTML, /شمارهٔ کارت هنوز از پنل مدیر پر نشده است/);
+  assert.match(landingHTML, /هر سفارش ۱۰ دقیقه اعتبار دارد/);
+  assert.doesNotMatch(landingHTML, /[0-9۰-۹]{16}/, 'no card number is ever baked into the page');
 });
 
-test('funnel step 22: the first fold is the real before/simulation comparison, not a poster or a mock',()=>{
- // Deep rethink: two rejected heroes were *pictures* of the product (a mood
- // photo, then a mocked dashboard). The fold now IS the product: the real
- // before/simulation pairs shipped in the customer demo, with a live divider.
- const h1=(landingHTML.match(/<h1 id="h1">([\s\S]*?)<\/h1>/)||[])[1]||'';
- assert.equal(h1,'انتخاب مشتری را با عکس ببینید','short, one-line owner benefit');
- assert.ok(h1.length<40);
- assert.match(landingHTML,/<p class="hero-sub">صفحه\u200cای به نام شما یا آرایشگاه\u200cتان، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می\u200cدهد\./);
- assert.equal((landingHTML.match(/<p class="hero-sub">/g)||[]).length,1,'one support sentence');
- const stage=(landingHTML.match(/<div class="stage"[\s\S]*?<div class="hero-details"/)||[])[0]||'';
- assert.ok(stage,'stage and below-fold panel both exist');
- assert.match(stage,/data-live="customer-simulation"/,'the live comparison is in the fold');
- assert.doesNotMatch(landingHTML,/data-mock=|proof-photo|proof-sent|همین انتخاب با عکس برای سالن فرستاده شد/,'no mocked dashboard state');
- assert.doesNotMatch(stage,/hero-teaser\.webp|hair-poster\.webp/,'no unrelated mood photo or stock poster');
- assert.match(landingHTML,/src="\/landing\/demo-style-before\.webp"/);
- assert.match(landingHTML,/src="\/landing\/demo-style-after\.webp"/);
- assert.equal((landingHTML.match(/data-pair="/g)||[]).length,4,'four real services are selectable');
- assert.match(landingHTML,/data-before="\/landing\/demo-color-before\.webp"/);
- assert.match(landingHTML,/data-after="\/landing\/demo-nails-after\.webp"/);
- assert.match(landingHTML,/before\.src=b\.dataset\.before/,'switching a service changes the real image');
- assert.match(landingHTML,/id="compareRange" type="range"/,'keyboard-operable divider');
- assert.match(landingHTML,/clip-path:inset\(0 calc\(100% - var\(--split,50%\)\) 0 0\)/,'live reveal, not a flattened screenshot');
- assert.match(landingHTML,/live-tag--before">قبل/);
- assert.match(landingHTML,/live-tag--after">شبیه\u200cسازی/);
- assert.match(landingHTML,/نمونهٔ موقت/,'real samples are labelled temporary');
- assert.match(landingHTML,/alt="نمونهٔ موقت از عکس مشتری"/);
- assert.doesNotMatch(stage,/class="fineprint"|class="hero-honesty"|class="service-note"/,'disclosures left the first fold');
- assert.match(landingHTML,/<div class="hero-details"/,'disclosures remain below the fold');
- assert.match(stage,/class="btn btn--lg" href="#salon-example"/,'one primary action');
- assert.match(stage,/class="btn btn--ghost btn--quiet" data-try="hair"/,'one quiet demo link');
- assert.match(landingHTML,/\.hero-proof\{[^}]*opacity:calc\(1 - var\(--p\)\*2\.4\)/,'comparison yields to the studio');
- assert.match(landingHTML,/\.studio\{[^}]*opacity:calc\(var\(--p\)\*2\.4\)/,'studio is the later demo layer');
- assert.match(landingHTML,/@media\(prefers-reduced-motion:reduce\)\{\.hero-scroll-cue svg\{animation:none\}\}/);
- assert.match(landingHTML,/window\.__AYN_HERO_READY=Promise\.resolve\(false\)/);
- assert.match(landingHTML,/if\(still\)return;/);
- assert.doesNotMatch(landingHTML,/رضایت مشتری|اجازهٔ مشتری گرفته می\u200cشود/,'no passive consent wording');
- assert.equal((landingHTML.match(/تقریبی/g)||[]).length,1,'one honesty line');
- // The header box is part of the first impression, not a hairline strip.
- assert.match(landingHTML,/\.site-header\{[^}]*--brand-fs:36px[^}]*--mark-w:56px/,'desktop brand lockup has real scale');
- assert.match(landingHTML,/\.site-header::before\{[^}]*border-radius:22px/,'header reads as a deliberate box');
- assert.match(landingHTML,/@media\(max-width:360px\)\{\.site-header\{[^}]*--mark-w:42px/,'small phones keep a full-size mark');
- assert.match(landingHTML,/\.site-header \.header-cta\{min-height:56px/,'desktop header action is enlarged too');
- assert.ok(landingHTML.length<250000);
+test('step 25 owner console: the payment card, the webhook token and the order queue are wired without a fake control', () => {
+  const js = appHTML.split('<script>')[1].split('</script>')[0];
+  new Function(js);
+  for (const id of ['payCardNumber', 'payCardOwner'])
+    assert.ok(js.includes("id:'" + id + "'"), 'field ' + id);
+  assert.match(js, /api\('\/api\/owner\/payment'/, 'card + token come from the owner endpoints');
+  assert.match(js, /api\('\/api\/owner\/orders\/'\+o\.id\+'\/confirm'/, 'an order is confirmed by the owner');
+  assert.match(js, /api\('\/api\/owner\/orders\/'\+o\.id\+'\/rekey'/, 'a lost panel key can be minted again');
+  assert.match(js, /شمارهٔ کارت هنوز ذخیره نشده/, 'an empty card says so instead of showing digits');
+  // The card form never ships a number of its own.
+  assert.doesNotMatch(js, /6037|6219|5022/, 'no card digits in the console source');
 });
 
-test('funnel step 23: the buyer is the hairdresser, and the price panels ship as structure without invented figures',()=>{
- // Owner pivot: «می‌خوایم به آرایشگرها بفروشیم و پنل‌های قیمتی مون هم مشخص می‌کنیم».
- // The buyer sentence must name both a solo hairdresser and a salon/team.
- assert.match(landingHTML,/صفحه\u200cای به نام شما یا آرایشگاه\u200cتان/,'hero names the hairdresser, not only the salon owner');
- assert.match(landingHTML,/آرایشگر/,'the word hairdresser appears');
- assert.doesNotMatch(landingHTML,/برای سالن\u200cها/,'the old salon-only section label is gone');
- // The three panels are named for the solo hairdresser, the team and the chain.
- assert.match(landingHTML,/<h3>آرایشگر<\/h3>/);
- assert.match(landingHTML,/<h3>آرایشگاه<\/h3>/);
- assert.match(landingHTML,/<h3>مجموعه<\/h3>/);
- // Every panel promises what the code really does, and nothing more.
- assert.match(landingHTML,/لینک شخصی برای هر آرایشگر/);
- assert.match(landingHTML,/گزارش روزانهٔ درخواست\u200cها/);
- assert.match(landingHTML,/جابه\u200cجایی درخواست\u200cهای بی\u200cپاسخ/);
- // Figures are slots: the structure ships, a number only when the owner approves one.
- assert.equal((landingHTML.match(/data-price="/g)||[]).length,6,'amount + quota for three panels');
- assert.equal((landingHTML.match(/<b class="slot">/g)||[]).length,6);
- assert.match(landingHTML,/مبلغ و سهمیهٔ تصویر در حال نهایی\u200cشدن است و پیش از هر پرداختی نوشته می\u200cشود/,'the open figure is stated plainly');
- assert.equal((landingHTML.match(/تومان/g)||[]).length,3,'currency label only, once per amount slot');
- assert.doesNotMatch(landingHTML,/میلیون|[۰-۹0-9]\s*تومان/,'no number is invented before the owner decides');
- // The stale "we never name a price" stance must not come back.
- assert.doesNotMatch(landingHTML,/هزینه ثابت از قبل وجود ندارد|قیمت ثابت از قبل اعلام نمی\u200cشود|چرا عدد ثابت اعلام نمی\u200cشود؟/);
- // One canonical action label everywhere, including the customer demo's return bar.
- assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length>=6,true,'one canonical CTA label');
- assert.doesNotMatch(landingHTML,/ساخت پیش\u200cنمایش سالن من/,'old owner-only CTA label retired');
- assert.ok(customerHTML.includes('ساخت صفحهٔ من'),'demo return bar uses the same label');
- // Panels are reachable from the header and the FAQ, and the section is real markup.
- assert.match(landingHTML,/id="pricing"/);
- assert.match(landingHTML,/href="#pricing"/);
- assert.equal((landingHTML.match(/<section id="pricing"/g)||[]).length,1);
- // The panel grid collapses to one column on phones.
- assert.match(landingHTML,/@media\(max-width:860px\)\{\.plan-grid\{grid-template-columns:1fr;gap:12px\}/);
- assert.ok(landingHTML.length<250000,'payload stays under the review cap');
+test('step 25 checkout never leaves a "free demo" bar over a payment, and an unpriced panel never opens a sheet', () => {
+  const js = landingHTML.match(/<script>([\s\S]*?)<\/script>/g).map(s => s.slice(8, -9)).join('\n');
+  assert.match(js, /is-paying/, 'the sheet flags the page while paying');
+  assert.match(js, /ayneh:pay-state/, 'the sticky bar listens for that flag');
+  assert.match(js, /await call\('\/api\/order', body\)/, 'the order is opened on the server');
+  assert.match(js, /order\//, 'status, receipt and coupon all go through the order endpoints');
+  assert.match(js, /expires_at/, 'the countdown mirrors the server deadline');
+  assert.doesNotMatch(js, /تومان\/\s*\d/, 'the page does not compute its own prices');
+  assert.equal((landingHTML.match(/data-state="open"/g) || []).length, 0);
+});
+
+test('step 25 brand: the favicon carries the cream/emerald palette, never the retired brass', () => {
+  assert.doesNotMatch(faviconMark, /#D9B775|#1B130E/i, 'no brass-on-espresso favicon');
+  assert.match(faviconMark, /#FCF3EB/i, 'the cream ground');
+  assert.match(faviconMark, /#068F6C/i, 'the emerald disc');
+  assert.ok(generatedMark.includes('aynDisc'), 'the same one-face mark everywhere');
 });

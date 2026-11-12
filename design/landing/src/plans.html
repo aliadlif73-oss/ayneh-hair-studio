@@ -1,53 +1,53 @@
-  <!-- 6. Pricing panels. Names and what each panel includes live here; the two figures
-       per panel are single tokens filled by build.py from PANEL_FIGURES (empty until the
-       owner picks numbers, which then renders as a placeholder, never as a fake digit). -->
-  <section id="pricing" class="section section--sunken pricing" aria-labelledby="h-pricing" tabindex="-1">
-    <div class="wrap">
-      <div class="sec-head">
-        <p class="kicker">پنل‌های قیمت</p>
-        <h2 id="h-pricing">سه پنل، برای یک آرایشگر تا یک مجموعه</h2>
-        <p class="sub">هر پنل می‌گوید صفحه چه کاری برای شما می‌کند و چه چیزهایی در آن هست. مبلغ و سهمیهٔ تصویر، جدول را کامل می‌کند.</p>
-      </div>
-      <div class="plan-grid">
-        <article class="plan-card" data-plan="solo">
+      <!-- Price panels. Names and what each panel includes live here; the two figures
+           per panel are single tokens filled by build.py from PANEL_FIGURES (empty until
+           the owner picks numbers, which then renders as a placeholder, never a fake digit). -->
+      <div class="plans">
+        <article class="plan" data-plan="solo">
           <h3>آرایشگر</h3>
-          <p class="plan-deck">برای یک نفر، با میز یا صندلی خودش.</p>
-          <p class="plan-amount" data-price="solo"><b class="slot">{{PRICE_SOLO}}</b><small>تومان</small></p>
-          <p class="plan-quota" data-price="solo"><b class="slot">{{QUOTA_SOLO}}</b><small>تصویر در ماه</small></p>
+          <p class="plan__deck">برای یک نفر، با میز یا صندلی خودش.</p>
+          <div class="plan__price">
+            <p class="plan__amount" data-price="solo"><b class="slot">{{PRICE_SOLO}}</b><small>تومان</small></p>
+            <p class="plan__quota" data-price="solo"><b class="slot">{{QUOTA_SOLO}}</b><small>تصویر در ماه</small></p>
+          </div>
           <ul>
-            <li>صفحهٔ اختصاصی با نام و رنگ خودتان، با یک لینک</li>
-            <li>نمونه‌کار از تلگرام یا بله: هر عکسی که بفرستید روی صفحه می‌نشیند</li>
-            <li>درخواست مشتری با عکس، مستقیم در پیام‌رسان خودتان</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>صفحهٔ اختصاصی با نام و رنگ خودتان، با یک لینک</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>نمونه‌کار از تلگرام یا بله: هر عکسی که بفرستید روی صفحه می‌نشیند</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>درخواست مشتری با عکس، مستقیم در پیام‌رسان خودتان</li>
           </ul>
-          <a class="btn plan-cta" href="#salon-example"><span>ساخت پیش‌نمایش</span></a>
+          <a class="btn plan__buy" href="#form-start" data-buy="solo" data-state="{{STATE_SOLO}}" data-amount="{{AMOUNT_SOLO}}">{{CTA_SOLO}}</a>
+          <p class="plan__state" data-for="solo" hidden></p>
         </article>
-        <article class="plan-card plan-card--lead" data-plan="salon">
-          <span class="plan-badge">پیشنهاد شروع</span>
+        <article class="plan plan--lead" data-plan="salon">
+          <span class="plan__badge">پیشنهاد شروع</span>
           <h3>آرایشگاه</h3>
-          <p class="plan-deck">برای تیم ۲ تا ۵ نفره با یک مدیر.</p>
-          <p class="plan-amount" data-price="salon"><b class="slot">{{PRICE_SALON}}</b><small>تومان</small></p>
-          <p class="plan-quota" data-price="salon"><b class="slot">{{QUOTA_SALON}}</b><small>تصویر در ماه</small></p>
+          <p class="plan__deck">برای تیم ۲ تا ۵ نفره با یک مدیر.</p>
+          <div class="plan__price">
+            <p class="plan__amount" data-price="salon"><b class="slot">{{PRICE_SALON}}</b><small>تومان</small></p>
+            <p class="plan__quota" data-price="salon"><b class="slot">{{QUOTA_SALON}}</b><small>تصویر در ماه</small></p>
+          </div>
           <ul>
-            <li>هر چه در پنل آرایشگر هست، برای چند نفر با یک صفحه</li>
-            <li>لینک شخصی برای هر آرایشگر؛ درخواست هر لینک به همان نفر می‌رسد</li>
-            <li>جابه‌جایی درخواست‌های بی‌پاسخ بین آرایشگرها</li>
-            <li>گزارش روزانهٔ درخواست‌ها در همان چت</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>هر چه در پنل آرایشگر هست، برای چند نفر با یک صفحه</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>لینک شخصی برای هر آرایشگر؛ درخواست هر لینک به همان نفر می‌رسد</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>جابه‌جایی درخواست‌های بی‌پاسخ بین آرایشگرها</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>گزارش روزانهٔ درخواست‌ها در همان چت</li>
           </ul>
-          <a class="btn plan-cta" href="#salon-example"><span>ساخت پیش‌نمایش</span></a>
+          <a class="btn plan__buy" href="#form-start" data-buy="salon" data-state="{{STATE_SALON}}" data-amount="{{AMOUNT_SALON}}">{{CTA_SALON}}</a>
+          <p class="plan__state" data-for="salon" hidden></p>
         </article>
-        <article class="plan-card" data-plan="chain">
+        <article class="plan" data-plan="chain">
           <h3>مجموعه</h3>
-          <p class="plan-deck">برای چند شعبه با یک نام.</p>
-          <p class="plan-amount" data-price="chain"><b class="slot">{{PRICE_CHAIN}}</b><small>تومان</small></p>
-          <p class="plan-quota" data-price="chain"><b class="slot">{{QUOTA_CHAIN}}</b><small>تصویر در ماه</small></p>
+          <p class="plan__deck">برای چند شعبه با یک نام.</p>
+          <div class="plan__price">
+            <p class="plan__amount" data-price="chain"><b class="slot">{{PRICE_CHAIN}}</b><small>تومان</small></p>
+            <p class="plan__quota" data-price="chain"><b class="slot">{{QUOTA_CHAIN}}</b><small>تصویر در ماه</small></p>
+          </div>
           <ul>
-            <li>هر چه در پنل آرایشگاه هست، برای چند شعبه</li>
-            <li>نمونه‌کار و درخواست، جدا برای هر شعبه</li>
-            <li>هماهنگی راه‌اندازی و آموزش تیم، به‌صورت گفتگو</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>هر چه در پنل آرایشگاه هست، برای چند شعبه</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>نمونه‌کار و درخواست، جدا برای هر شعبه</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>هماهنگی راه‌اندازی و آموزش تیم، به‌صورت گفتگو</li>
           </ul>
-          <a class="btn plan-cta" href="#salon-example"><span>ساخت پیش‌نمایش</span></a>
+          <a class="btn plan__buy" href="#form-start" data-buy="chain" data-state="{{STATE_CHAIN}}" data-amount="{{AMOUNT_CHAIN}}">{{CTA_CHAIN}}</a>
+          <p class="plan__state" data-for="chain" hidden></p>
         </article>
       </div>
-      <p class="plan-note">مبلغ و سهمیهٔ تصویر در حال نهایی‌شدن است و پیش از هر پرداختی نوشته می‌شود؛ چیزی پنهان نمی‌ماند. پیش‌نمایش و ثبت درخواست بدون پرداخت است.</p>
-    </div>
-  </section>
+      <p class="plan-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M12 11v5" stroke-linecap="round"/></svg><span>مبلغ و سهمیهٔ تصویر در حال نهایی‌شدن است و پیش از هر پرداختی نوشته می‌شود؛ چیزی پنهان نمی‌ماند. درخواست دمو و ساخت پیش‌نمایش بدون پرداخت است.</span></p>

@@ -14,12 +14,12 @@
 
  const form=document.getElementById('start'),wizard=document.getElementById('builderWizard');
  if(!form||!wizard)return;
- const steps=[...wizard.querySelectorAll('.wizard-step')];
+ const steps=[...wizard.querySelectorAll('.wiz-step')];
  if(!steps.length)return;
  const $=(id)=>document.getElementById(id);
  const q=$('wizardQuestion'),hint=$('wizardHintText'),count=$('wizardCount'),bar=$('wizardBar');
  const err=$('wizardError'),prev=$('wizardPrev'),next=$('wizardNext'),skip=$('wizardSkip');
- const build=$('builderBuild'),preview=$('builderPreview'),live=$('builderLive');
+ const build=$('builderBuild'),preview=$('builderLive'),live=$('builderLive');
  const page=$('livePage');
  const fa=n=>String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[+d]);
  form.noValidate=true;
@@ -86,7 +86,10 @@
   /* Two questions only; the last one confirms the preview instead of walking
      through seven optional screens. Details live in a separate open-on-demand panel. */
   skip.hidden=true;build.hidden=true;
-  next.hidden=last&&ready;
+  /* Once the preview is ready the confirm button stays in place but stops acting:
+     hiding it left a single full-width button in an otherwise two-button row. */
+  next.hidden=false;
+  next.disabled=Boolean(last&&ready);
   next.textContent=last&&ready?'پیشنمایش آماده است':(last?'تأیید پیشنمایش':'ادامه');
   err.textContent='';
   /* No scrollIntoView: the console is already a single screen. A page jump on

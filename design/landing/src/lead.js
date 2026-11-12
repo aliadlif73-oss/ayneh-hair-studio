@@ -9,7 +9,7 @@
   const salon=$('lf-salon').value.trim(),name=$('lf-name').value.trim();
   const phone=digits($('lf-phone').value).replace(/[\s-]/g,'');
   const slug=$('slugHintInput')?.value.trim();
-  const chosen='صفحهٔ اختصاصی آرایشگر · '+salon+(slug?' ('+slug+')':'');
+  const chosen='درخواست دمو · '+salon+(slug?' ('+slug+')':'');
   const data={name,salon,phone,city:$('lf-city').value.trim(),website:$('lf-web').value,consent:$('lf-consent').checked,chosen,attribution:window.__AYN_ATTR?.()||{}};
   if(name.length<2){err.textContent='نام خودتان را بنویسید.';return}
   if(salon.length<2){err.textContent='نام خودتان یا آرایشگاه را بنویسید.';return}

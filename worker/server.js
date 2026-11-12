@@ -10,6 +10,9 @@ import {attribute,ownerFor,createStaff,transfer,report,team as teamOf,liveStaff,
 import {stats} from './stats.js';
 import {smsReady,inviteReady,sendOtp} from './sms.js';
 import {createTrial,trialOf,trialLive,trialPublic,spendTrialImage} from './trial.js';
+import {PLANS as PLANS_TABLE} from './prices.js';
+import {createOrder,customerOrder,newAccessKey,setCoupon,markReviewing,confirmOrder,closeExpired,cardSetting,saveCard,
+ webhookKey,rotateWebhookKey,panelLogin,panelSalon,panelDashboard,hashKey,ORDER_MINUTES,PAY_CARD,WEBHOOK_KEY,COUPONS} from './orders.js';
 export {putImage};
 
 const J=(v,s=200,h={})=>new Response(JSON.stringify(v),{status:s,headers:{'Content-Type':'application/json;charset=utf-8','Cache-Control':'no-store',...h}});
@@ -147,6 +150,54 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   await owner(req,env);
   return activationAsset(db,activationMedia[1],activationMedia[2]);
  }
+ /* ---------- paid plans: order → transfer → confirm → salon panel ---------- */
+ // POST /api/order: opens the 10-minute window and returns the amount, card and deadline.
+ if(path==='/api/order'&&req.method==='POST'){
+  await limited(db,'order:'+clientIp(req),12,'سفارش‌های زیادی از این شبکه باز شده؛ کمی بعد دوباره امتحان کنید');
+  const b=await req.json().catch(()=>({}));
+  if(String(b.website||'').trim())return J({ok:true,id:'x'});// honeypot
+  return J(await createOrder(db,env,b,u.origin));
+ }
+ const orderGet=path.match(/^\/api\/order\/([a-f0-9-]{36})$/);
+ if(orderGet&&req.method==='GET')return J(await customerOrder(db,env,orderGet[1],u.origin));
+ const orderAct=path.match(/^\/api\/order\/([a-f0-9-]{36})\/(receipt|coupon)$/);
+ if(orderAct&&req.method==='POST'){
+  await limited(db,'order-act:'+clientIp(req),40);
+  const b=await req.json().catch(()=>({}));
+  return J(orderAct[2]==='receipt'?await markReviewing(db,env,orderAct[1],b.note,u.origin):await setCoupon(db,env,orderAct[1],b.coupon,u.origin));
+ }
+ // The payment site's door. A single token in Authorization (Bearer) or X-Webhook-Key;
+ // body {ref} or {order}, plus optional amount/status. Constant-time compare, never a cookie.
+ if(path==='/api/pay/confirm'&&req.method==='POST'){
+  const expected=await webhookKey(db);
+  const given=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'')||req.headers.get('x-webhook-key')||'';
+  must(expected&&same(String(given),expected),'توکن وب‌هوک معتبر نیست',401);
+  const b=await req.json().catch(()=>({}));
+  const byRef=b.ref?await one(db,'SELECT id FROM orders WHERE ref=?',String(b.ref).toUpperCase().slice(0,12)):null;
+  const id=byRef?.id||String(b.order||'');
+  must(id,'سفارش پیدا نشد',404);
+  if(b.status&&!['paid','success','confirmed','ok'].includes(String(b.status).toLowerCase()))return J({ok:true,ignored:true});
+  const r=await confirmOrder(db,env,id,{by:'webhook',origin:u.origin});
+  return J({ok:true,status:r.order.status,ref:r.order.ref,page:r.order.page_url});
+ }
+
+ /* ---------- salon panel (the door the plan opens) ---------- */
+ if(path==='/api/panel/login'&&req.method==='POST'){
+  await limited(db,'panel-login:'+clientIp(req),20,'تلاش‌های زیاد؛ کمی بعد دوباره امتحان کنید');
+  const b=await req.json().catch(()=>({}));
+  const {order}=await panelLogin(db,b.key);
+  return J({ok:true},200,{'Set-Cookie':'ayneh_panel='+order.access_key_hash+'; HttpOnly'+(u.protocol==='https:'?'; Secure':'')+'; SameSite=Lax; Path=/; Max-Age=2592000'});
+ }
+ if(path==='/api/panel/logout'&&req.method==='POST')return J({ok:true},200,{'Set-Cookie':'ayneh_panel=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0'});
+ if(path==='/api/panel/me'&&req.method==='GET'){
+  try{const ctx=await panelSalon(req,db);return J(await panelDashboard(db,env,ctx))}
+  catch(e){if(e.status===401)return J({salon:null});throw e}
+ }
+ if(path==='/api/pay/config'&&req.method==='GET'){
+  const card=await cardSetting(db);
+  return J({card:card.number,owner:card.owner,ready:card.valid,minutes:ORDER_MINUTES});
+ }
+
  if(path==='/api/inquiry'&&req.method==='POST'){
   await limited(db,'inquiry:'+clientIp(req),5,'درخواست‌های زیادی فرستاده‌ای؛ کمی بعد دوباره امتحان کن');
   const b=await req.json().catch(()=>({}));
@@ -174,6 +225,34 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(path==='/api/owner/referrals'&&req.method==='GET'){await owner(req,env);const slug=u.searchParams.get('salon')||'';let sid=null;if(slug){const x=await one(db,'SELECT id FROM salons WHERE slug=?',slug);must(x,'سالن پیدا نشد',404);sid=x.id}return J(await report(db,{salonId:sid}));}
  if(path==='/api/owner/alerts-link'&&req.method==='POST'){await owner(req,env);return J({links:await ownerLink(db,env)});}
  if(path==='/api/owner/alerts-unlink'&&req.method==='POST'){await owner(req,env);await run(db,'DELETE FROM owner_chats');return J({ok:true});}
+ if(path==='/api/owner/payment'&&req.method==='GET'){await owner(req,env);
+  const card=await cardSetting(db);
+  return J({card:card.number,owner:card.owner,valid:card.valid,minutes:ORDER_MINUTES,
+   webhook:{url:(env.APP_ORIGIN||u.origin)+'/api/pay/confirm',key:await webhookKey(db)},
+   plans:PLANS_TABLE});}
+ if(path==='/api/owner/payment'&&req.method==='POST'){await owner(req,env);
+  const b=await req.json().catch(()=>({}));
+  if(b.rotate)return J({key:await rotateWebhookKey(db)});
+  return J({ok:true,card:await saveCard(db,b.card,b.owner)});}
+ if(path==='/api/owner/orders'&&req.method==='GET'){await owner(req,env);
+  await closeExpired(db);
+  const rows=await all(db,'SELECT id,ref,plan,amount,salon_name,contact_name,phone,city,status,receipt_note,confirmed_by,created_at,expires_at FROM orders ORDER BY created_at DESC LIMIT 100');
+  // The console speaks Persian: plan name and a local-looking mobile, never a raw slug or +98.
+  return J({orders:rows.map(r=>({...r,amount:Math.round(r.amount/10),
+   plan:PLANS_TABLE[r.plan]?.name||r.plan,
+   contact_phone:String(r.phone||'').replace(/^\+98/,'0')}))});}
+ const adminOrder=path.match(/^\/api\/owner\/orders\/([a-f0-9-]{36})\/(confirm|cancel|rekey)$/);
+ if(adminOrder&&req.method==='POST'){await owner(req,env);
+  if(adminOrder[2]==='cancel'){await run(db,"UPDATE orders SET status='cancelled',updated_at=? WHERE id=? AND status<>'paid'",Date.now(),adminOrder[1]);return J({ok:true})}
+  if(adminOrder[2]==='rekey'){
+   // A lost key: mint a new one and hand it to the shop. The old one stops working at once.
+   const row=await one(db,"SELECT id FROM orders WHERE id=? AND status='paid'",adminOrder[1]);must(row,'این سفارش تأیید نشده است',409);
+   const fresh=newAccessKey();
+   await run(db,'UPDATE orders SET access_key_hash=?,updated_at=? WHERE id=?',await hashKey(fresh),Date.now(),row.id);
+   return J({ok:true,key:fresh});
+  }
+  const r=await confirmOrder(db,env,adminOrder[1],{by:'owner',origin:u.origin});
+  return J({ok:true,order:r.order});}
  if(path==='/api/owner/digest'&&req.method==='GET'){await owner(req,env);return J({text:await digest(env)});}
  if(path==='/api/owner/webhook'&&req.method==='POST'){await owner(req,env);return J(await setWebhook(env,env.APP_ORIGIN||u.origin));}
  if(path==='/api/salons'&&req.method==='POST'){const who=await owner(req,env);const b=await req.json(),id=uid();
