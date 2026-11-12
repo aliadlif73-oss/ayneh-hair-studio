@@ -127,6 +127,18 @@ ul,ol{padding:0;list-style:none}
   .header-cta .btn svg{width:16px;height:16px}
 }
 @media(max-width:420px){.btn--login span{display:none}}
+/* Small phones (320–360px): the demo pill drops its icon and label so the bar keeps five
+   things (menu, demo, login, wordmark, mark) inside the viewport instead of sliding off. */
+@media(max-width:380px){
+  .site-header .bar{gap:6px;padding-inline:12px}
+  .brand{gap:7px}
+  .brand__mark{width:32px;height:32px}
+  .brand__word{font-size:20px}
+  .header-cta{gap:6px;margin-inline-start:auto}
+  .header-cta .btn{padding:0 11px;font-size:12.5px;gap:0}
+  .header-cta .btn svg{display:none}
+  .btn--login{padding:0 9px;min-height:40px}
+}
 
 /* ============================================================================
    1. Hero
@@ -451,7 +463,7 @@ ul,ol{padding:0;list-style:none}
 /* ============================================================================
    10. Footer
    ========================================================================== */
-.site-footer{position:relative;overflow:hidden;background:#0B3B32;color:rgba(252,243,235,.76);
+.site-footer{position:relative;overflow:hidden;overflow:clip;background:#0B3B32;color:rgba(252,243,235,.76);
   padding-block:clamp(30px,4vw,48px) 0}
 .foot-ornament{position:absolute;inset-inline-start:-90px;bottom:-90px;width:280px;height:280px;opacity:.16;pointer-events:none;
   background:radial-gradient(circle at 50% 50%,transparent 0 30%,var(--emerald-soft) 30% 34%,transparent 34%),

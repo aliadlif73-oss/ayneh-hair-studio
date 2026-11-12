@@ -1211,6 +1211,23 @@ test('step 25 funnel: every plan button still leads back to the demo form while 
     'no plan carries a figure the owner has not approved');
 });
 
+test('step 25 narrow phones: nothing in the header or the studio preview widens the page under 430px', () => {
+  // Measured in Chromium: at 320/360/390 the page used to be 3–49px wider than the viewport
+  // because the header pills and the studio's address row and submit pill could not shrink.
+  // These are the three rules that made scrollW == clientW; losing any of them reopens it.
+  const site = readFileSync(new URL('../design/landing/src/site.css', import.meta.url), 'utf8');
+  const studio = readFileSync(new URL('../design/landing/src/studio.css', import.meta.url), 'utf8');
+  const narrow = site.match(/@media\(max-width:380px\)\{[\s\S]*?\n\}/);
+  assert.ok(narrow, 'the small-phone header block exists');
+  for (const rule of ['.brand__mark{width:32px', '.brand__word{font-size:20px', '.header-cta .btn svg{display:none}'])
+    assert.ok(narrow[0].includes(rule), 'small-phone header: ' + rule);
+  assert.match(studio, /@media \(max-width:430px\)\{[\s\S]*?\.sb-browser\{flex-wrap:wrap/,
+    'the studio address row wraps instead of overflowing');
+  assert.match(studio, /@media \(max-width:430px\)\{[\s\S]*?\.sb-fallback \.btn\{[^}]*white-space:normal/,
+    'the preview form submit may wrap its label');
+  assert.match(site, /\.site-footer\{[^}]*overflow:clip/, 'the clipped footer ornament stays clipped');
+});
+
 test('step 25 pricing: with no approved amount a plan cannot be bought, and the server says so', async () => {
   const e = fixture();
   assert.equal(PLANS.salon.amount, 0, 'the shipped table has no invented figure');
