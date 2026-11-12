@@ -1181,6 +1181,8 @@ test('step 24 budget: payload and markup stay inside the review envelope',()=>{
 import {PLANS, PRICE_MINUTES} from '../worker/prices.js';
 import {cardValid} from '../worker/orders.js';
 import {panelHTML} from '../worker/panel.js';
+/* The checkout source (not the generated bundle) — the funnel guard reads its guard clause. */
+const payJS = readFileSync(new URL('../design/landing/src/pay.js', import.meta.url), 'utf8');
 
 const CARD = '6037-9911-2233-4455';      // passes the Luhn check, expires nowhere
 const orderBody = (plan = 'salon', extra = {}) => ({plan, salon: 'سالن نمونه', name: 'سارا محمدی', phone: '۰۹۱۲۱۲۳۴۵۶۷', city: 'تهران', consent: true, ...extra});
@@ -1191,6 +1193,23 @@ function priced(plan, amount, quota = 30) {
   PLANS[plan].amount = amount; PLANS[plan].quota = quota;
   return () => Object.assign(PLANS[plan], before);
 }
+
+test('step 25 funnel: every plan button still leads back to the demo form while no price is approved', () => {
+  // The owner's complaint that started this step: the site had drifted away from the demo
+  // request form. With all amounts at 0 the three plan buttons must be anchors to the form —
+  // never to #pay, never a dead button — and pay.js must leave an unpaid click alone.
+  const labels = [...landingHTML.matchAll(/<a\b[^>]*data-buy="([a-z]+)"[^>]*>/g)];
+  assert.equal(labels.length, 3, 'three plan buttons');
+  for (const [, plan] of labels) {
+    const tag = landingHTML.match(new RegExp('<a\\b[^>]*data-buy="' + plan + '"[^>]*>'))[0];
+    assert.match(tag, /href="#form-start"/, plan + ' links to the demo form, not to a checkout');
+    assert.doesNotMatch(tag, /href="#pay"/, plan + ' does not open a payment it cannot take');
+  }
+  assert.match(payJS, /if \(!open\) return;/,
+    'an unpaid plan click falls through to the anchor instead of being swallowed');
+  assert.equal(PLANS.solo.amount + PLANS.salon.amount + PLANS.chain.amount, 0,
+    'no plan carries a figure the owner has not approved');
+});
 
 test('step 25 pricing: with no approved amount a plan cannot be bought, and the server says so', async () => {
   const e = fixture();
