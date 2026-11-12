@@ -1,0 +1,24 @@
+name: Marketing site QA
+on:
+  push:
+    paths:
+      - "marketing-site/**"
+      - ".github/workflows/marketing-site.yml"
+  pull_request:
+    paths:
+      - "marketing-site/**"
+      - ".github/workflows/marketing-site.yml"
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Validate marketing site
+        run: node --test marketing-site/check.mjs
+      - name: Verify worker JavaScript syntax
+        run: node --check marketing-site/worker.js
