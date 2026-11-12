@@ -28,6 +28,8 @@ test('responsiveness and accessible interaction',()=>{
  assert.match(html,/prefers-reduced-motion/);
  assert.match(html,/aria-expanded/);
  assert.match(html,/aria-label="مقایسه/);
+ assert.doesNotMatch(html,/left:-9999px/);
+ assert.match(html,/\.honeypot\{[^}]*clip-path:inset\(50%\)/);
 });
 test('only the separate marketing files are wired',()=>{
  assert.match(readFileSync(join(root,'wrangler.toml'),'utf8'),/name = "ayneh-marketing"/);
