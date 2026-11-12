@@ -33,6 +33,8 @@ test('responsiveness and accessible interaction',()=>{
  assert.match(html,/aria-expanded/);
  assert.match(html,/src="assets\/site.js"/);
  assert.match(html,/aria-label="مقایسه/);
+ assert.equal((html.match(/data-preview=/g)||[]).length,3);
+ assert.match(client,/const previews=/);
  assert.doesNotMatch(css,/left:-9999px/);
  assert.match(css,/\.honeypot\{[^}]*clip-path:inset\(50%\)/);
 });
