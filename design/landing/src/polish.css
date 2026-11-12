@@ -1,0 +1,177 @@
+/* AYNEH / brass, ivory and arched reflections. Shared presentation finishing. */
+.brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none}.brand-symbol{display:inline-flex;width:45px;height:48px;color:#a47b39;flex:none}.brand-symbol svg{width:100%;height:100%}.brand-name{display:flex;flex-direction:column;align-items:center;line-height:1.2}.brand .brand-name small{font-size:10px;letter-spacing:.24em;direction:ltr;margin:5px 0 0;opacity:.65}.foot .brand-symbol{color:#d6b473}.loader-brand svg{width:55px;height:65px;color:#a47b39}
+.nav-btn,.cinema-arrows button{direction:ltr;unicode-bidi:isolate}.nav-btn svg,.cinema-arrows svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transform:none}
+/* A right chevron lives at the physical right edge; a left one at the left. */
+.cinema-arrows{inset:0;display:block;pointer-events:none;z-index:7}.cinema-arrows button{position:absolute;top:50%;transform:translateY(-50%);pointer-events:auto;width:48px;height:48px;background:#211811b8;backdrop-filter:blur(8px);display:grid;place-items:center;transition:background .2s,border-color .2s,box-shadow .2s}
+.cinema-arrows [data-slide-prev]{right:24px;left:auto}.cinema-arrows [data-slide-next]{left:24px;right:auto}.cinema-arrows button:hover{background:#3c2d1d;border-color:#d7b975;box-shadow:0 0 25px #d7b97520}
+
+.nav-btn:focus-visible,.cinema-arrows button:focus-visible{outline:2px solid #d8b878;outline-offset:4px}
+
+.journey-actions{display:flex;flex-direction:column;gap:10px;margin-top:22px}.journey-copy .journey-actions .btn{display:inline-flex;justify-content:center;align-items:center;gap:18px;min-height:50px;width:100%;padding:12px 18px;border:1px solid #c8a86b88;border-radius:999px;background:#1a120d;color:#fff1d8;font:inherit;font-size:13px;font-weight:700;text-decoration:none;text-shadow:none;line-height:1.7}.journey-copy .journey-actions a span{margin:0}.journey-copy .journey-actions .salon-action{align-self:center;display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:44px;color:#edd5a4;font-size:11px;line-height:1.8;text-decoration:none;text-shadow:none;border-bottom:1px solid #c8a86b45;transition:color .2s,border-color .2s}.journey-copy .journey-actions .salon-action:hover{color:#fff3d9;border-color:#e2c180}
+/* All autoplay film cards share the same hierarchy and dimensions. */
+.auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{display:block;top:auto;bottom:80px;right:6%;left:auto;width:33%;max-width:400px;padding:26px;border:1px solid #d3b67e45;border-radius:20px;background:linear-gradient(140deg,#21170fe8,#21170fc9);backdrop-filter:blur(12px);box-shadow:0 20px 60px #0003}
+.auto-film .journey-copy h3,.auto-film .journey-copy[data-journey-copy=lashes] h3{font-size:clamp(26px,2.6vw,38px);margin:0 0 16px;line-height:1.6}.auto-film .journey-copy[data-journey-copy=lashes] h3 br{display:initial}.auto-film .journey-copy[data-journey-copy=lashes] .journey-kicker{margin:0 0 12px}.auto-film .journey-copy[data-journey-copy=lashes]>p:not(.journey-kicker){font-size:14px;margin:0 0 15px;max-width:35ch}.auto-film .journey-copy[data-journey-copy=lashes] a{margin-top:0}
+.salon-invite{padding:clamp(40px,7vw,100px) clamp(20px,6vw,90px);background:radial-gradient(ellipse at 75% 50%,#39291b60,transparent 65%),#17120e;color:#f8efe3;position:relative;isolation:isolate}.salon-invite-card{max-width:1180px;margin:auto;display:grid;grid-template-columns:1fr 1fr;direction:ltr;border:1px solid #b9975b66;border-radius:28px;overflow:hidden;background:linear-gradient(130deg,#38281c,#21180f);box-shadow:0 24px 65px #0003}.salon-invite-art{position:relative;min-height:460px;overflow:hidden}.salon-invite-art>:is(img,video){display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:46% center;transition:transform 1.2s cubic-bezier(.2,.7,.2,1)}.salon-invite-art:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#17110ebb,transparent 65%);pointer-events:none}.salon-invite-card:hover .salon-invite-art>:is(img,video){transform:scale(1.035)}.invite-seal{position:absolute;bottom:28px;left:28px;z-index:1;display:flex;align-items:center;gap:14px;direction:rtl;color:#f0d5a2;line-height:1.8;font-size:14px}.invite-seal svg{width:47px;height:53px;flex:none}.salon-invite-copy{direction:rtl;align-self:center;padding:clamp(28px,4vw,60px)}.salon-invite-copy h2{font-size:clamp(32px,3.7vw,54px);line-height:1.6;margin:0 0 18px;color:#fff1da;letter-spacing:-.035em}.salon-invite-copy>p:not(.journey-kicker){font-size:16px;line-height:2;margin:0 0 16px}.salon-invite-copy>p.invite-detail{font-size:13px;color:#cfbda5}.salon-invite-copy .btn{width:100%;margin-top:14px;text-align:center;justify-content:center;line-height:1.8;white-space:normal}
+.type-wrap{position:relative}.type-reserve{display:block;visibility:hidden;pointer-events:none}.type-live{position:absolute;inset:0;display:block}.type-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.type-live.is-typing:after{content:"";display:inline-block;height:.85em;border-left:1px solid #e7c88e;margin-right:3px;vertical-align:-.05em;animation:typingCaret .7s steps(1) infinite}@keyframes typingCaret{50%{opacity:0}}
+.svc,.feat li,.faq details,.phone{transition:border-color .25s,box-shadow .25s,background .25s}.svc:hover,.feat li:hover,.faq details[open]{border-color:#b9975b70;box-shadow:0 14px 34px #30201412}.faq details[open] summary{color:#936b2f}.s2-points li{transition:border-color .25s,transform .25s}.s2-points li:hover{border-color:#d5b06c;transform:translateX(-3px)}.salon-invite-card.rv{transition:opacity .7s,transform .7s}
+@media(max-width:900px){.auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{width:40%;right:5%;padding:22px}.salon-invite-card{grid-template-columns:1fr}.salon-invite-art{min-height:320px}.salon-invite-copy{padding:30px}.salon-invite-copy h2 br{display:none}.salon-invite-copy h2{font-size:34px}.salon-invite-copy .btn{max-width:420px}}
+@media(max-width:600px){.brand{gap:6px}.brand-symbol{width:31px;height:35px}.brand .brand-name small{font-size:8px;margin-top:3px}.brand-name{font-size:20px}.cinema-arrows button{width:40px;height:40px}.cinema-arrows [data-slide-prev]{right:10px}.cinema-arrows [data-slide-next]{left:10px}.cinema-copy,.is-current .cinema-copy{right:62px;left:62px;width:auto;max-width:none}.auto-film .journey-copy,.auto-film .journey-copy[data-journey-copy=lashes]{position:relative;inset:auto;width:auto;max-width:none;margin:18px 18px 0;padding:22px;border-radius:18px}.auto-film .journey-copy h3,.auto-film .journey-copy[data-journey-copy=lashes] h3{font-size:25px}.salon-invite{padding:38px 18px}.salon-invite-card{border-radius:22px}.salon-invite-art{min-height:260px}.salon-invite-copy{padding:25px}.salon-invite-copy h2{font-size:30px}.salon-invite-copy>p:not(.journey-kicker){font-size:14px}.salon-invite-copy .btn{font-size:12px}.journey-copy .journey-actions .btn{font-size:12px}}
+@media(prefers-reduced-motion:reduce){.type-live:after{animation:none}.salon-invite-card:hover .salon-invite-art>:is(img,video),.s2-points li:hover{transform:none}.svc,.feat li,.faq details,.phone{transition:none}}
+
+@media(max-width:600px){.rail-wrap .nav-btn{display:grid;width:36px;height:36px;margin-top:0}.rail-wrap .nav-r{right:6px}.rail-wrap .nav-l{left:6px}}
+
+/* Long Persian actions must wrap inside their grid column on small screens. */
+.s2-grid>*{min-width:0}.film{overflow-x:clip}.demo-file:not(.visible){display:none}
+
+
+
+.benefits-five{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
+.benefits-five .benefit{padding:clamp(14px,2vw,24px);gap:10px}
+.benefit h3{font-size:clamp(16px,1.55vw,21px)}
+.benefit p{font-size:14px}
+.gold-icon{display:grid;place-items:center;width:60px;height:60px;border-radius:19px;background:radial-gradient(at 20% 10%,#fff2cb,#d2a567 53%,#755028 100%);border:1px solid #ab814a;box-shadow:inset 0 2px 2px #fff7dc,inset 0 -4px 4px #5232156e,0 7px 14px #55341036}
+.gold-icon svg{width:39px;height:39px;fill:none;stroke:#fff1ba;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 0 #4c2a0e)}
+.gold-icon .gold-icon-depth{stroke:#79512c;stroke-width:3.5;transform:translateY(2px)}
+.svc-try{margin-top:auto;align-self:flex-start}
+.service-timeline{display:flex;justify-content:center;gap:clamp(4px,3vw,36px);padding:18px 12px;border-bottom:1px solid #ae8b513f}
+.service-timeline a{display:grid;justify-items:center;gap:5px;min-width:0;text-align:center;color:#e6d2ad;font-size:clamp(11px,2.7vw,15px);padding:6px 9px}
+.service-timeline a span{border:1px solid #c4a57577;border-radius:50%;width:31px;height:31px;display:grid;place-items:center}
+.service-timeline a[aria-current] span,.service-timeline a:hover span{background:#efd599;color:#26170d}
+@media(max-width:1100px){.benefits-five{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:580px){.benefits-five{grid-template-columns:repeat(2,minmax(0,1fr))}.benefits-five .benefit:last-child{grid-column:1/-1}}
+.film-player{max-width:1100px;margin:auto;display:grid;gap:16px;padding:20px clamp(12px,4vw,44px) 34px}
+.service-journey{background:#17120e}
+.film-player .service-timeline{display:flex;justify-content:center;gap:clamp(12px,4vw,54px);border:0;padding:0}
+.service-timeline button{appearance:none;border:0;background:transparent;color:#d2ba91;display:grid;justify-items:center;gap:8px;cursor:pointer;font:inherit;font-size:13px;line-height:1.35;text-align:center;padding:8px;min-width:56px}
+.service-timeline button[aria-pressed=true]{color:#fff1d4}
+.film-icon{position:relative;isolation:isolate;width:48px;height:48px;display:grid;place-items:center;border-radius:50%;border:1px solid #b9975b77;background:#2b2119}
+.film-icon svg{width:27px;height:27px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.service-timeline button[aria-pressed=true] .film-icon{background:#533a24;border-color:#f4cc84}
+.is-playing button[aria-pressed=true] .film-icon::after{content:'';position:absolute;inset:-5px;border:2px solid transparent;border-inline-start-color:#ffdf93;border-top-color:#fff1ba;border-radius:50%;filter:drop-shadow(0 0 4px #ffb44b);animation:film-orbit 1.5s linear infinite}
+@keyframes film-orbit{to{transform:rotate(360deg)}}
+.film-screen{min-width:0;border:1px solid #8e714748;border-radius:20px;overflow:hidden;background:#241b14}
+.service-video{width:100%;display:block;aspect-ratio:16/9;object-fit:contain;background:#0d0a08}
+.film-caption{display:grid;gap:3px;padding:14px clamp(14px,3vw,26px);color:#f9e9cc}
+.film-caption span{color:#d3b580;font-size:11px}.film-caption strong{font-size:19px}.film-caption p{font-size:14px;color:#e3d1b5}
+@media(max-width:640px){.film-player{grid-template-columns:63px minmax(0,1fr);gap:8px;align-items:start;padding-inline:8px}.film-player .service-timeline{flex-direction:column;gap:3px}.service-timeline button{font-size:10px;min-width:0;padding:5px 2px;gap:5px}.film-icon{width:36px;height:36px}.film-icon svg{width:23px;height:23px}.film-screen{border-radius:14px}}
+@media(prefers-reduced-motion:reduce){.is-playing button[aria-pressed=true] .film-icon::after{animation:none}}
+.rv:focus-within{opacity:1;transform:none;transition:none}
+.mobile-menu:not([hidden]){max-height:calc(100vh - var(--hh,72px) - 24px);max-height:calc(100dvh - var(--hh,72px) - 24px);overflow-y:auto;overscroll-behavior:contain}
+@property --button-orbit{syntax:"<angle>";inherits:false;initial-value:0deg}
+:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button){
+ --button-top:#6c492e;--button-base:#452b1b;--button-text:#fffaf2;--button-depth:#2e1a0f;--button-edge:#8d633e;--button-light:#ffe3a3;
+ isolation:isolate;overflow:visible;color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base));border:1px solid var(--button-edge);box-shadow:inset 0 1px 0 #ffffff38,0 4px 0 var(--button-depth),0 8px 14px #25160e31;text-shadow:none;
+}
+:is(.btn,.menu-toggle,.close,.demo-controls button,.mirror-invite button){position:relative}
+:where(.page,body) :is(.on-dark,.salon-invite,.builder-preview,.mirror-invite,.site-footer) :is(.btn,.close,.mirror-invite button){
+ --button-top:#fffefa;--button-base:#f2e5d2;--button-text:#4c3020;--button-depth:#a08465;--button-edge:#d7b992;--button-light:#ffe3a3;
+ color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base));border-color:var(--button-edge);box-shadow:inset 0 1px 0 #fff,0 4px 0 var(--button-depth),0 8px 14px #160e083e;
+}
+:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:disabled):hover{background:linear-gradient(180deg,var(--button-top),var(--button-base));filter:brightness(1.11)}
+:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:disabled):active{box-shadow:inset 0 1px 3px #160e0840,0 1px 0 var(--button-depth)}
+@supports (mask-composite:exclude){
+ :where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:disabled)::after{
+  content:"";position:absolute;inset:-4px;padding:1px;border-radius:inherit;pointer-events:none;background:conic-gradient(from var(--button-orbit),transparent 0deg 295deg,#c28c4a55 315deg,var(--button-light) 347deg,transparent 360deg);mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;animation:button-orbit 4s linear infinite;
+ }
+}
+@keyframes button-orbit{to{--button-orbit:360deg}}
+@media(prefers-reduced-motion:reduce){:where(.page,body) :is(.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button)::after{animation:none}}
+@media(max-width:900px){
+ .sticky-cta:not([hidden]){inset-inline:16px;bottom:calc(10px + env(safe-area-inset-bottom,0px));padding:8px 16px;border:1px solid var(--button-edge);border-radius:14px;color:var(--button-text);background:linear-gradient(180deg,var(--button-top),var(--button-base))}
+}
+.copy .btn--ghost:not(:disabled){--button-top:#775337;--button-base:#583c28;--button-text:#fffaf2;--button-depth:#3a2416;--button-edge:#9c7754}
+.copy .btn--ghost::after,.svc-try::after{opacity:.55}
+.copy .btn--ghost:is(:hover,:focus-visible)::after,.svc-try:is(:hover,:focus-visible)::after{opacity:1}
+@media(max-width:390px){.film-player .service-timeline button{min-height:48px}.builder-form .identity-url input{padding-inline:5px}}
+
+/* QA pass: hierarchy, rhythm and small-screen fixes. */
+h1,h2,.sec-head h2,.salon-invite-copy h2{text-wrap:balance}
+.sec-head .sub,.lead{text-wrap:pretty}
+/* Header: one clear action on wide screens; the sticky strip covers phones. */
+.header-cta{min-height:42px;padding:0 18px;font-size:14px}
+.site-header .header-cta::after{display:none}
+@media(max-width:900px){.header-cta{display:none!important}}
+/* Hero: the second action is lighter so the primary path reads first. */
+.copy .btn--ghost:not(:disabled){--button-top:#fffdf8;--button-base:#f1e4d0;--button-text:#4a2e1d;--button-depth:#b39470;--button-edge:#cfae80}
+.copy .cta-row{align-items:center}
+@media(max-width:900px){.copy .cta-row{flex-direction:column;align-items:stretch;width:100%;max-width:440px;margin-inline:auto}.copy .cta-row .btn{width:100%;justify-content:center}}
+/* Only primary actions keep the continuous gold orbit; the rest shine on hover. */
+:where(.page,body) :is(.btn:not(.btn--lg),.menu-toggle,.nav-btn,.close,.demo-controls button,.mirror-invite button):not(:hover,:focus-visible)::after{animation-play-state:paused;opacity:0}
+/* Benefits: titles stay on one line on desktop; one readable column on phones. */
+.benefit h3{font-size:clamp(16px,1.3vw,19px);line-height:1.5}
+@media(max-width:580px){
+ .benefits-five{grid-template-columns:1fr;gap:12px}
+ .benefits-five .benefit{display:grid;grid-template-columns:52px minmax(0,1fr);column-gap:14px;row-gap:4px;align-items:start;padding:16px}
+ .benefits-five .benefit .gold-icon{grid-row:span 2;width:52px;height:52px;border-radius:16px}
+ .benefits-five .benefit .gold-icon svg{width:32px;height:32px}
+ .benefits-five .benefit h3{margin:0;font-size:17px}
+ .benefits-five .benefit p{margin:0;font-size:14px;line-height:1.85}
+}
+/* Invitation kicker matches every other section label. */
+.salon-invite-copy .journey-kicker{color:#e2c182;font-size:13px;font-weight:700;margin:0 0 10px}
+/* Builder: custom disclosure marker instead of the browser triangle. */
+.builder-form summary{list-style:none;display:flex;align-items:center;gap:10px}
+.builder-form summary::-webkit-details-marker{display:none}
+.builder-form summary::before{content:"";flex:none;width:8px;height:8px;border-right:2px solid #8d633e;border-bottom:2px solid #8d633e;transform:translateY(-2px) rotate(45deg);transition:transform .2s;margin-inline:2px 4px}
+.builder-form details[open]>summary::before{transform:translateY(2px) rotate(-135deg)}
+.builder-form summary small{font-weight:600;color:#7b6551}
+.upload-action{font-size:13px;white-space:nowrap}
+/* Mobile live preview stays compact so the form keeps most of the screen. */
+@media(max-width:850px){.builder-preview .builder-browser{display:none}.builder-live{max-height:24svh}.builder-preview .live-services,.builder-preview .live-try{display:none}.builder-form :is(input,select,textarea,button,summary):focus{scroll-margin-block-start:calc(var(--hh,68px) + 28svh)}}
+/* Hero colour names stay legible on phones. */
+@media(max-width:600px){.palette .col-list span,.palette .col-list small{font-size:10px}}
+/* Footer */
+.site-footer .legal{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px}
+/* The expanded style rail must not sit on top of the hero actions. */
+@media(min-width:901px){.copy .cta-row,.copy .fineprint{transition:opacity .3s,visibility .3s}.stage:has(.styles.open) .copy :is(.cta-row,.fineprint){opacity:0;visibility:hidden}}
+/* Anchors land exactly under the compact sticky header. */
+html{scroll-padding-top:var(--hh,68px)}
+/* Mobile menu ends with the main action. */
+.mobile-menu a.btn.menu-cta{display:flex;margin-top:14px;width:100%;max-width:none;white-space:nowrap;min-height:48px;justify-content:center;font-size:15px}
+/* Mirror invitation: a real card, not a cramped slab. */
+.mirror-invite{gap:clamp(6px,1.1vw,14px)}
+.mirror-invite p{font-size:clamp(14px,calc(24px * var(--scene-scale)),26px);line-height:1.55}
+.mirror-invite .btn{white-space:nowrap;min-height:40px;padding:0 clamp(10px,1vw,16px);font-size:clamp(12px,calc(13px * var(--scene-scale)),14px);line-height:1.4;gap:6px}
+:where(.page,body) .mirror-invite #backToMirror{background:none;box-shadow:none;border:0;color:#E9D8B8;min-height:36px;padding:0 4px;font-size:clamp(11px,calc(12px * var(--scene-scale)),13px);text-decoration:underline;text-underline-offset:4px;filter:none}
+:where(.page,body) .mirror-invite #backToMirror::after{display:none}
+.inv-short{display:none}
+@media(max-width:600px){.mirror-invite .inv-long{display:none}.mirror-invite .inv-short{display:inline}.mirror-invite .invite-mark{display:none}.mirror-invite .btn{padding:0 9px;min-height:34px}}
+/* Hero hands over to the light section below, not to black. */
+.fade{background:linear-gradient(180deg,rgba(237,229,217,0) 40%,var(--sunken,#EDE5D9) 100%)}
+/* The film always fits one desktop screen with its tabs and caption. */
+@media(min-width:641px){.film-player{max-width:min(1100px,calc((100svh - 360px) * 16 / 9 + 88px))}}
+.ref-try{white-space:nowrap}
+/* A modal dialog must stay fixed in the viewport; opening it must never scroll the page. */
+.builder-dialog:modal{position:fixed;inset:0;margin:auto;height:fit-content}
+.salon-invite-art>video{object-position:center}
+/* Nothing may widen the page: animated words and cards are clipped at the viewport edge instead of
+   creating a sideways scroll (which in RTL pushed the whole hero off-screen on phones). */
+html,body{overflow-x:clip}
+@supports not (overflow:clip){html,body{overflow-x:hidden}}
+/* Invitation film on single-column layouts: show the whole 16:9 frame instead of cropping its sides,
+   and keep the seal off the film so it never covers the story. */
+@media(max-width:900px){
+ .salon-invite-art{min-height:0;aspect-ratio:16/9}
+ .salon-invite-art:after{display:none}
+ .salon-invite-art .invite-seal{display:none}
+}
+/* Kickers: the gold bar has its own lane, so the typed text never runs over it (it crossed out the first word). */
+.copy .eyebrow,.sec-head .kicker,.salon-invite-copy .journey-kicker{display:inline-block;position:relative;padding-inline-start:40px}
+.copy .eyebrow::before,.sec-head .kicker::before,.salon-invite-copy .journey-kicker::before{position:absolute;inset-inline-start:0;top:50%;margin-top:-1px}
+:is(.copy .eyebrow,.sec-head .kicker,.salon-invite-copy .journey-kicker)>.type-live{inset-inline-start:40px}
+/* Comfortable touch targets for disclosures and the reference-card link. */
+.builder-form summary{min-height:44px}
+.ref-try{display:inline-flex;align-items:center;min-height:36px}
+/* Two-column invitation: the film is shown whole, centred on its own dark backdrop, never cropped. */
+@media(min-width:901px){
+ .salon-invite-card{grid-template-columns:1fr;max-width:1100px}
+ .salon-invite-art{min-height:0;aspect-ratio:16/9}
+ .salon-invite-art:after{background:linear-gradient(0deg,#17110e99,transparent 30%)}
+ .salon-invite-copy{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);column-gap:clamp(28px,4vw,64px);align-items:end;padding:clamp(28px,3.4vw,48px)}
+ .salon-invite-copy{align-items:start}
+ .salon-invite-copy>.journey-kicker{grid-column:1;grid-row:1}
+ .salon-invite-copy>h2{grid-column:1;grid-row:2 / span 2;margin:0}
+ .salon-invite-copy>p:not(.journey-kicker):not(.invite-detail){grid-column:2;grid-row:1 / span 2;align-self:end;margin:0 0 10px}
+ .salon-invite-copy>.invite-detail{grid-column:2;grid-row:3;margin:0}
+ .salon-invite-copy>.btn{grid-column:1 / -1;grid-row:4;margin-top:22px}
+}
