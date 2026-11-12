@@ -140,3 +140,11 @@ p{color:#203b44}
 .testimonial-stats{flex-direction:column;text-align:center;font-size:12px}
 .cta-panel{padding:30px 20px}.cta-panel h2{font-size:25px}
 }
+
+/* Reference-faithful details: Persian turquoise corner ornament and editorial weight. */
+.hero:after,.section-salon:after{right:-41px;top:18px;width:210px;height:210px;background:url("ornament.svg") center/contain no-repeat;opacity:.75;border-radius:0;mask-image:none}
+.benefits:after,.features:after{right:-90px;top:0}
+.hero:before{background:linear-gradient(90deg,#fff6ed00 50%,#fff6ed 100%),url("salon-film-04.webp") center center/cover no-repeat;opacity:.48}
+.hero h1,.section-heading h2{font-weight:900;text-shadow:0 0 .3px currentColor}
+.hero .hero-copy{position:relative;z-index:1}
+@media(max-width:720px){.hero:after{width:135px;height:135px;right:-87px;top:0;opacity:.55}.hero:before{top:420px;opacity:.2}}
