@@ -114,6 +114,15 @@ import hashlib
 STAMP = hashlib.sha256(h.encode('utf-8')).hexdigest()[:12]
 h = h.replace('<head>', '<head><meta name="ayneh-build" content="' + STAMP + '">', 1)
 assert 'ayneh-build' in h
+# A one-line self-report at the very end of the page: "this copy is build X, from Y". When the
+# owner says "nothing changed" and the server is serving the new build, this is what separates
+# "a stale tab is still open" from "the deploy never happened" without opening devtools.
+h = h.replace('</body>', '<script>window.__AYNEH_BUILD=' + repr(STAMP).replace("'", '"') + ';</script>' + NL + '</body>')
+# A visible build tag, bottom-left, tiny. It exists for exactly one conversation — "nothing
+# changed in the preview" — and it answers it on screen instead of in devtools. It names the
+# build, and it says how long this copy has been open, because a tab left open from before a
+# change keeps showing the page it loaded.
+h = h.replace('</body>', '''<div id="aynehBuildTag" aria-hidden="true" style="position:fixed;inset-inline-start:6px;bottom:6px;z-index:60;font:600 10px/1.4 ui-monospace,Menlo,monospace;direction:ltr;color:#0A202A;background:rgba(252,243,235,.92);border:1px solid rgba(10,32,42,.14);border-radius:7px;padding:3px 6px;pointer-events:none;letter-spacing:.02em"></div><script>(function(){var d=document.getElementById('aynehBuildTag'),t=Date.now();function tick(){var m=Math.floor((Date.now()-t)/60000);d.textContent=window.__AYNEH_BUILD+' · '+(m<1?'just loaded':m+'m open')}tick();setInterval(tick,20000)})();</script>''' + NL + '</body>')
 
 
 SCRIPTS = ['funnel.js', 'followup.js', 'draft.js', 'portrait.js', 'hair-color.js', 'compare.js',

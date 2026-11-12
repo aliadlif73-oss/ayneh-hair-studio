@@ -82,7 +82,7 @@ addEventListener('scroll',sync,{passive:true});sync();
 addEventListener('ayneh:pay-state',sync);
 }
 })();
-</script><script>
+</script><script>window.__AYNEH_BUILD="6c81443d200a";</script><div id="aynehBuildTag" aria-hidden="true" style="position:fixed;inset-inline-start:6px;bottom:6px;z-index:60;font:600 10px/1.4 ui-monospace,Menlo,monospace;direction:ltr;color:#0A202A;background:rgba(252,243,235,.92);border:1px solid rgba(10,32,42,.14);border-radius:7px;padding:3px 6px;pointer-events:none;letter-spacing:.02em"></div><script>(function(){var d=document.getElementById('aynehBuildTag'),t=Date.now();function tick(){var m=Math.floor((Date.now()-t)/60000);d.textContent=window.__AYNEH_BUILD+' · '+(m<1?'just loaded':m+'m open')}tick();setInterval(tick,20000)})();</script><script>
 (()=>{
 const KINDS=['cta_click','demo_open','wizard_start','wizard_step_complete','wizard_skip',
 'preview_ready','activation_available','otp_sent','otp_verified','lead_submit','lead_submit_failed'];
