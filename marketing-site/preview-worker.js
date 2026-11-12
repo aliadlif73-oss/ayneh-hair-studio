@@ -20,10 +20,11 @@ export default {async fetch(request){
  if(path!=='/index.html'&&!/^\/assets\/[A-Za-z0-9_.-]+$/.test(path))return new Response('Not Found',{status:404,headers:safe});
  try{const upstream=await fetch(RAW+path,{cf:{cacheEverything:true,cacheTtl:path==='/index.html'?45:86400}});
  if(!upstream.ok)return new Response('Asset Not Found',{status:404,headers:safe});
- const headers=new Headers(upstream.headers);
- headers.set('Cache-Control',path==='/index.html'?'public,max-age=45':'public,max-age=86400');
- headers.set('X-Content-Type-Options','nosniff');headers.set('X-Frame-Options','DENY');
- if(path==='/index.html'){headers.set('Content-Type','text/html;charset=utf-8');headers.set('X-Robots-Tag','noindex,nofollow')}
+ // GitHub raw adds a restrictive CSP/sandbox and disposition. Do not forward upstream headers.
+ const ext=path.split('.').pop().toLowerCase();
+ const mime=path==='/index.html'?'text/html;charset=utf-8':({webp:'image/webp',jpg:'image/jpeg',png:'image/png',woff2:'font/woff2'})[ext]||'application/octet-stream';
+ const headers=new Headers({...safe,'Content-Type':mime,'Cache-Control':path==='/index.html'?'public,max-age=45':'public,max-age=86400'});
+ if(path==='/index.html')headers.set('X-Robots-Tag','noindex,nofollow');
  return new Response(request.method==='HEAD'?null:upstream.body,{status:200,headers});
  }catch{return new Response('Preview source temporarily unavailable',{status:502,headers:safe})}
 }};
