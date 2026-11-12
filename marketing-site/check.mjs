@@ -19,7 +19,7 @@ test('all bundled images exist',()=>{
  for(const [,path] of html.matchAll(/(?:src|href)="(assets\/[^"]+)"/g))assert.ok(existsSync(join(root,path)),path);
 });
 test('the form sends to a protected server endpoint and displays status',()=>{
- assert.match(html,/fetch\('\/api\/inquiry'/);assert.match(html,/form\.reportValidity\(\)/);
+ assert.match(client,/fetch\('\/api\/inquiry'/);assert.match(client,/form\.reportValidity\(\)/);
  assert.match(html,/name="consent" required/);
  assert.match(html,/aria-live="polite"/);
  assert.match(worker,/url\.pathname==='\/api\/inquiry'/);
@@ -28,16 +28,17 @@ test('the form sends to a protected server endpoint and displays status',()=>{
  assert.match(worker,/'Origin':APP/);
 });
 test('responsiveness and accessible interaction',()=>{
- assert.match(html,/@media\(max-width:720px\)/);
+ assert.match(css,/@media\(max-width:720px\)/);
  assert.match(css,/prefers-reduced-motion/);
  assert.match(html,/aria-expanded/);
  assert.match(html,/src="assets\/site.js"/);
  assert.match(html,/aria-label="مقایسه/);
  assert.doesNotMatch(css,/left:-9999px/);
- assert.match(html,/\.honeypot\{[^}]*clip-path:inset\(50%\)/);
+ assert.match(css,/\.honeypot\{[^}]*clip-path:inset\(50%\)/);
 });
 test('only the separate marketing files are wired',()=>{
  assert.match(readFileSync(join(root,'wrangler.toml'),'utf8'),/name = "ayneh-marketing"/);
  assert.ok(existsSync(join(root,'.assetsignore')));
  assert.match(worker,/if\(env\.ASSETS\)/);
+ assert.ok(readFileSync(join(root,'_headers'),'utf8').includes('Content-Security-Policy'));
 });
