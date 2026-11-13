@@ -9,7 +9,7 @@
   <ol class="sb-steps" aria-label="مراحل ساخت پیش‌نمایش">
    <li><strong>نام و نشانی</strong><span>دو فیلد کوتاه؛ پرداختی لازم نیست.</span></li>
    <li><strong>پیش‌نمایش زنده</strong><span>صفحه‌ای را که مشتری می‌بیند، همان‌جا ببینید.</span></li>
-   <li><strong>درخواست راه‌اندازی</strong><span>اگر خواستید شماره بگذارید؛ برای هماهنگی تماس می‌گیریم.</span></li>
+   <li><strong>خرید پنل</strong><span>پنل خودتان را انتخاب کنید و با پرداخت، صفحه‌تان باز می‌شود.</span></li>
   </ol>
 
   <div class="sb-grid">
@@ -37,12 +37,12 @@
      </div>
     </div>
     <div class="sb-loading" id="builderLoading" role="status" hidden><span class="sb-spinner" aria-hidden="true"></span><p>در حال آماده‌کردن پیش‌نمایش…</p></div>
-    <button class="btn sb-activate" id="builderActivate" type="button" hidden>درخواست راه‌اندازی</button>
+    <a class="btn sb-activate" id="builderActivate" href="#services" hidden>خرید پنل و باز کردن صفحه</a>
     <p class="sb-note" id="builderHint" aria-live="polite"></p>
    </div>
 
    <form id="start" class="sb-form" method="post" aria-describedby="builderAvailability">
-    <p id="builderAvailability" class="sb-availability" role="status">وضعیت ثبت درخواست در حال بررسی است.</p>
+    <p id="builderAvailability" class="sb-availability" role="status">پیش‌نمایش بلافاصله آماده می‌شود؛ برای باز کردن صفحهٔ واقعی، پنل خودتان را بخرید.</p>
     <noscript><p>برای ساخت پیش‌نمایش، جاوااسکریپت مرورگر را فعال کنید.</p></noscript>
     <div class="wiz" id="builderWizard">
      <div class="wiz-top"><span class="wiz-track"><i class="wiz-bar" id="wizardBar"></i></span><span class="wiz-count" id="wizardCount">۱ از ۲</span></div>
@@ -60,7 +60,7 @@
      </div>
 
      <p class="wiz-ready" id="wizardReady" role="status" hidden>پیش‌نمایشتان آماده است. جزئیات را هر وقت خواستید اضافه کنید؛ هیچ‌کدام اجباری نیست.
-      <a href="#services" class="wiz-ready__plans">دیدن پنل‌ها و شرایط باز کردن پنل ←</a></p>
+      <a href="#services" class="wiz-ready__plans">دیدن پنل‌ها و خرید ←</a></p>
      <p class="wiz-err" id="wizardError" role="alert"></p>
      <div class="wiz-actions">
       <button type="button" class="btn btn--ghost wiz-prev" id="wizardPrev" hidden>قبلی</button>
@@ -68,12 +68,12 @@
       <button type="button" class="btn wiz-next" id="wizardNext">ادامه</button>
      </div>
     </div>
-    <p class="reassure-inline">پیش‌نمایش شما آماده است؛ درخواستتان را هر زمان خواستید بفرستید.</p>
+    <p class="reassure-inline">پیش‌نمایش بلافاصله ساخته می‌شود و جایی فرستاده نمی‌شود؛ فقط برای باز کردن صفحهٔ واقعی، پنل خودتان را بخرید.</p>
 
     <details class="sb-details" id="builderDetails">
      <summary>تکمیل جزئیات صفحه (اختیاری)</summary>
      <div class="sb-details__body">
-      <p class="hint">هرچه اینجا بنویسید، همان لحظه در پیش‌نمایش بالا دیده می‌شود. برای درخواست راه‌اندازی نیازی به پر کردن این بخش نیست.</p>
+      <p class="hint">هرچه اینجا بنویسید، همان لحظه در پیش‌نمایش بالا دیده می‌شود. پر کردن این بخش برای دیدن پیش‌نمایش لازم نیست.</p>
 
       <div class="sb-group">
        <h4>رنگ برند خودتان را انتخاب کنید</h4>
@@ -133,32 +133,10 @@
 
     <p class="sb-error" id="builderError" role="alert" tabindex="-1"></p>
     <button type="submit" class="btn sb-build" id="builderBuild" disabled hidden>آماده‌کردن پیش‌نمایش</button>
-    <p class="sb-note--form">تا پیش از ارسال درخواست، پیش‌نمایش و عکس‌ها فقط در مرورگر شما می‌مانند.</p>
+    <p class="sb-note--form">تصویرها و نوشته‌های این پیش‌نمایش فقط در مرورگر شما می‌مانند و جایی فرستاده نمی‌شوند.</p>
    </form>
   </div>
 
-  <div class="sb-fallback" id="leadFallback" hidden>
-   <p class="sb-fallback__lead" id="leadFallbackLead"></p>
-   <button type="button" class="sb-fallback__toggle" id="leadFallbackToggle" aria-expanded="false" aria-controls="leadFallbackBody">یا فقط شماره بگذارید؛ با شما تماس می‌گیریم</button>
-   <div class="sb-fallback__body" id="leadFallbackBody" hidden>
-        <form class="path path--form" id="leadForm" novalidate aria-labelledby="h-lead">
-          <h3 id="h-lead">درخواست راه‌اندازی</h3>
-          <p class="lf-intro">بدون پرداخت و بدون انتشار صفحه، برای هماهنگی راه‌اندازی با شما تماس می‌گیریم.</p>
-          <div class="lf-grid">
-            <div class="lf-field"><label for="lf-salon">نام شما یا آرایشگاه</label><input id="lf-salon" name="salon" type="text" autocomplete="organization" maxlength="80" required></div>
-            <div class="lf-field"><label for="lf-phone">شمارهٔ موبایل</label><input id="lf-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" dir="ltr" placeholder="۰۹۱۲۰۰۰۰۰۰۰" maxlength="20" required><small class="lf-privacy">شماره فقط برای پیگیری همین درخواست استفاده می‌شود.</small></div>
-            <div class="lf-field"><label for="lf-name">نام شما</label><input id="lf-name" name="name" type="text" autocomplete="name" maxlength="60" required></div>
-            <div class="lf-field"><label for="lf-city">شهر <span class="opt">(اختیاری)</span></label><input id="lf-city" name="city" type="text" autocomplete="address-level2" maxlength="40"></div>
-          </div>
-          <p class="lf-plan" id="lf-plan" hidden></p>
-          <div class="lf-hp" aria-hidden="true"><label for="lf-web">وب‌سایت</label><input id="lf-web" name="website" type="text" tabindex="-1" autocomplete="off"></div>
-          <label class="lf-check" for="lf-consent"><input id="lf-consent" name="consent" type="checkbox"><span>موافقم برای راه‌اندازی صفحهٔ سالن و معرفی سرویس با من تماس بگیرید.</span></label>
-          <p class="lf-err" id="lf-err" role="alert"></p>
-          <button class="btn btn--lg" type="submit" id="lf-send"><span>درخواست راه‌اندازی را بفرستید</span><span class="arrow" aria-hidden="true">←</span></button>
-          <div class="lf-done follow-up-slot" id="lf-done" role="status" hidden></div>
-        </form>
-
-   </div>
   </div>
  </div>
 </section>
@@ -171,34 +149,4 @@
   <label class="wide">توضیح کوتاه<textarea data-work="description" rows="2" maxlength="300"></textarea></label>
   <button type="button" class="sb-remove builder-remove">حذف نمونه‌کار</button>
  </fieldset>
-</template>
-<dialog class="act-dialog" id="builderDialog" aria-labelledby="builderDialogTitle">
- <div class="ad-top"><h3 id="builderDialogTitle">تأیید شمارهٔ موبایل</h3><button class="ad-x builder-close" type="button" aria-label="بستن">×</button></div>
- <div class="ad-body">
-  <form id="builderPhone" class="ad-form" method="post">
-   <p class="ad-lead">برای پیگیری درخواست راه‌اندازی، شمارهٔ موبایل‌تان را تأیید کنید.</p>
-   <label>نام<input name="first_name" required minlength="2" maxlength="40" autocomplete="given-name"></label>
-   <label>نام خانوادگی<input name="last_name" required minlength="2" maxlength="60" autocomplete="family-name"></label>
-   <label>شمارهٔ موبایل<input name="phone" type="tel" required dir="ltr" maxlength="20" autocomplete="tel" placeholder="۰۹۱۲۰۰۰۰۰۰۰"></label>
-   <button type="submit" class="btn">ارسال کد تأیید</button>
-  </form>
-  <form id="builderOtp" class="ad-form" method="post" hidden>
-   <label>کد پیامک‌شده<input name="code" required dir="ltr" maxlength="12" inputmode="numeric" autocomplete="one-time-code" placeholder="------"></label>
-   <button type="submit" class="btn">تأیید و ارسال درخواست</button>
-   <button type="button" id="builderRetry" class="btn btn--ghost">ارسال دوبارهٔ کد</button>
-  </form>
-  <p id="builderDialogError" class="ad-err" role="alert"></p>
-  <div id="builderThanks" class="ad-thanks" role="status" hidden></div>
- </div>
-</dialog>
-<template id="followUpTemplate">
- <div class="follow-up">
-  <p class="follow-up-lead">درخواستتان ثبت شد. بعد از این:</p>
-  <ol class="follow-up-steps">
-   <li><span class="follow-up-num" aria-hidden="true">۱</span><div><b>دریافت و بررسی</b><span>درخواست راه‌اندازی صفحهٔ اختصاصی شما برای کارشناسان ما ارسال شد و بررسی می‌شود.</span></div></li>
-   <li><span class="follow-up-num" aria-hidden="true">۲</span><div><b>تماس تیم آینه</b><span>پس از بررسی، برای گفتگو و هماهنگی راه‌اندازی با شما تماس می‌گیریم.</span></div></li>
-   <li><span class="follow-up-num" aria-hidden="true">۳</span><div><b>از طرف شما</b><span>نیازی به پرداخت یا کاری از طرف شما نیست. ثبت درخواست شامل پرداخت یا انتشار صفحه نیست.</span></div></li>
-  </ol>
-  <p class="follow-up-note">شماره فقط برای پیگیری همین درخواست استفاده می‌شود.</p>
- </div>
 </template>

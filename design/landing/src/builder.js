@@ -3,73 +3,13 @@
  const form=$('start'),live=$('builderLive');
  if(!form||!live)return;
  const loading=$('builderLoading'),activate=$('builderActivate'),hint=$('builderHint');
- const dialog=$('builderDialog'),phone=$('builderPhone'),otp=$('builderOtp'),thanks=$('builderThanks'),dialogError=$('builderDialogError');
- const availability=$('builderAvailability');
- const fallback=$('leadFallback'),fallbackToggle=$('leadFallbackToggle'),
-       fallbackBody=$('leadFallbackBody'),fallbackLead=$('leadFallbackLead');
- const add=$('builderAdd'),works=$('builderWorks'),build=$('builderBuild');
- const profileFields=['bio','manager','address','hours','phone','instagram','website','map','telegram'];
- const brandFields=['logo','cover','portrait'];
- let draft,otpBody,busy=false,submitted=false,dirty=false,canActivate=false,checkingAvailability=false,availabilityKnown=false;
- let availabilityState=null,lastWizardName='',wizardReady=false;
- /* OTP stays primary. A quiet request form is ALWAYS offered and becomes the
-    primary route whenever SMS activation is unavailable. */
- function setFallback(primary){
-  if(!fallback||availabilityState===primary)return;
-  availabilityState=primary;
-  fallback.hidden=false;
-  fallback.classList.toggle('is-primary',primary);
-  fallback.classList.toggle('is-secondary',!primary);
-  fallbackLead.hidden=primary;
-  fallbackLead.textContent='همچنین می‌توانید، بدون تأیید پیامکی:';
-  fallbackToggle.hidden=primary;
-  fallbackToggle.setAttribute('aria-expanded',String(primary));
-  fallbackBody.hidden=!primary;
- }
- if(fallbackToggle)fallbackToggle.addEventListener('click',()=>{
-  const open=fallbackBody.hidden;
-  fallbackBody.hidden=!open;
-  fallbackToggle.setAttribute('aria-expanded',String(open));
-  fallbackLead.hidden=open;
-  if(open){
-   fallbackLead.hidden=true;
-   const name=form.elements.name?.value.trim();
-   if(name&&!$('lf-salon').value)$('lf-salon').value=name;
-   $('lf-salon').focus({preventScroll:true});
-  }
- });
+ const add=$('builderAdd'),works=$('builderWorks');
+ let wizardReady=false;
  const objectURLs=new Map();
  const imageTypes=['image/jpeg','image/png','image/webp'];
  const validPhoto=file=>imageTypes.includes(file.type)&&file.size>0&&file.size<=12_000_000;
  const photoHelp='عکس JPG، PNG یا WebP با حجم حداکثر ۱۲ مگابایت انتخاب کنید.';
 
- const api=async(path,body,signal)=>{
-  const options=body===undefined?{}:{method:'POST',...(body instanceof FormData?{body}:{headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})};
-  const response=await fetch(path,{...options,signal});
-  const data=await response.json().catch(()=>({}));
-  if(!response.ok||!data.ok)throw new Error(data.error||'ارتباط با آینه برقرار نشد. دوباره تلاش کنید.');
-  return data;
- };
- function showAvailability(available){
-  window.__AYN_TRACK?.('activation_available',{available:!!available});
-  canActivate=available;
-  availability.textContent=available
-   ?'برای درخواست راه‌اندازی، تأیید شمارهٔ موبایل لازم است.'
-   :'برای درخواست راه‌اندازی، شماره‌تان را همین‌جا بگذارید؛ بدون پرداخت و بدون انتشار صفحه، برای هماهنگی با شما تماس می‌گیریم.';
-  activate.hidden=!available||!wizardReady;
-  setFallback(!available);
-  if(wizardReady&&!submitted)hint.textContent=available
-   ?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.'
-   :'پیش‌نمایش آماده است. درخواست‌تان را از فرم زیر بفرستید.';
- }
- async function checkAvailability(){
-  if(checkingAvailability)return;
-  checkingAvailability=true;
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),5000);
-  try{await api('/api/activation',undefined,controller.signal);showAvailability(true)}
-  catch{showAvailability(false)}
-  finally{clearTimeout(timer);checkingAvailability=false;availabilityKnown=true}
- }
  const serviceNames={hair:'مدل مو',color:'رنگ مو',nails:'ناخن',lashes:'مژه'};
  const linkNames={instagram:'اینستاگرام',website:'وب‌سایت',map:'نقشه',telegram:'تلگرام'};
  function urlFor(file){
@@ -86,9 +26,6 @@
   const get=key=>fields[key].value.trim();
   const name=get('name')||'نام شما';
   const slug=get('slug')||'your-salon';
-  const lfSalon=$('lf-salon');
-  if(lfSalon&&(!lfSalon.value||lfSalon.value===lastWizardName))lfSalon.value=get('name')||'';
-  lastWizardName=get('name')||'';
   $('builderAddress').textContent='ayneh-salon.site/s/'+slug;
   live.style.setProperty('--salon-brand',get('brand'));
   $('builderBrandHex').textContent=get('brand').toUpperCase();
@@ -128,9 +65,8 @@
  function change(){
   render();
   /* The fitted preview shows the whole page at once; refine.js highlights the
-     changed element instead of jumping the page on every keystroke. Optional
-     details stay editable after 'ready' — packageDraft() reads the CURRENT
-     form whenever the owner actually asks for setup. */
+     changed element instead of jumping the page on every keystroke. Everything
+     here is browser-local: nothing is uploaded and no request is sent. */
  }
  form.elements.slug.addEventListener('input',e=>{
   e.target.value=e.target.value.toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'');
@@ -145,108 +81,21 @@
   works.append(item);add.disabled=works.children.length>=6;change();
   item.querySelector('input').focus();
  });
- async function photo(file){
-  if(!file||!validPhoto(file))throw new Error(photoHelp);
-  const image=await createImageBitmap(file).catch(()=>{throw new Error('یکی از عکس‌ها خوانده نشد.')});
-  try{
-   if(file.size<=400_000)return file;
-   const scale=Math.min(1,1440/Math.max(image.width,image.height));
-   const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(image.width*scale));canvas.height=Math.max(1,Math.round(image.height*scale));
-   canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
-   for(const quality of [.86,.68,.45,.28]){
-    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',quality));
-    if(blob?.size<=400_000)return blob;
-   }
-   throw new Error('یکی از عکس‌ها خیلی حجیم است. نسخهٔ کوچک‌تر آن را انتخاب کنید.');
-  }finally{image.close()}
- }
- async function packageDraft(){
-  const name=form.elements.name.value.trim(),slug=form.elements.slug.value;
-  if(name.length<2)throw new Error('نام خودتان یا آرایشگاه را وارد کنید.');
-  if(!/^[a-z][a-z0-9-]{1,44}[a-z0-9]$/.test(slug))throw new Error('نشانی صفحه را با حروف انگلیسی، عدد یا خط تیره وارد کنید.');
-  const profile=Object.fromEntries(profileFields.map(key=>[key,form.elements[key].value.trim()]));
-  for(const key of ['instagram','website','map','telegram'])if(profile[key]&&!/^https?:\/\//i.test(profile[key]))throw new Error('لینک‌ها باید با http:// یا https:// شروع شوند.');
-  const files=new Map();
-  for(const key of brandFields){const file=form.elements[key].files[0];if(file)files.set(key,await photo(file))}
-  const portfolio=[];
-  for(const row of works.children){
-   const get=key=>row.querySelector('[data-work="'+key+'"]');
-   const slot='work-'+portfolio.length;
-   const title=get('title').value.trim();
-   if(title.length<2)throw new Error('برای هر نمونه‌کار عنوان وارد کنید.');
-   files.set(slot,await photo(get('file').files[0]));
-   portfolio.push({title,line:get('line').value,description:get('description').value.trim(),slot});
-  }
-  dirty=false;
-  return {id:crypto.randomUUID(),data:{name,slug,brand:form.elements.brand.value,profile,portfolio,attribution:window.__AYN_ATTR?.()||{}},files};
- }
  form.addEventListener('submit',e=>{
   e.preventDefault();
-  /* Enter advances the two-question wizard; once ready it opens the request. */
-  if(busy)return;
+  /* Enter advances the two-question wizard; once the preview is ready the same
+     Enter goes on to the panels, which is the only paid step on the page. */
   if(!wizardReady){document.getElementById('wizardNext')?.click();return}
-  if(canActivate&&!activate.hidden)activate.click();
+  location.hash='#services';
  });
- const sessionPath='/api/s/demo/session';
- async function session(){
-  try{return await api(sessionPath)}catch(error){await api(sessionPath,{});return api(sessionPath)}
- }
- async function send(){
-  if(dirty||!draft)throw new Error('اطلاعات کامل نیست. دوباره تلاش کنید.');
-  const payload=new FormData();
-  payload.append('id',draft.id);payload.append('draft',JSON.stringify(draft.data));
-  for(const [key,file] of draft.files)payload.append(key,file,key);
-  const sentDraft=draft;
-  await api('/api/activation',payload);
-  window.__AYN_TRACK?.('lead_submit',{path:'activation'});
-  if(draft!==sentDraft||dirty)return;
-  submitted=true;phone.hidden=true;otp.hidden=true;window.__AYN_FOLLOWUP?.(thanks);
-  $('builderDialogTitle').textContent='درخواست راه‌اندازی ثبت شد';
-  if(!dialog.open)dialog.showModal();
-  activate.disabled=true;hint.textContent='درخواست راه‌اندازی ثبت شد.';
- }
- async function run(action,control){
-  if(busy)return;
-  busy=true;control.disabled=true;dialogError.textContent='';$('builderError').textContent='';
-  try{await action()}catch(error){if(dialog.open)dialogError.textContent=error.message;else hint.textContent=error.message;$('builderError').textContent=error.message}
-  finally{busy=false;control.disabled=control===activate&&submitted}
- }
- activate.onclick=()=>run(async()=>{
-  if(submitted||!canActivate)return;
-  try{await api('/api/activation')}catch{
-   showAvailability(false);
-   window.__AYN_TRACK?.('lead_submit_failed',{reason:'activation_unavailable'});
-   throw new Error('ثبت درخواست راه‌اندازی از این مسیر در دسترس نیست. می‌توانید درخواست‌تان را از فرم زیر بفرستید.');
-  }
-  draft=await packageDraft();
-  const current=await session();
-  if(current.verified){await send();return}
-  thanks.hidden=true;phone.hidden=false;otp.hidden=true;
-  $('builderDialogTitle').textContent='تأیید شمارهٔ موبایل';
-  dialog.showModal();
- },activate);
- phone.addEventListener('submit',e=>{
-  e.preventDefault();
-  run(async()=>{
-   const data=Object.fromEntries(new FormData(phone));
-   await api('/api/s/demo/otp/send',data);otpBody=data;window.__AYN_TRACK?.('otp_sent');
-   phone.hidden=true;otp.hidden=false;otp.elements.code.focus();
-  },e.submitter);
- });
- otp.addEventListener('submit',e=>{
-  e.preventDefault();
-  run(async()=>{if(!(await api(sessionPath)).verified)await api('/api/s/demo/otp/verify',{code:otp.elements.code.value});window.__AYN_TRACK?.('otp_verified');await send()},e.submitter);
- });
- $('builderRetry').onclick=e=>run(async()=>{await api('/api/s/demo/otp/send',otpBody);dialogError.textContent='کد جدید فرستاده شد.'},e.currentTarget);
- dialog.querySelector('.builder-close').onclick=()=>dialog.close();
- dialog.addEventListener('close',()=>{if(!activate.hidden&&!activate.disabled)activate.focus({preventScroll:true})});
+ activate.addEventListener('click',()=>{window.__AYN_TRACK?.('cta_click',{label:'خرید پنل',href:'#services',where:'studio'})});
  addEventListener('ayneh:wizard-ready',()=>{
   if(wizardReady)return;
   wizardReady=true;
   window.__AYN_TRACK?.('preview_ready');
-  activate.hidden=!canActivate;
-  hint.textContent=canActivate?'پیش‌نمایش آماده است. اگر مایلید، درخواست راه‌اندازی را ثبت کنید.':'پیش‌نمایش آماده است. درخواست‌تان را از فرم زیر بفرستید.';
+  /* The preview is the free half of the journey; the paid half is one anchor away.
+     The button under the preview appears with it, so the next step is always visible. */
+  activate.hidden=false;
+  hint.textContent='پیش‌نمایش آماده است. برای باز کردن این صفحه با نشانی خودتان، پنل مناسب را بخرید.';
  });
- build.disabled=false;
- checkAvailability();
 })();

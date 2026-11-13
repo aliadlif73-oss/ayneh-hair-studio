@@ -212,15 +212,16 @@
       const key = btn.dataset.buy;
       const open = btn.dataset.state === 'open' && Number(btn.dataset.amount) > 0;
       /* No approved amount yet: the button still says «خرید», so the click must not look
-         broken. It follows the anchor to the demo form and says why, in the panel itself. */
+         broken and must not open a checkout that cannot take money. It follows the anchor
+         to the note under the panels and says the same thing in the panel itself. */
       if (!open) {
         const note = document.querySelector('.plan__state[data-for="' + key + '"]');
         if (note) {
-          note.textContent = 'مبلغ این پنل هنوز نهایی نشده؛ فرم دمو پایین صفحه است و بدون پرداخت می‌بینید.';
+          note.textContent = 'مبلغ این پنل هنوز نهایی نشده است؛ به‌محض نهایی‌شدن، همین‌جا و در فهرست پایین پنل‌ها نوشته می‌شود. تا آن روز چیزی پرداخت نمی‌کنید.';
           note.hidden = false;
         }
         track('buy_unpriced', key);
-        return; // the anchor still carries the visitor to #form-start
+        return; // the anchor still carries the visitor to #plan-note
       }
       e.preventDefault();
       /* The chosen plan is remembered here, so the details form below knows what it is for

@@ -1026,14 +1026,14 @@ test('step 24 reference: header, nav and the two header actions follow the sheet
  assert.match(header,/aria-current="page"/,'the active item keeps the underline');
  const actions=(header.match(/<div class="header-cta">[\s\S]*?<\/div>/)||[])[0]||'';
  assert.match(actions,/class="btn--login"[\s\S]*?ورود به پنل/,'login button');
- assert.match(actions,/class="btn" href="#form-start"[\s\S]*?درخواست دمو/,'primary header CTA');
+ assert.match(actions,/class="btn" href="#services"[\s\S]*?خرید پنل/,'primary header CTA sells a panel');
  assert.match(header,/class="menu-toggle"/,'mobile menu hook');
  assert.match(landingHTML,/@media\(max-width:1120px\)\{[\s\S]{0,120}\.nav\{display:none\}/,'nav collapses before it can crowd the bar');
 });
 
 test('step 24 reference: section order matches the six reference sheets',()=>{
  const order=['id="intro"','id="features"','id="how"','id="why"','id="proof"','id="services"',
-  'id="cta"','id="faq"','id="form-start"','id="salon-example"'];
+  'id="cta"','id="faq"','id="salon-example"'];
  let at=-1;
  for(const token of order){
   const next=landingHTML.indexOf(token,at+1);
@@ -1167,7 +1167,11 @@ test('step 24 studio: the live salon preview survives the rebuild',()=>{
  for(const src of sections)new Function(src);
  const bundle=sections.join('\n');
  assert.match(bundle,/ayneh:wizard-ready/);
- assert.match(bundle,/async function packageDraft/);
+ /* The studio is preview-only now: it never posts a request, and the button it grows
+    when the preview is ready leads to the panels instead of a form. */
+ assert.doesNotMatch(bundle,/\/api\/activation/,'the studio uploads nothing');
+ assert.doesNotMatch(bundle,/demo\/otp/,'no phone verification on the landing page');
+ assert.match(landingHTML,/id="builderActivate" href="#services"/,'the studio hands over to the panels');
  assert.match(bundle,/querySelector\('\.upload-name'\)/,'the file label keeps a node to update');
 });
 
@@ -1202,25 +1206,26 @@ function priced(plan, amount, quota = 30) {
   return () => Object.assign(PLANS[plan], before);
 }
 
-test('step 25 funnel: the button says «خرید» and, with no price, still lands on the demo form', () => {
+test('step 25 funnel: the button says «خرید» and, with no price, still explains itself', () => {
   // The owner asked for one flow: the visitor sees the panels, clicks buy on the one she
   // wants, and gets a card number with a deadline. With the amounts unapproved there is no
-  // money to take yet, so the same button carries her to the demo form and says why — never
-  // a dead button, never a checkout that cannot take payment, never an invented figure.
+  // money to take yet, so the same button carries her to the note under the panels and says
+  // why — never a dead button, never a checkout that cannot take payment, never a figure.
   const labels = [...landingHTML.matchAll(/<a\b[^>]*data-buy="([a-z]+)"[^>]*>([^<]*)<\/a>/g)];
   assert.equal(labels.length, 3, 'three plan buttons');
   for (const [, plan, text] of labels) {
     const tag = landingHTML.match(new RegExp('<a\\b[^>]*data-buy="' + plan + '"[^>]*>'))[0];
     assert.equal(text.trim(), 'خرید', plan + ' is a buy button');
-    assert.match(tag, /href="#form-start"/, plan + ' falls back to the demo form');
+    assert.match(tag, /href="#plan-note"/, plan + ' lands on the note that explains the figure');
     assert.doesNotMatch(tag, /href="#pay"/, plan + ' does not open a payment it cannot take');
   }
   // Every unpriced panel explains itself in words next to the button.
-  assert.equal((landingHTML.match(/مبلغ در حال نهایی‌شدن است؛ برای دیدن دمو بفرستید\./g) || []).length, 3,
+  assert.equal((landingHTML.match(/مبلغ در حال نهایی‌شدن است و پیش از خرید نوشته می‌شود\./g) || []).length, 3,
     'each unpriced panel says the amount is being finalized');
   // The click is not swallowed: it falls through to the anchor and leaves a note behind.
   assert.match(payJS, /if \(!open\) \{[\s\S]{0,400}?return; \/\/ the anchor still carries/,
     'an unpriced click explains itself and then lets the anchor do the work');
+  assert.match(landingHTML, /id="plan-note"/, 'the anchor has a real destination');
   assert.match(landingHTML, /data-state="soon"/, 'and the shipped panels are still unpriced');
   assert.equal(PLANS.solo.amount + PLANS.salon.amount + PLANS.chain.amount, 0,
     'no plan carries a figure the owner has not approved');
@@ -1511,7 +1516,7 @@ test('step 25 owner console: the payment card, the webhook token and the order q
   assert.doesNotMatch(js, /6037|6219|5022/, 'no card digits in the console source');
 });
 
-test('step 25 checkout never leaves a "free demo" bar over a payment, and an unpriced panel never opens a sheet', () => {
+test('step 25 checkout never leaves a "buy a panel" bar over a payment, and an unpriced panel never opens a sheet', () => {
   const js = landingHTML.match(/<script>([\s\S]*?)<\/script>/g).map(s => s.slice(8, -9)).join('\n');
   assert.match(js, /is-paying/, 'the sheet flags the page while paying');
   assert.match(js, /ayneh:pay-state/, 'the sticky bar listens for that flag');

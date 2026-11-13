@@ -68,11 +68,11 @@ for key, (amount, quota) in PANEL_FIGURES.items():
     # While a figure is unapproved the panel says so in words, instead of leaving a bare
     # dashed box next to a button that reads «خرید».
     plans = plans.replace('{{PENDING_%s}}' % key.upper(),
-                          '' if amount else 'مبلغ در حال نهایی‌شدن است؛ برای دیدن دمو بفرستید.')
+                          '' if amount else 'مبلغ در حال نهایی‌شدن است و پیش از خرید نوشته می‌شود.')
     # The button is the same word on every panel — «خرید» — because that is the one action
     # the customer is being offered. What it does depends on the amount: priced opens the
-    # checkout, unpriced carries the visitor to the demo form with a note saying why. It is
-    # never a dead button and never a checkout that cannot take money.
+    # checkout, unpriced stops at the note under the panels saying why. It is never a dead
+    # button and never a checkout that cannot take money.
     plans = plans.replace('{{CTA_%s}}' % key.upper(), 'خرید')
 assert '{{PRICE' not in plans and '{{QUOTA' not in plans and '{{STATE' not in plans, 'every slot is filled'
 assert '{{AMOUNT' not in plans and '{{PLANNAME' not in plans and '{{PENDING' not in plans
@@ -91,17 +91,17 @@ W('../../worker/prices.js',
   + 'export const PLANS = {' + NL + plans_js + '};' + NL)
 
 # ---------------- studio (live salon-page builder) ----------------
-# src/trial.html is the studio markup; the phone fallback form inside it is filled
-# from src/lead.html so the two request routes can never drift.
-studio = '<!-- 9. Build your own salon page (live preview) -->' + NL + R('src/trial.html').replace('<!-- LEAD_FORM -->', R('src/lead.html'))
+# src/trial.html is the studio markup. It is preview-only: nothing inside it is uploaded
+# and its last step hands the visitor to the price panels.
+studio = '<!-- 9. Build your own salon page (live preview) -->' + NL + R('src/trial.html')
 
 # ---------------- page assembly ----------------
 h = R('src/page.html')
 # The payment sheet sits right after the studio: the price panels above open it, and it never
 # renders until a priced plan is picked (see src/pay.js). One replace: the STUDIO marker can
 # only be consumed once.
-h = h.replace('<!--PLANS-->', plans).replace('<!--STUDIO-->', studio + NL + R('src/pay.html')).replace('<!-- LEAD_FORM -->', R('src/lead.html'))
-assert '<!--PLANS-->' not in h and '<!--STUDIO-->' not in h and '<!-- LEAD_FORM -->' not in h
+h = h.replace('<!--PLANS-->', plans).replace('<!--STUDIO-->', studio + NL + R('src/pay.html'))
+assert '<!--PLANS-->' not in h and '<!--STUDIO-->' not in h
 assert 'id="pay"' in h and 'id="payForm"' in h, 'the payment sheet must ship'
 FONT = '@font-face{font-family:"Estedad";src:url("assets/estedad.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}'
 h = re.sub(r'<style>.*?</style>', lambda m: '<style>' + NL + FONT + NL + css + NL + '</style>', h, count=1, flags=re.S)
@@ -125,8 +125,11 @@ h = h.replace('</body>', '<script>window.__AYNEH_BUILD=' + repr(STAMP).replace("
 h = h.replace('</body>', '''<div id="aynehBuildTag" aria-hidden="true" style="position:fixed;inset-inline-start:6px;bottom:6px;z-index:60;font:600 10px/1.4 ui-monospace,Menlo,monospace;direction:ltr;color:#0A202A;background:rgba(252,243,235,.92);border:1px solid rgba(10,32,42,.14);border-radius:7px;padding:3px 6px;pointer-events:none;letter-spacing:.02em"></div><script>(function(){var d=document.getElementById('aynehBuildTag'),t=Date.now();function tick(){var m=Math.floor((Date.now()-t)/60000);d.textContent=window.__AYNEH_BUILD+' · '+(m<1?'just loaded':m+'m open')}tick();setInterval(tick,20000)})();</script>''' + NL + '</body>')
 
 
-SCRIPTS = ['funnel.js', 'followup.js', 'draft.js', 'portrait.js', 'hair-color.js', 'compare.js',
-           'try.js', 'reveal.js', 'builder.js', 'lead.js', 'refine.js', 'pay.js']
+# followup.js and lead.js retired with the demo-request form: the page now has exactly two
+# actions — look at the samples, or buy a panel — so there is no request to send and no
+# follow-up message to show.
+SCRIPTS = ['funnel.js', 'draft.js', 'portrait.js', 'hair-color.js', 'compare.js',
+           'try.js', 'reveal.js', 'builder.js', 'refine.js', 'pay.js']
 # Hair-colour maths and the photo handoff are used by the studio. hero.js, scenes.js,
 # cinema.js and cta.js drove the retired film sections (and cta.js looked for a
 # .film-player that no longer exists), so they are no longer shipped; the page's own
