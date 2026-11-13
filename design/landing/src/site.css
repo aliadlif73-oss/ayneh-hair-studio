@@ -857,3 +857,171 @@ body.is-paying .sticky-cta{display:none!important}
      the mirror — keep the box close to the photo's own proportions */
   .play-screen{border-radius:var(--r-xl) var(--r-xl) 0 0;min-height:clamp(190px,54vw,280px)}
 }
+
+/* ============================================================================
+   Cinematic section entrances — scrubbed by scroll, both directions
+   ----------------------------------------------------------------------------
+   Every value below is driven by a --p / --wp / --hp progress written by
+   cinema2.js from the scroll position, so an entrance, once passed, plays
+   backwards when the visitor scrolls back up. The keyframes are held paused and
+   seeked with a negative delay, which is what makes them reversible without a
+   single JS timer. All of it is off under prefers-reduced-motion.
+   ========================================================================== */
+.cine-word{
+  display:inline-block;transform-origin:50% 62%;
+  will-change:transform,opacity,filter;
+  animation:cine-word 900ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--wp,1) * -999ms);
+}
+/* the emerald word in a headline rises a touch further and carries the light */
+.cine-word--accent{color:var(--emerald)}
+@keyframes cine-word{
+  0%{opacity:0;filter:blur(6px);transform:perspective(760px) translate3d(0,-26px,150px) scale(1.6) rotateX(22deg)}
+  62%{opacity:1;filter:blur(0);transform:perspective(760px) translate3d(0,2px,-8px) scale(.97) rotateX(-2deg)}
+  82%{transform:perspective(760px) translate3d(0,0,0) scale(1.01) rotateX(.6deg)}
+  100%{opacity:1;filter:blur(0);transform:none}
+}
+/* the emerald underline that draws itself beneath the accent words */
+.cine-word--accent::after{
+  content:"";position:absolute;inset-inline:.02em;bottom:.02em;height:.09em;border-radius:99px;
+  background:linear-gradient(90deg,var(--emerald),var(--emerald-soft),var(--emerald));
+  box-shadow:0 2px 10px rgba(6,143,108,.4);
+  transform-origin:right center;transform:scaleX(var(--wp,1));
+}
+
+/* ── a section head: rises, and its line above (the eyebrow) draws first ── */
+.head,.tryon__head>div:first-child,.play__head>div:first-child,.faq-head{
+  animation:cine-head 900ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--hp,1) * -999ms);
+}
+.head .sub,.tryon__head .sub,.play__head .sub,.faq-head .sub{
+  animation:cine-rise 900ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--sp,1) * -999ms);
+}
+.eyebrow::before{
+  display:inline-block;content:"";width:calc(var(--kp,1) * 30px);height:2px;border-radius:2px;
+  vertical-align:middle;margin-inline-end:8px;
+  background:linear-gradient(90deg,var(--emerald),var(--emerald-soft));
+  box-shadow:0 1px 6px rgba(6,143,108,.35);
+}
+@keyframes cine-head{0%{opacity:0;transform:translate3d(0,26px,0)}60%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes cine-rise{0%{opacity:0;filter:blur(4px);transform:translate3d(22px,14px,0)}100%{opacity:1;filter:blur(0);transform:none}}
+
+/* ── the first screen: it is above the fold, so it only lifts away as it goes ── */
+#h1{
+  animation:cine-hero 1ms linear backwards paused;
+  animation-delay:calc((1 - var(--hp,1)) * -1ms);
+}
+@keyframes cine-hero{from{opacity:1;transform:none}to{opacity:.55;transform:translate3d(0,-10px,0)}}
+
+/* ── cards: arrive from depth, settle flat, then hover lifts only the card ── */
+[data-cine] .svc,[data-cine] .step,[data-cine] .why,[data-cine] .plan,.card-cine{
+  will-change:transform,opacity,filter;
+  animation:cine-card 950ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--p,1) * -999ms);
+}
+@keyframes cine-card{
+  0%{opacity:0;filter:blur(7px);
+     transform:perspective(1100px) translate3d(0,-40px,120px) scale(1.14)
+               rotateX(-22deg) rotateY(calc((2 - var(--i,0)) * 7deg))}
+  64%{opacity:1;filter:blur(0);
+     transform:perspective(1100px) translate3d(0,3px,-6px) scale(.985) rotateX(1.5deg) rotateY(0deg)}
+  100%{opacity:1;filter:blur(0);transform:none}
+}
+/* Once a card is home, its own hover still works — the animation is finished, not fighting
+   it, because 'both' holds only the last keyframe which is transform:none. */
+
+/* ── the films: the screen lifts out of the page and the tabs deal in ── */
+#films .films__frame{
+  will-change:transform,opacity;
+  animation:cine-film 1000ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--fp,1) * -999ms);
+}
+@keyframes cine-film{
+  0%{opacity:0;filter:blur(6px);transform:perspective(1400px) translate3d(0,46px,-40px) scale(.94) rotateX(9deg)}
+  70%{opacity:1;filter:blur(0);transform:perspective(1400px) translate3d(0,-2px,4px) scale(1.005) rotateX(-1deg)}
+  100%{opacity:1;filter:blur(0);transform:none}
+}
+#films .film-tab{
+  animation:cine-tab 800ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--tp,1) * -999ms);
+}
+@keyframes cine-tab{0%{opacity:0;transform:translate3d(0,16px,0) scale(.96)}100%{opacity:1;transform:none}}
+
+/* ── the demo: the window slides up, the four service buttons deal in ── */
+#try-on .tryon__frame{
+  will-change:transform,opacity;
+  animation:cine-window 1000ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--fp,1) * -999ms);
+}
+@keyframes cine-window{
+  0%{opacity:0;transform:perspective(1400px) translate3d(0,54px,-30px) scale(.95) rotateX(7deg)}
+  72%{opacity:1;transform:perspective(1400px) translate3d(0,-2px,0) scale(1.004) rotateX(-.8deg)}
+  100%{opacity:1;transform:none}
+}
+#try-on .tryon__line{
+  animation:cine-chip 700ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--p,1) * -999ms);
+}
+@keyframes cine-chip{0%{opacity:0;transform:translate3d(0,14px,0) scale(.94)}100%{opacity:1;transform:none}}
+
+/* ── the mirror: the plate swings into the light, the side panel follows ── */
+#play .mirror{
+  will-change:transform,opacity;
+  animation:cine-mirror 1050ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--fp,1) * -999ms);
+}
+@keyframes cine-mirror{
+  0%{opacity:0;filter:blur(5px);transform:perspective(1300px) translate3d(0,40px,-20px) scale(.93) rotateY(-7deg)}
+  70%{opacity:1;filter:blur(0);transform:perspective(1300px) translate3d(0,0,0) scale(1.01) rotateY(1deg)}
+  100%{opacity:1;filter:blur(0);transform:none}
+}
+#play .play__side{
+  animation:cine-rise 900ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--sp,1) * -999ms);
+}
+/* The style rail's cards deal themselves in after the mirror lands. They ride --mp, which the
+   engine writes on each card from its OWN position in the rail — the rail is horizontal and
+   scrollable, so a single section-wide value would never reach the cards scrolled out of view. */
+#play .play-card{
+  animation:cine-chip 620ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--mp,1) * -999ms + var(--i,0) * 55ms);
+}
+
+/* ── the FAQ answers slide from alternating sides ── */
+#faq .faq-item{
+  will-change:transform,opacity;
+  animation:cine-faq 850ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--p,1) * -999ms);
+}
+@keyframes cine-faq{
+  0%{opacity:0;transform:translate3d(calc(var(--dir,1) * 34px),10px,0) scale(.985)}
+  100%{opacity:1;transform:none}
+}
+
+/* ── the payment explainer steps ── */
+#services .plan-how li{
+  animation:cine-chip 750ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--p,1) * -999ms);
+}
+
+/* ── the closing call and the footer ── */
+#cta{
+  animation:cine-window 950ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--p,1) * -999ms);
+}
+.site-footer{
+  animation:cine-rise 900ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation-delay:calc(var(--p,1) * -999ms);
+}
+
+/* everything the engine touches must be able to show itself if JS never runs */
+.no-cinema .head,.no-cinema .sub,.no-cinema .site-footer{animation:none;opacity:1}
+
+@media(prefers-reduced-motion:reduce){
+  .cine-word,.head,.sub,.eyebrow::before,#h1,#films .films__frame,#films .film-tab,
+  #try-on .tryon__frame,#try-on .tryon__line,#play .mirror,#play .play__side,#play .play-card,
+  #faq .faq-item,#services .plan-how li,#cta,.site-footer,.svc,.step,.why,.plan{
+    animation:none!important;opacity:1!important;filter:none!important;transform:none!important;
+  }
+}

@@ -1214,7 +1214,12 @@ test('step 24 budget: payload and markup stay inside the review envelope',()=>{
  assert.match(landingHTML,/og:image" content="__ORIGIN__\/landing\/og\.jpg"/,'the share image is origin-relative in source');
  assert.equal((landingHTML.match(/__ORIGIN__/g)||[]).length,4,'signup links and the share image carry the origin token');
  assert.equal((landingHTML.match(/<h1[\s>]/g)||[]).length,1);
- assert.doesNotMatch(landingHTML,/cinema|film-player|service-journey/,'the retired film sections are gone');
+ // The retired engine is the NAVY one (cinema.css / cinema.js with .sec-head, .kicker,
+ // .film-player, #transform). The redesigned page has its own scroll-scrubbed entrances in
+ // cinema2.js, so the guard names what actually had to disappear, not the word.
+ assert.doesNotMatch(landingHTML,/film-player|service-journey|sec-head|class="kicker"/,'the retired film sections are gone');
+ assert.ok(!landingHTML.includes('cinema.css'),'the retired stylesheet is not shipped');
+ assert.ok(!landingHTML.includes('cinema.js'),'the retired script is not shipped');
  assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length,0,'the retired CTA label is gone');
  assert.ok(customerHTML.includes('ساخت صفحهٔ من'),'the customer return bar keeps its own label');
 });
@@ -1621,4 +1626,27 @@ test('step 29 mirror: the character can restyle hair and colour, on a real photo
   assert.ok(existsSync(new URL('../public/landing/look-s'+n+'.webp',import.meta.url)),'look '+n+' ships');
   assert.ok(existsSync(new URL('../public/landing/mask-s'+n+'.png',import.meta.url)),'mask '+n+' ships');
  }
+});
+
+test('step 30 cinema: every section has a scroll-scrubbed entrance, and none can strand content',()=>{
+ // The redesign dropped the old navy choreography (cinema.js) along with the film sections.
+ // These entrances are the same idea rebuilt for this page: progress comes from the scroll
+ // position, so an entrance plays backwards on the way up, and nothing depends on a timer.
+ const js=readFileSync(new URL('../design/landing/src/cinema2.js', import.meta.url), 'utf8');
+ assert.ok(js.includes("root.classList.remove('no-cinema')"),'the plain page is released as soon as the script runs');
+ assert.ok(js.includes('prefers-reduced-motion'),'reduced motion turns it off');
+ for(const sel of ["'#features'","'#how'","'#why'","'#services'","'#films'","'#try-on'","'#play'","'#faq .faq-item'","'#cta'","'.site-footer'"])
+  assert.ok(js.includes(sel),'a track exists for '+sel);
+ // A card must never be left at 0 by a row that has already passed: each one also reads its
+ // own position as a floor.
+ assert.ok(js.includes('Math.max(sub(enter(grid'),'the row stagger has a per-card floor');
+ assert.ok(js.includes("c.style.setProperty('--mp'"),'the mirror rail cards ride their own progress');
+ // Scroll-scrubbing needs the first frame held while the element is still below the fold.
+ // fill-mode must be backwards: 'both' would freeze the last frame and kill hover/sticky.
+ const css=readFileSync(new URL('../design/landing/src/site.css', import.meta.url), 'utf8');
+ assert.ok(css.includes('backwards paused'),'seeking uses a backwards fill');
+ assert.ok(!css.includes('both paused'),'no animation is frozen at its last frame');
+ assert.ok(landingHTML.includes('.cine-word'),'the word keyframes ship');
+ assert.ok(landingHTML.includes('class="no-cinema"'),'the no-JS guard is on the root element');
+ assert.ok(landingHTML.includes('cine-word'),'headlines are split into words at runtime');
 });
