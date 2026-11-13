@@ -883,6 +883,9 @@ body.is-paying .sticky-cta{display:none!important}
 @property --tp{syntax:"<number>";inherits:false;initial-value:0}
 @property --i{syntax:"<integer>";inherits:false;initial-value:0}
 @property --dir{syntax:"<integer>";inherits:false;initial-value:1}
+@property --vp{syntax:"<number>";inherits:false;initial-value:0}
+@property --ip{syntax:"<number>";inherits:false;initial-value:0}
+@property --lp{syntax:"<number>";inherits:false;initial-value:0}
 
 /* ============================================================================
    Cinematic section entrances — scrubbed by scroll, both directions
@@ -939,26 +942,80 @@ body.is-paying .sticky-cta{display:none!important}
 @keyframes cine-hero{from{opacity:1;transform:none}to{opacity:.55;transform:translate3d(0,-10px,0)}}
 
 /* ── cards: arrive from depth, settle flat, then hover lifts only the card ── */
-[data-cine] .svc,[data-cine] .step,[data-cine] .why,[data-cine] .plan,.card-cine{
+[data-cine] .svc,[data-cine] .step,[data-cine] .why,[data-cine] .plan,[data-cine] .proof-stat,.card-cine{
   will-change:transform,opacity,filter;
-  animation:cine-card 950ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation:cine-card 950ms linear backwards paused;
   animation-delay:calc(var(--p,1) * -999ms);
 }
 @keyframes cine-card{
-  0%{opacity:0;filter:blur(7px);
-     transform:perspective(1100px) translate3d(0,-40px,120px) scale(1.14)
-               rotateX(-22deg) rotateY(calc((2 - var(--i,0)) * 7deg))}
-  64%{opacity:1;filter:blur(0);
-     transform:perspective(1100px) translate3d(0,3px,-6px) scale(.985) rotateX(1.5deg) rotateY(0deg)}
+  0%{opacity:0;filter:blur(6px);
+     transform:perspective(1100px) translate3d(0,48px,100px) scale(.92)
+               rotateX(-12deg) rotateY(calc((2 - var(--i,0)) * 4deg))}
+  80%{opacity:1;filter:blur(0);
+     transform:perspective(1100px) translate3d(0,-5px,-4px) scale(1.025) rotateX(1.2deg) rotateY(0deg)}
+  93%{opacity:1;transform:perspective(1100px) translate3d(0,1px,0) scale(.995) rotateX(0deg)}
   100%{opacity:1;filter:blur(0);transform:none}
 }
-/* Once a card is home, its own hover still works — the animation is finished, not fighting
-   it, because 'both' holds only the last keyframe which is transform:none. */
+/* A second beat inside each card: the card shell lands, then its photo and icon get their
+   own visible movement. This gives the eye a focal point beyond the moving text. */
+.svc__media,.step__media{
+  animation:cine-visual 920ms linear backwards paused;
+  animation-delay:calc(var(--vp,1) * -999ms);
+  transform-origin:50% 55%;
+}
+@keyframes cine-visual{
+  0%{opacity:.12;filter:blur(7px);transform:perspective(1000px) translate3d(0,58px,-10px) scale(.86) rotateX(8deg)}
+  90%{opacity:1;filter:blur(0);transform:perspective(1000px) translate3d(0,-5px,0) scale(1.03) rotateX(-1.2deg)}
+  100%{opacity:1;filter:blur(0);transform:none}
+}
+.svc__icon,.step__icon,.why__icon,.proof-stat__icon,.plan__badge{
+  animation:cine-icon 760ms linear backwards paused;
+  animation-delay:calc(var(--ip,1) * -999ms);
+  transform-origin:50% 60%;
+}
+@keyframes cine-icon{
+  0%{opacity:0;filter:blur(4px);transform:translate3d(0,24px,0) scale(.48) rotate(-18deg)}
+  88%{opacity:1;filter:blur(0);transform:translate3d(0,-3px,0) scale(1.16) rotate(4deg)}
+  96%{opacity:1;transform:translate3d(0,1px,0) scale(.98) rotate(-1deg)}
+  100%{opacity:1;filter:blur(0);transform:none}
+}
+/* The plan features follow their card, one clean line at a time. */
+#services .plan ul li{
+  animation:cine-line 680ms linear backwards paused;
+  animation-delay:calc(var(--lp,1) * -999ms);
+}
+@keyframes cine-line{
+  0%{opacity:0;transform:translate3d(20px,3px,0) scale(.98)}
+  100%{opacity:1;transform:none}
+}
+/* Builder process cards use the same depth language as the feature cards. */
+#salon-example .sb-steps li{
+  animation:cine-card 950ms linear backwards paused;
+  animation-delay:calc(var(--p,1) * -999ms);
+}
+/* The first fold gets a single, calm arrival when the page opens. */
+.cinema-ready #intro .hero-stage{
+  animation:cine-hero-stage 1050ms cubic-bezier(.16,1,.3,1) 90ms both;
+  transform-origin:55% 50%;
+}
+.cinema-ready #intro .hero-benefits li{
+  animation:cine-hero-benefit 760ms cubic-bezier(.16,1,.3,1) backwards;
+  animation-delay:calc(420ms + var(--i,0) * 85ms);
+}
+@keyframes cine-hero-stage{
+  0%{opacity:0;filter:blur(8px);transform:perspective(1200px) translate3d(0,48px,-40px) scale(.93) rotateX(7deg)}
+  70%{opacity:1;filter:blur(0);transform:perspective(1200px) translate3d(0,-3px,0) scale(1.012) rotateX(-.6deg)}
+  100%{opacity:1;filter:blur(0);transform:none}
+}
+@keyframes cine-hero-benefit{
+  0%{opacity:0;transform:translate3d(24px,0,0) scale(.97)}
+  100%{opacity:1;transform:none}
+}
 
 /* ── the films: the screen lifts out of the page and the tabs deal in ── */
 #films .films__frame{
   will-change:transform,opacity;
-  animation:cine-film 1000ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation:cine-film 1000ms linear backwards paused;
   animation-delay:calc(var(--fp,1) * -999ms);
 }
 @keyframes cine-film{
@@ -967,7 +1024,7 @@ body.is-paying .sticky-cta{display:none!important}
   100%{opacity:1;filter:blur(0);transform:none}
 }
 #films .film-tab{
-  animation:cine-tab 800ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation:cine-tab 800ms linear backwards paused;
   animation-delay:calc(var(--tp,1) * -999ms);
 }
 @keyframes cine-tab{0%{opacity:0;transform:translate3d(0,16px,0) scale(.96)}100%{opacity:1;transform:none}}
@@ -975,7 +1032,7 @@ body.is-paying .sticky-cta{display:none!important}
 /* ── the demo: the window slides up, the four service buttons deal in ── */
 #try-on .tryon__frame{
   will-change:transform,opacity;
-  animation:cine-window 1000ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation:cine-window 1000ms linear backwards paused;
   animation-delay:calc(var(--fp,1) * -999ms);
 }
 @keyframes cine-window{
@@ -984,7 +1041,7 @@ body.is-paying .sticky-cta{display:none!important}
   100%{opacity:1;transform:none}
 }
 #try-on .tryon__line{
-  animation:cine-chip 700ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation:cine-chip 700ms linear backwards paused;
   animation-delay:calc(var(--p,1) * -999ms);
 }
 @keyframes cine-chip{0%{opacity:0;transform:translate3d(0,14px,0) scale(.94)}100%{opacity:1;transform:none}}
@@ -992,7 +1049,7 @@ body.is-paying .sticky-cta{display:none!important}
 /* ── the mirror: the plate swings into the light, the side panel follows ── */
 #play .mirror{
   will-change:transform,opacity;
-  animation:cine-mirror 1050ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation:cine-mirror 1050ms linear backwards paused;
   animation-delay:calc(var(--fp,1) * -999ms);
 }
 @keyframes cine-mirror{
@@ -1001,21 +1058,22 @@ body.is-paying .sticky-cta{display:none!important}
   100%{opacity:1;filter:blur(0);transform:none}
 }
 #play .play__side{
-  animation:cine-rise 900ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation:cine-rise 900ms linear backwards paused;
   animation-delay:calc(var(--sp,1) * -999ms);
 }
 /* The style rail's cards deal themselves in after the mirror lands. They ride --mp, which the
    engine writes on each card from its OWN position in the rail — the rail is horizontal and
    scrollable, so a single section-wide value would never reach the cards scrolled out of view. */
 #play .play-card{
-  animation:cine-chip 620ms cubic-bezier(.16,1,.3,1) backwards paused;
-  animation-delay:calc(var(--mp,1) * -999ms + var(--i,0) * 55ms);
+  animation:cine-chip 620ms linear backwards paused;
+  /* JS already staggers each card's --mp by rail order; do not apply the same stagger twice. */
+  animation-delay:calc(var(--mp,1) * -999ms);
 }
 
 /* ── the FAQ answers slide from alternating sides ── */
 #faq .faq-item{
   will-change:transform,opacity;
-  animation:cine-faq 850ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation:cine-faq 850ms linear backwards paused;
   animation-delay:calc(var(--p,1) * -999ms);
 }
 @keyframes cine-faq{
@@ -1025,27 +1083,40 @@ body.is-paying .sticky-cta{display:none!important}
 
 /* ── the payment explainer steps ── */
 #services .plan-how li{
-  animation:cine-chip 750ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation:cine-chip 750ms linear backwards paused;
   animation-delay:calc(var(--p,1) * -999ms);
 }
 
 /* ── the closing call and the footer ── */
 #cta{
-  animation:cine-window 950ms cubic-bezier(.16,1,.3,1) backwards paused;
+  animation:cine-window 950ms linear backwards paused;
   animation-delay:calc(var(--p,1) * -999ms);
+}
+#cta .cta-hero__media img{
+  animation:cine-visual 920ms linear backwards paused;
+  animation-delay:calc(var(--vp,1) * -999ms);
 }
 .site-footer{
   animation:cine-rise 900ms cubic-bezier(.16,1,.3,1) backwards paused;
   animation-delay:calc(var(--p,1) * -999ms);
 }
 
-/* everything the engine touches must be able to show itself if JS never runs */
-.no-cinema .head,.no-cinema .sub,.no-cinema .site-footer{animation:none;opacity:1}
+/* With no engine, the initial and reduced-motion states are always readable. */
+.no-cinema .head,.no-cinema .sub,.no-cinema .site-footer,
+.no-cinema .svc,.no-cinema .step,.no-cinema .why,.no-cinema .plan,
+.no-cinema .svc__media,.no-cinema .step__media,.no-cinema .svc__icon,.no-cinema .step__icon,
+.no-cinema .why__icon,.no-cinema .proof-stat__icon,.no-cinema .plan__badge,
+.no-cinema #salon-example .sb-steps li,.no-cinema #cta .cta-hero__media img,
+.no-cinema #intro .hero-stage,.no-cinema #intro .hero-benefits li{
+  animation:none!important;opacity:1!important;filter:none!important;transform:none!important
+}
 
 @media(prefers-reduced-motion:reduce){
   .cine-word,.head,.sub,.eyebrow::before,#h1,#films .films__frame,#films .film-tab,
   #try-on .tryon__frame,#try-on .tryon__line,#play .mirror,#play .play__side,#play .play-card,
-  #faq .faq-item,#services .plan-how li,#cta,.site-footer,.svc,.step,.why,.plan{
+  #faq .faq-item,#services .plan-how li,#services .plan ul li,#cta,.site-footer,.svc,.step,.why,.plan,
+  .svc__media,.step__media,.svc__icon,.step__icon,.why__icon,.proof-stat__icon,.plan__badge,
+  #salon-example .sb-steps li,#cta .cta-hero__media img,#intro .hero-stage,#intro .hero-benefits li{
     animation:none!important;opacity:1!important;filter:none!important;transform:none!important;
   }
 }

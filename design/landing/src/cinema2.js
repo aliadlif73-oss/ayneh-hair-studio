@@ -24,6 +24,8 @@
   const sub = (p, s, e) => clamp((p - s) / ((e - s) || 1));
   const $  = (s, r = document) => r.querySelector(s);
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  root.classList.add('cinema-ready');
+  $$('#intro .hero-benefits li').forEach((el, i) => el.style.setProperty('--i', i));
 
   /* ── one rAF loop for every track ── */
   const tracks = [];
@@ -126,7 +128,8 @@
 
   /* ── a list of cards: each one enters on its own beat, left to right in reading order ── */
   function fan(grid, items, stagger = .13) {
-    if (!grid || !items.length) return;
+    if (!grid || !items.length) return [];
+    const targets = [];
     items.forEach((el, i) => el.style.setProperty('--i', i));
     items.forEach((el, i) => {
       /* on a phone a row becomes a stack, so each card is timed on itself instead of on a
@@ -136,20 +139,50 @@
          ROW — but never to a dead 0: a card in the last row of a tall grid can still be below
          the fold while the grid's own top has already passed. The card's own position is the
          floor, so nothing is ever left permanently invisible. */
-      add(el, () => narrow
+      const target = () => narrow
         ? enter(el, .92, .52)
-        : Math.max(sub(enter(grid, .90, .30), i * stagger, i * stagger + .54), enter(el, .99, .62)),
-        p => {
-          el.style.setProperty('--p', p.toFixed(3));
-          el.classList.toggle('cine-done', p > .995);
-        });
+        : Math.max(sub(enter(grid, .90, .30), i * stagger, i * stagger + .54), enter(el, .99, .62));
+      targets.push(target);
+      add(el, target, p => {
+        el.style.setProperty('--p', p.toFixed(3));
+        el.classList.toggle('cine-done', p > .995);
+      });
+    });
+    return targets;
+  }
+
+  /* Let a card arrive first; then its photo and icon get their own, clearly visible beat.
+     These are separate scroll tracks (not a one-shot observer), so they reverse cleanly. */
+  function cardDetails(cards, progress, selector, property, offset = .10, span = .78) {
+    cards.forEach((card, i) => {
+      const part = card.querySelector(selector);
+      if (!part || !progress[i]) return;
+      add(part, () => sub(progress[i](), offset, offset + span),
+        p => part.style.setProperty(property, p.toFixed(3)));
     });
   }
 
-  fan($('#features .svc-grid'), $$('#features .svc'));
-  fan($('#how .steps'), $$('#how .step'));
-  fan($('#why .why-grid'), $$('#why .why'));
-  fan($('#services .plans'), $$('#services .plan'));
+  const svcCards = $$('#features .svc');
+  const svcProgress = fan($('#features .svc-grid'), svcCards);
+  cardDetails(svcCards, svcProgress, '.svc__media', '--vp', .08, .78);
+  cardDetails(svcCards, svcProgress, '.svc__icon', '--ip', .22, .60);
+
+  const howCards = $$('#how .step');
+  const howProgress = fan($('#how .steps'), howCards);
+  cardDetails(howCards, howProgress, '.step__media', '--vp', .08, .78);
+  cardDetails(howCards, howProgress, '.step__icon', '--ip', .22, .60);
+
+  const whyCards = $$('#why .why');
+  const whyProgress = fan($('#why .why-grid'), whyCards);
+  cardDetails(whyCards, whyProgress, '.why__icon', '--ip', .20, .62);
+
+  const planCards = $$('#services .plan');
+  const planProgress = fan($('#services .plans'), planCards);
+  cardDetails(planCards, planProgress, '.plan__badge', '--ip', .20, .58);
+  planCards.forEach((card, i) => [...card.querySelectorAll('li')].forEach((li, j) => {
+    add(li, () => sub(planProgress[i](), .16 + j * .045, .16 + j * .045 + .48),
+      p => li.style.setProperty('--lp', p.toFixed(3)));
+  }));
 
   /* the FAQ: each row slides from its own side */
   $$('#faq .faq-item').forEach((item, i) => {
@@ -212,9 +245,19 @@
 
   /* ── trust, pricing headline and the closing call ── */
   const proof = $('#proof');
-  if (proof) fan($('#proof'), $$('#proof .proof-stat'), .10);
+  if (proof) {
+    const stats = $$('#proof .proof-stat');
+    const progress = fan(proof, stats, .10);
+    cardDetails(stats, progress, '.proof-stat__icon', '--ip', .18, .58);
+  }
+  const builderSteps = $$('#salon-example .sb-steps li');
+  fan($('#salon-example .sb-steps'), builderSteps, .12);
   const closing = $('#cta');
-  if (closing) add(closing, () => enter(closing, .97, .50), p => closing.style.setProperty('--p', p.toFixed(3)));
+  if (closing) add(closing, () => enter(closing, .97, .50), p => {
+    closing.style.setProperty('--p', p.toFixed(3));
+    const image = $('.cta-hero__media img', closing);
+    if (image) image.style.setProperty('--vp', p.toFixed(3));
+  });
 
   /* the footer mark draws itself, like the ring in the old page */
   const foot = $('.site-footer');
@@ -222,7 +265,7 @@
 
   /* The card keyframes are scoped to [data-cine] so they can never leak into a component
      that sets its own transform. Mark the sections that use them. */
-  ['#features', '#how', '#why', '#services'].forEach(sel => {
+  ['#features', '#how', '#why', '#services', '#proof', '#salon-example'].forEach(sel => {
     const el = $(sel); if (el) el.dataset.cine = 'on';
   });
 
