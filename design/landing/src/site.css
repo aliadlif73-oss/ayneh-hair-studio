@@ -739,10 +739,18 @@ body.is-paying .sticky-cta{display:none!important}
 .tryon__meta p{margin:0;font-size:12.5px;line-height:1.8;color:var(--muted);flex:1 1 220px}
 .tryon__badge{font-size:11.5px;font-weight:800;color:var(--emerald-deep);background:var(--emerald-wash);
   border-radius:var(--r-pill);padding:3px 10px}
-.tryon__stage{position:relative;min-height:clamp(420px,60vw,600px);background:var(--cream-3)}
-/* The demo is tall (its own header, uploader, picker), so the frame gets a real height and
-   scrolls inside itself rather than stretching this page to three screens. */
-.tryon__iframe{display:block;width:100%;height:clamp(560px,74vw,760px);border:0;background:#fff}
+/* Before the demo is opened the box is the size of what it actually shows — a paragraph and a
+   button — not the height of a page that has not been loaded yet. A 760px empty panel under a
+   button is the kind of thing that reads as broken. */
+.tryon__stage{position:relative;background:var(--cream-3)}
+.tryon__stage:has(.tryon__curtain:not(.is-gone)){min-height:clamp(300px,42vw,400px)}
+.tryon__stage:not(:has(.tryon__curtain:not(.is-gone))){min-height:0}
+/* Once open, the demo is tall (its own header, uploader, picker): the frame gets a real height
+   and the demo scrolls inside itself rather than stretching this page to three screens. */
+/* An iframe with no src is still a 560px transparent box. Until the demo is actually opened
+   it has no height at all, and the curtain's own floor is the only thing the section shows. */
+.tryon__iframe{display:block;width:100%;height:0;border:0;background:#fff;overflow:hidden}
+.tryon__stage.is-open .tryon__iframe{height:clamp(560px,74vw,760px)}
 .tryon__curtain{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
   padding:clamp(20px,4vw,44px);text-align:center;background:linear-gradient(160deg,#EAF3EF,#FCF3EB);
   transition:opacity .4s var(--ease),visibility .4s var(--ease)}
@@ -858,6 +866,24 @@ body.is-paying .sticky-cta{display:none!important}
   .play-screen{border-radius:var(--r-xl) var(--r-xl) 0 0;min-height:clamp(190px,54vw,280px)}
 }
 
+/* ---------------------------------------------------------------------------
+   The scrubbing numbers are registered, so they are real <number>s everywhere:
+   a calc() or an opacity built from an unregistered property is invalid at
+   computed-value time and silently falls back to its initial value, which is
+   how a hairline can turn into a fat block. Registered, they interpolate and
+   they clamp.
+   --------------------------------------------------------------------------- */
+@property --hp{syntax:"<number>";inherits:false;initial-value:0}
+@property --sp{syntax:"<number>";inherits:false;initial-value:0}
+@property --wp{syntax:"<number>";inherits:false;initial-value:0}
+@property --ul{syntax:"<number>";inherits:false;initial-value:0}
+@property --p{syntax:"<number>";inherits:false;initial-value:0}
+@property --fp{syntax:"<number>";inherits:false;initial-value:0}
+@property --mp{syntax:"<number>";inherits:false;initial-value:0}
+@property --tp{syntax:"<number>";inherits:false;initial-value:0}
+@property --i{syntax:"<integer>";inherits:false;initial-value:0}
+@property --dir{syntax:"<integer>";inherits:false;initial-value:1}
+
 /* ============================================================================
    Cinematic section entrances — scrubbed by scroll, both directions
    ----------------------------------------------------------------------------
@@ -882,11 +908,14 @@ body.is-paying .sticky-cta{display:none!important}
   100%{opacity:1;filter:blur(0);transform:none}
 }
 /* the emerald underline that draws itself beneath the accent words */
+/* The accent word gets a short emerald hairline under the baseline, drawn left-to-right in
+   reading order (not a highlighter slab: it is inset from both ends and sits on the baseline). */
+.cine-word--accent{position:relative;padding-bottom:.06em}
 .cine-word--accent::after{
-  content:"";position:absolute;inset-inline:.02em;bottom:.02em;height:.09em;border-radius:99px;
-  background:linear-gradient(90deg,var(--emerald),var(--emerald-soft),var(--emerald));
-  box-shadow:0 2px 10px rgba(6,143,108,.4);
-  transform-origin:right center;transform:scaleX(var(--wp,1));
+  content:"";position:absolute;inset-inline:.14em;bottom:-.02em;height:2px;border-radius:2px;
+  background:linear-gradient(90deg,var(--emerald-soft),var(--emerald));
+  opacity:calc(var(--ul,0) * .9);
+  transform:scaleX(var(--ul,0));transform-origin:right center;
 }
 
 /* ── a section head: rises, and its line above (the eyebrow) draws first ── */
@@ -898,12 +927,7 @@ body.is-paying .sticky-cta{display:none!important}
   animation:cine-rise 900ms cubic-bezier(.16,1,.3,1) backwards paused;
   animation-delay:calc(var(--sp,1) * -999ms);
 }
-.eyebrow::before{
-  display:inline-block;content:"";width:calc(var(--kp,1) * 30px);height:2px;border-radius:2px;
-  vertical-align:middle;margin-inline-end:8px;
-  background:linear-gradient(90deg,var(--emerald),var(--emerald-soft));
-  box-shadow:0 1px 6px rgba(6,143,108,.35);
-}
+
 @keyframes cine-head{0%{opacity:0;transform:translate3d(0,26px,0)}60%{opacity:1}100%{opacity:1;transform:none}}
 @keyframes cine-rise{0%{opacity:0;filter:blur(4px);transform:translate3d(22px,14px,0)}100%{opacity:1;filter:blur(0);transform:none}}
 

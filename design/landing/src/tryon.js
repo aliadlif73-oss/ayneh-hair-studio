@@ -37,6 +37,9 @@
 
   function ready(q) {
     obj.src = '/s/demo?' + q.toString();
+    /* until this moment the frame has no height at all; opening it is what makes the box
+       grow to the demo, so the closed state is exactly as tall as its own copy */
+    stage.classList.add('is-open');
     loaded = true;
     curtain.classList.add('is-gone');
     setTimeout(() => { curtain.hidden = true; obj.focus({ preventScroll: true }); }, 420);

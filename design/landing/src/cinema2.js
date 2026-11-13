@@ -93,7 +93,15 @@
       h2.append(s);
       return s;
     }).filter(Boolean);
-    return p => spans.forEach((s, i) => s.style.setProperty('--wp', sub(p, (i / (spans.length || 1)) * .58, (i / (spans.length || 1)) * .58 + .42).toFixed(3)));
+    /* One wave, not a queue. The spread between the first and last word is capped at SPREAD of
+       the progress and every word takes RAMPS to land, so the words overlap heavily: the line
+       reads as a single gesture. A wider spread leaves the last word hanging in the air after
+       the eye has already read the sentence, which looks like a bug, not a design. */
+    const SPREAD = .26, RAMPS = .60;
+    return p => spans.forEach((s, i) => {
+      const start = spans.length > 1 ? (i / (spans.length - 1)) * SPREAD : 0;
+      s.style.setProperty('--wp', sub(p, start, start + RAMPS).toFixed(3));
+    });
   }
 
   /* ── the section heads ── */
@@ -217,6 +225,7 @@
   ['#features', '#how', '#why', '#services'].forEach(sel => {
     const el = $(sel); if (el) el.dataset.cine = 'on';
   });
+
 
   /* ── the loop: one pass per scroll frame, nothing while idle ── */
   function tick() {

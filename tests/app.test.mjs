@@ -1646,6 +1646,14 @@ test('step 30 cinema: every section has a scroll-scrubbed entrance, and none can
  const css=readFileSync(new URL('../design/landing/src/site.css', import.meta.url), 'utf8');
  assert.ok(css.includes('backwards paused'),'seeking uses a backwards fill');
  assert.ok(!css.includes('both paused'),'no animation is frozen at its last frame');
+ for(const prop of ['--hp','--sp','--wp','--ul','--p','--fp','--mp','--tp','--i','--dir'])
+  assert.ok(css.includes('@property '+prop+'{'),'scrub value '+prop+' has a registered type');
+ assert.ok(css.includes('inset-inline:.14em;bottom:-.02em;height:2px'),'accent underline is a fine inset hairline');
+ assert.ok(css.includes('clamp(300px,42vw,400px)'),'closed demo stage fits its own curtain');
+ assert.ok(css.includes('.tryon__iframe{display:block;width:100%;height:0;'),'closed iframe does not reserve a phantom page');
+ assert.ok(css.includes('.tryon__stage.is-open .tryon__iframe{height:clamp(560px,74vw,760px)}'),'opened demo gets its frame height');
+ const tryon=readFileSync(new URL('../design/landing/src/tryon.js', import.meta.url), 'utf8');
+ assert.ok(tryon.includes("stage.classList.add('is-open')"),'opening the demo expands its stage');
  assert.ok(landingHTML.includes('.cine-word'),'the word keyframes ship');
  assert.ok(landingHTML.includes('class="no-cinema"'),'the no-JS guard is on the root element');
  assert.ok(landingHTML.includes('cine-word'),'headlines are split into words at runtime');
