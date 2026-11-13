@@ -1,0 +1,276 @@
+/* The mirror game: one plate (1376x768 design pixels) carries the photo, the hair canvas
+   and the pickers; this file only sizes the plate, so the recolour can never drift off the
+   hair. Colour is painted through the hair mask for real — it is the same engine the old
+   landing page used, scoped to #play so it cannot touch the new layout.
+
+   The 19 names are the old list; a style is only drawn on the mirror when a render for it
+   exists (assets/look-sNN + mask-sNN). Otherwise the card says «عکس مرجع» and points at the
+   photo demo, instead of pretending to change the mirror. */
+(()=>{
+  const root = document.getElementById('play'); if (!root) return;
+  const $ = id => document.getElementById(id);
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SRC = (k, e) => 'assets/' + k + '.' + (e || 'webp');
+  const fa = n => new Intl.NumberFormat('fa-IR').format(n);
+  const STYLES = ['لیر بلند','کوتاهی پروانه‌ای','ولف‌کات','هاش‌کات','لُب (باب بلند)','باب کوتاه','کوتاهی جلوبلند','پیکسی','چتری پرده‌ای','چتری پروانه‌ای','چتری کج','چتری صاف کامل','براشینگ حجیم','صاف و براق','ویو درشت','فر طبیعی','فر درشت لوله‌ای','مدل گوجه‌ای','شینیون پایین'];
+  const COLORS = [
+    {name:'بلوند شامپاینی', rgb:[190,166,120], css:'linear-gradient(145deg,#F3E2B8,#D3B677)'},
+    {name:'کاراملی',        rgb:[139,94,57],   css:'linear-gradient(145deg,#C98745,#8A5424)'},
+    {name:'اسپرسو',         rgb:[49,36,29],    css:'linear-gradient(145deg,#4F3322,#1C110A)'},
+    {name:'آمبره',          rgb:[180,146,99],  css:'linear-gradient(180deg,#2A1A10,#D6B27A)'},
+    {name:'مسی',            rgb:[150,79,47],   css:'linear-gradient(145deg,#CF6C3C,#8C3D1B)'},
+    {name:'بلوند پلاتینی',  rgb:[211,201,181], css:'linear-gradient(145deg,#F4EFE2,#CBC3AE)'},
+    {name:'شرابی',          rgb:[91,39,53],    css:'linear-gradient(145deg,#8E3050,#481327)'},
+  ];
+  /* look-sNN exists for NN 02..19; style 1 (index 0) is the untouched photo. */
+  const READY = new Set([1, ...Array.from({length:18}, (_, i) => i + 2)]);
+  const st = {style:null, color:null, look:'base'};
+  const screen = $('playScreen'), plate = $('playPlate');
+
+  const ring = '<svg class="play-ring" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22"/></svg>';
+  const n2 = i => String(i + 1).padStart(2,'0');
+
+  /* ---------- the two pickers ---------- */
+  function make(cls, html, onPick, box){
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = cls; b.setAttribute('role','radio');
+    b.setAttribute('aria-checked','false'); b.tabIndex = box.children.length ? -1 : 0;
+    b.innerHTML = html; b.insertAdjacentHTML('beforeend', ring);
+    b.addEventListener('click', onPick);
+    box.append(b); return b;
+  }
+  const cards = STYLES.map((nm, i) => make('play-card',
+    '<span class="play-card__ph"><img src="' + SRC('s' + n2(i)) + '" alt="" width="240" height="300" loading="lazy" draggable="false"></span><span class="play-card__nm">' + nm + '</span>',
+    () => pickStyle(i), $('playStyles')));
+  cards.forEach((b, i) => {
+    const note = document.createElement('small'); note.className = 'play-card__kind';
+    note.textContent = READY.has(i + 1) ? 'روی آینه' : 'عکس مرجع'; b.append(note);
+  });
+  const sws = COLORS.map((c, i) => make('play-sw',
+    '<span class="play-sw__dot" aria-hidden="true"><i style="background:' + c.css + '"></i></span><span class="play-sw__nm">' + c.name + '</span>',
+    () => pickColor(i), $('playSwatches')));
+  $('playCount').textContent = '· ' + fa(STYLES.length) + ' مدل';
+
+  const mark = (list, idx) => list.forEach((b, i) => {
+    b.setAttribute('aria-checked', String(i === idx));
+    b.tabIndex = i === Math.max(0, idx) ? 0 : -1;
+  });
+
+  /* ---------- plate placement ----------
+     The photo is 1376x768, but the thing the section is about — the three-panel mirror —
+     occupies only the middle of it (MIRROR box, in photo pixels, observed from the render).
+     On a screen wider than that box, the plate is zoomed to the box and the box is centred,
+     so the mirror fills the frame instead of floating in a wall of empty room; on a phone the
+     plate is fitted instead, so the two side panels never get cropped away. Either way the
+     whole mirror stays in view. */
+  const MIRROR = {x: 478, y: 132, w: 436, h: 330}, PAD = 1.1;
+
+  function layout(){
+    const W = screen.clientWidth, H = screen.clientHeight; if (!W || !H) return;
+    const fitW = W / 1376;
+    const boxW = MIRROR.w * PAD, boxH = MIRROR.h * PAD;
+    const zoom = Math.min(W / boxW, H / boxH);
+    /* never below the width of the frame (no empty gutters), never past a point where the
+       photo would be a blur of upscaled pixels */
+    const s = Math.min(2.4, Math.max(fitW, zoom));
+    const pw = 1376 * s, ph = 768 * s;
+    const cx = (MIRROR.x + MIRROR.w / 2) * s, cy = (MIRROR.y + MIRROR.h / 2) * s;
+    const x = Math.round(Math.min(0, Math.max(W - pw, W / 2 - cx)));
+    const y = Math.round(Math.min(0, Math.max(H - ph, H / 2 - cy)));
+    Object.assign(plate.style, {width: pw + 'px', height: ph + 'px', left: x + 'px', top: y + 'px'});
+  }
+  if (window.ResizeObserver) new ResizeObserver(layout).observe(screen);
+  addEventListener('resize', layout, {passive: true});
+
+  /* ---------- horizontal scroller: wheel, drag, arrows ---------- */
+  const track = $('playStyles'), prev = $('playPrev'), next = $('playNext');
+  const rtl = el => getComputedStyle(el).direction === 'rtl';
+  const room = el => { const max = el.scrollWidth - el.clientWidth, pos = rtl(el) ? -el.scrollLeft : el.scrollLeft; return {back: pos > 2, fwd: pos < max - 2}; };
+  const sync = () => { const r = room(track); prev.disabled = !r.back; next.disabled = !r.fwd; };
+  const scrollFwd = d => track.scrollBy({left: rtl(track) ? -d : d, behavior: reduced ? 'auto' : 'smooth'});
+  prev.addEventListener('click', () => scrollFwd(-track.clientWidth * .7));
+  next.addEventListener('click', () => scrollFwd(track.clientWidth * .7));
+  track.addEventListener('scroll', sync, {passive: true});
+  track.addEventListener('wheel', e => {
+    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+    const r = room(track); if ((e.deltaY > 0 && !r.fwd) || (e.deltaY < 0 && !r.back)) return;
+    e.preventDefault(); track.scrollLeft += (rtl(track) ? -1 : 1) * e.deltaY;
+  }, {passive: false});
+  let drag = null;
+  track.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button !== 0) return; drag = {x: e.clientX, s: track.scrollLeft}; track.classList.add('dragging'); });
+  addEventListener('pointermove', e => { if (drag) track.scrollLeft = drag.s - (e.clientX - drag.x); });
+  addEventListener('pointerup', () => { track.classList.remove('dragging'); drag = null; });
+
+  /* arrow keys move between options inside each radio group */
+  [[cards, track], [sws, $('playSwatches')]].forEach(([list, box]) => box.addEventListener('keydown', e => {
+    const i = list.indexOf(document.activeElement); if (i < 0) return;
+    const dir = e.key === 'ArrowDown' || e.key === 'ArrowLeft' ? 1 : e.key === 'ArrowUp' || e.key === 'ArrowRight' ? -1 : 0;
+    if (!dir) return;
+    e.preventDefault();
+    const n = list[(i + dir + list.length) % list.length];
+    n.focus({preventScroll: true}); n.click(); n.scrollIntoView({inline: 'center', block: 'nearest'});
+  }));
+
+  /* ---------- the hair recolour engine ---------- */
+  const img = $('playRoom'), cv = $('playCanvas'), ctx = cv.getContext('2d');
+  let px = null, rafId = 0, lookTok = 0;
+  const preps = {};
+  const cache = new Map();
+  const loadImg = src => {
+    if (!cache.has(src)) cache.set(src, new Promise((res, rej) => {
+      const i = new Image(); i.onload = () => res(i);
+      i.onerror = () => { cache.delete(src); rej(new Error('image')); }; i.src = src;
+    }));
+    return cache.get(src);
+  };
+  const lookAssets = key => key === 'base' ? ['hero','hair-mask'] : ['look-' + key, 'mask-' + key];
+  let canonicalSrc = null;
+  function canonical(){
+    if (canonicalSrc) return canonicalSrc;
+    canonicalSrc = Promise.all([loadImg(SRC('hero')), loadImg(SRC('hair-mask','png'))]).then(([photo, mask]) => {
+      const c = document.createElement('canvas'); c.width = 1376; c.height = 768;
+      const g = c.getContext('2d', {willReadFrequently: true});
+      g.drawImage(photo, 0, 0); const original = g.getImageData(0,0,1376,768).data;
+      g.clearRect(0,0,1376,768); g.drawImage(mask,0,0);
+      g.fillStyle = '#fff';
+      const removal = [[[622,334],[653,334],[666,419],[651,441],[620,433],[618,389]],[[712,331],[748,331],[762,430],[729,441],[710,412],[705,368]],[[520,333],[582,333],[582,451],[515,450]],[[785,333],[863,333],[863,452],[785,452]]];
+      removal.forEach(pts => { g.beginPath(); pts.forEach(([x,y],i) => i ? g.lineTo(x,y) : g.moveTo(x,y)); g.closePath(); g.fill(); });
+      g.fillRect(610,240,148,106); g.fillRect(508,255,76,91); g.fillRect(786,255,75,91);
+      g.fillRect(606,346,154,125); g.fillRect(508,346,76,108); g.fillRect(786,346,75,108);
+      const oldHair = g.getImageData(0,0,1376,768).data;
+      g.clearRect(0,0,1376,768); g.fillStyle = '#fff';
+      const faces = [[[660,298],[668,293],[699,293],[711,301],[711,325],[700,343],[682,350],[664,339],[654,323],[654,307]],[[522,291],[537,288],[547,301],[547,319],[549,333],[541,347],[526,347],[517,335],[513,323],[520,312]],[[825,288],[840,291],[843,308],[850,321],[846,335],[837,347],[823,347],[815,335],[816,315],[817,300]]];
+      faces.forEach(pts => { g.beginPath(); pts.forEach(([x,y],i) => i ? g.lineTo(x,y) : g.moveTo(x,y)); g.closePath(); g.fill(); });
+      const identity = g.getImageData(0,0,1376,768).data;
+      g.clearRect(0,0,1376,768);
+      const fullFaces = [[[676,267],[693,268],[704,280],[711,295],[713,314],[707,333],[697,344],[682,350],[665,339],[655,322],[653,302],[658,282]],[[523,280],[539,283],[548,300],[550,324],[542,347],[525,349],[513,328],[519,308]],[[828,280],[842,284],[844,307],[852,324],[840,348],[824,350],[814,332],[816,304]]];
+      fullFaces.forEach(pts => { g.beginPath(); pts.forEach(([x,y],i) => i ? g.lineTo(x,y) : g.moveTo(x,y)); g.closePath(); g.fill(); });
+      const face = g.getImageData(0,0,1376,768).data;
+      return {original, oldHair, identity, face};
+    }).catch(e => { canonicalSrc = null; throw e; });
+    return canonicalSrc;
+  }
+  function prepare(key){
+    if (preps[key]) return preps[key];
+    const [im, mk] = lookAssets(key);
+    return preps[key] = Promise.all([loadImg(SRC(im)), loadImg(SRC(mk,'png')), canonical()]).then(([a, m, person]) => {
+      const W = 1376, H = 768, c = document.createElement('canvas'); c.width = W; c.height = H;
+      const g = c.getContext('2d', {willReadFrequently: true});
+      g.drawImage(m, 0, 0, W, H); let full = g.getImageData(0,0,W,H).data;
+      g.clearRect(0,0,W,H); g.drawImage(a, 0, 0, W, H); const scene = g.getImageData(0,0,W,H);
+      const composed = window.__AYN_PORTRAIT.compose(person.original, scene.data, person.oldHair, full, person.identity, person.face);
+      scene.data.set(composed.scene); full = composed.mask;
+      g.putImageData(scene, 0, 0);
+      const src = key === 'base' ? a.src : c.toDataURL('image/webp', .92);
+      const thumbCanvas = document.createElement('canvas'); thumbCanvas.width = 240; thumbCanvas.height = 300;
+      thumbCanvas.getContext('2d').drawImage(c, 605, 235, 160, 235, 0, 0, 240, 300);
+      const index = key === 'base' ? 0 : Number(key.slice(1)) - 1;
+      if (cards[index]) cards[index].querySelector('img').src = thumbCanvas.toDataURL('image/webp', .85);
+      let x0 = W, y0 = H, x1 = 0, y1 = 0;
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (full[(y*W+x)*4] > 6){ if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      if (x1 < x0) throw new Error('empty mask');
+      const R = {x:x0, y:y0, w:x1-x0+1, h:y1-y0+1}, base = g.getImageData(R.x,R.y,R.w,R.h).data;
+      const mkd = new Uint8ClampedArray(R.w * R.h * 4);
+      for (let y = 0; y < R.h; y++) mkd.set(full.subarray(((R.y+y)*W+R.x)*4, ((R.y+y)*W+R.x+R.w)*4), y*R.w*4);
+      const idx = []; for (let i = 0; i < R.w * R.h; i++) if (mkd[i*4] > 6) idx.push(i);
+      const ch = [[],[],[]];
+      for (const i of idx){ const p = i*4, Y = (base[p]+base[p+1]+base[p+2]) / 765; if (mkd[p] > 180 && Y > .15 && Y < .65) for (let k = 0; k < 3; k++) ch[k].push(base[p+k]); }
+      const anchor = ch.map((v,i) => v.length ? v.sort((a,b) => a-b)[v.length >> 1] : [143,95,60][i]);
+      return {src, R, base, mk: mkd, idx, anchor, out: ctx.createImageData(R.w, R.h)};
+    }).catch(() => { delete preps[key]; return null; });
+  }
+  const cl = (v,a,b) => v < a ? a : v > b ? b : v;
+  const tint = (c, Y, yn, source, anchor) => window.__AYN_HAIR_COLOR.tint(c, Y, yn, source, anchor);
+
+  function draw(from, to){
+    if (!px) return;
+    const {R, base, mk, idx, out} = px, o = out.data;
+    if (!to && !from){ ctx.clearRect(0,0,1376,768); return; }
+    o.fill(0);
+    for (let k = 0; k < idx.length; k++){
+      const i = idx[k], p = i*4, yn = ((i/R.w)|0) / R.h;
+      const r0 = base[p], g0 = base[p+1], b0 = base[p+2];
+      const Y = (.2126*r0 + .7152*g0 + .0722*b0) / 255;
+      const A = from ? tint(from, Y, yn, [r0,g0,b0], px.anchor) : [r0,g0,b0];
+      const B = to   ? tint(to,   Y, yn, [r0,g0,b0], px.anchor) : [r0,g0,b0];
+      const t = to ? 1 : 0;
+      o[p]   = cl(A[0] + (B[0]-A[0])*t, 0, 255);
+      o[p+1] = cl(A[1] + (B[1]-A[1])*t, 0, 255);
+      o[p+2] = cl(A[2] + (B[2]-A[2])*t, 0, 255);
+      o[p+3] = mk[p];
+    }
+    ctx.clearRect(0,0,1376,768); ctx.putImageData(out, R.x, R.y);
+  }
+  function paint(next){
+    cancelAnimationFrame(rafId);
+    const from = st.color != null ? COLORS[st.color] : null;
+    if (!next){ draw(null, null); return; }
+    if (reduced || !from){ draw(null, next); return; }
+    /* A short cross-fade between the two colours, so a change reads as a colour change and
+       not as a blink. */
+    const t0 = performance.now(), dur = 320;
+    (function step(now){
+      const x = cl((now - t0) / dur, 0, 1);
+      drawMorph(from, next, x);
+      if (x < 1) rafId = requestAnimationFrame(step);
+    })(t0);
+  }
+  function drawMorph(A, B, t){
+    if (!px) return;
+    const {R, base, mk, idx, out} = px, o = out.data;
+    o.fill(0);
+    for (let k = 0; k < idx.length; k++){
+      const i = idx[k], p = i*4, yn = ((i/R.w)|0) / R.h;
+      const [r0,g0,b0] = [base[p], base[p+1], base[p+2]];
+      const Y = (.2126*r0 + .7152*g0 + .0722*b0) / 255;
+      const a = tint(A, Y, yn, [r0,g0,b0], px.anchor), b = tint(B, Y, yn, [r0,g0,b0], px.anchor);
+      o[p]   = cl(a[0] + (b[0]-a[0])*t, 0, 255);
+      o[p+1] = cl(a[1] + (b[1]-a[1])*t, 0, 255);
+      o[p+2] = cl(a[2] + (b[2]-a[2])*t, 0, 255);
+      o[p+3] = mk[p];
+    }
+    ctx.clearRect(0,0,1376,768); ctx.putImageData(out, R.x, R.y);
+  }
+
+  const choice = $('playChoice');
+  function summary(){
+    const parts = [];
+    if (st.style != null) parts.push(STYLES[st.style]);
+    if (st.color != null) parts.push(COLORS[st.color].name);
+    choice.textContent = parts.length ? parts.join(' · ') : 'هنوز چیزی انتخاب نشده';
+    root.classList.toggle('has-choice', parts.length > 0);
+  }
+  async function pickColor(i){
+    const next = COLORS[i];
+    st.color = i; mark(sws, i); summary();
+    if (!px){ const p = await prepare(st.look); if (!p) return; px = p; }
+    paint(next);
+  }
+  async function pickStyle(i){
+    st.style = i; mark(cards, i); mark(sws, st.color);
+    cards[i].scrollIntoView({inline: 'center', block: 'nearest', behavior: reduced ? 'auto' : 'smooth'});
+    if (READY.has(i + 1)){
+      const my = ++lookTok;
+      const p = await prepare(i === 0 ? 'base' : 's' + n2(i));
+      if (my !== lookTok || !p) return;
+      const changed = st.look !== (i === 0 ? 'base' : 's' + n2(i));
+      img.src = p.src; px = p; st.look = i === 0 ? 'base' : 's' + n2(i);
+      if (changed && !reduced) img.animate([{filter:'brightness(1.06)'},{filter:'brightness(1)'}], {duration:600, easing:'ease-out'});
+      draw(null, st.color != null ? COLORS[st.color] : null);
+    }
+    summary();
+  }
+
+  /* load the base render only when the section is anywhere near the viewport */
+  let started = false;
+  new IntersectionObserver(([e]) => {
+    if (!e.isIntersecting || started) return;
+    started = true; layout();
+    prepare('base').then(p => {
+      if (!p) return;
+      img.src = p.src; px = p;
+      cards[0].querySelector('img').src = p.src;
+    });
+  }, {rootMargin: '300px'}).observe(root);
+  layout(); sync();
+})();

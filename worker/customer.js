@@ -504,6 +504,18 @@ var STYLES=__STYLES__;
 var LINES=__LINES__;
 var MARK=__MARK__;
 var EMBED=/[?&]embed=1(?:&|$)/.test(location.search);if(EMBED)document.body.classList.add('embedded-demo');
+/* Embedded on the landing page: report the height of what is actually on screen, so the
+   frame there can be exactly as tall as this page instead of putting one scrollbar inside
+   another. Only while embedded, and only the height — nothing else leaves this page. */
+if(EMBED){
+ var aynFit=function(){
+  var h=Math.ceil(document.documentElement.getBoundingClientRect().height||document.body.scrollHeight);
+  if(h>200)try{parent.postMessage({aynehDemoHeight:h},location.origin)}catch(_){}
+ };
+ addEventListener('load',aynFit);
+ if(window.ResizeObserver)new ResizeObserver(aynFit).observe(document.body);
+ addEventListener('resize',aynFit,{passive:true});
+}
 var FROM_LANDING=/[?&]from=landing(?:&|$)/.test(location.search);
 var STUDIO_PREVIEW=location.pathname==='/salon-preview';
 var SLUG=STUDIO_PREVIEW?'sanaz-salon':location.pathname.split('/').filter(Boolean)[1]||'';
@@ -1868,6 +1880,7 @@ document.addEventListener('click',function(e){
 `;
 
 const embeddedCSS='.embedded-demo .head,.embedded-demo #steps,.embedded-demo #invite,.embedded-demo .trialbar,.embedded-demo footer{display:none!important}.embedded-demo main{padding-top:20px}.embedded-demo{background:#f6f0e7}.embedded-demo .panel{box-shadow:none}';
+export {clientJS as customerJS};
 export const customerHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">

@@ -1,6 +1,6 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync,readdirSync} from 'node:fs';
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync,readdirSync,existsSync} from 'node:fs';
 import {database,memoryBucket} from '../scripts/local-adapter.mjs';import app from '../worker/index.js';
-import {phone,transferPrompt} from '../worker/domain.js';import {appHTML} from '../worker/ui.js';import {customerHTML} from '../worker/customer.js';import {landingHTML} from '../worker/landing.js';
+import {phone,transferPrompt} from '../worker/domain.js';import {appHTML} from '../worker/ui.js';import {customerHTML,customerJS} from '../worker/customer.js';import {landingHTML} from '../worker/landing.js';
 import {brandMark as generatedMark,favicon as faviconMark} from '../worker/brand.js';
 const brand=()=>({brandMark:generatedMark,faviconMark});import {tick} from '../worker/server.js';import {styles} from '../worker/legacy.js';
 
@@ -1565,4 +1565,60 @@ test('step 25 brand: the favicon carries the cream/emerald palette, never the re
   assert.match(faviconMark, /#FCF3EB/i, 'the cream ground');
   assert.match(faviconMark, /#068F6C/i, 'the emerald disc');
   assert.ok(generatedMark.includes('aynDisc'), 'the same one-face mark everywhere');
+});
+
+test('step 28 try-on: the demo salon is on the page, with the phone step still in front',()=>{
+ // The owner's sample-salon journey — photo, then the number, then the texted code, then the
+ // model — has to be visible on the new page, not only behind a link. It is the real demo
+ // page embedded, so the gate itself cannot be bypassed by the landing page.
+ const section=landingHTML.match(/<section id="try-on"[\s\S]*?<\/section>/)[0]||'';
+ assert.ok(section,'the try-on section ships');
+ assert.equal((landingHTML.match(/id="try-on"/g)||[]).length,1,'one try-on section');
+ for(const line of ['hair','color','nails','lashes'])
+  assert.ok(section.includes('data-line="'+line+'"'),line+' is offered');
+ // Four steps are named in order: photo, phone, code, model.
+ assert.ok(section.includes('عکس'),'the photo step is named');
+ assert.ok(section.includes('تأیید شماره'),'the phone step is named');
+ // The frame is not fetched until the visitor asks for it.
+ assert.ok(!/<iframe id="tryonFrame"[^>]*src="/.test(section),'the demo is not embedded until asked');
+ const js=landingHTML.match(/<script>([\s\S]*?)<\/script>/g).map(x=>x.slice(8,-9)).join('\n');
+ assert.ok(js.includes("'/s/demo?'"),'it opens the real demo');
+ assert.ok(js.includes('__AYN_DRAFT.put'),'a photo from here reaches the demo through the same handoff');
+ // The demo reports its height and the frame follows, so there is no scroll inside a scroll.
+ assert.ok(js.includes('aynehDemoHeight'),'the frame follows the demo height');
+ assert.ok(customerJS.includes('parent.postMessage({aynehDemoHeight:h},location.origin)'),'the demo reports it');
+});
+
+test('step 29 mirror: the character can restyle hair and colour, on a real photo',()=>{
+ const section=landingHTML.match(/<section id="play"[\s\S]*?<\/section>/)[0]||'';
+ assert.ok(section,'the mirror section ships');
+ // 19 styles and 7 colours, as in the version that earned the request for it.
+ const js=landingHTML.match(/<script>([\s\S]*?)<\/script>/g).map(x=>x.slice(8,-9)).join('\n');
+ const start=js.indexOf("const STYLES = ['"), end=js.indexOf('];',start);
+ const styles=js.slice(start,end).split("','").length;
+ assert.equal(styles,19,'19 hairstyles');
+ // The shipped page is minified, so count the swatch gradients inside the colour array
+ // itself rather than assuming where a line break falls.
+ const cstart=js.indexOf('const COLORS = [');
+ assert.ok(cstart>0,'the colour list ships');
+ const cblock=js.slice(cstart,js.indexOf('];',cstart)+2);
+ assert.equal(cblock.split('linear-gradient').length-1,7,'7 colours');
+ for(const nm of ['بلوند شامپاینی','کاراملی','اسپرسو','آمبره','مسی','بلوند پلاتینی','شرابی'])
+  assert.ok(cblock.includes(nm),nm+' ships');
+ // The recolour is painted through the mask, not faked with a CSS filter.
+ assert.ok(section.includes('id="playCanvas"'),'there is a canvas to paint on');
+ assert.ok(customerJS.length>0);
+ assert.ok(js.includes('__AYN_HAIR_COLOR.tint'),'the real tint engine is used');
+ assert.ok(js.includes("loadImg(SRC('hair-mask','png'))"),'the hair mask is in the bundle');
+ // The plate is placed by the script, on the mirror's own box, so it can never drift off it.
+ assert.ok(js.includes('const MIRROR = {x: 478, y: 132, w: 436, h: 330}'),'the plate is anchored on the mirror box');
+ assert.ok(js.includes('id="playStyles"')||section.includes('id="playStyles"'),'the style rail exists');
+ assert.ok(section.includes('id="playSwatches"'),'the colour palette exists');
+ // Every style that claims to render on the mirror has its two files.
+ const looks=[...landingHTML.matchAll(/look-s(\d\d)\.webp/g)].map(m=>m[1]);
+ assert.ok(looks.length>=1,'the rails reference render files');
+ for(const n of new Set(looks)){
+  assert.ok(existsSync(new URL('../public/landing/look-s'+n+'.webp',import.meta.url)),'look '+n+' ships');
+  assert.ok(existsSync(new URL('../public/landing/mask-s'+n+'.png',import.meta.url)),'mask '+n+' ships');
+ }
 });

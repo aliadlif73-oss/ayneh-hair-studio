@@ -100,9 +100,9 @@ h = R('src/page.html')
 # The payment sheet sits right after the studio: the price panels above open it, and it never
 # renders until a priced plan is picked (see src/pay.js). One replace: the STUDIO marker can
 # only be consumed once.
-h = h.replace('<!--FILMS-->', R('src/films.html'))
+h = h.replace('<!--FILMS-->', R('src/films.html')).replace('<!--TRYON-->', R('src/tryon.html')).replace('<!--PLAY-->', R('src/play.html'))
 h = h.replace('<!--PLANS-->', plans).replace('<!--STUDIO-->', studio + NL + R('src/pay.html'))
-assert '<!--PLANS-->' not in h and '<!--STUDIO-->' not in h and '<!--FILMS-->' not in h
+assert '<!--PLANS-->' not in h and '<!--STUDIO-->' not in h and '<!--FILMS-->' not in h and '<!--TRYON-->' not in h and '<!--PLAY-->' not in h
 assert 'id="pay"' in h and 'id="payForm"' in h, 'the payment sheet must ship'
 FONT = '@font-face{font-family:"Estedad";src:url("assets/estedad.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}'
 h = re.sub(r'<style>.*?</style>', lambda m: '<style>' + NL + FONT + NL + css + NL + '</style>', h, count=1, flags=re.S)
@@ -129,8 +129,8 @@ h = h.replace('</body>', '''<div id="aynehBuildTag" aria-hidden="true" style="po
 # followup.js and lead.js retired with the demo-request form: the page now has exactly two
 # actions — look at the samples, or buy a panel — so there is no request to send and no
 # follow-up message to show.
-SCRIPTS = ['funnel.js', 'films.js', 'draft.js', 'portrait.js', 'hair-color.js', 'compare.js',
-           'try.js', 'reveal.js', 'builder.js', 'refine.js', 'pay.js']
+SCRIPTS = ['funnel.js', 'films.js', 'tryon.js', 'play.js', 'draft.js', 'portrait.js',
+           'hair-color.js', 'compare.js', 'try.js', 'reveal.js', 'builder.js', 'refine.js', 'pay.js']
 # Hair-colour maths and the photo handoff are used by the studio. hero.js, scenes.js,
 # cinema.js and cta.js drove the retired film sections (and cta.js looked for a
 # .film-player that no longer exists), so they are no longer shipped; the page's own
