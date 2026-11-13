@@ -159,6 +159,12 @@ body = re.search(r'<body>(.*)</body>', a, re.S).group(1)
 out = head + NL + '<div dir="rtl" lang="fa" class="page">' + body + '</div>' + NL
 out = out.replace('</style>', 'body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:40;background:#FCF3EB}' + NL + '</style>', 1)
 W('out/artifact.html', out)
+# The same page as one file that opens straight from disk, with its build id printed in the
+# corner. The artifact above starts at <title> (it is meant to be pasted into a host), so the
+# head marker is lost there; this copy keeps it and exists so "is the preview the new page?"
+# can be answered by opening a file, with no server and no cache in the way.
+_solo = a.replace('<body>', '<body data-ayneh-build="' + STAMP + '">', 1) if '<body>' in a else a
+W('out/preview-single.html', _solo)
 
 # ---------------- worker variant ----------------
 p = h
