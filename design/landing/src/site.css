@@ -508,6 +508,13 @@ ul,ol{padding:0;list-style:none}
 .sticky-cta[hidden]{display:none!important}
 .sticky-cta.show{display:flex}
 @media(min-width:901px){.sticky-cta{display:none!important}}
+/* The bar is fixed over the bottom of the screen on a phone, so nothing that a thumb has to
+   reach may scroll to rest under it: the last dock of #play and the try-on button are given
+   the bar's own height as a floor. */
+@media(max-width:900px){
+  #play .play-dock,#play .play__side .btn,#play .play-palette{scroll-margin-bottom:96px}
+  #try-on .tryon__curtain{padding-bottom:96px}
+}
 
 [data-reveal]{opacity:0;transform:translateY(22px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
 [data-reveal].is-in{opacity:1;transform:none}
