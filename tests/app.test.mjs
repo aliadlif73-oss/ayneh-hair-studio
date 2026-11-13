@@ -1154,6 +1154,39 @@ test('step 24 pricing: three named panels, two figure slots each, no invented nu
  assert.match(landingHTML,/جابه‌جایی درخواست‌های بی‌پاسخ/);
 });
 
+test('step 27 films: the three service clips ship in one player, with a poster each',()=>{
+ // The owner's three films (hair, lashes, nails) had been orphaned when the reference rebuild
+ // dropped the old film strip. They live in one tabbed player now, and each tab has to be
+ // usable: a real source, a poster so the box is never empty, and a poster file on disk.
+ const section=landingHTML.match(/<section id="films"[\s\S]*?<\/section>/)[0]||'';
+ assert.ok(section,'the films section ships');
+ assert.equal((landingHTML.match(/id="films"/g)||[]).length,1,'one player, not three');
+ for(const key of ['hair','lashes','nails']){
+  assert.match(section,new RegExp('data-film="'+key+'"'),key+' has a tab');
+  const poster=readFileSync(new URL('../public/landing/'+key+'-poster.webp',import.meta.url));
+  assert.ok(poster.length>2000,key+' poster is a real image');
+ }
+ // One <video>, and it starts on the hair clip without downloading the other two.
+ const video=section.match(/<video[^>]*>/)[0];
+ assert.match(video,/preload="none"/,'nothing downloads until the tab is asked for');
+ assert.match(video,/muted/,'autoplay is always muted');
+ assert.match(video,/playsinline/,'a phone must not open a full-screen player');
+ assert.ok(section.includes('video/hair.mp4'),'the first clip is the hair film');
+ const js=landingHTML.match(/<script>([\s\S]*?)<\/script>/g).map(x=>x.slice(8,-9)).join('\n');
+ for(const key of ['hair','lashes','nails'])assert.ok(new RegExp("/' \\+ key \\+ '\\.mp4").test(js),'one swap serves all three');
+ // Each tab points the one <video> at its own clip AND its own poster, so switching tabs
+ // never shows the previous service's still.
+ assert.ok(js.includes("poster = '/landing/' + key + '-poster.webp'")||js.includes("poster = 'assets/' + key + '-poster.webp'"),'the poster follows the tab');
+ assert.match(js,/IntersectionObserver/,'scrolling away pauses the film');
+ assert.match(js,/prefers-reduced-motion/,'motion-sensitive visitors get a poster and a play button');
+ // The three clips are on disk and small enough for a phone to consider them.
+ for(const key of ['hair','lashes','nails']){
+  const clip=readFileSync(new URL('../public/landing/video/'+key+'.mp4',import.meta.url));
+  assert.ok(clip.length>50_000&&clip.length<3_500_000,key+' clip is present and under 3.5 MB ('+clip.length+')');
+  assert.equal(clip.subarray(4,8).toString(),'ftyp','a real mp4 container');
+ }
+});
+
 test('step 24 studio: the live salon preview survives the rebuild',()=>{
  assert.match(landingHTML,/id="salon-example"/);
  assert.match(landingHTML,/id="builderLive"/);assert.match(landingHTML,/id="livePage"/);

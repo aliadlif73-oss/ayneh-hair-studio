@@ -647,3 +647,60 @@ body.is-paying .sticky-cta{display:none!important}
 .plan__pending{margin:6px 0 0;font-size:12.5px;line-height:1.75;color:var(--muted)}
 .plan[data-open="false"] .plan__pending{display:block}
 .plan[data-open="true"] .plan__pending{display:none}
+
+/* ============================================================================
+   Showcase films — the three service clips (#films)
+   One screen, three tabs. The frame is the page's only dark surface above the
+   footer, so the video reads as a cinema screen instead of another card.
+   ========================================================================== */
+.films{background:var(--cream)}
+.films__head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
+  gap:clamp(16px,2.6vw,32px);margin-bottom:clamp(20px,2.8vw,32px)}
+.films__head .h2{margin:0}
+.films__head .sub{margin:8px 0 0;max-width:56ch}
+.films__tabs{display:inline-flex;gap:6px;padding:5px;border-radius:var(--r-pill);
+  background:var(--cream-2);border:1px solid var(--line);box-shadow:var(--shadow-sm)}
+.film-tab{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 16px;border:0;
+  border-radius:var(--r-pill);background:transparent;color:var(--ink-soft);font:inherit;font-size:14px;
+  font-weight:800;cursor:pointer;transition:background .18s var(--ease),color .18s var(--ease)}
+.film-tab:hover{background:var(--emerald-wash);color:var(--emerald-deep)}
+.film-tab[aria-pressed="true"]{background:var(--ink);color:var(--cream)}
+.film-tab__icon{display:grid;place-items:center;width:20px;height:20px}
+.film-tab__icon svg{width:19px;height:19px}
+.films__frame{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);align-items:center;
+  border-radius:var(--r-xl);overflow:hidden;background:var(--ink);box-shadow:var(--shadow-md)}
+/* The clips are all 16:9. Without a fixed ratio the caption column would stretch the
+   screen and object-fit:cover would crop the model's head, so the screen keeps its own
+   aspect and centres itself in the row. */
+.films__screen{position:relative;background:#07161C;aspect-ratio:16/9;overflow:hidden;
+  width:100%;align-self:center}
+.films__video{width:100%;height:100%;object-fit:cover;display:block;background:#07161C}
+.films__video.is-broken{opacity:.28}
+.films__play{position:absolute;inset:0;display:grid;place-items:center;width:100%;height:100%;
+  border:0;background:rgba(7,22,28,.22);color:#fff;cursor:pointer;transition:background .18s var(--ease)}
+.films__play[hidden]{display:none}
+.films__play:hover{background:rgba(7,22,28,.34)}
+.films__play svg{width:74px;height:74px;padding:20px;border-radius:50%;background:rgba(7,22,28,.62);
+  border:2px solid rgba(252,243,235,.85);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+@media(max-width:520px){.films__play svg{width:58px;height:58px;padding:15px}}
+.films__error{position:absolute;inset-inline:16px;inset-block-end:16px;margin:0;padding:10px 14px;
+  border-radius:var(--r-sm);background:rgba(7,22,28,.9);border:1px solid rgba(252,243,235,.35);
+  color:var(--cream);font-size:13px;line-height:1.8}
+.films__error[hidden]{display:none}
+.films__caption{display:flex;flex-direction:column;justify-content:center;gap:10px;
+  padding:clamp(20px,3vw,38px);background:var(--ink);color:var(--cream)}
+.films__caption strong{font-size:clamp(19px,2.2vw,25px);font-weight:900;line-height:1.5}
+.films__caption p{margin:0;font-size:14.5px;line-height:1.95;color:rgba(252,243,235,.78)}
+.films__cta{margin-top:6px;align-self:flex-start;font-size:14px;font-weight:800;color:var(--emerald-soft);
+  text-decoration:underline;text-underline-offset:4px;min-height:44px;display:inline-flex;align-items:center;gap:8px}
+.films__cta:hover{color:#fff}
+@media(max-width:900px){
+  .films__frame{grid-template-columns:1fr}
+  .films__caption{padding:20px 18px 24px}
+  .films__tabs{width:100%;justify-content:space-between}
+  .film-tab{flex:1 1 0;justify-content:center;padding:0 10px}
+}
+@media(max-width:430px){
+  .film-tab span:not(.film-tab__icon){font-size:13px}
+  .film-tab__icon{display:none}
+}
