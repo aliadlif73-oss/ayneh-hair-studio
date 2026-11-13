@@ -20,7 +20,7 @@
   --sec-y:clamp(48px,6vw,84px);
 }
 *,*::before,*::after{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:98px;-webkit-text-size-adjust:100%}
+html{scroll-behavior:smooth;scroll-padding-top:98px;-webkit-text-size-adjust:100%;overflow-x:clip}
 body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.85;
   overflow-x:hidden;-webkit-font-smoothing:antialiased}
 img{display:block;max-width:100%;height:auto}

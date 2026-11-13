@@ -1107,7 +1107,9 @@ test('step 24 brand: one teal face mark, no leftover brass mirror',()=>{
  for(const slot of ['brand__mark','foot-brand']){
   assert.ok(landingHTML.includes(slot),slot+' slot exists');
  }
- assert.equal((landingHTML.match(/aynDisc/g)||[]).length>=3,true,'header, footer and studio carry the mark');
+ const markIds=[...landingHTML.matchAll(/id="(aynDisc[^"]*)"/g)].map(m=>m[1]);
+ assert.equal(markIds.length,2,'the landing page prints a header and footer mark');
+ assert.equal(new Set(markIds).size,markIds.length,'each inline SVG clip path has a unique document ID');
  assert.ok(faviconMark.length>100,'favicon is generated from the new brand');
 });
 
@@ -1284,6 +1286,7 @@ test('step 25 narrow phones: nothing in the header or the studio preview widens 
   assert.match(studio, /@media \(max-width:430px\)\{[\s\S]*?\.sb-fallback \.btn\{[^}]*white-space:normal/,
     'the preview form submit may wrap its label');
   assert.match(site, /\.site-footer\{[^}]*overflow:clip/, 'the clipped footer ornament stays clipped');
+  assert.match(site, /html\{[^}]*overflow-x:clip/, 'cinematic transforms cannot create page-level horizontal scroll');
 });
 
 test('step 25 pricing: with no approved amount a plan cannot be bought, and the server says so', async () => {

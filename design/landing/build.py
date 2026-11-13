@@ -106,8 +106,12 @@ assert '<!--PLANS-->' not in h and '<!--STUDIO-->' not in h and '<!--FILMS-->' n
 assert 'id="pay"' in h and 'id="payForm"' in h, 'the payment sheet must ship'
 FONT = '@font-face{font-family:"Estedad";src:url("assets/estedad.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}'
 h = re.sub(r'<style>.*?</style>', lambda m: '<style>' + NL + FONT + NL + css + NL + '</style>', h, count=1, flags=re.S)
-assert '<!--AYNEH_MARK-->' in h
-h = h.replace('<!--AYNEH_MARK-->', R('assets/ayneh-mark.svg'))
+assert h.count('<!--AYNEH_MARK-->') == 2
+mark = R('assets/ayneh-mark.svg')
+# Inline SVG fragment IDs are document-global in browsers. Give the header and footer mark
+# distinct clipPath names so duplicate IDs cannot make one logo reference the other SVG.
+h = h.replace('<!--AYNEH_MARK-->', mark.replace('aynDisc', 'aynDiscHeader'), 1)
+h = h.replace('<!--AYNEH_MARK-->', mark.replace('aynDisc', 'aynDiscFooter'), 1)
 # A build stamp in the <head>, as a meta tag rather than a comment: ship_minify strips
 # comments, and the landing page is cacheable for a few minutes, so without a marker that
 # survives the build neither the owner nor I can tell a stale copy from the deployed one.
