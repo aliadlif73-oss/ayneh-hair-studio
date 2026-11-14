@@ -10,7 +10,7 @@ export const landingHTML = String.raw`<!doctype html>
 <meta property="og:title" content="آینه | تجربه هوشمند انتخاب لباس عروس">
 <meta property="og:description" content="لباس‌های مزون خودتان را روی تصویر مشتری نمایش دهید؛ پیش‌نمایش، مقایسه و انتخاب برای پرو حضوری.">
 <meta property="og:type" content="website">
-<title>آینه | تجربه هوشمند انتخاب لباس عروس برای مزون‌ها</title>
+<title>آینه مزون | تجربه هوشمند انتخاب لباس عروس برای مزون‌ها</title>
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <style>
 @font-face{font-family:Vazirmatn;src:url('/fonts/vazirmatn-arabic.woff2') format('woff2');font-display:swap;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200F,U+FB50-FDFF,U+FE70-FEFC;font-weight:100 900}
