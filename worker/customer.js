@@ -609,7 +609,9 @@ function track(kind,meta,once){if(STUDIO_PREVIEW)return;if(once){if(tracked[kind
  var lq=(location.search.match(/[?&]l=(hair|color|nails|lashes)/)||[])[1];var lm=null;try{lm=localStorage.getItem('ayneh-line-'+SLUG)}catch(e){}
  var pending=null;try{pending=sessionStorage.getItem('ayneh-job-'+SLUG)}catch(e){}
  var pm=pending&&pending.match(/^(hair|color|nails|lashes):(.+)$/);if(pm){lq=pm[1];pending=pm[2]}
- state.line=lq||(LINES.label[lm]?lm:'hair');document.body.setAttribute('data-line',state.line);
+ /* A salon that bought one service shows only that service's lines. */
+ if(state.pub.lines&&state.pub.lines.length){var keep=state.pub.lines;LINE_LIST=LINE_LIST.filter(function(x){return keep.indexOf(x[0])>=0});Object.keys(LINES.label).forEach(function(k){if(keep.indexOf(k)<0)delete LINES.label[k]});if(lq&&keep.indexOf(lq)<0)lq=null;if(lm&&keep.indexOf(lm)<0)lm=null}
+ state.line=lq||(LINES.label[lm]?lm:LINE_LIST[0][0]);document.body.setAttribute('data-line',state.line);
  // The landing page hands over the look the visitor picked: ?s=<hair style index>&c=<colour name>.
  var qs=(location.search.match(/[?&]s=(\d{1,2})/)||[])[1],qc=(location.search.match(/[?&]c=([^&]{1,240})/)||[])[1];
  if(qs!==undefined&&state.line==='hair'&&+qs<20)state.style=+qs;
@@ -723,6 +725,9 @@ function openAbout(){
 // Each line keeps its own photo, choices and result; switching is one tap and loses nothing.
 var LINE_FIELDS=['step','original','preview','ratio','reference','refTitle','style','tab','transfer','color','opts','result','gen','genState','views','viewsIdem','idem','filter','error','justUploaded','base','genBase','resultBase','genT0'];
 var LINE_LIST=[['hair','مدل مو','scissors'],['color','رنگ مو','drop'],['nails','ناخن','nails'],['lashes','مژه','lashes']];
+/* «مدل مو، رنگ مو، طرح ناخن یا مژه» — only the lines this salon offers. */
+var LINE_WORDS={hair:'مدل مو',color:'رنگ مو',nails:'طرح ناخن',lashes:'مژه'};
+function offerText(ez){var w=LINE_LIST.map(function(x){return LINE_WORDS[x[0]]});var s=w.length>1?w.slice(0,-1).join('، ')+' یا '+w[w.length-1]:w[0];if(ez)s+=/ه$/.test(s)?'ٔ':/[وا]$/.test(s)?'ی':'';return s}
 var FACE=['hair','color','lashes'];
 var lineStore={};
 function hasLineWork(line){return (state.pub&&state.pub.portfolio||[]).some(function(p){return (p.published||p.try_on)&&(p.line||'hair')===line})}
@@ -1596,7 +1601,7 @@ function startTour(){
   card.replaceChildren(
    demoCompare('tour__demo')||null,
    el('h2',{id:'tour-title',class:'tour__title',text:'به آینه خوش آمدی'}),
-   el('p',{class:'tour__text',text:'قبل از اینکه روی صندلی «'+state.pub.salon.name+'» بنشینی، مدل مو، رنگ مو، طرح ناخن یا مژهٔ بعدی‌ات را روی عکس خودت ببین. در یک دقیقه نشانت می‌دهم چطور.'}),
+   el('p',{class:'tour__text',text:'قبل از اینکه روی صندلی «'+state.pub.salon.name+'» بنشینی، '+offerText(1)+' بعدی‌ات را روی عکس خودت ببین. در یک دقیقه نشانت می‌دهم چطور.'}),
    el('ol',{class:'tour__path'},[
     el('li',{},[el('span',{html:ICO.camera}),el('b',{text:'عکس تو'})]),
     el('li',{},[el('span',{html:ICO.scissors}),el('b',{text:'انتخاب'})]),
@@ -1838,7 +1843,7 @@ var SHARE_IC={
  more:'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>'
 };
 function shareUrl(){if(STUDIO_PREVIEW)return 'https://ayneh-salon.site/s/'+state.pub.salon.slug;return location.origin+'/s/'+SLUG+(state.tag?'?r='+state.tag:'')}
-function shareText(){return 'این رو ببین! توی صفحهٔ «'+state.pub.salon.name+'» می‌تونی مدل مو، رنگ مو، طرح ناخن یا مژهٔ جدید رو روی عکس خودت امتحان کنی؛ رایگان و بدون نصب 👇'}
+function shareText(){return 'این رو ببین! توی صفحهٔ «'+state.pub.salon.name+'» می‌تونی '+offerText(1)+' جدید رو روی عکس خودت امتحان کنی؛ رایگان و بدون نصب 👇'}
 function renderInvite(){
  var box=$('#invite');if(!box||!state.pub)return;
  var pics=el('span',{class:'invite__pics','aria-hidden':'true'});
@@ -1875,7 +1880,7 @@ function openShare(){
   opt('copy','کپی لینک',SHARE_IC.link,'var(--accent)',null,function(){copyText(both).then(function(){done('copy','متن و لینک کپی شد')},function(){toast(url)})}),
   navigator.share?opt('native','بله، ایتا و…',SHARE_IC.more,'#2f3b38',null,function(){navigator.share({title:s.name,text:text,url:url}).then(function(){done('native')},function(){})}):null
  ]);
- panel.append(grid,h('p','دوستت لینک را باز می‌کند و مدل مو، رنگ مو، طرح ناخن یا مژه را روی عکس خودش امتحان می‌کند. عکس‌ها خصوصی‌اند و برای کسی نمایش داده نمی‌شوند.','share__note'));
+ panel.append(grid,h('p','دوستت لینک را باز می‌کند و '+offerText()+' را روی عکس خودش امتحان می‌کند. عکس‌ها خصوصی‌اند و برای کسی نمایش داده نمی‌شوند.','share__note'));
  openSheet(panel);
 }
 

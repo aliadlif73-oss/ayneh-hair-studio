@@ -16,7 +16,7 @@
 import {must, phone, text, uid, digits, hash} from './domain.js';
 import {PLANS, PRICE_MINUTES, TOPUP} from './prices.js';
 import {applyPlan, grant, balance, MONTH} from './credits.js';
-import {featuresOf, OPENED_BY} from './plans.js';
+import {featuresOf, OPENED_BY, can} from './plans.js';
 
 const run = (db, sql, ...a) => db.prepare(sql).bind(...a).run();
 const one = (db, sql, ...a) => db.prepare(sql).bind(...a).first();
@@ -99,6 +99,8 @@ export async function publicOrder(db, env, row, {key = '', origin = ''} = {}) {
     status: row.status, created_at: row.created_at, expires_at: row.expires_at,
     card: cardDigits(card) || '', card_owner: card ? cardOwner(card) : '',
     access_key: key || '',
+    /* A top-up or a renewal from the panel keeps the salon's existing panel key. */
+    same_key: row.kind === 'topup' || row.note === 'renewal',
     panel_url: paid ? (base ? base + '/panel' : '/panel') : '',
     page_url: paid && salon ? (base ? base : '') + '/s/' + salon.slug : '',
     salon: row.salon_name, contact: row.contact_name,
@@ -194,6 +196,28 @@ export async function createTopup(db, env, {order: panelOrder, salon}, packs, or
   return publicOrder(db, env, row, {origin});
 }
 
+/* A renewal or an upgrade from the salon's own panel: the salon, contact and mobile come from
+   the panel session, the panel key stays the same (no new key is minted), and confirmation
+   applies the new plan to this same salon (provisionSalon honours salon_id). */
+export async function createRenewal(db, env, {order: panelOrder, salon}, plan, origin = '') {
+  must(PLANS[plan], 'این پلن وجود ندارد.', 404);
+  const amount = planAmount(plan);
+  must(amount > 0, 'مبلغ این پلن تعیین نشده است.', 409);
+  const now = Date.now();
+  await closeExpired(db);
+  await run(db, "UPDATE orders SET status='cancelled',updated_at=? WHERE salon_id=? AND kind='plan' AND status='open'", now, salon.id);
+  const row = {
+    id: uid(), ref: ref(), plan, kind: 'plan', service: panelOrder.service || '', credits: Number(PLANS[plan].credits || 0),
+    amount: amount * 10, salon_name: salon.name, contact_name: panelOrder.contact_name, phone: panelOrder.phone,
+    city: '', note: 'renewal', status: 'open', expires_at: now + ORDER_MINUTES * 60000,
+    access_key_hash: panelOrder.access_key_hash, coupon: '', discount: 0, created_at: now, updated_at: now,
+    salon_id: salon.id,
+  };
+  await insert(db, row);
+  await tell(env, 'تمدید/ارتقا به ' + PLANS[plan].name + ' برای «' + salon.name + '» باز شد', row);
+  return publicOrder(db, env, row, {origin});
+}
+
 async function insert(db, row) {
   await run(db,
     'INSERT INTO orders(id,ref,plan,kind,service,credits,amount,salon_name,contact_name,phone,city,note,status,expires_at,access_key_hash,coupon,discount,salon_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
@@ -278,7 +302,7 @@ export async function confirmOrder(db, env, id, {by = 'owner', origin = ''} = {}
     const claim = await run(db, "UPDATE orders SET status='paid',confirmed_by=?,confirmed_at=?,updated_at=? WHERE id=? AND status IN ('open','reviewing')", by, now, now, id);
     row = await orderById(db, id);
     if (!claim.meta.changes) return {order: await publicOrder(db, env, row, {origin}), claimed: false};
-  } else if (row.salon_id || row.kind === 'topup') {
+  } else if ((row.salon_id && row.note !== 'renewal') || row.kind === 'topup') {
     return {order: await publicOrder(db, env, row, {origin}), claimed: false};
   }
   let salon;
@@ -308,6 +332,10 @@ export async function confirmOrder(db, env, id, {by = 'owner', origin = ''} = {}
    same salon instead of getting a second one. The slug comes from the salon's name when it is
    written in Latin letters, otherwise from the order code — never from a person's name. */
 async function provisionSalon(db, row) {
+  if (row.salon_id) {
+    const own = await one(db, 'SELECT id,name,slug FROM salons WHERE id=?', row.salon_id);
+    if (own) return own;
+  }
   const prior = await one(db, "SELECT s.id,s.name,s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.phone=? AND o.kind='plan' AND o.status='paid' AND o.id<>? ORDER BY o.confirmed_at DESC LIMIT 1", row.phone, row.id);
   if (prior) return prior;
   const latin = String(row.salon_name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 28);
@@ -369,18 +397,23 @@ export async function rekeyOrder(db, id) {
 export async function panelDashboard(db, env, {order, salon}) {
   const [leads, portfolio, team, credit, topups] = await Promise.all([
     all(db, 'SELECT id,status,created_at FROM leads WHERE salon_id=? ORDER BY created_at DESC LIMIT 5', salon.id),
-    all(db, 'SELECT id,title,line,images FROM portfolio WHERE salon_id=? AND published=1 ORDER BY created_at DESC LIMIT 6', salon.id),
+    all(db, 'SELECT id,title,line,images FROM portfolio WHERE salon_id=? AND published=1 ORDER BY created_at DESC LIMIT 60', salon.id),
     all(db, 'SELECT id,name,specialty FROM team WHERE salon_id=? AND active=1', salon.id),
     balance(db, salon),
     all(db, "SELECT id,ref,credits,amount,status,created_at FROM orders WHERE salon_id=? AND kind='topup' ORDER BY created_at DESC LIMIT 5", salon.id),
   ]);
   const origin = env.APP_ORIGIN || '';
   const p = (() => { try { return JSON.parse(salon.profile || '{}'); } catch { return {}; } })();
+  /* The setup steps follow the plan: an ESSENTIAL salon is never asked for a bot it does not have. */
+  const hasBot = can(salon, 'bot');
   const steps = [
-    {key: 'page', label: 'لینک صفحهٔ اختصاصی را برای مشتری‌ها بفرستید', done: Object.keys(p).length > 0},
-    {key: 'telegram', label: 'ربات تلگرام یا بله را وصل کنید', done: !!(salon.telegram_chat_id || salon.bale_chat_id)},
-    {key: 'portfolio', label: 'اولین نمونه‌کار را از ربات بفرستید', done: portfolio.length > 0},
-    {key: 'team', label: 'اگر تیم دارید، آرایشگرها را اضافه کنید', done: team.length > 0},
+    {key: 'profile', label: 'نشانی، ساعت کار و یک توضیح کوتاه برای صفحه بنویسید', done: !!(p.bio || p.hours)},
+    {key: 'portfolio', label: 'اولین نمونه‌کارتان را اضافه کنید', done: portfolio.length > 0},
+    {key: 'share', label: 'لینک صفحه را در بیو اینستاگرام بگذارید تا اولین درخواست برسد', done: leads.length > 0},
+    ...(hasBot ? [
+      {key: 'telegram', label: 'ربات تلگرام یا بله را وصل کنید', done: !!(salon.telegram_chat_id || salon.bale_chat_id)},
+      {key: 'team', label: 'اگر همکار دارید، از ربات اضافه‌شان کنید (اختیاری)', done: team.length > 0},
+    ] : []),
   ];
   return {
     salon: {name: salon.name, slug: salon.slug, url: origin + '/s/' + salon.slug},
@@ -393,6 +426,9 @@ export async function panelDashboard(db, env, {order, salon}) {
     topups: topups.map(t => ({ref: t.ref, credits: t.credits, amount: toman(t.amount), status: t.status, created_at: t.created_at})),
     leads: leads.map(l => ({id: l.id, status: l.status, created_at: l.created_at})),
     portfolio: portfolio.map(x => ({id: x.id, title: x.title, line: x.line, image: (JSON.parse(x.images || '[]')[0]) || ''})),
+    profile: {bio: p.bio || '', address: p.address || '', hours: p.hours || '', phone: p.phone || '', instagram: String(p.instagram || '').replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')},
+    /* Plans the salon can renew to or upgrade to, straight from the panel. */
+    plans: Object.entries(PLANS).map(([key, v]) => ({key, name: v.name, months: v.months, amount: planAmount(key), credits: v.credits})),
     setup: {steps, done: steps.filter(s => s.done).length, total: steps.length},
     bot: {telegram: !!(env.TELEGRAM_BOT_TOKEN), bale: !!(env.BALE_BOT_TOKEN)},
   };

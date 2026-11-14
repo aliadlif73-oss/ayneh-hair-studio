@@ -11,7 +11,7 @@ import {stats} from './stats.js';
 import {smsReady,inviteReady,sendOtp} from './sms.js';
 import {createTrial,trialOf,trialLive,trialPublic,spendTrialImage} from './trial.js';
 import {PLANS as PLANS_TABLE} from './prices.js';
-import {createOrder,createTopup,customerOrder,setCoupon,markReviewing,confirmOrder,reopenOrder,rekeyOrder,closeExpired,cardSetting,saveCard,
+import {createOrder,createTopup,createRenewal,customerOrder,setCoupon,markReviewing,confirmOrder,reopenOrder,rekeyOrder,closeExpired,cardSetting,saveCard,
  webhookKey,rotateWebhookKey,panelLogin,panelSalon,panelLogout,panelDashboard,orderById,ORDER_MINUTES,SERVICE_LABEL} from './orders.js';
 import {spendCredit,planOf} from './credits.js';
 import {can,featuresOf,OPENED_BY} from './plans.js';
@@ -79,6 +79,10 @@ async function teamView(db,env,salon,origin){return (await teamOf(db,salon.id)).
 export const TRACK_KINDS=['view','tour_start','tour_done','tour_skip','about','photo','look','color','generate','result','gen_fail','view360','send_open','sent','follow','rating','demo','share_open','share','line','color_on_hair','save'];
 export async function logEvent(db,salonId,kind,visitor='',meta=''){await run(db,'INSERT INTO events_log(id,salon_id,visitor,kind,meta,created_at) VALUES(?,?,?,?,?,?)',uid(),salonId,/^[a-f0-9]{16,32}$/.test(visitor)?visitor:'',kind,String(meta||'').slice(0,80),Date.now())}
 function publicSalon(s){return {id:s.id,slug:s.slug,name:s.name,profile:parse(s.profile)};}
+// A salon that bought a plan from one service page offers that service only (hair = hairstyle +
+// hair colour). Salons without a plan, or with no recorded service, keep all four lines.
+const SERVICE_LINES={hair:['hair','color'],nails:['nails'],lashes:['lashes']};
+export function salonLines(s){if(!planOf(s))return null;const svc=parse(s.settings).service;return SERVICE_LINES[svc]||null;}
 
 // The salon panel is gone; only the project owner manages salons.
 export async function owner(req,env){const who=await identity(req,env);must(who,'برای ورود، رمز مدیر را وارد کنید',401);must(who.via==='password'||(env.OWNER_EMAIL&&who.email===env.OWNER_EMAIL),'فقط مدیر آینه به این بخش دسترسی دارد',403);return who;}
@@ -216,6 +220,12 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   const ctx=await panelSalon(req,db);const b=await req.json().catch(()=>({}));
   return J(await createTopup(db,env,ctx,b.packs,u.origin));
  }
+ // Renew or upgrade the plan from the panel: same salon, same panel key, same checkout.
+ if(path==='/api/panel/renew'&&req.method==='POST'){
+  await limited(db,'renew:'+clientIp(req),20,'درخواست‌های زیادی فرستاده‌اید؛ کمی بعد دوباره امتحان کنید');
+  const ctx=await panelSalon(req,db);const b=await req.json().catch(()=>({}));
+  return J(await createRenewal(db,env,ctx,String(b.plan||''),u.origin));
+ }
  if(path==='/api/panel/me'&&req.method==='GET'){
   try{const ctx=await panelSalon(req,db);return J(await panelDashboard(db,env,ctx))}
   catch(e){if(e.status===401)return J({salon:null});throw e}
@@ -292,7 +302,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(trial&&!trialLive(trial)&&route!=='public'&&!route.startsWith('owner'))throw new Problem(410,'مهلت ۱۰ ساعتهٔ صفحهٔ آزمایشی تمام شده است؛ برای ادامه با ما تماس بگیرید');
  const readOnly=route==='public'||route==='owner'||route==='requests'||route.startsWith('media/')||route.startsWith('generation/');
  must(route==='session'?['GET','POST'].includes(req.method):req.method===(readOnly?'GET':'POST'),'متد مجاز نیست',405);
- if(route==='public')return J({salon:publicSalon(salon),portfolio:await all(db,'SELECT id,title,category,description,stylist,staff_id AS maker,line,images,try_on,1 AS published FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 ORDER BY created_at DESC',salon.id),generation:!!env.KIE_API_KEY&&!!cfg.generation_enabled&&(!demo||smsReady(env)),reference:refOn(cfg),telegram:inboxes(env,salon).length>0||!!planOf(salon)||!!await one(db,'SELECT 1 FROM team WHERE salon_id=? AND active=1',salon.id),follow:Object.keys(followLinks(env,'x')),otp:smsReady(env),notice:'خروجی شبیه‌سازی پیشنهادی است و تضمین اجرا نیست.',trial:trialPublic(trial),demo});
+ if(route==='public')return J({salon:publicSalon(salon),portfolio:await all(db,'SELECT id,title,category,description,stylist,staff_id AS maker,line,images,try_on,1 AS published FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 ORDER BY created_at DESC',salon.id),generation:!!env.KIE_API_KEY&&!!cfg.generation_enabled&&(!demo||smsReady(env)),reference:refOn(cfg),telegram:inboxes(env,salon).length>0||!!planOf(salon)||!!await one(db,'SELECT 1 FROM team WHERE salon_id=? AND active=1',salon.id),follow:Object.keys(followLinks(env,'x')),otp:smsReady(env),notice:'خروجی شبیه‌سازی پیشنهادی است و تضمین اجرا نیست.',trial:trialPublic(trial),demo,lines:salonLines(salon)});
  if(route==='session'&&req.method==='POST'){await limited(db,'session:'+salon.id+':'+clientIp(req),30);const {raw}=await newSession(db,salon);return J({ok:true},200,{'Set-Cookie':cookie(raw)});}
  if(route.startsWith('owner')){
   await owner(req,env);const r=route.slice(6),b=req.method==='GET'?{}:await req.json();
@@ -390,6 +400,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  }
  if(route==='generate'&&req.method==='POST'){
   const b=await req.json();const line=LINE_KEYS.includes(b.line)?b.line:'hair';
+  {const allowed=salonLines(salon);if(allowed)must(allowed.includes(line),'این سالن فقط «'+allowed.map(k=>LINE_LABEL[k]).join('» و «')+'» را ارائه می‌دهد.',403);}
   must(!smsReady(env)||s.verified_phone,'اول شمارهٔ موبایلت را تأیید کن',403);must(!demo||smsReady(env),'ساخت تصویر در نسخهٔ نمونه هنوز فعال نشده است',503);
   must(b.image_consent===true,'رضایت ارسال عکس برای پردازش لازم است');
   must(cfg.generation_enabled&&env.KIE_API_KEY,'تولید واقعی این سالن هنوز فعال نشده است',503);

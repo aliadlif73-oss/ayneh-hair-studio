@@ -2,13 +2,15 @@
 // panelSalon) and the plan's features (worker/plans.js):
 //   requests (all plans) · bot link (PRO+) · bookings (PRO+) · report (PRO simple, SIGNATURE full)
 //   · customer archive + CSV (SIGNATURE) · priority support (SIGNATURE)
+//   · the salon's own page: portfolio photos and the page details (every paid plan)
 // The panel is the manager's: it lists only requests whose owner is the salon itself, never a
 // team member's customers (AGENTS.md: a member's customers go only to that member).
 import {must, text, uid, phone as normPhone, limited, Problem} from './domain.js';
 import {panelSalon} from './orders.js';
 import {can, OPENED_BY} from './plans.js';
 import {salonReport} from './reports.js';
-import {bucketFor} from './storage.js';
+import {bucketFor, putImage} from './storage.js';
+import {LINE_KEYS} from './lines.js';
 
 const J = (v, s = 200, h = {}) => new Response(JSON.stringify(v), {status: s, headers: {'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store', ...h}});
 const one = (db, sql, ...a) => db.prepare(sql).bind(...a).first();
@@ -53,7 +55,7 @@ const salonLine = salon => {
 export async function panelApi(req, env, u, path) {
   if (!path.startsWith('/api/panel/')) return null;
   const route = path.slice('/api/panel/'.length);
-  const known = /^(requests(\/[a-f0-9-]{36}\/status)?|media\/[a-f0-9-]{36}|bot-link|bookings(\/[a-f0-9-]{36})?|report|customers(\.csv)?|support)$/;
+  const known = /^(requests(\/[a-f0-9-]{36}\/status)?|media\/[a-f0-9-]{36}|bot-link|bookings(\/[a-f0-9-]{36})?|report|customers(\.csv)?|support|portfolio(\/[a-f0-9-]{36})?|profile)$/;
   if (!known.test(route)) return null;
   const db = env.DB, origin = env.APP_ORIGIN || u.origin;
   const {salon} = await panelSalon(req, db);
@@ -79,10 +81,58 @@ export async function panelApi(req, env, u, path) {
   if (media && req.method === 'GET') {
     need(salon, 'inbox');
     const m = await one(db, 'SELECT * FROM media WHERE id=? AND salon_id=?', media[1], salon.id);
-    must(m && await one(db, 'SELECT 1 FROM leads WHERE salon_id=? AND staff_id IS NULL AND (original_id=? OR preview_id=? OR reference_id=?)', salon.id, media[1], media[1], media[1]), 'عکس پیدا نشد.', 404);
+    must(m && (m.kind === 'portfolio' || await one(db, 'SELECT 1 FROM leads WHERE salon_id=? AND staff_id IS NULL AND (original_id=? OR preview_id=? OR reference_id=?)', salon.id, media[1], media[1], media[1])), 'عکس پیدا نشد.', 404);
     const object = await bucketFor(env).get(m.object_key);
     must(object, 'عکس در دسترس نیست', 410);
     return new Response(object.body, {headers: {'Content-Type': m.mime, 'Cache-Control': 'private,no-store', 'X-Content-Type-Options': 'nosniff'}});
+  }
+
+  /* ---------- the salon's own page: every paid plan («گالری نمونه‌کار») ---------- */
+  /* Portfolio: the raw image is the body, title and line ride in the query string. The same
+     row the bot and the owner console make: published and usable for try-on. */
+  if (route === 'portfolio' && req.method === 'POST') {
+    need(salon, 'gallery');
+    await limited(db, 'panel-portfolio:' + salon.id, 40);
+    const count = await one(db, 'SELECT COUNT(*) n FROM portfolio WHERE salon_id=?', salon.id);
+    must(Number(count?.n || 0) < 60, 'حداکثر ۶۰ نمونه‌کار می‌توانید داشته باشید؛ اول یکی را حذف کنید.', 409);
+    const bytes = new Uint8Array(await req.arrayBuffer());
+    const mediaId = await putImage(env, salon, null, bytes, 'portfolio');
+    const line = LINE_KEYS.includes(u.searchParams.get('line')) ? u.searchParams.get('line') : 'hair';
+    const title = text(String(u.searchParams.get('title') || '').slice(0, 80), 80) || 'نمونه‌کار';
+    const id = uid();
+    await run(db, 'INSERT INTO portfolio(id,salon_id,title,category,description,stylist,images,published,try_on,permission,created_at,staff_id,media_group,line,look) VALUES(?,?,?,?,?,?,?,1,1,1,?,NULL,NULL,?,?)',
+      id, salon.id, title, '', '', '', JSON.stringify([mediaId]), Date.now(), line, '');
+    return J({id, title, line, image: mediaId});
+  }
+  const pf = route.match(/^portfolio\/([a-f0-9-]{36})$/);
+  if (pf && req.method === 'DELETE') {
+    need(salon, 'gallery');
+    const row = await one(db, 'SELECT id FROM portfolio WHERE id=? AND salon_id=?', pf[1], salon.id);
+    must(row, 'نمونه‌کار پیدا نشد.', 404);
+    await run(db, 'DELETE FROM portfolio WHERE id=? AND salon_id=?', pf[1], salon.id);
+    return J({ok: true});
+  }
+  /* Page details the customer sees under «دربارهٔ سالن». Text only; the same limits as the
+     owner console's editor (worker/server.js profile route). */
+  if (route === 'profile' && req.method === 'POST') {
+    need(salon, 'page');
+    const b = await req.json().catch(() => ({}));
+    const p = parseProfile(salon);
+    for (const k of ['bio', 'address', 'hours']) if (k in b) p[k] = text(String(b[k] || ''), k === 'bio' ? 400 : 200);
+    if ('phone' in b) {
+      const tel = String(b.phone || '').replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)).replace(/[\s()-]/g, '');
+      must(!tel || /^\+?\d{5,15}$/.test(tel), 'شمارهٔ تماس معتبر نیست.');
+      p.phone = tel;
+    }
+    if ('instagram' in b) {
+      const ig = String(b.instagram || '').trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/\/.*$/, '');
+      must(!ig || /^[A-Za-z0-9._]{1,30}$/.test(ig), 'نام کاربری اینستاگرام معتبر نیست.');
+      p.instagram = ig ? 'https://instagram.com/' + ig : '';
+    }
+    const name = 'name' in b ? text(String(b.name || ''), 100) : salon.name;
+    must(name, 'نام صفحه را بنویسید.');
+    await run(db, 'UPDATE salons SET name=?,profile=? WHERE id=?', name, JSON.stringify(p), salon.id);
+    return J({ok: true, name, profile: {bio: p.bio || '', address: p.address || '', hours: p.hours || '', phone: p.phone || '', instagram: p.instagram || ''}});
   }
 
   /* ---------- bot connection: PRO+ ---------- */

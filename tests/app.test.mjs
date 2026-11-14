@@ -1451,7 +1451,8 @@ test('step 25 confirm: the owner turns an order into a salon page + a working pa
     assert.equal(dash.credits.granted, 75, 'the PRO plan granted its 75 gift images');
     assert.equal(dash.credits.left, 75);
     assert.equal(dash.credits.days_left, 90, 'three months');
-    assert.equal(dash.setup.total, 4);
+    assert.equal(dash.setup.total, 5, 'PRO: page details, portfolio, first request, bot, team');
+    assert.ok(dash.setup.steps.some(x => x.key === 'telegram'), 'PRO is asked to link its bot');
     assert.equal((await app.fetch(new Request(origin + '/panel'), e)).status, 200);
   } finally { restore() }
 });
@@ -1954,4 +1955,54 @@ test('a request without a valid photo id is a clear 400, not a server error',asy
   const r=await call(e,'/api/s/salon-a/leads',lead(bad),g);
   assert.notEqual(r.status,500,'never a 500 for '+JSON.stringify(bad));
  }
+});
+
+test('panel own page (ESSENTIAL): setup asks for nothing the plan lacks; portfolio and page details are self-service; renewal keeps salon and key',async()=>{
+ const e=fixture();
+ const ctx=await planSalon(e,'essential');
+ const me=async()=>(await app.fetch(new Request(origin+'/api/panel/me',{headers:{cookie:ctx.cookie}}),e)).json();
+ let d=await me();
+ assert.deepEqual(d.setup.steps.map(x=>x.key),['profile','portfolio','share'],'no bot or team step on ESSENTIAL');
+ assert.equal(d.plans.length,3,'renew/upgrade options are listed');
+ // Page details
+ const bad=await panel(e,ctx,'profile',{phone:'abc'});assert.equal(bad.status,400);
+ const ok=await panel(e,ctx,'profile',{name:'سالن آینه‌ای',bio:'رنگ و لایت',hours:'شنبه تا پنجشنبه',phone:'۰۹۱۲۰۰۰۰۰۰۰',instagram:'@my.salon'});
+ assert.equal(ok.status,200,JSON.stringify(ok));assert.equal(ok.data.profile.instagram,'https://instagram.com/my.salon');
+ const pub=await call(e,'/api/s/'+ctx.slug+'/public');assert.equal(pub.data.salon.name,'سالن آینه‌ای');assert.equal(pub.data.salon.profile.bio,'رنگ و لایت');
+ // Portfolio: upload, list, served to the panel, delete; another salon cannot delete it.
+ const add=await call(e,'/api/panel/portfolio?title='+encodeURIComponent('بالیاژ')+'&line=color',png(),{cookie:ctx.cookie});
+ assert.equal(add.status,200,JSON.stringify(add));assert.equal(add.data.line,'color');assert.equal(add.data.title,'بالیاژ');
+ assert.equal((await call(e,'/api/panel/portfolio?title=x',png())).status,401,'not without the panel session');
+ d=await me();assert.equal(d.portfolio.length,1);assert.ok(d.setup.steps.find(x=>x.key==='portfolio').done);assert.ok(d.setup.steps.find(x=>x.key==='profile').done);
+ assert.equal((await app.fetch(new Request(origin+'/api/panel/media/'+add.data.image,{headers:{cookie:ctx.cookie}}),e)).status,200,'the panel shows its own portfolio photo');
+ assert.equal((await call(e,'/api/s/'+ctx.slug+'/public')).data.portfolio.length,1,'and the customer page lists it');
+ const other=await planSalon(e,'essential','09125550001');
+ const steal=await app.fetch(new Request(origin+'/api/panel/portfolio/'+add.data.id,{method:'DELETE',headers:{origin,cookie:other.cookie}}),e);assert.equal(steal.status,404);
+ const del=await app.fetch(new Request(origin+'/api/panel/portfolio/'+add.data.id,{method:'DELETE',headers:{origin,cookie:ctx.cookie}}),e);assert.equal(del.status,200);
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM portfolio').get().n,0);
+ // Renewal / upgrade from the panel: same salon, no new key, the new plan applies once confirmed.
+ const salons=e.DB.sql.prepare('SELECT count(*) n FROM salons').get().n;
+ const r2=await call(e,'/api/panel/renew',{plan:'pro'},{cookie:ctx.cookie});
+ assert.equal(r2.status,200,JSON.stringify(r2));assert.equal(r2.data.same_key,true);assert.equal(r2.data.access_key,'','no new key is minted');
+ const conf=await call(e,'/api/owner/orders/'+r2.data.id+'/confirm',{},OWNER);assert.equal(conf.status,200,JSON.stringify(conf));
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM salons').get().n,salons,'no second salon');
+ d=await me();assert.equal(d.plan,'PRO','the same panel session now shows PRO');assert.ok(d.features.includes('booking'));
+ assert.ok(d.setup.steps.some(x=>x.key==='telegram'),'and now asks for the bot');
+});
+
+test('customer page offers only the service the salon bought (hair = hairstyle + colour)',async()=>{
+ const e=fixture();
+ const o=await call(e,'/api/order',orderBody('essential',{phone:'09125550009',salon:'Nail Bar',service:'nails'}));
+ await call(e,'/api/owner/orders/'+o.data.id+'/confirm',{},OWNER);
+ const slug=e.DB.sql.prepare('SELECT s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.id=?').get(o.data.id).slug;
+ const pub=await call(e,'/api/s/'+slug+'/public');assert.deepEqual(pub.data.lines,['nails']);
+ const hair=await planSalon(e,'pro','09125550010');
+ e.DB.sql.prepare("UPDATE salons SET settings=json_set(settings,'$.service','hair') WHERE slug=?").run(hair.slug);
+ assert.deepEqual((await call(e,'/api/s/'+hair.slug+'/public')).data.lines,['hair','color']);
+ // the server refuses a line the salon does not offer
+ const s={slug},g=await guest(e,s);
+ const gen=await call(e,'/api/s/'+slug+'/generate',{line:'hair',idem:'00000000-0000-4000-8000-000000000000'},g);
+ assert.equal(gen.status,403,JSON.stringify(gen));assert.match(gen.data.error,/فقط «ناخن»/);
+ e.DB.sql.prepare("UPDATE salons SET settings='{\"service\":\"nails\"}' WHERE slug=?").run(hair.slug);
+ const legacy=await call(e,'/api/s/'+hair.slug+'/public');assert.equal(legacy.status,200);assert.equal(legacy.data.lines,null,'a salon without a plan keeps every line');
 });

@@ -131,7 +131,7 @@
     /* The key is drawn on the waiting screen and again on the done screen, nowhere else. */
     $('payKeyBox').hidden = !state.key;
     $('payKey').textContent = state.key || '—';
-    $('payKeyLost').hidden = !!state.key;
+    $('payKeyLost').hidden = !!state.key || !!order.same_key;
     /* The countdown is driven by expires_at, so a reload or a slow phone cannot extend it. */
     clearInterval(state.tick);
     const end = Number(order.expires_at);
@@ -171,6 +171,11 @@
       $('payAccessKey').textContent = shown || '—';
       $('payKeyCopy').hidden = !shown;
       $('payDoneNote').hidden = !!shown;
+      /* A top-up or a renewal from the panel: the salon already has its key and its panel. */
+      if (!shown && order.same_key) {
+        $('payDoneNote').textContent = 'با همان کلید قبلی‌تان وارد پنل شوید؛ پلن و اعتبار جدید همان‌جاست.';
+        $('payAccessKey').closest('.pay-done__key').hidden = true;
+      }
       const panel = $('payPanelLink'), page = $('payPageLink');
       panel.href = order.panel_url || '/panel';
       page.href = order.page_url || '#';

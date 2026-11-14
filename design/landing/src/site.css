@@ -645,7 +645,7 @@ ul,ol{padding:0;list-style:none}
 .pay-key b{font-family:ui-monospace,Menlo,monospace;font-size:clamp(15px,2.2vw,19px);letter-spacing:.08em;color:var(--ink);word-break:break-all}
 .pay-key em{font-style:normal;font-size:12px;line-height:1.9;color:var(--ink-soft)}
 .pay-key .btn{justify-self:start}
-.pay-live [hidden],.pay-wait [hidden]{display:none!important}
+.pay-live [hidden],.pay-wait [hidden],.pay-done [hidden]{display:none!important}
 .pay-receipt .field__hint{display:block;margin-top:2px}
 .pay-wait .pay-key{text-align:start;margin:14px auto;max-width:440px}
 .pay-wait .pay-key-lost{margin:12px auto;max-width:440px}

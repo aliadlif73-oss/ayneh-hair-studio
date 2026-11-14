@@ -13,8 +13,8 @@ const css = String.raw`
 .pn-card p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.9}
 .pn-hero{background:linear-gradient(180deg,#fff,#f2f7f4);border-color:#cfe3da}
 .pn-hero h1{margin:0;font-size:26px;font-weight:800}
-.pn-hero .pn-link{display:flex;gap:8px;flex-wrap:wrap;align-items:center;direction:ltr;justify-content:flex-end}
-.pn-hero .pn-link code{font-family:ui-monospace,Menlo,monospace;background:#0b3b32;color:#e8f4ef;border-radius:10px;padding:8px 10px;font-size:13px}
+.pn-hero .pn-link{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-start}
+.pn-hero .pn-link code{direction:ltr;font-family:ui-monospace,Menlo,monospace;background:#fff;color:var(--ink);border:1px solid #cfe3da;border-radius:10px;padding:9px 12px;font-size:13px;word-break:break-all;flex:1 1 220px;text-align:left}
 .pn-grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:16px}
 .pn-steps{display:grid;gap:8px;margin:0;padding:0;list-style:none}
 .pn-steps li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.8;color:var(--ink-2)}
@@ -33,7 +33,29 @@ const css = String.raw`
 .pn-packs .btn{min-height:44px}
 .pn-note{font-size:12.5px;color:var(--muted)}
 .pn [hidden]{display:none!important}
-.pn-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 14px;padding:4px;border-radius:16px;background:var(--surface);border:1px solid var(--line-2)}
+.pn-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 14px;padding:4px;border-radius:16px;background:var(--surface);border:1px solid var(--line-2);scroll-snap-type:x proximity;-webkit-mask-image:linear-gradient(to left,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to left,#000 calc(100% - 28px),transparent)}
+.pn-tab{scroll-snap-align:start}
+.pn-tab--more{color:#0a6b54}
+.pn-chips{display:flex;flex-wrap:wrap;gap:8px}
+.pn-chip{min-height:44px;padding:0 14px;border:1px solid #9cc9b8;border-radius:12px;background:#fff;color:#0a6b54;font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.pn-chip:disabled{opacity:.6}
+.pn-sample{opacity:.55;pointer-events:none;position:relative}
+.pn-sample::after{content:'نمونه';position:absolute;inset-inline-end:10px;top:10px;font-size:11px;font-weight:800;background:#efe5da;border-radius:99px;padding:2px 8px;color:#6b5a48}
+.pn-pick{display:flex!important;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer}
+.pn-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.pn-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
+.pn-shot{position:relative;border-radius:12px;overflow:hidden;background:#efe5da;aspect-ratio:4/5}
+.pn-shot img{width:100%;height:100%;object-fit:cover;display:block}
+.pn-shot figcaption{position:absolute;inset-inline:0;bottom:0;padding:6px 8px;background:linear-gradient(transparent,rgba(0,0,0,.65));color:#fff;font-size:12px;font-weight:700}
+.pn-shot button{position:absolute;top:6px;inset-inline-start:6px;min-width:32px;min-height:32px;border:0;border-radius:99px;background:rgba(255,255,255,.92);font:inherit;font-size:12px;cursor:pointer}
+.pn-plans{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(230px,1fr))}
+.pn-plan{display:grid;gap:8px;padding:16px;border:1px solid var(--line-2);border-radius:16px;background:#fff}
+.pn-plan.is-current{border-color:#068f6c;box-shadow:0 0 0 2px #e4f4ee inset}
+.pn-plan ul{margin:0;padding:0 18px 0 0;font-size:13px;line-height:1.9;color:var(--ink-2)}
+.pn-plan .price{font-size:20px;font-weight:900}
+.pn-kpi i{font-style:normal;font-size:11.5px;color:var(--muted);line-height:1.6}
+.pn-kpi em{font-style:normal;font-size:12px;font-weight:800}
+.pn-kpi em.up{color:#0a6b54}.pn-kpi em.down{color:#B4553C}
 .pn-tabs::-webkit-scrollbar{display:none}
 .pn-tab{flex:0 0 auto;min-height:44px;padding:0 16px;border:0;border-radius:12px;background:transparent;font:inherit;font-size:14px;font-weight:700;color:var(--ink-2);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
 .pn-tab[aria-selected="true"]{background:#0b3b32;color:#fff}
@@ -107,17 +129,19 @@ function creditCard(d){
  if(!c)return el('div',{class:'pn-card'},[h('h2','اعتبار تصویر'),h('p','این سالن پلن فعالی ندارد؛ تصویرها محدودیت اعتباری ندارند.')]);
  var low=c.left<=Math.max(3,Math.round(c.granted*.1));
  var err=el('p',{class:'notice notice--warn',hidden:true});
- var buy=function(packs){return el('button',{class:'btn btn--primary btn--sm',type:'button',text:fa(packs*d.topup.images)+' عکس · '+fa(packs*d.topup.amount)+' تومان',onclick:function(e){
+ var buy=function(packs){return el('button',{class:'pn-chip',type:'button',text:fa(packs*d.topup.images)+' عکس · '+fa(packs*d.topup.amount)+' تومان',onclick:function(e){
   e.target.disabled=true;err.hidden=true;
   api('/api/panel/topup',{packs:packs}).then(function(o){location.href='/pay?order='+encodeURIComponent(o.id)}).catch(function(x){err.textContent=x.message;err.hidden=false;e.target.disabled=false});
  }})};
  return el('div',{class:'pn-card'},[
   h('h2','پلن '+d.plan+' و اعتبار تصویر'),
   el('div',{class:'pn-credit'+(low?' is-low':'')},[h('span','عکس باقی‌مانده','pn-who'),h('b',fa(c.left)+' از '+fa(c.granted)),h('span',fa(c.used)+' عکس ساخته شده؛ عکس‌های ناموفق حساب نمی‌شوند.','pn-who')]),
-  h('p',c.expired?'مهلت پلن تمام شده و ساخت تصویر متوقف است؛ برای تمدید با پشتیبانی آینه تماس بگیرید یا از صفحهٔ خدمت خود پلن تازه بخرید.':'پلن تا '+fmt(c.until)+' فعال است ('+fa(c.days_left)+' روز مانده).'),
-  h('p','خرید اعتبار بیشتر: هر '+fa(d.topup.images)+' عکس '+fa(d.topup.amount)+' تومان.','pn-note'),
-  el('div',{class:'pn-packs'},[buy(1),buy(2),buy(5)]),
-  err
+  h('p',c.expired?'مهلت پلن تمام شده و ساخت تصویر برای مشتری‌ها متوقف است. با تمدید، همه‌چیز همان‌جا ادامه پیدا می‌کند.':'پلن تا '+fmt(c.until)+' فعال است ('+fa(c.days_left)+' روز مانده).'),
+  (c.expired||c.days_left<=7)?el('a',{class:'btn btn--primary btn--sm',href:'#plans',text:'تمدید یا ارتقای پلن'}):null,
+  h('p','اعتبار بیشتر لازم دارید؟ هر '+fa(d.topup.images)+' عکس '+fa(d.topup.amount)+' تومان:','pn-note'),
+  el('div',{class:'pn-chips'},[buy(1),buy(2),buy(5)]),
+  err,
+  h('small','کد خرید '+d.ref+' · تأیید در '+fmt(d.paid_at),'pn-who')
  ]);
 }
 
@@ -140,7 +164,8 @@ function dayChips(onPick){
  return {box:box,day:function(){return chosen}};
 }
 function bookingForm(d,lead,done){
- var days=dayChips(),time=el('input',{type:'time',value:'16:00',step:'900','aria-label':'ساعت'});
+ var nx=new Date(Date.now()+TEH+3600000),nh=nx.getUTCHours(),nm=nx.getUTCMinutes()<30?30:0;if(nm===0)nh=(nh+1)%24;if(nh<9)nh=9;if(nh>21)nh=16;
+ var days=dayChips(),time=el('input',{type:'time',value:(nh<10?'0':'')+nh+':'+(nm?'30':'00'),step:'900','aria-label':'ساعت'});
  var name=lead?null:el('input',{placeholder:'نام مشتری','aria-label':'نام مشتری'}),tel=lead?null:el('input',{placeholder:'موبایل (اختیاری)',inputmode:'tel',dir:'ltr','aria-label':'موبایل مشتری'});
  var dur=el('select',{'aria-label':'مدت'},[30,60,90,120,180].map(function(m){return el('option',{value:String(m),text:fa(m)+' دقیقه',selected:m===60})}));
  var note=el('input',{placeholder:'یادداشت (اختیاری)','aria-label':'یادداشت'}),err=el('p',{class:'notice notice--warn',hidden:true});
@@ -148,6 +173,7 @@ function bookingForm(d,lead,done){
   var hm=(time.value||'16:00').split(':');var at=tehranMidnight(days.day())+Number(hm[0])*3600000+Number(hm[1]||0)*60000;
   save.disabled=true;err.hidden=true;
   api('/api/panel/bookings',{lead_id:lead?lead.id:undefined,name:name?name.value:undefined,phone:tel?tel.value:undefined,starts_at:at,duration_min:Number(dur.value),note:note.value}).then(function(r){
+   alert('نوبت برای '+r.when+' ثبت شد.'+(r.told?' پیام تأیید برای مشتری در تلگرام یا بله رفت.':' این مشتری ربات آینه را دنبال نمی‌کند؛ خودتان به او خبر بدهید.')+(r.overlap?' توجه: این زمان با نوبت دیگری هم‌پوشانی دارد.':''));
    done&&done(r);
   }).catch(function(x){err.textContent=x.message;err.hidden=false;save.disabled=false});
  }});
@@ -158,7 +184,11 @@ function requestsTab(d,box){
  function load(){
   box.replaceChildren(h('p','در حال بارگذاری…','pn-who'));
   api('/api/panel/requests?page='+page).then(function(r){
-   if(!r.requests.length){box.replaceChildren(h('p','هنوز درخواستی نیامده؛ لینک صفحه را برای مشتری‌ها بفرستید.'));return}
+   if(!r.requests.length&&page===0){box.replaceChildren(
+    h('h2','هنوز درخواستی نیامده'),
+    h('p','وقتی مشتری از صفحهٔ شما انتخابش را بفرستد، همین‌جا این‌طور می‌بینید:'),
+    el('div',{class:'pn-item pn-sample','aria-hidden':'true'},[el('span',{style:'width:72px;height:90px;border-radius:10px;background:#e9dccd;display:block'}),el('div',{},[h('b','مریم'),h('div',(LINE[d.service==='hair'?'hair':d.service]||'مدل مو')+' · انتخاب مشتری','meta'),h('div','۰۹۱۲ ••• •••• · امروز','meta'),el('div',{class:'pn-acts'},[h('span','📞 تماس گرفتم','btn btn--ghost btn--sm'),h('span','✅ نوبت دادم','btn btn--ghost btn--sm')])])]),
+    el('div',{class:'pn-row'},[el('button',{class:'btn btn--primary btn--sm',type:'button',text:'کپی لینک صفحه برای اینستاگرام',onclick:function(e){shareLink(d,e.target)}})]));return}
    var list=el('div',{class:'pn-list'});
    r.requests.forEach(function(l){
     var img=l.preview_id||l.original_id;
@@ -211,7 +241,8 @@ function bookingsTab(d,box){
  function act(b,a){api('/api/panel/bookings/'+b.id,{action:a}).then(load).catch(function(x){alert(x.message)})}
  load();
 }
-function kpi(n,label,prev){return el('div',{class:'pn-kpi'},[h('b',fa(n)),h('span',label+(prev!=null?' · دورهٔ قبل '+fa(prev):''))])}
+var MEAN={'بازدید صفحه':'چند نفر صفحهٔ شما را باز کردند','امتحان روی عکس':'چند بار مشتری‌ها مدلی را روی عکس خودشان دیدند','درخواست':'مشتری‌هایی که انتخاب‌شان را برایتان فرستادند','نوبت داده شد':'درخواست‌هایی که «نوبت دادم» زدید','نوبت ثبت‌شده':'نوبت‌هایی که در پنل با روز و ساعت ثبت کردید','مراجعهٔ انجام‌شده':'نوبت‌هایی که «انجام شد» زدید'};
+function kpi(n,label,prev){var tr=prev==null?null:n>prev?el('em',{class:'up',text:'▲ از '+fa(prev)+' در ۳۰ روز قبل'}):n<prev?el('em',{class:'down',text:'▼ از '+fa(prev)+' در ۳۰ روز قبل'}):el('em',{text:'مثل ۳۰ روز قبل'});return el('div',{class:'pn-kpi'},[h('b',fa(n)),h('span',label),MEAN[label]?h('i',MEAN[label]):null,tr])}
 function bars(rows,label,value){var max=Math.max.apply(null,[1].concat(rows.map(value)));return el('div',{class:'pn-bars'},rows.map(function(r){return el('div',{class:'pn-barrow'},[h('span',label(r)),el('i',{style:'width:'+Math.max(4,Math.round(value(r)/max*100))+'%'}),h('b',fa(value(r)))])}))}
 function reportTab(d,box){
  if(!has(d,'report_simple'))return box.replaceChildren(locked(d,'report_simple','گزارش عملکرد','بازدید، امتحان روی عکس، درخواست و نوبت‌های ماه را با ماه قبل مقایسه کنید.'));
@@ -260,52 +291,120 @@ function botCard(d){
  return el('div',{class:'pn-card'},[h('h2','اتصال ربات'),h('p',d.bot_linked?'ربات وصل است؛ درخواست‌ها در پیام‌رسان هم می‌رسند.':'با یکی از لینک‌های زیر، ربات آینه را در تلگرام یا بله باز کنید و «شروع» را بزنید.'),
   el('button',{class:'btn btn--primary btn--sm',type:'button',text:d.bot_linked?'لینک تازه برای دستگاه دیگر':'ساخت لینک اتصال',onclick:function(e){e.target.disabled=true;api('/api/panel/bot-link',{}).then(function(r){out.replaceChildren.apply(out,Object.keys(r.links).map(function(k){return el('a',{class:'btn btn--ghost btn--sm',href:r.links[k],target:'_blank',rel:'noopener',text:k==='bale'?'باز کردن در بله':'باز کردن در تلگرام'})}))}).catch(function(x){out.replaceChildren(h('p',x.message,'pn-note'))}).then(function(){e.target.disabled=false})}}),out]);
 }
+var SERVICE_TEXT={hair:'مشتری مدل و رنگ مو را روی عکس خودش می‌بیند و انتخابش را با عکس برای شما می‌فرستد.',nails:'مشتری طرح و رنگ ناخن را روی عکس دست خودش می‌بیند و انتخابش را برای شما می‌فرستد.',lashes:'مشتری مدل مژه را روی عکس چشم خودش می‌بیند و انتخابش را برای شما می‌فرستد.'};
+function shareLink(d,btn){
+ var url=d.salon.url,label=btn.textContent;
+ if(navigator.share&&/Mobi|Android|iPhone/i.test(navigator.userAgent))return navigator.share({title:d.salon.name,text:'مدل دلخواهت را قبل از آمدن روی عکس خودت ببین:',url:url}).catch(function(){});
+ if(navigator.clipboard)navigator.clipboard.writeText(url).then(function(){btn.textContent='کپی شد';setTimeout(function(){btn.textContent=label},1600)});
+}
+/* «صفحهٔ من»: what the customer sees under «دربارهٔ سالن», and the portfolio gallery. */
+function pageTab(d,box){
+ var f={},err=el('p',{class:'pn-note',hidden:true});
+ var field=function(k,label,attrs,area){var i=el(area?'textarea':'input',Object.assign({'aria-label':label},attrs||{}));i.value=k==='name'?d.salon.name:(d.profile[k]||'');f[k]=i;return el('label',{},[label,i])};
+ var save=el('button',{class:'btn btn--primary',type:'button',text:'ذخیرهٔ جزئیات صفحه',onclick:function(){
+  var body={};Object.keys(f).forEach(function(k){body[k]=f[k].value});save.disabled=true;err.hidden=true;
+  api('/api/panel/profile',body).then(function(r){d.salon.name=r.name;d.profile=r.profile;err.textContent='ذخیره شد؛ همین حالا در صفحهٔ شما دیده می‌شود.';err.hidden=false}).catch(function(x){err.textContent=x.message;err.hidden=false}).then(function(){save.disabled=false});
+ }});
+ var details=el('div',{class:'pn-form'},[h('b','جزئیات صفحه'),
+  field('name','نام صفحه (نام شما یا سالن)',{maxlength:'100'}),
+  field('bio','یک توضیح کوتاه',{maxlength:'400',placeholder:'مثلاً: متخصص رنگ و لایت با ۸ سال سابقه'},true),
+  field('address','نشانی',{maxlength:'200'}),
+  field('hours','ساعت کار',{maxlength:'200',placeholder:'مثلاً: شنبه تا پنجشنبه ۱۰ تا ۲۰'}),
+  field('phone','شمارهٔ تماس صفحه',{maxlength:'20',inputmode:'tel',dir:'ltr'}),
+  field('instagram','اینستاگرام',{maxlength:'60',dir:'ltr',placeholder:'@yourpage'}),
+  save,err]);
+ var grid=el('div',{class:'pn-gallery'}),gErr=el('p',{class:'pn-note',hidden:true});
+ function draw(){
+  grid.replaceChildren.apply(grid,d.portfolio.length?d.portfolio.map(function(p){return el('figure',{class:'pn-shot'},[
+   p.image?el('img',{src:'/api/panel/media/'+p.image,alt:p.title,loading:'lazy'}):null,
+   el('figcaption',{text:p.title+' · '+(LINE[p.line]||p.line)}),
+   el('button',{type:'button','aria-label':'حذف '+p.title,text:'✕',onclick:function(){if(!confirm('این نمونه‌کار حذف شود؟'))return;fetch('/api/panel/portfolio/'+p.id,{method:'DELETE'}).then(function(r){if(!r.ok)throw new Error('حذف نشد');d.portfolio=d.portfolio.filter(function(x){return x.id!==p.id});draw()}).catch(function(x){alert(x.message)})}})
+  ])}):[h('p','هنوز نمونه‌کاری نیست. اولین کارتان را اضافه کنید تا مشتری‌ها در صفحه ببینند.')]);
+ }
+ var title=el('input',{placeholder:'عنوان (مثلاً: بالیاژ عسلی)',maxlength:'80','aria-label':'عنوان نمونه‌کار'});
+ var line=el('select',{'aria-label':'خدمت'},['hair','color','nails','lashes'].map(function(k){return el('option',{value:k,text:LINE[k],selected:k===(d.service==='hair'?'hair':d.service)})}));
+ var file=el('input',{type:'file',accept:'image/*','aria-label':'عکس نمونه‌کار',class:'pn-file'}),picked=h('span','هنوز عکسی انتخاب نشده','pn-who');
+ file.addEventListener('change',function(){picked.textContent=file.files&&file.files[0]?file.files[0].name:'هنوز عکسی انتخاب نشده'});
+ var add=el('button',{class:'btn btn--primary btn--sm',type:'button',text:'افزودن نمونه‌کار',onclick:function(){
+  var fl=file.files&&file.files[0];if(!fl){gErr.textContent='اول یک عکس انتخاب کنید.';gErr.hidden=false;return}
+  add.disabled=true;gErr.hidden=true;
+  shrink(fl).then(function(blob){return fetch('/api/panel/portfolio?title='+encodeURIComponent(title.value)+'&line='+line.value,{method:'POST',headers:{'Content-Type':blob.type||'image/jpeg'},body:blob})})
+   .then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||'بارگذاری نشد');return j})})
+   .then(function(j){d.portfolio.unshift(j);title.value='';file.value='';picked.textContent='اضافه شد؛ عکس بعدی را انتخاب کنید';draw()})
+   .catch(function(x){gErr.textContent=x.message;gErr.hidden=false}).then(function(){add.disabled=false});
+ }});
+ draw();
+ box.replaceChildren(h('h2','صفحهٔ من'),h('p','آنچه اینجا می‌نویسید، مشتری در صفحهٔ شما زیر «دربارهٔ سالن» می‌بیند.'),details,
+  h('h2','نمونه‌کارها'),el('div',{class:'pn-form'},[el('label',{class:'pn-pick'},[el('span',{class:'btn btn--ghost btn--sm',text:'انتخاب عکس از گوشی'}),file,picked]),el('div',{class:'pn-row'},[el('label',{style:'flex:1'},['عنوان',title]),el('label',{},['خدمت',line])]),add,gErr]),grid);
+}
+/* A phone photo is often 4–8 MB; the server takes up to its upload limit, so shrink first. */
+function shrink(file){
+ return new Promise(function(ok){
+  var img=new Image(),url=URL.createObjectURL(file);
+  img.onload=function(){var m=1600,w=img.naturalWidth,h=img.naturalHeight,k=Math.min(1,m/Math.max(w,h));var c=document.createElement('canvas');c.width=Math.round(w*k);c.height=Math.round(h*k);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);c.toBlob(function(b){ok(b||file)},'image/jpeg',.86)};
+  img.onerror=function(){URL.revokeObjectURL(url);ok(file)};
+  img.src=url;
+ });
+}
+/* «پلن و ارتقا»: renew the same plan or move up, through the same checkout; same salon, same key. */
+var PLAN_ADDS={essential:['صفحهٔ اختصاصی و گالری نمونه‌کار','تست مدل با عکس مرجع','درخواست‌ها در پنل'],pro:['همهٔ امکانات ESSENTIAL','درخواست‌ها در تلگرام یا بله هم','ثبت نوبت با یادآوری به مشتری','گزارش عملکرد ساده'],signature:['همهٔ امکانات PRO','گزارش عملکرد کامل','آرشیو مشتریان با خروجی اکسل','پشتیبانی ویژه']};
+function plansTab(d,box){
+ var cur=(d.credits&&d.credits.plan)||'',err=el('p',{class:'notice notice--warn',hidden:true});
+ var cards=(d.plans||[]).map(function(p){var isCur=p.key===cur;return el('div',{class:'pn-plan'+(isCur?' is-current':'')},[
+  el('div',{style:'display:flex;justify-content:space-between;align-items:center;gap:8px'},[el('b',{dir:'ltr',text:p.name}),isCur?h('span','پلن فعلی','pn-badge'):null]),
+  h('span',fa(p.months)+' ماهه · '+fa(p.credits)+' عکس هدیه','pn-who'),
+  h('div',fa(p.amount)+' تومان','price'),
+  el('ul',{},(PLAN_ADDS[p.key]||[]).map(function(x){return el('li',{text:x})})),
+  el('button',{class:'btn '+(isCur?'btn--ghost':'btn--primary')+' btn--sm',type:'button',text:isCur?'تمدید همین پلن':'ارتقا به '+p.name,onclick:function(e){
+   e.target.disabled=true;err.hidden=true;
+   api('/api/panel/renew',{plan:p.key}).then(function(o){location.href='/pay?order='+encodeURIComponent(o.id)}).catch(function(x){err.textContent=x.message;err.hidden=false;e.target.disabled=false});
+  }})
+ ])});
+ box.replaceChildren(h('h2','پلن و ارتقا'),h('p','تمدید یا ارتقا روی همین صفحه و همین پنل انجام می‌شود و کلید ورودتان عوض نمی‌شود. پرداخت مثل قبل کارت‌به‌کارت است و تمدید خودکار ندارد.'),el('div',{class:'pn-plans'},cards),err);
+}
 function dash(d){
- var copy=function(){
-  var code=$('#pnLink').textContent;
-  if(navigator.clipboard)navigator.clipboard.writeText(code).then(function(){$('#pnCopy').textContent='کپی شد';setTimeout(function(){$('#pnCopy').textContent='کپی'},1600)});
- };
+ /* The page link is always shown and copied whole, ready to paste in an Instagram bio. */
+ if(d.salon.url&&d.salon.url.charAt(0)==='/')d.salon.url=location.origin+d.salon.url;
  var home=el('div',{class:'pn-grid'},[
    creditCard(d),
-   botCard(d),
    el('div',{class:'pn-card'},[
     h('h2','راه‌اندازی'),
     h('p',fa(d.setup.done)+' از '+fa(d.setup.total)+' قدم انجام شده.'),
     el('div',{class:'pn-progress'},[el('span',{style:'width:'+Math.round(d.setup.done/d.setup.total*100)+'%'})]),
-    el('ul',{class:'pn-steps'},d.setup.steps.map(stepRow))
+    el('ul',{class:'pn-steps'},d.setup.steps.map(stepRow)),
+    el('a',{class:'btn btn--ghost btn--sm',href:'#page',text:'جزئیات صفحه و نمونه‌کارها'})
    ]),
-   el('div',{class:'pn-card'},[
-    h('h2','نمونه‌کارها'),
-    d.portfolio.length?el('div',{style:'display:grid;gap:6px'},d.portfolio.map(function(p){return el('div',{class:'pn-who',text:p.title+' · '+(LINE[p.line]||p.line)})})):h('p','هنوز نمونه‌کاری نیست. '+(has(d,'bot')?'عکس‌ها را به ربات تلگرام یا بله بفرستید تا همین‌جا بنشینند.':'برای افزودن نمونه‌کار با پشتیبانی آینه هماهنگ کنید.'))
-   ])
+   has(d,'bot')?botCard(d):null
   ]);
- var TABS=[['home','خانه',null],['requests','درخواست‌ها','inbox'],['bookings','نوبت‌ها','booking'],['report','گزارش','report_simple'],['customers','مشتریان','archive'],['support','پشتیبانی','priority_support']];
+ /* Only what this plan opens gets a tab; everything else waits in «پلن و ارتقا». */
+ var ALL=[['home','خانه',null],['requests','درخواست‌ها','inbox'],['bookings','نوبت‌ها','booking'],['report','گزارش','report_simple'],['customers','مشتریان','archive'],['page','صفحهٔ من','page'],['support','پشتیبانی','priority_support'],['plans','پلن و ارتقا',null]];
+ var TABS=ALL.filter(function(t){return !t[2]||has(d,t[2])});
  var body=el('div',{}),tabs=el('div',{class:'pn-tabs',role:'tablist','aria-label':'بخش‌های پنل'});
  function show(key){
-  [].forEach.call(tabs.children,function(t){t.setAttribute('aria-selected',String(t.dataset.key===key))});
+  if(!TABS.some(function(t){return t[0]===key}))key=ALL.some(function(t){return t[0]===key})?'plans':'home';
+  [].forEach.call(tabs.children,function(t){var on=t.dataset.key===key;t.setAttribute('aria-selected',String(on));if(on&&t.scrollIntoView)t.scrollIntoView({block:'nearest',inline:'nearest'})});
   if(key==='home')body.replaceChildren(home);
   else{var box=el('div',{class:'pn-card'});body.replaceChildren(box);
-   ({requests:requestsTab,bookings:bookingsTab,report:reportTab,customers:customersTab,support:supportTab})[key](d,box)}
+   ({requests:requestsTab,bookings:bookingsTab,report:reportTab,customers:customersTab,support:supportTab,page:pageTab,plans:plansTab})[key](d,box)}
   try{history.replaceState(null,'','#'+key)}catch(e){}
  }
- TABS.forEach(function(t){tabs.append(el('button',{class:'pn-tab',role:'tab',type:'button','data-key':t[0],'aria-selected':'false',onclick:function(){show(t[0])}},[t[1],t[2]&&!has(d,t[2])?el('span',{class:'lock','aria-label':'قفل',text:'🔒'}):null]))});
+ TABS.forEach(function(t){tabs.append(el('button',{class:'pn-tab'+(t[0]==='plans'?' pn-tab--more':''),role:'tab',type:'button','data-key':t[0],'aria-selected':'false',onclick:function(){show(t[0])}},[t[1]]))});
+ var shareBtn=el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'کپی / اشتراک',onclick:function(e){shareLink(d,e.target)}});
  $('#app').replaceChildren(el('section',{class:'pn'},[
   el('div',{class:'pn-bar'},[
    el('a',{class:'pn-brand',href:'/'},[el('span',{html:MARK}),'آینه']),
-   el('div',{style:'display:flex;gap:8px;align-items:center'},[h('span',d.salon.name,'pn-who'),el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'خروج',onclick:function(){api('/api/panel/logout',{}).then(function(){location.href='/panel'})}})])
+   el('div',{style:'display:flex;gap:8px;align-items:center'},[h('span',d.salon.name+' · پلن '+d.plan,'pn-who'),el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'خروج',onclick:function(){api('/api/panel/logout',{}).then(function(){location.href='/panel'})}})])
   ]),
   el('div',{class:'pn-card pn-hero'},[
-   h('span','پنل '+d.plan,'pn-who'),
    h('h1','صفحهٔ '+d.salon.name+' باز است'),
-   h('p','این لینک را برای مشتری‌ها بفرستید؛ هر کسی مدل مو، رنگ، ناخن یا مژه را روی عکس خودش می‌بیند و برای شما می‌فرستد.'),
-   el('div',{class:'pn-link'},[el('code',{id:'pnLink',text:d.salon.url}),el('button',{class:'btn btn--ghost btn--sm',type:'button',id:'pnCopy',text:'کپی',onclick:copy}),el('a',{class:'btn btn--primary btn--sm',href:d.salon.url,target:'_blank',rel:'noopener',text:'دیدن صفحه'})]),
-   h('small','سفارش '+d.ref+' · تأیید‌شده در '+fmt(d.paid_at),'pn-who')
+   h('p',(SERVICE_TEXT[d.service]||SERVICE_TEXT.hair)+' این لینک را در بیو اینستاگرام بگذارید یا برای مشتری‌ها بفرستید.'),
+   el('div',{class:'pn-link'},[el('code',{id:'pnLink',text:d.salon.url}),shareBtn,el('a',{class:'btn btn--primary btn--sm',href:d.salon.url,target:'_blank',rel:'noopener',text:'دیدن صفحه'})])
   ]),
   tabs,body
  ]));
- var start=(location.hash||'').slice(1);show(TABS.some(function(t){return t[0]===start})?start:'home');
+ var start=(location.hash||'').slice(1);show(start||'home');
  /* A link like /panel#requests (from a bot message or a bookmark) opens that tab, also on the open page. */
- addEventListener('hashchange',function(){var k=(location.hash||'').slice(1);if(TABS.some(function(t){return t[0]===k}))show(k)});
+ addEventListener('hashchange',function(){var k=(location.hash||'').slice(1);if(k)show(k)});
 }
 `;
 
