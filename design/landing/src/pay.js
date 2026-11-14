@@ -211,8 +211,8 @@
       $('payWait').querySelector('h3').textContent = 'در انتظار تأیید';
     }
     show('wait');
-    const pct = Math.max(0, Math.min(100, (Date.now() - Number(order.created_at)) / Math.max(1, Number(order.expires_at) - Number(order.created_at)) * 100));
-    $('payWaitPct').textContent = fa(Math.round(pct)) + '٪';
+    /* A spinner, not a percentage: the wait has no meaningful progress to report. */
+    $('payWaitPct').textContent = '';
   }
 
   /* ---------- polling: the owner console or the payment site flips the status ---------- */

@@ -2,6 +2,7 @@
 // project team; this is the salon's own door: enter the access key once, then see the page
 // link, what is still missing, the last requests and the first portfolio items.
 import {baseCSS, markSVG} from './design.js';
+import {SUPPORT_TEL, SUPPORT_FA} from './support.js';
 
 const css = String.raw`
 .pn{max-width:1080px;margin:0 auto;padding:16px 16px 56px}
@@ -115,7 +116,7 @@ function gate(msg){
  var err=el('p',{class:'notice notice--warn',hidden:true});
  $('#app').replaceChildren(el('section',{class:'pn'},[
   el('div',{class:'pn-bar'},[el('a',{class:'pn-brand',href:'/'},[el('span',{html:MARK}),'آینه'])]),
-  el('div',{class:'pn-card'},[h('h1','پنل سالن'),h('p','کلیدی که بعد از تأیید پرداخت گرفتید را اینجا وارد کنید. اگر کلید را ندارید، از پشتیبانی آینه بخواهید دوباره بفرستد.'),input,go,err]),
+  el('div',{class:'pn-card'},[h('h1','پنل سالن'),h('p','کلیدی را که بعد از تأیید پرداخت گرفتید اینجا وارد کنید (شبیه AY-XXXXXXXXX).'),input,go,err,el('p',{class:'pn-note'},['کلید را گم کرده‌اید؟ با پشتیبانی آینه تماس بگیرید تا کلید تازه بسازند: ',el('a',{href:'tel:'+SUPPORT_TEL,dir:'ltr',text:SUPPORT_FA})])]),
   msg?el('p',{class:'pn-who',text:msg}):null
  ]));
 }
@@ -283,7 +284,7 @@ function supportTab(d,box){
  if(!has(d,'priority_support'))return box.replaceChildren(locked(d,'priority_support','پشتیبانی ویژه','پیام شما مستقیم و در اولویت به تیم آینه می‌رسد.'));
  var topic=el('input',{placeholder:'موضوع','aria-label':'موضوع'}),msg=el('textarea',{placeholder:'پیام شما','aria-label':'پیام پشتیبانی',maxlength:'1000'}),out=el('p',{class:'pn-note',hidden:true});
  var send=el('button',{class:'btn btn--primary',type:'button',text:'ارسال به پشتیبانی',onclick:function(){send.disabled=true;api('/api/panel/support',{topic:topic.value,message:msg.value}).then(function(){out.textContent='پیام شما رسید؛ به‌زودی با شما تماس می‌گیریم.';out.hidden=false;msg.value=''}).catch(function(x){out.textContent=x.message;out.hidden=false}).then(function(){send.disabled=false})}});
- box.replaceChildren(h('p','پشتیبانی ویژهٔ SIGNATURE: پیام شما در اولویت به تیم آینه می‌رسد. برای کار فوری تماس بگیرید: ۰۹۱۰۵۶۴۷۴۹۷'),el('div',{class:'pn-form'},[el('label',{},['موضوع',topic]),el('label',{},['پیام',msg]),send,out]));
+ box.replaceChildren(h('p','پشتیبانی ویژهٔ SIGNATURE: پیام شما در اولویت به تیم آینه می‌رسد. برای کار فوری تماس بگیرید: '+SUPPORT_FA),el('div',{class:'pn-form'},[el('label',{},['موضوع',topic]),el('label',{},['پیام',msg]),send,out]));
 }
 function botCard(d){
  if(!has(d,'bot'))return locked(d,'bot','اتصال ربات تلگرام یا بله','درخواست‌ها و نمونه‌کارها را مستقیم در پیام‌رسان بگیرید و بفرستید.');
@@ -435,4 +436,4 @@ const boot = String.raw`
 
 export const panelHTML = String.raw`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#fcf3eb"><meta name="robots" content="noindex"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><title>پنل سالن | آینه</title><style>__CSS__</style></head><body class="admin-body"><main id="app"><div class="pn" style="padding:40px 16px;color:#6B7A78">در حال باز کردن…</div></main><script>__JS__</script></body></html>`
   .replace('__CSS__', () => baseCSS + css)
-  .replace('__JS__', () => `var MARK=${JSON.stringify(markSVG)};` + lib + gate + dash + boot);
+  .replace('__JS__', () => `var MARK=${JSON.stringify(markSVG)},SUPPORT_TEL=${JSON.stringify(SUPPORT_TEL)},SUPPORT_FA=${JSON.stringify(SUPPORT_FA)};` + lib + gate + dash + boot);

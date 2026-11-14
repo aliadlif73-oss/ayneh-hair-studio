@@ -136,6 +136,9 @@ h = h.replace('<!--FILMS-->', R('src/films.html')).replace('<!--TRYON-->', R('sr
 h = h.replace('<!--PLANS-->', plans).replace('<!--STUDIO-->', studio + NL + R('src/pay.html'))
 assert '<!--PLANS-->' not in h and '<!--STUDIO-->' not in h and '<!--FILMS-->' not in h and '<!--TRYON-->' not in h and '<!--PLAY-->' not in h
 assert 'id="pay"' in h and 'id="payForm"' in h, 'the payment sheet must ship'
+# One support number everywhere: the landing must print the one in worker/support.js.
+SUPPORT_TEL = re.search(r"SUPPORT_TEL = '(\d+)'", R('../../worker/support.js')).group(1)
+assert set(re.findall(r'tel:(\d+)', h)) == {SUPPORT_TEL}, 'landing support number differs from worker/support.js'
 
 # ---------------- four pages from one source ----------------
 # page.html + the partials above hold every section once. Each page is the shared shell
@@ -287,7 +290,11 @@ def make_pages(full):
                            '<summary>مشتری چه عکسی باید بگذارد؟</summary>\n            <div class="faq-item__body">' + s['photo'] + '</div>\n          </details>\n          <details class="faq-item">\n            <summary>آینه دقیقاً چه کاری برای من می‌کند؟</summary>', 1)
         sfaq = sfaq.replace('<details class="faq-item" open>', '<details class="faq-item">', 1).replace('<details class="faq-item">', '<details class="faq-item" open>', 1)
         cta = section(src, 'cta').replace('مشتری‌های شما، نتیجه را', 'مشتری‌های ' + s['label'] + ' شما، نتیجه را', 1)
-        main = (hero + films + (R('src/play.html') if s['play'] else '') + tryon
+        # /hair: the mirror and the photo try-on are one block with two tabs (src/try-switch.js).
+        switch = ('<div class="try-switch band" id="trySwitch" role="tablist" aria-label="دو راه امتحان" hidden>'
+                  '<button type="button" role="tab" data-try="play" aria-selected="true">روی چهرهٔ نمونه <small>بدون عکس</small></button>'
+                  '<button type="button" role="tab" data-try="try-on" aria-selected="false">روی عکس خودتان <small>با تأیید شماره</small></button></div>\n') if s['play'] else ''
+        main = (hero + films + switch + (R('src/play.html') if s['play'] else '') + tryon
                 + how + studio + section(src, 'services') + R('src/pay.html')
                 + cta + sfaq)
         others = [(v['path'], v['label']) for k, v in SERVICES.items() if k != key]
@@ -338,7 +345,7 @@ def finish(h):
     # follow-up message to show.
     SCRIPTS = ['funnel.js', 'story.js', 'films.js', 'tryon.js', 'play.js', 'draft.js', 'portrait.js',
                'hair-color.js', 'try.js', 'reveal.js', 'cinema2.js',
-               'builder.js', 'refine.js', 'pay.js', 'cta.js']
+               'builder.js', 'refine.js', 'pay.js', 'cta.js', 'try-switch.js']
     # Hair-colour maths and the photo handoff are used by the studio. hero.js, scenes.js,
     # and cinema.js drove the retired film sections. cta.js owns the mobile sticky action,
     # keeping it clear of the film, the salon-page builder, duplicate CTAs, and open dialogs.

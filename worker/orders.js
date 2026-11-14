@@ -343,7 +343,9 @@ async function provisionSalon(db, row) {
   let slug = base, n = 1;
   while (await one(db, 'SELECT 1 FROM salons WHERE slug=?', slug)) slug = base + '-' + ++n;
   const id = uid(), now = Date.now();
-  const profile = {manager: row.contact_name, phone: String(row.phone).replace(/^\+98/, '0'), ...(row.city ? {address: row.city} : {})};
+  /* The buyer's own name and mobile stay on the order (for the Ayneh team) and are never
+     copied onto the public page: the salon writes the page's phone itself in «صفحهٔ من». */
+  const profile = {...(row.city ? {address: row.city} : {})};
   const settings = {generation_enabled: true, reference_verified: true, service: row.service || ''};
   await run(db, 'INSERT INTO salons(id,slug,owner_id,name,profile,settings,created_at) VALUES(?,?,?,?,?,?,?)',
     id, slug, 'order:' + row.id, text(row.salon_name, 100), JSON.stringify(profile), JSON.stringify(settings), now);
@@ -408,6 +410,7 @@ export async function panelDashboard(db, env, {order, salon}) {
   const hasBot = can(salon, 'bot');
   const steps = [
     {key: 'profile', label: 'نشانی، ساعت کار و یک توضیح کوتاه برای صفحه بنویسید', done: !!(p.bio || p.hours)},
+    {key: 'phone', label: 'شمارهٔ تماسی را که مشتری‌ها ببینند بنویسید', done: !!p.phone},
     {key: 'portfolio', label: 'اولین نمونه‌کارتان را اضافه کنید', done: portfolio.length > 0},
     {key: 'share', label: 'لینک صفحه را در بیو اینستاگرام بگذارید تا اولین درخواست برسد', done: leads.length > 0},
     ...(hasBot ? [

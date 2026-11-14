@@ -1451,7 +1451,7 @@ test('step 25 confirm: the owner turns an order into a salon page + a working pa
     assert.equal(dash.credits.granted, 75, 'the PRO plan granted its 75 gift images');
     assert.equal(dash.credits.left, 75);
     assert.equal(dash.credits.days_left, 90, 'three months');
-    assert.equal(dash.setup.total, 5, 'PRO: page details, portfolio, first request, bot, team');
+    assert.equal(dash.setup.total, 6, 'PRO: page details, page phone, portfolio, first request, bot, team');
     assert.ok(dash.setup.steps.some(x => x.key === 'telegram'), 'PRO is asked to link its bot');
     assert.equal((await app.fetch(new Request(origin + '/panel'), e)).status, 200);
   } finally { restore() }
@@ -1962,7 +1962,12 @@ test('panel own page (ESSENTIAL): setup asks for nothing the plan lacks; portfol
  const ctx=await planSalon(e,'essential');
  const me=async()=>(await app.fetch(new Request(origin+'/api/panel/me',{headers:{cookie:ctx.cookie}}),e)).json();
  let d=await me();
- assert.deepEqual(d.setup.steps.map(x=>x.key),['profile','portfolio','share'],'no bot or team step on ESSENTIAL');
+ assert.deepEqual(d.setup.steps.map(x=>x.key),['profile','phone','portfolio','share'],'no bot or team step on ESSENTIAL');
+ // Privacy: the buyer's own name and mobile never land on the public page.
+ const first=await call(e,'/api/s/'+ctx.slug+'/public');
+ assert.equal(first.data.salon.profile.phone,undefined,'no phone until the salon writes one');
+ assert.equal(first.data.salon.profile.manager,undefined,'no buyer name on the page');
+ assert.doesNotMatch(JSON.stringify(first.data),/09125550000|9125550000/,'the buyer mobile is not in the public payload');
  assert.equal(d.plans.length,3,'renew/upgrade options are listed');
  // Page details
  const bad=await panel(e,ctx,'profile',{phone:'abc'});assert.equal(bad.status,400);
@@ -2005,4 +2010,14 @@ test('customer page offers only the service the salon bought (hair = hairstyle +
  assert.equal(gen.status,403,JSON.stringify(gen));assert.match(gen.data.error,/فقط «ناخن»/);
  e.DB.sql.prepare("UPDATE salons SET settings='{\"service\":\"nails\"}' WHERE slug=?").run(hair.slug);
  const legacy=await call(e,'/api/s/'+hair.slug+'/public');assert.equal(legacy.status,200);assert.equal(legacy.data.lines,null,'a salon without a plan keeps every line');
+});
+
+test('/hair: the mirror and the photo try-on are one block with two tabs; one support number everywhere',async()=>{
+ const hair=servicePages.hair;
+ assert.match(hair,/id="trySwitch" role="tablist"[\s\S]{0,400}data-try="play"[\s\S]{0,200}data-try="try-on"/,'two tabs, the mirror first');
+ assert.ok(hair.indexOf('id="trySwitch"')<hair.indexOf('<section id="play"'),'the tab bar sits above both');
+ for(const k of ['nails','lashes'])assert.doesNotMatch(servicePages[k],/id="trySwitch"/,k+' has one try section, no tabs');
+ const {SUPPORT_TEL}=await import('../worker/support.js');
+ for(const html of [landingHTML,...Object.values(servicePages)])assert.deepEqual([...new Set([...html.matchAll(/tel:(\d+)/g)].map(m=>m[1]))],[SUPPORT_TEL]);
+ assert.ok(panelHTML.includes(JSON.stringify(SUPPORT_TEL)),'the panel gate offers the same number for a lost key');
 });
