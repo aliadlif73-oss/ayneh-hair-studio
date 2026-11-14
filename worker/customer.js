@@ -830,7 +830,7 @@ function stepPhoto(){
  var box=el('div',{class:'panel flow'});
  if(!state.original&&state.preview){
   box.append(flowHead('دارم عکست را بارگذاری می‌کنم','چند ثانیه صبر کن؛ همین که آماده شد خبرت می‌کنم.'));
-  box.append(el('div',{class:'photo'},[el('div',{class:'mirror'},[el('div',{class:'mirror__glass'},[el('img',{src:state.preview,alt:'عکس انتخابی شما'}),el('div',{class:'upl',role:'status'},[el('span',{class:'upl__scan'}),el('span',{text:'در حال بارگذاری…'}),el('span',{class:'upl__bar'},[el('i')])])])])]));
+  box.append(el('div',{class:'photo'},[el('div',{class:'mirror'},[el('div',{class:'mirror__glass'},[el('img',{src:state.preview,alt:'عکس انتخابی تو'}),el('div',{class:'upl',role:'status'},[el('span',{class:'upl__scan'}),el('span',{text:'در حال بارگذاری…'}),el('span',{class:'upl__bar'},[el('i')])])])])]));
  }else if(!state.original){
   box.append(flowHead(LP().head,LP().sub));
   var input=el('input',{type:'file',accept:'image/jpeg,image/png,image/webp',id:'pick',class:'sr-only'});
@@ -859,7 +859,7 @@ function stepPhoto(){
   var fresh=state.justUploaded;
   box.append(flowHead(fresh?'عکست بارگذاری شد':'عکست آماده است',fresh?'الان می‌رویم سراغ انتخاب '+({color:'رنگ',nails:'طرح'}[state.line]||'مدل')+'…':LP().ready));
   box.append(el('div',{class:'photo'},[
-   el('div',{class:'mirror'},[el('div',{class:'mirror__glass'},[el('img',{src:state.preview||media(state.original),alt:'عکس انتخابی شما'}),fresh?el('span',{class:'photo__badge','aria-hidden':'true',html:ICO.check}):null])]),
+   el('div',{class:'mirror'},[el('div',{class:'mirror__glass'},[el('img',{src:state.preview||media(state.original),alt:'عکس انتخابی تو'}),fresh?el('span',{class:'photo__badge','aria-hidden':'true',html:ICO.check}):null])]),
    fresh?el('div',{class:'photo__auto','aria-hidden':'true'},[el('i')]):null,
    el('div',{class:'photo__bar'},[
     el('span',{html:ICO.check+'<span>عکس انتخاب شد</span>'}),
@@ -1002,7 +1002,7 @@ function stepModel(){
 function buildLabel(can){return can?ICO.spark+'<span>بساز</span>':(quotaLeft()===0?ICO.send+'<span>فرستادن برای '+artist()+'</span>':'<span>ادامه: نتیجه</span>')}
 function buildHint(ready,can,left){
  if(!ready)return missingReason()+'؛ بعد «بساز» فعال می‌شود.';
- if(!can)return '';
+ if(!can)return left===0&&state.pub.generation?'سهم ساخت «'+LINES.label[state.line]+'» برای تو تمام شده؛ همین انتخاب را بدون شبیه‌سازی برای '+artist()+' بفرست.':'';
  return 'با زدن «بساز» عکست برای ساخت فرستاده می‌شود و فقط برای همین سالن می‌ماند.'+(left!=null?' '+fa(left)+' ساخت دیگر در این بخش داری.':'');
 }
 // Step 2 → 3 in one tap: «بساز» goes straight to building, no page in between.
@@ -1083,7 +1083,7 @@ function colorPicker(){
 function renderDockSoon(){clearTimeout(renderDockSoon.t);renderDockSoon.t=setTimeout(function(){renderDock();var b=$('#flow .btn--build');if(b){var c=canGenerate(),r=hasChoice();b.innerHTML=buildLabel(c);b.disabled=!r;var hn=$('#flow .build-hint');if(hn)hn.textContent=buildHint(r,c,quotaLeft())}},60)}
 function typedColor(){return state.line==='color'&&state.style===null&&!state.reference&&String(state.color||'').trim().length>=2}
 function hasChoice(){return !!state.original&&(state.style!==null||!!state.reference||typedColor())}
-function canGenerate(){return hasChoice()&&!!state.pub.generation&&(!state.reference||!!state.pub.reference)&&quotaLeft()!==0}
+function canGenerate(){return hasChoice()&&!!state.pub.generation&&!state.paused&&(!state.reference||!!state.pub.reference)&&quotaLeft()!==0}
 function missingReason(){
  if(!state.original)return 'اول عکس خودت را اضافه کن';
  if(quotaLeft()===0)return quotaOut();
@@ -1271,7 +1271,8 @@ function stepResult(){
  }else if(!state.busy){
   if(!canGenerate()){
    /* Out of images for this service: say exactly that (once), never «not active yet». */
-   if(quotaLeft()===0&&state.pub.generation){if(!/سهم امتحان/.test(state.error||''))box.append(notice('info',quotaOut()))}
+   if(state.paused){}
+   else if(quotaLeft()===0&&state.pub.generation){if(!/سهم امتحان/.test(state.error||''))box.append(notice('info',quotaOut()))}
    else box.append(notice('info',!state.pub.generation?'این سالن پیش‌نمایش تصویری را فعال نکرده. عکس و انتخابت را برای '+artist()+' بفرست تا بررسی کند.':(!hasChoice()?missingReason()+'.':state.reference&&!state.pub.reference?'ساخت تصویر از عکس مدل خودت در این سالن فعال نیست. عکس و انتخابت را مستقیم برای '+artist()+' بفرست.':'ساخت تصویر از این انتخاب هنوز فعال نیست. عکس و انتخابت را مستقیم برای '+artist()+' بفرست.')));
    box.append(el('div',{class:'flow__nav'},[!hasChoice()&&state.original?el('button',{class:'btn btn--ghost',type:'button',onclick:function(){go(2)},text:'انتخاب'}):null,sendButton()]));
    box.append(sendNote());
@@ -1398,6 +1399,8 @@ function generate(){
   state.busy=false;
   if(needsVerify(e.message)){state.verified=false;state.error='';renderFlow();renderDock();openOtp(generate);return}
   if(/سهم امتحان/.test(e.message)&&state.quota&&state.quota.left)state.quota.left[state.line]=0;
+  /* The salon's images are paused (credits or plan): stop offering «بساز», offer sending. */
+  if(/ساخت تصویر در این سالن فعلاً متوقف است/.test(e.message))state.paused=true;
   state.error=friendly(e.message);
   renderFlow();renderDock();
  });
@@ -1502,7 +1505,7 @@ function openViews(){
  tipTimer=setInterval(function(){if(!panel.isConnected){cleanup();return}tip.textContent=tips[ti++%tips.length]},2400);
  progTimer=setInterval(function(){bar.style.width=Math.round(3+92*(1-Math.exp(-(Date.now()-started)/70000)))+'%'},400);
  if(state.views&&state.views.gen===state.gen){ready(state.views.id);return}
- if(quotaLeft('hair')===0){cleanup();tip.textContent='سهم امتحان «مدل مو» برای شما تمام شد؛ نمای ۳۶۰ هم یک تصویر از همین سهم است.';return}
+ if(quotaLeft('hair')===0){cleanup();tip.textContent='سهم امتحان «مدل مو» برای تو تمام شد؛ نمای ۳۶۰ هم یک تصویر از همین سهم است.';return}
  api('views',{v:VISITOR,parent:state.gen,idem:state.viewsIdem||(state.viewsIdem=uuid())}).then(function(job){
   spentQuota('hair');var tries=0;
   function check(){if(!panel.isConnected)return;return api('generation/'+job.id).then(function(d){
@@ -1663,7 +1666,7 @@ function quotaLeft(line){return state.quota&&state.quota.left?state.quota.left[l
 function spentQuota(line){if(state.quota&&state.quota.left&&state.quota.left[line]>0)state.quota.left[line]--}
 function quotaOut(){
  var others=LINE_LIST.filter(function(x){return x[0]!==state.line&&quotaLeft(x[0])!==0}).map(function(x){return '«'+x[1]+'»'});
- return 'سهم امتحان «'+LINES.label[state.line]+'» برای شما تمام شد ('+fa(state.quota.per)+' تصویر). '+(others.length?'هنوز می‌توانی '+others.join('، ')+' را امتحان کنی، یا همین نتیجه‌ها را برای سالن بفرستی.':'سهم امتحان همهٔ بخش‌ها تمام شده؛ می‌توانی همین نتیجه‌ها را برای سالن بفرستی تا با تو تماس بگیرند.');
+ return 'سهم امتحان «'+LINES.label[state.line]+'» برای تو تمام شد ('+fa(state.quota.per)+' تصویر). '+(others.length?'هنوز می‌توانی '+others.join('، ')+' را امتحان کنی، یا همین نتیجه‌ها را برای سالن بفرستی.':'سهم امتحان همهٔ بخش‌ها تمام شده؛ می‌توانی همین نتیجه‌ها را برای سالن بفرستی تا با تو تماس بگیرند.');
 }
 
 /* ---------- phone verification (SMS code) ---------- */
@@ -1715,7 +1718,7 @@ function openOtp(next){
     state.verified=true;
     state.me=Object.assign({},state.me||{},{name:d.name,phone:'0'+String(d.phone).replace(/^\+98/,'')});
     try{localStorage.setItem('ayneh-me',JSON.stringify(state.me))}catch(err){}
-    shut();toast('شمارهات تأیید شد');
+    shut();toast('شماره‌ات تأیید شد');
     if(next)next();
    }).catch(function(err){verify.disabled=false;verify.textContent='تأیید';toast(err.message,'error')});
   });

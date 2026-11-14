@@ -1823,14 +1823,14 @@ test('credits: a plan salon stops making images at zero or after its end; failed
   e.DB.sql.prepare('UPDATE salons SET settings=? WHERE id=?').run(JSON.stringify(st),row.id);
   e.DB.sql.prepare("INSERT INTO credit_ledger(id,salon_id,delta,reason,order_id,created_at) VALUES(?,?,?,?,?,?)").run(crypto.randomUUID(),row.id,1,'plan:essential',null,now);
   const ok=await gen();assert.equal(ok.status,200,JSON.stringify(ok));
-  const empty=await gen();assert.equal(empty.status,402,'no credit left');assert.match(empty.data.error,/اعتبار تصویر این سالن تمام شده/);
+  const empty=await gen();assert.equal(empty.status,402,'no credit left');assert.match(empty.data.error,/ساخت تصویر در این سالن فعلاً متوقف است[\s\S]*بدون شبیه‌سازی/);
   // a failed image gives its credit back
   e.DB.sql.prepare("UPDATE generations SET state='fail' WHERE id=?").run(ok.data.id);
   assert.equal((await gen()).status,200,'the failed image did not count');
   // plan over
   e.DB.sql.prepare("INSERT INTO credit_ledger(id,salon_id,delta,reason,order_id,created_at) VALUES(?,?,?,?,?,?)").run(crypto.randomUUID(),row.id,10,'topup',null,now);
   st.plan.until=Date.now()-1;e.DB.sql.prepare('UPDATE salons SET settings=? WHERE id=?').run(JSON.stringify(st),row.id);
-  const over=await gen();assert.equal(over.status,402);assert.match(over.data.error,/مهلت پلن این سالن تمام شده/);
+  const over=await gen();assert.equal(over.status,402);assert.match(over.data.error,/ساخت تصویر در این سالن فعلاً متوقف است/);
  }finally{globalThis.fetch=previous}
 });
 
@@ -2036,4 +2036,22 @@ test('migration 0017: salons made before the fix lose the copied buyer mobile an
  assert.equal(prof(b.slug).manager,undefined);
  assert.deepEqual(prof('legacy-one'),{manager:'سارا محمدی',phone:'09125550101'},'a salon not made by the checkout is untouched');
  assert.doesNotMatch(JSON.stringify((await call(e,'/api/s/'+a.slug+'/public')).data),/9125550101|سارا محمدی/,'nothing of the buyer on the public page');
+});
+
+test('quota message on a paid hair salon names only its own services (no nails or lashes)',async()=>{
+ const e=fixture(),s=await salon(e),g=await guest(e,s);e.KIE_API_KEY='mock';await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true,reference_verified:true},OWNER);
+ const {applyPlan}=await import('../worker/credits.js');
+ const id=e.DB.sql.prepare("SELECT id FROM salons WHERE slug='salon-a'").get().id;
+ await applyPlan(e.DB,id,{key:'pro',months:3,credits:75},null);
+ e.DB.sql.prepare("UPDATE salons SET settings=json_set(settings,'$.service','hair') WHERE id=?").run(id);
+ const previous=globalThis.fetch;
+ globalThis.fetch=async(url)=>{if(String(url).includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(String(url).includes('createTask'))return Response.json({code:200,data:{taskId:'t'+crypto.randomUUID()}});return previous(url)};
+ try{
+  const v='cd'.repeat(16),original=await upload(e,s,g);
+  const gen=()=>call(e,'/api/s/salon-a/generate',{v,image_consent:true,idem:crypto.randomUUID(),line:'hair',original_id:original,style:0},g);
+  for(let i=0;i<3;i++)assert.equal((await gen()).status,200);
+  const fourth=await gen();assert.equal(fourth.status,429);
+  assert.match(fourth.data.error,/برای تو تمام شد[\s\S]*«رنگ مو»/);
+  assert.doesNotMatch(fourth.data.error,/ناخن|مژه/,'a hair salon never suggests nails or lashes');
+ }finally{globalThis.fetch=previous}
 });
