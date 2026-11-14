@@ -1,6 +1,8 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync,readdirSync} from 'node:fs';
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync,readdirSync,existsSync} from 'node:fs';
 import {database,memoryBucket} from '../scripts/local-adapter.mjs';import app from '../worker/index.js';
-import {phone,transferPrompt} from '../worker/domain.js';import {appHTML} from '../worker/ui.js';import {customerHTML} from '../worker/customer.js';import {tick} from '../worker/server.js';import {styles} from '../worker/legacy.js';
+import {phone,transferPrompt} from '../worker/domain.js';import {appHTML} from '../worker/ui.js';import {customerHTML,customerJS} from '../worker/customer.js';import {landingHTML} from '../worker/landing.js';
+import {brandMark as generatedMark,favicon as faviconMark} from '../worker/brand.js';
+const brand=()=>({brandMark:generatedMark,faviconMark});import {tick} from '../worker/server.js';import {styles} from '../worker/legacy.js';
 
 const origin='https://test.example';
 const migrations=readdirSync(new URL('../drizzle/',import.meta.url)).filter(f=>f.endsWith('.sql')).sort();
@@ -28,6 +30,20 @@ test('pages parse; typed colour overrides the reference colour in every mode; Ir
  for(const m of ['style','color','both','catalog'])assert.match(transferPrompt(m,'Short bob',''),/IDENTITY LOCK[\s\S]*headscarf/);
  assert.equal(phone('۰۹۱۲۱۲۳۴۵۶۷'),'+989121234567');
  assert(!/appointment|services|staff|kavenegar/i.test(customerHTML.match(/<script>([\s\S]*?)<\/script>/)[1]),'customer page no longer books or texts');
+});
+
+test('custom salon colours keep white actions and dark labels readable',()=>{
+ const body=customerHTML.match(/function applyBrand\(brand\)\{[\s\S]*?\n\}/)?.[0];
+ assert.ok(body,'customer brand tint helper ships');
+ const vars={},apply=new Function('document',body+';return applyBrand')({documentElement:{style:{setProperty:(k,v)=>vars[k]=v}}});
+ const rgb=value=>value.match(/[0-9.]+/g).slice(0,3).map(Number);
+ const luminance=value=>rgb(value).map(c=>{c/=255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4}).reduce((n,c,i)=>n+c*[.2126,.7152,.0722][i],0);
+ const ratio=(a,b)=>{const x=luminance(a),y=luminance(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+ for(const color of ['#068F6C','#FFFF00','#FFFFFF','#FF00FF','#1267FF','#000000']){
+  apply(color);
+  assert.ok(ratio('rgb(255,255,255)',vars['--accent'])>=4.5,'white button text on '+color);
+  assert.ok(ratio(vars['--accent-ink'],vars['--accent-soft'])>=4.5,'dark text on soft brand surface '+color);
+ }
 });
 
 test('only the project owner manages salons; salon panel routes are gone',async()=>{const e=fixture();
@@ -724,7 +740,7 @@ test('without SMS invites the bot offers messenger buttons and /i/ is a send pag
 // ---------- landing page and salon inquiries ----------
 test('landing page is public at / and the owner console stays at /admin',async()=>{const e=tgEnv(fixture());
  const r=await app.fetch(new Request(origin+'/'),e);assert.equal(r.status,200);const html=await r.text();
- assert.match(html,/id="builderLive"/);assert.match(html,/مدل دلخواه مشتری، روی عکس خودش و پیش از مراجعه/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
+ assert.match(html,/id="builderLive"/);assert.match(html,/دستیار هوشمند رشد سالن زیبایی شما/);assert.match(html,/id="start"/);assert.doesNotMatch(html,/noindex/);
  new Function(html.match(/<script>([\s\S]*?)<\/script>/g).map(s=>s.replace(/<\/?script>/g,'')).join('\n'));
  assert.equal((await app.fetch(new Request(origin+'/admin'),e)).status,200);});
 
@@ -768,7 +784,15 @@ test('free trial salon: built from the landing form, one per mobile, 5 images an
   const done=await call(e,'/api/s/'+slug+'/public');assert.equal(done.status,200);assert.equal(done.data.trial.expired,true);
  }finally{globalThis.fetch=previous;tg.restore()}});
 
-test('landing carries an absolute share image and is cacheable',async()=>{const e=fixture();const r=await app.fetch(new Request(origin+'/'),e);const html=await r.text();assert.match(html,new RegExp('og:image" content="'+origin+'/landing/og.jpg"'));assert.doesNotMatch(html,/__ORIGIN__/);assert.match(r.headers.get('cache-control'),/max-age=300/);assert.ok(readFileSync(new URL('../public/landing/og.jpg',import.meta.url)).length>10000)});
+test('landing carries an absolute share image and revalidates instead of going stale',async()=>{const e=fixture();const r=await app.fetch(new Request(origin+'/'),e);const html=await r.text();
+ // Cacheable was the reason the owner kept seeing an old build: max-age=300 plus an hour of
+ // stale-while-revalidate meant a reload could serve a page from an hour ago.
+ assert.match(r.headers.get('cache-control'),/no-cache/);
+ assert.doesNotMatch(r.headers.get('cache-control'),/stale-while-revalidate/);
+ // And the served page names its build, so "is this the new one?" has an answer that does
+ // not need devtools. The stamp is a meta tag because the minifier strips comments.
+ assert.match(html,/<meta name="ayneh-build" content="[a-f0-9]{12}">/,'the page names its build');
+ assert.match(html,new RegExp('og:image" content="'+origin+'/landing/og.jpg"'));assert.doesNotMatch(html,/__ORIGIN__/);assert.ok(readFileSync(new URL('../public/landing/og.jpg',import.meta.url)).length>10000)});
 
 test('demo salon behind the landing: mobile confirmation first, 3 images a day per mobile, no 360 view, look handed over by the landing',async()=>{
  const e=tgEnv(fixture());e.KIE_API_KEY='mock';const s={slug:'demo'};
@@ -957,4 +981,757 @@ test('the team\'s own verified mobiles (app_settings unlimited_phones) have no i
   const other=()=>call(e,'/api/s/salon-a/generate',{image_consent:true,idem:crypto.randomUUID(),line:'hair',original_id:o2,style:0},g2);
   assert.equal((await other()).status,200);assert.equal((await other()).status,200);assert.equal((await other()).status,429,'the daily cap of 2 still applies to others');
  }finally{globalThis.fetch=previous}
+});
+
+test('landing funnel events are first-party, validated and attributed',async()=>{
+ const e=fixture();
+ const sid='abcdef12-3456-7890-abcd-ef1234567890';
+ const attribution={utm_source:'instagram',utm_medium:'social',utm_campaign:'salon-launch',
+  referrer:'https://t.me',landing:'/',host:'test.example'};
+ const ok=await call(e,'/api/event',{session:sid,kind:'wizard_step_complete',step:3,meta:'{"key":"bio"}',attribution});
+ assert.equal(ok.status,200,JSON.stringify(ok));assert.equal(ok.data.ok,true);
+ const row=e.DB.sql.prepare('SELECT session,kind,step,utm_source,attribution FROM landing_events').get();
+ assert.equal(row.kind,'wizard_step_complete');assert.equal(row.step,3);
+ assert.equal(row.utm_source,'instagram');
+ assert.equal(row.session,sid);
+ assert.equal(JSON.parse(row.attribution).utm_campaign,'salon-launch');
+ assert.equal(JSON.parse(row.attribution).referrer,'https://t.me');
+ assert.equal((await call(e,'/api/event',{session:sid,kind:'not_a_real_event'})).status,400,'unknown kind rejected');
+ assert.equal((await call(e,'/api/event',{session:'x',kind:'cta_click'})).status,400,'bogus session rejected');
+ // Attribution travels with the fallback lead, not only with events.
+ const lead=await call(e,'/api/inquiry',{name:'علی رضایی',salon:'سالن تست',phone:'09123456789',
+  city:'',website:'',consent:true,chosen:'صفحهٔ اختصاصی سالن',attribution});
+ assert.equal(lead.status,200,JSON.stringify(lead));
+ const inquiry=e.DB.sql.prepare('SELECT attribution FROM inquiries').get();
+ assert.equal(JSON.parse(inquiry.attribution).utm_source,'instagram');
+ assert.equal(JSON.parse(inquiry.attribution).host,'test.example');
+ // Oversized / hostile values are clamped, never stored verbatim.
+ await call(e,'/api/event',{session:sid,kind:'cta_click',meta:'x'.repeat(2000),
+  attribution:{utm_source:'y'.repeat(500)}});
+ const stored=e.DB.sql.prepare("SELECT meta,utm_source FROM landing_events WHERE kind='cta_click'").get();
+ assert.equal(stored.meta.length,300);
+ assert.equal(stored.utm_source.length,60);
+});
+
+// ---------- Step 24: the reference rebuild ----------
+// These guards replace the espresso/brass funnel audit. They lock the visual
+// system taken from the six reference sheets (cream/emerald, the teal face mark,
+// the section order 1 hero → 2 امکانات → 3 نحوهٔ کار → 4 مزایا → 5 نظرات →
+// 6 تعرفه → 7 فراخوان → FAQ → footer) and the honesty rules that still apply.
+
+test('step 24 reference: the page opens with one hero, one headline and the four benefit cards',()=>{
+ assert.equal((landingHTML.match(/<h1[\s>]/g)||[]).length,1,'exactly one h1');
+ assert.match(landingHTML,/آینه، دستیار هوشمند<span class="h1__accent">رشد سالن زیبایی شما<\/span>/,'the two-tone reference headline');
+ assert.match(landingHTML,/id="heroCompare"/,'the before/simulation card leads the visual');
+ assert.match(landingHTML,/compare__badge[^>]*>[\s\S]{0,200}نتیجه با هوش مصنوعی/,'the AI result badge is labelled');
+ assert.equal((landingHTML.match(/class="hero-thumb"/g)||[]).length,4,'four services in the hero thumbnail rail');
+ assert.equal((landingHTML.match(/class="hero-benefits__icon"/g)||[]).length,4,'four benefit cards under the fold');
+ for(const label of ['رشد رزروها و درآمد','مدیریت آسان مشتریان','نوبت‌دهی آنلاین ۲۴ ساعته','اعتماد و رضایت بیشتر'])
+  assert.ok(landingHTML.includes(label),'benefit '+label);
+ assert.match(landingHTML,/نمونهٔ موقت؛ شبیه‌سازی تقریبی است/,'the simulation is not sold as a guarantee');
+});
+
+test('step 24 reference: header, nav and the two header actions follow the sheet',()=>{
+ const header=(landingHTML.match(/<header class="site-header">[\s\S]*?<\/header>/)||[])[0]||'';
+ assert.ok(header,'header exists');
+ assert.match(header,/class="brand__mark"/);assert.match(header,/class="brand__word">آینه</);
+ for(const item of ['#intro">خانه','#features">امکانات','#why">چرا آینه؟','#services">تعرفه‌ها','#faq">سوالات متداول'])
+  assert.ok(header.includes(item),'nav '+item);
+ assert.match(header,/aria-current="page"/,'the active item keeps the underline');
+ const actions=(header.match(/<div class="header-cta">[\s\S]*?<\/div>/)||[])[0]||'';
+ assert.match(actions,/class="btn--login"[\s\S]*?ورود به پنل/,'login button');
+ assert.match(actions,/class="btn" href="#services"[\s\S]*?خرید پنل/,'primary header CTA sells a panel');
+ assert.match(header,/class="menu-toggle"/,'mobile menu hook');
+ assert.match(landingHTML,/@media\(max-width:1120px\)\{[\s\S]{0,120}\.nav\{display:none\}/,'nav collapses before it can crowd the bar');
+});
+
+test('step 24 reference: section order matches the six reference sheets',()=>{
+ const order=['id="intro"','id="features"','id="how"','id="why"','id="proof"','id="services"',
+  'id="cta"','id="faq"','id="salon-example"'];
+ let at=-1;
+ for(const token of order){
+  const next=landingHTML.indexOf(token,at+1);
+  assert.ok(next>at,'section '+token+' appears in reference order');
+  at=next;
+ }
+ // The section titles of the sheets land verbatim.
+ for(const title of ['امکانات و خدمات <em>آینه</em>','آینه <em>چگونه کار می‌کند؟</em>',
+  'چرا سالن‌داران <em>«آینه»</em> را انتخاب می‌کنند؟','اعتماد حرفه‌ای‌ها <em>به آینه</em>',
+  'پرسش‌های متداول <em>صاحبان سالن‌های زیبایی</em>','یک قدم تا <em>مدیریت حرفه‌ای</em>'])
+  assert.ok(landingHTML.includes(title),'title '+title);
+});
+
+test('step 24 reference: the five service cards and the four numbered steps are all there',()=>{
+ for(const card of ['پیش‌نمایش مدل مو','خدمات مژه','پیش‌نمایش رنگ مو','درخواست مستقیم سالن','خدمات ناخن'])
+  assert.ok(landingHTML.includes(card),'service card '+card);
+ assert.equal((landingHTML.match(/class="svc[\s"]/g)||[]).length,5,'five service cards');
+ assert.equal((landingHTML.match(/class="step__num"/g)||[]).length,4,'four numbered steps');
+ for(const step of ['بارگذاری عکس مشتری','انتخاب خدمت و مدل','ساخت پیش‌نمایش با هوش مصنوعی','ارسال درخواست به سالن'])
+  assert.ok(landingHTML.includes(step),'step '+step);
+ assert.match(landingHTML,/<span class="step__num" aria-hidden="true">۱<\/span>/,'steps are numbered right-to-left');
+ assert.equal((landingHTML.match(/class="why__icon"/g)||[]).length,6,'six benefit cards in the why grid');
+});
+
+test('step 24 reference: social proof ships as clearly marked temporary samples',()=>{
+ // The owner's standing rule: no invented clients, quotes, ratings or totals.
+ assert.equal((landingHTML.match(/class="quote"/g)||[]).length,3,'three quote slots');
+ assert.equal((landingHTML.match(/نمونهٔ موقت<\/b>/g)||[]).length,3,'each quote is flagged as a sample');
+ assert.match(landingHTML,/نقل‌قول ساختگی منتشر نمی‌کنیم/,'no fabricated quote is presented as real');
+ for(const stat of ['+۱۲٬۰۰۰','۴.۸','+۱٬۵۰۰٬۰۰۰']){
+  assert.ok(landingHTML.includes(stat),'counter '+stat);
+  assert.match(landingHTML,new RegExp(stat.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'[\\s\\S]{0,160}نمونه'),'counter '+stat+' is marked نمونه');
+ }
+ assert.match(landingHTML,/ارقام این بخش نمونهٔ موقت‌اند/,'the counters are declared as samples in prose');
+ assert.match(landingHTML,/انتخاب مطمئن مدیران/,'the trust badge from the sheet');
+ assert.equal((landingHTML.match(/class="quote-dots"/g)||[]).length,1,'one dot navigator');
+});
+
+test('step 24 reference: FAQ answers the five sheet questions and never names a price',()=>{
+ const faq=(landingHTML.match(/<section id="faq"[\s\S]*?<\/section>/)||[])[0]||'';
+ assert.equal((faq.match(/class="faq-item"/g)||[]).length,7,'seven questions');
+ for(const q of ['آینه دقیقاً چه کمکی به مدیریت سالن من می‌کند؟','راه‌اندازی و آموزش چقدر زمان می‌برد؟',
+  'آیا امکان استفاده روی موبایل وجود دارد؟','هزینهٔ استفاده از آینه چگونه است؟',
+  'آیا پشتیبانی و مشاوره در طول استفاده دارم؟'])
+  assert.ok(faq.includes(q),'faq '+q);
+ assert.match(faq,/قیمت، مدت و اعتبار هدیه/);
+ assert.doesNotMatch(faq,/میلیون|\d+\s*تومان/,'no figure is invented');
+ assert.match(faq,/href="#services"/,'the cost answer points at the panels');
+});
+
+test('step 24 reference: footer keeps the four columns, contacts and the copyright line',()=>{
+ const foot=(landingHTML.match(/<footer class="site-footer">[\s\S]*?<\/footer>/)||[])[0]||'';
+ assert.ok(foot,'footer exists');
+ for(const col of ['دسترسی سریع','لینک‌های مفید','ارتباط با ما'])assert.ok(foot.includes(col),'column '+col);
+ assert.match(foot,/دستیار هوشمند مدیریت<br>سالن‌های زیبایی/);
+ assert.match(foot,/0910 564 7497/);assert.match(foot,/omidadli78@gmail\.com/);
+ assert.match(foot,/© ۱۴۰۵ آینه/);
+ assert.equal((foot.match(/class="foot-social"/g)||[]).length,1);
+ assert.equal((foot.match(/class="brand__mark"/g)||[]).length,1,'the teal mark returns in the footer');
+});
+
+test('step 24 brand: one teal face mark, no leftover brass mirror',()=>{
+ const {brandMark,faviconMark}=brand();
+ const svg=readFileSync(new URL('../design/landing/assets/ayneh-mark.svg',import.meta.url),'utf8');
+ assert.match(svg,/viewBox="0 0 64 64"/);
+ assert.match(svg,/fill="currentColor"/,'the disc takes the brand colour');
+ assert.equal((svg.match(/stroke="#FCF3EB"/g)||[]).length,1,'the strands are punched in cream');
+ assert.doesNotMatch(svg,/brass|#D6BE8C|#C9A227/i,'the brass mark is retired');
+ assert.ok(brandMark.includes('aynDisc'),'the generated mark is the traced face');
+ // Every place that prints the mark prints this one.
+ for(const slot of ['brand__mark','foot-brand']){
+  assert.ok(landingHTML.includes(slot),slot+' slot exists');
+ }
+ const markIds=[...landingHTML.matchAll(/id="(aynDisc[^"]*)"/g)].map(m=>m[1]);
+ assert.equal(markIds.length,2,'the landing page prints a header and footer mark');
+ assert.equal(new Set(markIds).size,markIds.length,'each inline SVG clip path has a unique document ID');
+ assert.ok(faviconMark.length>100,'favicon is generated from the new brand');
+});
+
+test('step 24 palette: cream ground, ink type, a single emerald accent',()=>{
+ assert.match(landingHTML,/--cream:#FCF3EB/);
+ assert.match(landingHTML,/--ink:#0A202A/);
+ assert.match(landingHTML,/--emerald:#068F6C/);
+ assert.match(landingHTML,/--emerald-deep:#0A6B54/);
+ assert.match(landingHTML,/--emerald-soft:#9BD9C5/);
+ assert.match(landingHTML,/--font:"Estedad","Vazirmatn"/,'the app font stack is shared');
+ const siteCSS=readFileSync(new URL('../design/landing/src/site.css',import.meta.url),'utf8');
+ assert.match(siteCSS,/:is\(\.svc__icon,\.step__icon,\.why__icon,\.proof-stat__icon,\.hero-benefits__icon\)\{[\s\S]*?box-shadow:inset 2px 2px 4px/,'the main icon tiles use dimensional highlights and shadows');
+ assert.match(siteCSS,/drop-shadow\(0 1px 0 rgba\(255,255,255,\.92\)\) drop-shadow\(0 2px 1px rgba\(11,59,50,\.24\)\)/,'icon glyphs keep a raised 3D edge');
+ // The old espresso/brass tokens must not survive.
+ assert.doesNotMatch(landingHTML,/--brass:#/);
+ assert.doesNotMatch(landingHTML,/--espresso:#/);
+ assert.doesNotMatch(landingHTML,/16100B|101E38/i,'no left-over espresso surface');
+ assert.doesNotMatch(landingHTML,/#D8A63C|#7A5712/i,'no left-over brass');
+ // WCAG AA for normal text: the quiet labels and white action text must meet 4.5:1,
+ // including the pale cream and green-wash surfaces used across the page.
+ assert.match(landingHTML,/--ink-soft:#4A5C5C/);
+ assert.match(landingHTML,/--muted:#5D6B68/);
+ const lum=hex=>{const c=hex.match(/[0-9A-F]{2}/gi).map(x=>parseInt(x,16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+ const contrast=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+ const muted='#5D6B68';
+ for(const bg of ['#FCF3EB','#F8F0E8','#E4F4EE','#FFFFFF'])assert.ok(contrast(muted,bg)>=4.5,'muted body copy passes on '+bg);
+ for(const bg of ['#0A6B54','#057A5C'])assert.ok(contrast('#FFFFFF',bg)>=4.5,'white action text passes on '+bg);
+});
+
+test('step 24 layout: the grids collapse cleanly at 1120 / 900 / 600',()=>{
+ for(const rule of [
+  /@media\(max-width:1120px\)\{[\s\S]{0,80}\.nav\{display:none\}/,
+  /@media\(max-width:900px\)\{[\s\S]{0,200}\.hero-grid\{grid-template-columns:1fr/,
+  /@media\(max-width:1000px\)\{\.steps\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/,
+  /@media\(max-width:860px\)\{\.svc-grid\{grid-template-columns:1fr\}/,
+  /@media\(max-width:900px\)\{\.why-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)\}/,
+  /@media\(max-width:900px\)\{\.plans\{grid-template-columns:1fr/,
+  /@media\(max-width:940px\)\{\.foot-grid\{grid-template-columns:1fr 1fr\}\}/])
+  assert.match(landingHTML,rule);
+ assert.match(landingHTML,/:focus-visible\{outline:3px solid var\(--emerald\)/,'focus ring everywhere');
+ assert.match(landingHTML,/@media\(prefers-reduced-motion:reduce\)/,'motion is opt-out');
+ assert.match(landingHTML,/\[hidden\]\{display:none!important\}/,'hidden always wins over a display rule');
+});
+
+test('pricing cards display the approved prices, durations and gift credits',()=>{
+ for(const [key,name,amount,quota,term] of [
+  ['solo','ESSENTIAL','۲٫۹۰۰٫۰۰۰','۲۰','۱'],
+  ['salon','PRO','۶٫۰۰۰٫۰۰۰','۷۵','۳'],
+  ['chain','SIGNATURE','۱۰٫۰۰۰٫۰۰۰','۱۸۰','۶'],
+ ]){
+  const card=landingHTML.split('data-plan="'+key+'">')[1].split('</article>')[0];
+  for(const label of [name,amount,'اعتبار هدیه '+quota+' عکس',term+' ماهه'])assert.ok(card.includes(label),label);
+ }
+ assert.match(landingHTML,/<s class="plan__old">۸٫۷ میلیون تومان<\/s>/);
+ assert.match(landingHTML,/<s class="plan__old">۱۷٫۴ میلیون تومان<\/s>/);
+ assert.match(landingHTML,/هر ۱۰ عکس ۲۰۰ هزار تومان/);
+});
+
+test('step 27 films: the three service clips ship in one player, with a poster each',()=>{
+ // The owner's three films (hair, lashes, nails) had been orphaned when the reference rebuild
+ // dropped the old film strip. They live in one tabbed player now, and each tab has to be
+ // usable: a real source, a poster so the box is never empty, and a poster file on disk.
+ const section=landingHTML.match(/<section id="films"[\s\S]*?<\/section>/)[0]||'';
+ assert.ok(section,'the films section ships');
+ assert.equal((landingHTML.match(/id="films"/g)||[]).length,1,'one player, not three');
+ for(const key of ['hair','lashes','nails']){
+  assert.match(section,new RegExp('data-film="'+key+'"'),key+' has a tab');
+  const poster=readFileSync(new URL('../public/landing/'+key+'-poster.webp',import.meta.url));
+  assert.ok(poster.length>2000,key+' poster is a real image');
+ }
+ // One <video>, and it starts on the hair clip without downloading the other two.
+ const video=section.match(/<video[^>]*>/)[0];
+ assert.match(video,/preload="none"/,'nothing downloads until the tab is asked for');
+ assert.match(video,/muted/,'autoplay is always muted');
+ assert.match(video,/playsinline/,'a phone must not open a full-screen player');
+ assert.ok(section.includes('video/hair.mp4'),'the first clip is the hair film');
+ const js=landingHTML.match(/<script>([\s\S]*?)<\/script>/g).map(x=>x.slice(8,-9)).join('\n');
+ for(const key of ['hair','lashes','nails'])assert.ok(new RegExp("/' \\+ key \\+ '\\.mp4").test(js),'one swap serves all three');
+ // Each tab points the one <video> at its own clip AND its own poster, so switching tabs
+ // never shows the previous service's still.
+ assert.ok(js.includes("poster = '/landing/' + key + '-poster.webp'")||js.includes("poster = 'assets/' + key + '-poster.webp'"),'the poster follows the tab');
+ assert.match(js,/IntersectionObserver/,'scrolling away pauses the film');
+ assert.match(js,/prefers-reduced-motion/,'motion-sensitive visitors get a poster and a play button');
+ // The three clips are on disk and small enough for a phone to consider them.
+ for(const key of ['hair','lashes','nails']){
+  const clip=readFileSync(new URL('../public/landing/video/'+key+'.mp4',import.meta.url));
+  assert.ok(clip.length>50_000&&clip.length<3_500_000,key+' clip is present and under 3.5 MB ('+clip.length+')');
+  assert.equal(clip.subarray(4,8).toString(),'ftyp','a real mp4 container');
+ }
+});
+
+test('step 24 studio: the live salon preview survives the rebuild',()=>{
+ assert.match(landingHTML,/id="salon-example"/);
+ assert.match(landingHTML,/id="builderLive"/);assert.match(landingHTML,/id="livePage"/);
+ assert.equal((landingHTML.match(/class="wiz-step/g)||[]).length,2,'only name + slug gate the preview');
+ assert.match(landingHTML,/id="wizardCount">۱ از ۲</);
+ assert.match(landingHTML,/id="builderDetails"[\s\S]*?تکمیل جزئیات صفحه/);
+ for(const key of ['name','slug','brand','logo','cover','bio','manager','phone','hours','address',
+  'portrait','map','instagram','telegram','website'])
+  assert.match(landingHTML,new RegExp('name="'+key+'"'),'field '+key+' kept');
+ const sections=[...landingHTML.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]);
+ for(const src of sections)new Function(src);
+ const bundle=sections.join('\n');
+ assert.match(bundle,/ayneh:wizard-ready/);
+ /* The studio is preview-only now: it never posts a request, and the button it grows
+    when the preview is ready leads to the panels instead of a form. */
+ assert.doesNotMatch(bundle,/\/api\/activation/,'the studio uploads nothing');
+ assert.doesNotMatch(bundle,/demo\/otp/,'no phone verification on the landing page');
+ assert.match(landingHTML,/id="builderActivate" href="#services"/,'the studio hands over to the panels');
+ assert.match(landingHTML,/const studio=document\.getElementById\('salon-example'\)/,'mobile sticky action knows the builder section');
+ assert.match(landingHTML,/!overStudio/,'mobile sticky action stays out of the live builder');
+ assert.match(bundle,/querySelector\('\.upload-name'\)/,'the file label keeps a node to update');
+ const builder=readFileSync(new URL('../design/landing/src/builder.js',import.meta.url),'utf8');
+ const studioCss=readFileSync(new URL('../design/landing/src/studio.css',import.meta.url),'utf8');
+ assert.ok(builder.includes("style.setProperty('--brand',get('brand'))"),'the selected salon colour reaches the live preview');
+ assert.ok(builder.includes("style.setProperty('--brand-action',actionBrand(get('brand')))")&&studioCss.includes('var(--brand-action,var(--brand))'),'white action labels use a contrast-safe tint');
+ const actionSource=builder.match(/function actionBrand\(hex\)\{[\s\S]*?\n \}/)?.[0];assert.ok(actionSource);
+ const actionBrand=new Function(actionSource+';return actionBrand')();
+ const lightness=hex=>{const c=hex.slice(1).match(/.{2}/g).map(x=>parseInt(x,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+ for(const color of ['#068F6C','#FFFF00','#FFFFFF','#FF00FF','#1267FF','#000000'])assert.ok(1.05/(lightness(actionBrand(color))+.05)>=4.5,'live preview action remains legible for '+color);
+});
+
+test('step 24 budget: payload and markup stay inside the review envelope',()=>{
+ assert.ok(landingHTML.length<250000,'landing under 250k ('+landingHTML.length+')');
+ assert.ok(landingHTML.length>60000,'the page still carries its content');
+ assert.match(landingHTML,/og:image" content="__ORIGIN__\/landing\/og\.jpg"/,'the share image is origin-relative in source');
+ assert.equal((landingHTML.match(/__ORIGIN__/g)||[]).length,4,'signup links and the share image carry the origin token');
+ assert.equal((landingHTML.match(/<h1[\s>]/g)||[]).length,1);
+ // The retired engine is the NAVY one (cinema.css / cinema.js with .sec-head, .kicker,
+ // .film-player, #transform). The redesigned page has its own scroll-scrubbed entrances in
+ // cinema2.js, so the guard names what actually had to disappear, not the word.
+ assert.doesNotMatch(landingHTML,/film-player|service-journey|sec-head|class="kicker"/,'the retired film sections are gone');
+ assert.ok(!landingHTML.includes('cinema.css'),'the retired stylesheet is not shipped');
+ assert.ok(!landingHTML.includes('cinema.js'),'the retired script is not shipped');
+ assert.equal((landingHTML.match(/ساخت صفحهٔ من/g)||[]).length,0,'the retired CTA label is gone');
+ assert.ok(customerHTML.includes('ساخت صفحهٔ من'),'the customer return bar keeps its own label');
+});
+
+/* ============================================================================
+   Step 25: paid plans — a card transfer, a 10-minute window, an owner or
+   webhook confirmation, and the salon panel the payment opens.
+   ========================================================================== */
+import {PLANS, PRICE_MINUTES} from '../worker/prices.js';
+import {cardValid} from '../worker/orders.js';
+import {panelHTML} from '../worker/panel.js';
+/* The checkout source (not the generated bundle) — the funnel guard reads its guard clause. */
+const payJS = readFileSync(new URL('../design/landing/src/pay.js', import.meta.url), 'utf8');
+
+const CARD = '6037-9911-2233-4455';      // passes the Luhn check, expires nowhere
+const orderBody = (plan = 'salon', extra = {}) => ({plan, salon: 'سالن نمونه', name: 'سارا محمدی', phone: '۰۹۱۲۱۲۳۴۵۶۷', city: 'تهران', consent: true, ...extra});
+/* A priced plan is needed to test a checkout; the shipped page stays unpriced until the
+   owner approves numbers. This only mutates the in-memory import for these tests. */
+function priced(plan, amount, quota = 30) {
+  const before = {...PLANS[plan]};
+  PLANS[plan].amount = amount; PLANS[plan].quota = quota;
+  return () => Object.assign(PLANS[plan], before);
+}
+
+test('approved plan buttons open checkout and unpriced plans offer a demo request',()=>{
+ for(const [key,{amount}] of Object.entries(PLANS)){
+  const tag=landingHTML.match(new RegExp('<a[^>]*data-buy="'+key+'"[^>]*>خرید</a>'))[0];
+  assert.match(tag,/data-state="open"/);
+  assert.ok(tag.includes('data-amount="'+amount+'"'));
+ }
+ assert.match(payJS,/call\('\/api\/inquiry'/);
+});
+
+test('step 25 narrow phones: nothing in the header or the studio preview widens the page under 430px', () => {
+  // Measured in Chromium: at 320/360/390 the page used to be 3–49px wider than the viewport
+  // because the header pills and the studio's address row and submit pill could not shrink.
+  // These are the three rules that made scrollW == clientW; losing any of them reopens it.
+  const site = readFileSync(new URL('../design/landing/src/site.css', import.meta.url), 'utf8');
+  const studio = readFileSync(new URL('../design/landing/src/studio.css', import.meta.url), 'utf8');
+  const narrow = site.match(/@media\(max-width:380px\)\{[\s\S]*?\n\}/);
+  assert.ok(narrow, 'the small-phone header block exists');
+  for (const rule of ['.brand__mark{width:32px', '.brand__word{font-size:20px', '.header-cta .btn svg{display:none}'])
+    assert.ok(narrow[0].includes(rule), 'small-phone header: ' + rule);
+  assert.match(studio, /@media \(max-width:430px\)\{[\s\S]*?\.sb-browser\{flex-wrap:wrap/,
+    'the studio address row wraps instead of overflowing');
+  assert.match(studio, /@media \(max-width:430px\)\{[\s\S]*?\.sb-fallback \.btn\{[^}]*white-space:normal/,
+    'the preview form submit may wrap its label');
+  assert.match(site, /\.site-footer\{[^}]*overflow:clip/, 'the clipped footer ornament stays clipped');
+  assert.match(site, /html\{[^}]*overflow-x:clip/, 'cinematic transforms cannot create page-level horizontal scroll');
+});
+
+test('step 25 pricing: with no approved amount a plan cannot be bought, and the server says so', async () => {
+  const e = fixture();
+  const restore=priced('salon',0);
+  try{
+    const r=await call(e,'/api/order',orderBody());
+    assert.equal(r.status,409);
+    assert.match(r.data.error,/مبلغ این پنل هنوز نهایی نشده/);
+  }finally{restore()}
+  const unknown = await call(e, '/api/order', orderBody('platinum'));
+  assert.equal(unknown.status, 404);
+});
+
+test('step 25 order: a valid order returns the amount in toman, a 10-minute window and a card once the owner sets one', async () => {
+  const e = fixture();
+  const restore = priced('salon', 2900000);
+  try {
+    // No card yet: the order still opens, the page is told to warn instead of inventing a number.
+    const first = await call(e, '/api/order', orderBody());
+    assert.equal(first.status, 200, JSON.stringify(first));
+    assert.equal(first.data.amount, 2900000, 'toman, not rial');
+    assert.equal(first.data.card, '');
+    assert.equal(first.data.status, 'open');
+    assert.equal(first.data.expires_at - first.data.created_at, PRICE_MINUTES * 60000, '10 minutes');
+    assert.match(first.data.ref, /^AY[2-9A-HJ-NP-Z]{6}$/);
+    assert.match(first.data.access_key, /^AY-[2-9A-HJ-NP-Z]{9}$/, 'the key is handed out once');
+
+    // The owner's card is normalised, owner name kept, and the same order now carries it.
+    assert.equal((await call(e, '/api/salon-a', {}, {})).status, 404); // sanity: no such shortcut
+    const saved = await call(e, '/api/owner/payment', {card: CARD, owner: 'علی ادلی'}, OWNER);
+    assert.equal(saved.status, 200, JSON.stringify(saved));
+    assert.deepEqual(saved.data.card, {number: '6037991122334455', owner: 'علی ادلی'});
+    const again = await call(e, '/api/order/' + first.data.id, undefined, {cookie:first.cookie});
+    assert.equal(again.data.card, '6037991122334455');
+    assert.equal(again.data.card_owner, 'علی ادلی');
+    assert.equal(again.data.access_key, '', 'the key is never re-sent');
+  } finally { restore() }
+});
+
+test('step 25 card: 16 digits, Luhn-checked, and digits alone never become an owner name', () => {
+  assert.equal(cardValid(CARD), true);
+  assert.equal(cardValid('6037991122334456'), false, 'wrong check digit');
+  assert.equal(cardValid('1111111111111111'), false, 'repeated digits');
+  assert.equal(cardValid('603799112233445'), false, '15 digits');
+  assert.equal(cardValid('۶۰۳۷۹۹۱۱۲۲۳۳۴۴۵۵'), true, 'Persian digits are accepted');
+});
+
+test('step 25 expiry: the window is enforced by the server, and a closed order cannot be confirmed or paid', async () => {
+  const e = fixture();
+  const restore = priced('salon', 1000000);
+  try {
+    const r = await call(e, '/api/order', orderBody());
+    assert.equal(r.status, 200);
+    e.DB.sql.prepare('UPDATE orders SET expires_at=? WHERE id=?').run(Date.now() - 1000, r.data.id);
+    const after = await call(e, '/api/order/' + r.data.id, undefined, {cookie:r.cookie});
+    assert.equal(after.data.status, 'expired');
+    const confirm = await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER);
+    assert.equal(confirm.status, 409);
+    const receipt = await call(e, '/api/order/' + r.data.id + '/receipt', {note: '123456'}, {cookie:r.cookie});
+    assert.equal(receipt.status, 410);
+    const panel = await call(e, '/api/panel/me');
+    assert.equal(panel.data.salon, null, 'no panel before payment');
+  } finally { restore() }
+});
+
+test('step 25 one open order per mobile: a second click resumes the first instead of stacking countdowns', async () => {
+  const e = fixture();
+  const restore = priced('solo', 500000);
+  try {
+    const a = await call(e, '/api/order', orderBody('solo'));
+    const stranger=await call(e,'/api/order',orderBody('solo',{name:'شخص دیگر'}));
+    assert.equal(stranger.status,409);
+    assert.equal(stranger.data.id,undefined);
+    assert.equal((await call(e,'/api/order/'+a.data.id)).status,404);
+    assert.equal((await call(e,'/api/order/'+a.data.id+'/receipt',{note:'test'})).status,404);
+    const b = await call(e, '/api/order', orderBody('solo'), {cookie:a.cookie});
+    assert.equal(a.data.id, b.data.id);
+    assert.equal(b.data.access_key, '', 'a resumed order never re-issues the key');
+    const count = e.DB.sql.prepare('SELECT count(*) n FROM orders').get().n;
+    assert.equal(count, 1);
+  } finally { restore() }
+});
+
+test('step 25 coupons: one code per order lowers the toman amount; a bad code is refused and a max:1 code is spent only on commit', async () => {
+  const e = fixture();
+  const restore = priced('salon', 2000000);
+  try {
+    e.DB.sql.prepare("INSERT INTO app_settings(key,value,updated_at) VALUES('pay_coupons','{\"AYNEH20\":{\"percent\":20,\"max\":1},\"OFF500\":{\"amount\":500000,\"max\":0}}',?)").run(Date.now());
+    const r = await call(e, '/api/order', orderBody());
+    const c = await call(e, '/api/order/' + r.data.id + '/coupon', {coupon: 'ayneh20'}, {cookie:r.cookie});
+    assert.equal(c.status, 200, JSON.stringify(c));
+    assert.equal(c.data.discount, 400000);
+    assert.equal(c.data.amount, 1600000);
+    const bad = await call(e, '/api/order/' + r.data.id + '/coupon', {coupon: 'NOPE'}, {cookie:r.cookie});
+    assert.equal(bad.status, 422);
+    // The code is spent when the customer commits (sends a receipt), not when a window opens.
+    assert.equal((await call(e, '/api/order/' + r.data.id + '/receipt', {note: '۱۲۳۴'}, {cookie:r.cookie})).data.status, 'reviewing');
+    const other = await call(e, '/api/order', orderBody('salon', {phone: '۰۹۱۲۰۰۰۰۰۰۰'}));
+    const used = await call(e, '/api/order/' + other.data.id + '/coupon', {coupon: 'AYNEH20'}, {cookie:other.cookie});
+    assert.equal(used.status, 422, 'max:1 is used up');
+    const fixed = await call(e, '/api/order/' + other.data.id + '/coupon', {coupon: 'OFF500'}, {cookie:other.cookie});
+    assert.equal(fixed.status, 200);
+    assert.equal(fixed.data.amount, 1500000);
+  } finally { restore() }
+});
+
+test('step 25 confirm: the owner turns an order into a salon page + a working panel key, exactly once', async () => {
+  const e = fixture();
+  const restore = priced('salon', 1200000);
+  try {
+    const r = await call(e, '/api/order', orderBody());
+    assert.equal((await call(e, '/api/owner/orders', undefined, OWNER)).data.orders.length, 1);
+    assert.equal((await call(e, '/api/owner/orders')).status, 401);
+    const [ok, concurrent] = await Promise.all([
+      call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER),
+      call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER),
+    ]);
+    assert.equal(concurrent.data.order.page_url,ok.data.order.page_url);
+    assert.equal(ok.status, 200, JSON.stringify(ok));
+    assert.equal(ok.data.order.status, 'paid');
+    assert.match(ok.data.order.page_url, /\/s\/salon$/);
+    // The salon exists and its public page answers.
+    assert.equal((await app.fetch(new Request(origin + ok.data.order.page_url.slice(origin.length)), e)).status, 200);
+    // Idempotent: a second confirm does not make a second salon.
+    const twice = await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER);
+    assert.equal(twice.data.order.status, 'paid');
+    assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM salons').get().n, 1);
+
+    // The key the customer kept opens the panel.
+    const login = await call(e, '/api/panel/login', {key: r.data.access_key});
+    assert.equal(login.status, 200, JSON.stringify(login));
+    // Only the exact cookie value (the key's hash) is accepted; a cookie without it is a 401.
+    assert.equal((await call(e, '/api/panel/me')).data.salon, null, 'no cookie, no panel');
+    assert.equal((await call(e, '/api/panel/me', undefined, {cookie: 'ayneh_panel=deadbeef'})).data.salon, null);
+    const me = await app.fetch(new Request(origin + '/api/panel/me', {headers: {cookie: login.cookie}}), e);
+    assert.equal(me.status, 200);
+    const authed = await app.fetch(new Request(origin + '/api/panel/me', {headers: {cookie: login.cookie}}), e);
+    const dash = await (authed).json();
+    assert.equal(dash.salon.name, 'سالن نمونه');
+    assert.match(dash.salon.url, /\/s\/salon$/);
+    assert.equal(dash.setup.total, 4);
+    assert.equal((await app.fetch(new Request(origin + '/panel'), e)).status, 200);
+  } finally { restore() }
+});
+
+test('step 25 webhook: the payment site confirms with its token; a wrong token, a bad status or an unknown ref changes nothing', async () => {
+  const e = fixture();
+  const restore = priced('chain', 3000000);
+  try {
+    const r = await call(e, '/api/order', orderBody('chain'));
+    const conf = await call(e, '/api/owner/payment', undefined, OWNER);
+    const key = conf.data.webhook.key;
+    assert.match(key, /^whk_[a-f0-9]{48}$/);
+    assert.equal(conf.data.webhook.url, origin + '/api/pay/confirm');
+    /* A real payment site is a server: it sends no Origin, only the bearer token. Sending one
+       here would hide the bug this test caught — the CSRF guard refusing every cross-origin
+       POST before the token was ever looked at. */
+    const post = (body, headers = {}) => app.fetch(new Request(origin + '/api/pay/confirm', {method: 'POST', headers: {'content-type': 'application/json', ...headers}, body: JSON.stringify(body)}), e);
+    assert.equal((await post({ref: r.data.ref})).status, 401, 'no token');
+    assert.equal((await post({ref: r.data.ref}, {authorization: 'Bearer wrong'})).status, 401);
+    const ignored = await post({ref: r.data.ref, status: 'failed'}, {authorization: 'Bearer ' + key});
+    assert.equal((await ignored.json()).ignored, true);
+    assert.equal((await call(e, '/api/owner/orders', undefined, OWNER)).data.orders[0].status, 'open');
+    const transfer={ref:r.data.ref,status:'paid',amount_rial:r.data.amount*10,transaction_id:'transfer-1'};
+    assert.equal((await post({...transfer,amount_rial:1},{'x-webhook-key':key})).status,409);
+    assert.equal((await post({...transfer,ref:'AYUNKNOWN'},{'x-webhook-key':key})).status,404);
+    const ok=await post(transfer,{'x-webhook-key':key});
+    assert.equal((await post(transfer,{'x-webhook-key':key})).status,200);
+    const other=await call(e,'/api/order',orderBody('chain',{phone:'09120000000'}));
+    assert.equal((await post({...transfer,ref:other.data.ref},{'x-webhook-key':key})).status,409);
+    const body = await ok.json();
+    assert.equal(body.status, 'paid');
+    assert.match(body.page, /\/s\//);
+    // The webhook path never hands out the access key; the owner resends it instead.
+    assert.equal((await call(e, '/api/order/' + r.data.id, undefined, {cookie:r.cookie})).data.access_key, '');
+    // Rotating the token invalidates the old one.
+    const rotated = await call(e, '/api/owner/payment', {rotate: true}, OWNER);
+    assert.notEqual(rotated.data.key, key);
+    assert.equal((await post({ref: r.data.ref}, {authorization: 'Bearer ' + key})).status, 401);
+  } finally { restore() }
+});
+
+test('step 25 webhook: a server with no Origin reaches the token; every other route still needs one', async () => {
+  const e = fixture();
+  const restore = priced('salon', 1100000);
+  try {
+    const r = await call(e, '/api/order', orderBody());
+    const key = (await call(e, '/api/owner/payment', undefined, OWNER)).data.webhook.key;
+    const post = (path, body, headers = {}) => app.fetch(new Request(origin + path, {method: 'POST', headers: {'content-type': 'application/json', ...headers}, body: JSON.stringify(body)}), e);
+    // Exactly what the payment site sends: no Origin, a bearer token.
+    const ok = await post('/api/pay/confirm', {ref: r.data.ref, status: 'paid',amount_rial:r.data.amount*10,transaction_id:'no-origin'}, {authorization: 'Bearer ' + key});
+    assert.equal(ok.status, 200, 'a token-bearing webhook is not blocked for lacking an Origin');
+    assert.equal((await ok.json()).status, 'paid');
+    // The exemption is that one path only: a cross-site POST is still refused everywhere else.
+    const crossSite = await post('/api/order', orderBody(), {origin: 'https://evil.example'});
+    assert.equal(crossSite.status, 403);
+    assert.equal((await post('/api/panel/logout', {}, {origin: 'https://evil.example'})).status, 403);
+    // And the webhook is still worthless without the token, Origin or no Origin.
+    assert.equal((await post('/api/pay/confirm', {ref: r.data.ref}, {})).status, 401);
+    assert.equal((await post('/api/pay/confirm', {ref: r.data.ref}, {authorization: 'Bearer whk_' + '0'.repeat(48)})).status, 401);
+  } finally { restore() }
+});
+
+test('step 25 last step: the paid page opens the customer\'s own panel with one tap, then scrubs the key', async () => {
+  const e = fixture();
+  const restore = priced('solo', 800000);
+  try {
+    const r = await call(e, '/api/order', orderBody('solo'));
+    await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER);
+    // The done screen: the panel button carries the key, so the customer does not retype it.
+    assert.match(payJS, /panel\.href = '\/panel\?key=' \+ encodeURIComponent\(shown\)/,
+      'the paid screen hands the key to the panel door');
+    // The panel trades the key for its cookie, then removes it from the address bar.
+    const panel = panelHTML;
+    assert.match(panel, /\[\?&\]key=\(\[\^&\]\+\)/, 'the panel reads the key from the URL');
+    assert.match(panel, /api\('\/api\/panel\/login',\{key:fromUrl\}\)/, 'and logs in with it');
+    assert.match(panel, /history\.replaceState\(null,'',location\.pathname\)/, 'then scrubs it from history');
+    // The key really is valid at that moment (that is what the button relies on).
+    const login = await call(e, '/api/panel/login', {key: r.data.access_key});
+    assert.equal(login.status, 200);
+    const me = await app.fetch(new Request(origin + '/api/panel/me', {headers: {cookie: login.cookie}}), e);
+    assert.equal((await me.json()).salon.name, 'سالن نمونه');
+  } finally { restore() }
+});
+
+test('step 25 receipt: sending one moves the order to reviewing and the panel stays shut until confirmation', async () => {
+  const e = fixture();
+  const restore = priced('solo', 900000);
+  try {
+    const r = await call(e, '/api/order', orderBody('solo'));
+    const v = await call(e, '/api/order/' + r.data.id + '/receipt', {note: '۴ رقم آخر ۴۵۵'}, {cookie:r.cookie});
+    assert.equal(v.data.status, 'reviewing');
+    assert.equal((await call(e, '/api/panel/me')).data.salon, null);
+    const list = (await call(e, '/api/owner/orders', undefined, OWNER)).data.orders[0];
+    assert.equal(list.receipt_note, '۴ رقم آخر ۴۵۵');
+    assert.equal(list.plan,'ESSENTIAL');
+    assert.equal(list.contact_phone, '09121234567', 'and a local mobile, not +98');
+    assert.equal(list.amount, 900000, 'amount in toman');
+    e.DB.sql.prepare('UPDATE orders SET expires_at=? WHERE id=?').run(Date.now() - 1, r.data.id);
+    assert.equal((await call(e, '/api/order/' + r.data.id, undefined, {cookie:r.cookie})).data.status, 'reviewing');
+    assert.equal((await call(e,'/api/owner/orders/'+r.data.id+'/confirm',{},OWNER)).data.order.status,'paid');
+  } finally { restore() }
+});
+
+test('step 25 key: the panel key is handed out when the order opens (once), never on a plain read, and login exchanges it for a cookie', async () => {
+  const e = fixture();
+  const restore = priced('salon', 700000);
+  try {
+    const r = await call(e, '/api/order', orderBody());
+    assert.match(r.data.access_key, /^AY-[2-9A-HJ-NP-Z]{9}$/);
+    assert.equal((await call(e, '/api/order/' + r.data.id, undefined, {cookie:r.cookie})).data.access_key, '', 'a plain read never returns the key');
+    assert.equal((await call(e, '/api/panel/login', {key: 'AY-AAAAAAAAA'})).status, 401);
+    assert.equal((await call(e, '/api/panel/login', {key: 'nonsense'})).status, 401);
+    await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER);
+    const login = await call(e, '/api/panel/login', {key: r.data.access_key.toLowerCase()});
+    assert.equal(login.status, 401, 'case matters; a mistyped key is not trusted');
+    const ok = await call(e, '/api/panel/login', {key: r.data.access_key});
+    assert.equal(ok.status, 200);
+    assert.match(ok.cookie, /^ayneh_panel=[a-f0-9]{64}$/, 'the cookie is the key hash, never the key');
+  } finally { restore() }
+});
+
+test('step 25 pages: /panel and /pay are real routes, the panel page parses, and the landing checkout uses the approved prices', () => {
+  new Function(panelHTML.split('<script>')[1].split('</script>')[0]);
+  assert.match(landingHTML, /id="pay"/);
+  assert.equal((landingHTML.match(/data-state="open"/g) || []).length, 3);
+  assert.match(landingHTML, /شمارهٔ کارت هنوز از پنل مدیر پر نشده است/);
+  assert.match(landingHTML, /هر سفارش ۱۰ دقیقه اعتبار دارد/);
+  assert.doesNotMatch(landingHTML, /[0-9۰-۹]{16}/, 'no card number is ever baked into the page');
+});
+
+test('step 25 owner console: the payment card, the webhook token and the order queue are wired without a fake control', () => {
+  const js = appHTML.split('<script>')[1].split('</script>')[0];
+  new Function(js);
+  for (const id of ['payCardNumber', 'payCardOwner'])
+    assert.ok(js.includes("id:'" + id + "'"), 'field ' + id);
+  assert.match(js, /api\('\/api\/owner\/payment'/, 'card + token come from the owner endpoints');
+  assert.match(js, /api\('\/api\/owner\/orders\/'\+o\.id\+'\/confirm'/, 'an order is confirmed by the owner');
+  assert.match(js, /api\('\/api\/owner\/orders\/'\+o\.id\+'\/rekey'/, 'a lost panel key can be minted again');
+  assert.match(js, /شمارهٔ کارت هنوز ذخیره نشده/, 'an empty card says so instead of showing digits');
+  // The card form never ships a number of its own.
+  assert.doesNotMatch(js, /6037|6219|5022/, 'no card digits in the console source');
+});
+
+test('step 25 checkout never leaves a "buy a panel" bar over a payment, and an unpriced panel never opens a sheet', () => {
+  const js = landingHTML.match(/<script>([\s\S]*?)<\/script>/g).map(s => s.slice(8, -9)).join('\n');
+  assert.match(js, /is-paying/, 'the sheet flags the page while paying');
+  assert.match(js, /ayneh:pay-state/, 'the sticky bar listens for that flag');
+  assert.match(js, /await call\('\/api\/order', form\)/, 'the order is opened on the server');
+  assert.match(js, /order\//, 'status, receipt and coupon all go through the order endpoints');
+  assert.match(js, /expires_at/, 'the countdown mirrors the server deadline');
+  assert.doesNotMatch(js, /تومان\/\s*\d/, 'the page does not compute its own prices');
+  assert.equal((landingHTML.match(/data-state="open"/g) || []).length, 3);
+});
+
+test('step 25 brand: the favicon carries the cream/emerald palette, never the retired brass', () => {
+  assert.doesNotMatch(faviconMark, /#D9B775|#1B130E/i, 'no brass-on-espresso favicon');
+  assert.match(faviconMark, /#FCF3EB/i, 'the cream ground');
+  assert.match(faviconMark, /#068F6C/i, 'the emerald disc');
+  assert.ok(generatedMark.includes('aynDisc'), 'the same one-face mark everywhere');
+});
+
+test('step 28 try-on: the demo salon is on the page, with the phone step still in front',()=>{
+ // The owner's sample-salon journey — photo, then the number, then the texted code, then the
+ // model — has to be visible on the new page, not only behind a link. It is the real demo
+ // page embedded, so the gate itself cannot be bypassed by the landing page.
+ const section=landingHTML.match(/<section id="try-on"[\s\S]*?<\/section>/)[0]||'';
+ assert.ok(section,'the try-on section ships');
+ assert.equal((landingHTML.match(/id="try-on"/g)||[]).length,1,'one try-on section');
+ for(const line of ['hair','color','nails','lashes'])
+  assert.ok(section.includes('data-line="'+line+'"'),line+' is offered');
+ // Four steps are named in order: photo, phone, code, model.
+ assert.ok(section.includes('عکس'),'the photo step is named');
+ assert.ok(section.includes('تأیید شماره'),'the phone step is named');
+ // The frame is not fetched until the visitor asks for it.
+ assert.ok(!/<iframe id="tryonFrame"[^>]*src="/.test(section),'the demo is not embedded until asked');
+ const js=landingHTML.match(/<script>([\s\S]*?)<\/script>/g).map(x=>x.slice(8,-9)).join('\n');
+ assert.ok(js.includes("'/s/demo?'"),'it opens the real demo');
+ assert.ok(js.includes('__AYN_DRAFT.put'),'a photo from here reaches the demo through the same handoff');
+ // The demo reports its height and the frame follows, so there is no scroll inside a scroll.
+ assert.ok(js.includes('aynehDemoHeight'),'the frame follows the demo height');
+ assert.ok(customerJS.includes('parent.postMessage({aynehDemoHeight:h},location.origin)'),'the demo reports it');
+});
+
+test('step 29 mirror: the character can restyle hair and colour, on a real photo',()=>{
+ const section=landingHTML.match(/<section id="play"[\s\S]*?<\/section>/)[0]||'';
+ assert.ok(section,'the mirror section ships');
+ assert.match(section,/id="playRoom"[^>]*src="(?:\/landing\/|assets\/)hero\.webp\?v=mirror-original"/,'the original photo remains the single base render');
+ assert.doesNotMatch(section,/class="play-backdrop"/,'no second photograph is layered under the selected character');
+ // 19 styles and 7 colours, as in the version that earned the request for it.
+ const js=landingHTML.match(/<script>([\s\S]*?)<\/script>/g).map(x=>x.slice(8,-9)).join('\n');
+ const start=js.indexOf("const STYLES = ['"), end=js.indexOf('];',start);
+ const styles=js.slice(start,end).split("','").length;
+ assert.equal(styles,19,'19 hairstyles');
+ // The shipped page is minified, so count the swatch gradients inside the colour array
+ // itself rather than assuming where a line break falls.
+ const cstart=js.indexOf('const COLORS = [');
+ assert.ok(cstart>0,'the colour list ships');
+ const cblock=js.slice(cstart,js.indexOf('];',cstart)+2);
+ assert.equal(cblock.split('linear-gradient').length-1,7,'7 colours');
+ for(const nm of ['بلوند شامپاینی','کاراملی','اسپرسو','آمبره','مسی','بلوند پلاتینی','شرابی'])
+  assert.ok(cblock.includes(nm),nm+' ships');
+ // The recolour is painted through the mask, not faked with a CSS filter.
+ assert.ok(section.includes('id="playCanvas"'),'there is a canvas to paint on');
+ assert.ok(customerJS.length>0);
+ assert.ok(js.includes('__AYN_HAIR_COLOR.tint'),'the real tint engine is used');
+ assert.ok(js.includes("loadImg(SRC('hair-mask','png'))"),'the hair mask is in the bundle');
+ // The plate frames the mirror assembly, whose side panels are real reflections baked into
+ // the single source photo; there is no independent portrait overlay.
+ assert.ok(js.includes('const MIRROR = {x:478,y:145,w:436,h:580}'),'the mirror frame includes its central and side reflections');
+ assert.ok(js.includes('window.__AYN_PORTRAIT.compose'),'style changes preserve one shared face instead of layering another portrait');
+ assert.ok(js.includes('const zoom=Math.min(W/boxW,H/boxH)'),'the complete mirror assembly stays centered and proportional');
+ assert.ok(section.includes('id="playChoiceThumb"')&&section.includes('id="playReplay"'),'the selected model card and replay control ship');
+ assert.ok(js.includes('choiceThumb.src = thumb.currentSrc || thumb.src')&&js.includes("$('playReplay').addEventListener('click'"),'the card follows the selection and replay control is wired');
+ assert.ok(js.includes('id="playStyles"')||section.includes('id="playStyles"'),'the style rail exists');
+ assert.ok(section.includes('id="playSwatches"'),'the colour palette exists');
+ // Every style that claims to render on the mirror has its two files.
+ const looks=[...landingHTML.matchAll(/look-s(\d\d)\.webp/g)].map(m=>m[1]);
+ assert.ok(looks.length>=1,'the rails reference render files');
+ for(const n of new Set(looks)){
+  assert.ok(existsSync(new URL('../public/landing/look-s'+n+'.webp',import.meta.url)),'look '+n+' ships');
+  assert.ok(existsSync(new URL('../public/landing/mask-s'+n+'.png',import.meta.url)),'mask '+n+' ships');
+ }
+});
+
+test('step 30 cinema: every section has a scroll-scrubbed entrance, and none can strand content',()=>{
+ // The redesign dropped the old navy choreography (cinema.js) along with the film sections.
+ // These entrances are the same idea rebuilt for this page: progress comes from the scroll
+ // position, so an entrance plays backwards on the way up, and nothing depends on a timer.
+ const js=readFileSync(new URL('../design/landing/src/cinema2.js', import.meta.url), 'utf8');
+ assert.ok(js.includes("root.classList.remove('no-cinema')"),'the plain page is released as soon as the script runs');
+ assert.ok(js.includes('prefers-reduced-motion'),'reduced motion turns it off');
+ for(const sel of ["'#features'","'#how'","'#why'","'#services'","'#films'","'#try-on'","'#play'","'#faq .faq-item'","'#cta'","'.site-footer'"])
+  assert.ok(js.includes(sel),'a track exists for '+sel);
+ // A card must never be left at 0 by a row that has already passed: each one also reads its
+ // own position as a floor.
+ assert.ok(js.includes('Math.max(sub(enter(grid'),'the row stagger has a per-card floor');
+ assert.ok(js.includes("c.style.setProperty('--mp'"),'the mirror rail cards ride their own progress');
+ // Scroll-scrubbing needs the first frame held while the element is still below the fold.
+ // fill-mode must be backwards: 'both' would freeze the last frame and kill hover/sticky.
+ const css=readFileSync(new URL('../design/landing/src/site.css', import.meta.url), 'utf8');
+ assert.ok(css.includes('backwards paused'),'seeking uses a backwards fill');
+ assert.ok(!css.includes('both paused'),'no animation is frozen at its last frame');
+ for(const prop of ['--hp','--sp','--wp','--ul','--p','--fp','--mp','--tp','--i','--dir','--vp','--ip','--lp'])
+  assert.ok(css.includes('@property '+prop+'{'),'scrub value '+prop+' has a registered type');
+ assert.ok(css.includes('inset-inline:.14em;bottom:-.02em;height:2px'),'accent underline is a fine inset hairline');
+ assert.ok(css.includes('clamp(300px,42vw,400px)'),'closed demo stage fits its own curtain');
+ assert.ok(css.includes('.tryon__iframe{display:block;width:100%;height:0;'),'closed iframe does not reserve a phantom page');
+ assert.ok(css.includes('.tryon__stage.is-open .tryon__iframe{height:clamp(560px,74vw,760px)}'),'opened demo gets its frame height');
+ assert.ok(js.includes('function cardDetails('),'cards animate their visual components separately');
+ assert.ok(js.includes("cardDetails(svcCards, svcProgress, '.svc__media'"),'feature imagery gets its own entrance beat');
+ assert.ok(js.includes("cardDetails(whyCards, whyProgress, '.why__icon'"),'feature icons get a separate entrance beat');
+ assert.ok(js.includes("'#proof', '#salon-example'"),'proof and builder sections are included in the choreography');
+ assert.ok(css.includes('@keyframes cine-visual') && css.includes('@keyframes cine-icon'),'component keyframes ship');
+ assert.ok(css.includes('[data-cine] .proof-stat'),'proof stat cards use the same entrance track');
+ assert.ok(css.includes('animation-delay:calc(var(--mp,1) * -999ms);'),'the play rail is staggered once, not twice');
+ assert.ok(css.includes('#services .plan ul li') && css.includes('#salon-example .sb-steps li'),'pricing and builder rows animate on arrival');
+ assert.ok(css.includes('.cinema-ready #intro .hero-stage'),'the hero visual has a first-fold arrival');
+ const tryon=readFileSync(new URL('../design/landing/src/tryon.js', import.meta.url), 'utf8');
+ assert.ok(tryon.includes("stage.classList.add('is-open')"),'opening the demo expands its stage');
+ assert.ok(landingHTML.includes('.cine-word'),'the word keyframes ship');
+ assert.ok(landingHTML.includes('class="no-cinema"'),'the no-JS guard is on the root element');
+ assert.ok(landingHTML.includes('cine-word'),'headlines are split into words at runtime');
+});
+
+test('paid studio draft publishes the chosen slug, profile, brand and portfolio in one confirmation',async()=>{
+ const e=fixture(), form=new FormData();
+ for(const [key,value] of Object.entries(orderBody('solo')))form.set(key,String(value));
+ form.set('draft',JSON.stringify({slug:'preview-salon',name:'نام پیش‌نمایش',brand:'#087D64',
+  profile:{bio:'متن پیش‌نمایش'},portfolio:[{title:'نمونه اول',line:'hair',description:'توضیح'}]}));
+ for(const slot of ['logo','work-0'])form.set(slot,new Blob([png()],{type:'image/png'}),slot+'.png');
+ const created=await app.fetch(new Request(origin+'/api/order',{method:'POST',headers:{origin},body:form}),e);
+ const order=await created.json();
+ assert.equal(created.status,200,JSON.stringify(order));
+ assert.equal((await call(e,'/api/salons',{slug:'preview-salon',name:'سالن دیگر'},OWNER)).status,409);
+ assert.equal((await app.fetch(new Request(origin+'/s/preview-salon'),e)).status,404);
+ const paid=await call(e,'/api/owner/orders/'+order.id+'/confirm',{},OWNER);
+ assert.equal(paid.status,200,JSON.stringify(paid));
+ const page=await call(e,'/api/s/preview-salon/public');
+ assert.equal(page.data.salon.name,'نام پیش‌نمایش');
+ assert.equal(page.data.salon.profile.brand,'#087D64');
+ assert.equal(page.data.salon.profile.bio,'متن پیش‌نمایش');
+ assert.equal(page.data.portfolio[0].title,'نمونه اول');
+ const logo=await app.fetch(new Request(origin+'/api/s/preview-salon/media/'+page.data.salon.profile.logo),e);
+ assert.equal(logo.status,200);
+ assert.deepEqual(new Uint8Array(await logo.arrayBuffer()),png());
 });

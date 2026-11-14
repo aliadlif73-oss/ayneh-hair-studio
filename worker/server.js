@@ -1,8 +1,8 @@
-import {saveActivation,activationAsset} from './activation.js';
+import {saveActivation,activationAsset,readDraftForm,readSalonDraft} from './activation.js';
 import {Problem,must,phone,text,safeLink,transferPrompt,uid,token,hash,digits,limited} from './domain.js';
 import {styles} from './legacy.js';
 import {identity,issueCookie,clearCookie,same,passwordLoginEnabled} from './auth.js';
-import {bucketFor,putImage} from './storage.js';
+import {bucketFor,getImage,putImage} from './storage.js';
 import {botReady,deliverLead,deliverPending,newLinkCode,setWebhook,inboxes,followLinks,PLATFORMS,platformReady,baleSecret,staffInvite,notifyConflict,expireStates} from './telegram.js';
 import {LINE_KEYS,lineStyles,cleanOptions,linePrompt,optionText,LINE_LABEL} from './lines.js';
 import {ownerLink,alertUnanswered,maybeDigest,setupStatus,digest,notifyOwner,setting} from './alerts.js';
@@ -10,12 +10,31 @@ import {attribute,ownerFor,createStaff,transfer,report,team as teamOf,liveStaff,
 import {stats} from './stats.js';
 import {smsReady,inviteReady,sendOtp} from './sms.js';
 import {createTrial,trialOf,trialLive,trialPublic,spendTrialImage} from './trial.js';
+import {PLANS as PLANS_TABLE} from './prices.js';
+import {createOrder,customerOrder,newAccessKey,setCoupon,markReviewing,confirmOrder,closeExpired,cardSetting,saveCard,
+ checkoutToken,newCheckoutToken,webhookKey,rotateWebhookKey,panelLogin,panelSalon,panelDashboard,hashKey,ORDER_MINUTES,PAY_CARD,WEBHOOK_KEY,COUPONS} from './orders.js';
 export {putImage};
 
 const J=(v,s=200,h={})=>new Response(JSON.stringify(v),{status:s,headers:{'Content-Type':'application/json;charset=utf-8','Cache-Control':'no-store',...h}});
 const parse=s=>{try{return JSON.parse(s||'{}')}catch{return {}}};
 const one=(db,sql,...args)=>db.prepare(sql).bind(...args).first();
 const run=(db,sql,...args)=>db.prepare(sql).bind(...args).run();
+
+/* Anonymous landing-funnel telemetry. Values are clamped before text() so a
+   malicious payload cannot overflow a column or smuggle a long identifier. */
+const LANDING_EVENTS=['cta_click','demo_open','wizard_start','wizard_step_complete',
+ 'wizard_skip','preview_ready','activation_available','otp_sent','otp_verified',
+ 'lead_submit','lead_submit_failed',
+ /* the checkout: a priced plan opens an order, an unpriced «خرید» sends the visitor to the
+    demo form, and a paid order is what the salon panel is made of */
+ 'order_intent','order_open','order_receipt','order_paid','buy_unpriced'];
+const attributionOf=b=>{
+ const a=b&&typeof b==='object'&&b.attribution&&typeof b.attribution==='object'&&!Array.isArray(b.attribution)?b.attribution:{};
+ const val=(k,max)=>text(String(a[k]??'').slice(0,max),max);
+ return JSON.stringify({utm_source:val('utm_source',60),utm_medium:val('utm_medium',60),
+  utm_campaign:val('utm_campaign',80),utm_content:val('utm_content',80),utm_term:val('utm_term',80),
+  referrer:val('referrer',120),landing:val('landing',60),host:val('host',80)});
+};
 const all=async(db,sql,...args)=>(await db.prepare(sql).bind(...args).all()).results;
 const cookie=t=>'ayneh='+t+'; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800';
 const PROFILE_TEXT=['bio','address','hours','manager'],PROFILE_LINKS=['map','instagram','website','telegram'],PROFILE_IMAGES=['logo','cover','portrait'];
@@ -89,10 +108,27 @@ async function provider(env,path,body){must(env.KIE_API_KEY,'تولید واقع
 export const IMAGE_MODELS={pro:'nano-banana-pro',fast:'nano-banana-2-1'};
 const FALLBACK_MODEL='nano-banana-2';
 async function createImageTask(env,cfg,input){const model=IMAGE_MODELS[cfg.image_model]||IMAGE_MODELS.pro;try{return {...await provider(env,'/api/v1/jobs/createTask',{model,input}),model}}catch(e){if(!(e instanceof Problem)||e.status!==502||model===FALLBACK_MODEL)throw e;return {...await provider(env,'/api/v1/jobs/createTask',{model:FALLBACK_MODEL,input}),model:FALLBACK_MODEL}}}
-async function uploadProvider(env,m){const object=await bucketFor(env).get(m.object_key);must(object,'عکس در دسترس نیست',410);const bytes=new Uint8Array(await object.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.slice(i,i+8192));const res=await fetch('https://kieai.redpandaai.co/api/file-base64-upload',{method:'POST',headers:{Authorization:'Bearer '+env.KIE_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({base64Data:'data:'+m.mime+';base64,'+btoa(binary),uploadPath:'ayneh',fileName:uid()+'.jpg'})});const d=await res.json();must(d.success&&d.data?.downloadUrl,'ارسال عکس انجام نشد',502);return d.data.downloadUrl;}
+async function uploadProvider(env,m){const object=await getImage(env,m.object_key);must(object,'عکس در دسترس نیست',410);const bytes=new Uint8Array(await object.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.slice(i,i+8192));const res=await fetch('https://kieai.redpandaai.co/api/file-base64-upload',{method:'POST',headers:{Authorization:'Bearer '+env.KIE_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({base64Data:'data:'+m.mime+';base64,'+btoa(binary),uploadPath:'ayneh',fileName:uid()+'.jpg'})});const d=await res.json();must(d.success&&d.data?.downloadUrl,'ارسال عکس انجام نشد',502);return d.data.downloadUrl;}
 
 export async function api(req,env){const u=new URL(req.url),path=u.pathname;must(env.DB,'پایگاه داده هنوز آماده نیست',503);const db=env.DB;
- if(req.method!=='GET'){must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
+ /* The origin check is what makes the cookie-authenticated routes safe: a browser always
+    sends Origin on a cross-site POST. A server-to-server caller (the payment site's webhook)
+    sends none, and carries a bearer token instead, so the check is skipped only for that one
+    path — where the token, not a cookie, is the credential. */
+ if(req.method!=='GET'){if(path!=='/api/pay/confirm')must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
+ if(path==='/api/event'&&req.method==='POST'){
+  await limited(db,'event:'+clientIp(req),1200);
+  const b=await req.json().catch(()=>({}));
+  must(LANDING_EVENTS.includes(b.kind),'رویداد معتبر نیست',400);
+  const session=String(b.session||'').slice(0,64);
+  must(/^[a-f0-9-]{8,64}$/.test(session),'نشست معتبر نیست',400);
+  const meta=typeof b.meta==='string'?b.meta.slice(0,300):'';
+  const step=Number.isInteger(b.step)&&b.step>=0&&b.step<=20?b.step:null;
+  const attribution=attributionOf(b),source=(parse(attribution).utm_source||'').slice(0,60);
+  await run(db,'INSERT INTO landing_events(id,session,kind,step,meta,utm_source,attribution,created_at) VALUES(?,?,?,?,?,?,?,?)',
+   uid(),session,b.kind,step,meta,source,attribution,Date.now());
+  return J({ok:true});
+ }
  if(path==='/api/activation'&&req.method==='GET'){
   must(smsReady(env),'تأیید شماره هنوز فعال نشده است.',503);
   must(await one(db,"SELECT 1 FROM sqlite_master WHERE type='table' AND name='salon_activations'"),'ثبت فعال‌سازی هنوز در این محیط راه‌اندازی نشده است.',503);
@@ -121,6 +157,63 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   await owner(req,env);
   return activationAsset(db,activationMedia[1],activationMedia[2]);
  }
+ /* ---------- paid plans: order → transfer → confirm → salon panel ---------- */
+ // POST /api/order: opens the 10-minute window and returns the amount, card and deadline.
+ if(path==='/api/order'&&req.method==='POST'){
+  await limited(db,'order:'+clientIp(req),12,'سفارش‌های زیادی از این شبکه باز شده؛ کمی بعد دوباره امتحان کنید');
+  const form=/^multipart\/form-data\s*;/i.test(req.headers.get('content-type')||'')?await readDraftForm(req):null;
+  const b=form?Object.fromEntries(form):await req.json().catch(()=>({}));
+  must(b&&typeof b==='object'&&!Array.isArray(b),'فرم سفارش معتبر نیست.');
+  if(form)b.consent=b.consent==='true';
+  if(String(b.website||'').trim())return J({ok:true,id:'x'});// honeypot
+  const checkout=checkoutToken(req)||newCheckoutToken();
+  const order=await createOrder(db,env,b,u.origin,checkout,form?.has('draft')?()=>readSalonDraft(form,db):null);
+  return J(order,200,{'Set-Cookie':'ayneh_checkout='+checkout+'; HttpOnly'+(u.protocol==='https:'?'; Secure':'')+'; SameSite=Lax; Path=/api/order; Max-Age=2592000'});
+ }
+ const orderGet=path.match(/^\/api\/order\/([a-f0-9-]{36})$/);
+ if(orderGet&&req.method==='GET')return J(await customerOrder(db,env,orderGet[1],u.origin,req));
+ const orderAct=path.match(/^\/api\/order\/([a-f0-9-]{36})\/(receipt|coupon)$/);
+ if(orderAct&&req.method==='POST'){
+  await limited(db,'order-act:'+clientIp(req),40);
+  const b=await req.json().catch(()=>({}));
+  return J(orderAct[2]==='receipt'?await markReviewing(db,env,orderAct[1],b.note,u.origin,req):await setCoupon(db,env,orderAct[1],b.coupon,u.origin,req));
+ }
+ // The payment site's door. A single token in Authorization (Bearer) or X-Webhook-Key;
+ // Confirm a verified transfer with its exact rial amount and unique bank transaction ID.
+ if(path==='/api/pay/confirm'&&req.method==='POST'){
+  const expected=await webhookKey(db);
+  const given=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'')||req.headers.get('x-webhook-key')||'';
+  must(expected&&same(String(given),expected),'توکن وب‌هوک معتبر نیست',401);
+  must(/^application\/json(?:\s*;|$)/i.test(req.headers.get('content-type')||''),'بدنهٔ JSON لازم است.');
+  const b=await req.json().catch(()=>null);
+  must(b&&typeof b==='object'&&!Array.isArray(b),'بدنهٔ درخواست معتبر نیست.');
+  if(!['paid','success','confirmed','ok'].includes(String(b.status).toLowerCase()))return J({ok:true,ignored:true});
+  must(Number.isSafeInteger(b.amount_rial)&&b.amount_rial>0,'مبلغ واریز را به ریال بفرستید.');
+  must(typeof b.transaction_id==='string'&&/^[a-zA-Z0-9._:-]{1,128}$/.test(b.transaction_id),'شناسهٔ تراکنش معتبر نیست.');
+  const byRef=b.ref?await one(db,'SELECT id FROM orders WHERE ref=?',String(b.ref).toUpperCase().slice(0,12)):null;
+  const id=byRef?.id||String(b.order||'');
+  must(id,'سفارش پیدا نشد',404);
+  const r=await confirmOrder(db,env,id,{by:'webhook',origin:u.origin,transfer:{id:b.transaction_id,rial:b.amount_rial}});
+  return J({ok:true,status:r.order.status,ref:r.order.ref,page:r.order.page_url});
+ }
+
+ /* ---------- salon panel (the door the plan opens) ---------- */
+ if(path==='/api/panel/login'&&req.method==='POST'){
+  await limited(db,'panel-login:'+clientIp(req),20,'تلاش‌های زیاد؛ کمی بعد دوباره امتحان کنید');
+  const b=await req.json().catch(()=>({}));
+  const {order}=await panelLogin(db,b.key);
+  return J({ok:true},200,{'Set-Cookie':'ayneh_panel='+order.access_key_hash+'; HttpOnly'+(u.protocol==='https:'?'; Secure':'')+'; SameSite=Lax; Path=/; Max-Age=2592000'});
+ }
+ if(path==='/api/panel/logout'&&req.method==='POST')return J({ok:true},200,{'Set-Cookie':'ayneh_panel=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0'});
+ if(path==='/api/panel/me'&&req.method==='GET'){
+  try{const ctx=await panelSalon(req,db);return J(await panelDashboard(db,env,ctx))}
+  catch(e){if(e.status===401)return J({salon:null});throw e}
+ }
+ if(path==='/api/pay/config'&&req.method==='GET'){
+  const card=await cardSetting(db);
+  return J({card:card.number,owner:card.owner,ready:card.valid,minutes:ORDER_MINUTES});
+ }
+
  if(path==='/api/inquiry'&&req.method==='POST'){
   await limited(db,'inquiry:'+clientIp(req),5,'درخواست‌های زیادی فرستاده‌ای؛ کمی بعد دوباره امتحان کن');
   const b=await req.json().catch(()=>({}));
@@ -129,7 +222,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   const name=text(String(b.name||''),60),salon=text(String(b.salon||''),80),city=text(String(b.city||''),40),note=text(String(b.note||''),300),chosen=text(String(b.chosen||''),90);
   must(name.length>=2,'نام را بنویس');must(salon.length>=2,'نام سالن را بنویس');
   const tel=phone(b.phone),id=uid();
-  await run(db,'INSERT INTO inquiries(id,name,salon,city,phone,note,chosen,created_at) VALUES(?,?,?,?,?,?,?,?)',id,name,salon,city,tel,note,chosen,Date.now());
+  await run(db,'INSERT INTO inquiries(id,name,salon,city,phone,note,chosen,created_at,attribution) VALUES(?,?,?,?,?,?,?,?,?)',id,name,salon,city,tel,note,chosen,Date.now(),attributionOf(b));
   await notifyOwner(env,{kind:'inquiry',level:'good',text:'درخواست معرفی آینه از «'+salon+'»'+(city?' ('+city+')':'')+' ثبت شد',detail:'👤 '+name+'\n📞 '+tel+(chosen?'\n✨ انتخاب در آینه: '+chosen:'')+(note?'\n📝 '+note:'')});
   return J({ok:true});
  }
@@ -148,6 +241,34 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(path==='/api/owner/referrals'&&req.method==='GET'){await owner(req,env);const slug=u.searchParams.get('salon')||'';let sid=null;if(slug){const x=await one(db,'SELECT id FROM salons WHERE slug=?',slug);must(x,'سالن پیدا نشد',404);sid=x.id}return J(await report(db,{salonId:sid}));}
  if(path==='/api/owner/alerts-link'&&req.method==='POST'){await owner(req,env);return J({links:await ownerLink(db,env)});}
  if(path==='/api/owner/alerts-unlink'&&req.method==='POST'){await owner(req,env);await run(db,'DELETE FROM owner_chats');return J({ok:true});}
+ if(path==='/api/owner/payment'&&req.method==='GET'){await owner(req,env);
+  const card=await cardSetting(db);
+  return J({card:card.number,owner:card.owner,valid:card.valid,minutes:ORDER_MINUTES,
+   webhook:{url:(env.APP_ORIGIN||u.origin)+'/api/pay/confirm',key:await webhookKey(db)},
+   plans:PLANS_TABLE});}
+ if(path==='/api/owner/payment'&&req.method==='POST'){await owner(req,env);
+  const b=await req.json().catch(()=>({}));
+  if(b.rotate)return J({key:await rotateWebhookKey(db)});
+  return J({ok:true,card:await saveCard(db,b.card,b.owner)});}
+ if(path==='/api/owner/orders'&&req.method==='GET'){await owner(req,env);
+  await closeExpired(db);
+  const rows=await all(db,'SELECT id,ref,plan,amount,salon_name,contact_name,phone,city,status,receipt_note,confirmed_by,created_at,expires_at FROM orders ORDER BY created_at DESC LIMIT 100');
+  // The console speaks Persian: plan name and a local-looking mobile, never a raw slug or +98.
+  return J({orders:rows.map(r=>({...r,amount:Math.round(r.amount/10),
+   plan:PLANS_TABLE[r.plan]?.name||r.plan,
+   contact_phone:String(r.phone||'').replace(/^\+98/,'0')}))});}
+ const adminOrder=path.match(/^\/api\/owner\/orders\/([a-f0-9-]{36})\/(confirm|cancel|rekey)$/);
+ if(adminOrder&&req.method==='POST'){await owner(req,env);
+  if(adminOrder[2]==='cancel'){await run(db,"UPDATE orders SET status='cancelled',updated_at=? WHERE id=? AND status<>'paid'",Date.now(),adminOrder[1]);return J({ok:true})}
+  if(adminOrder[2]==='rekey'){
+   // A lost key: mint a new one and hand it to the shop. The old one stops working at once.
+   const row=await one(db,"SELECT id FROM orders WHERE id=? AND status='paid'",adminOrder[1]);must(row,'این سفارش تأیید نشده است',409);
+   const fresh=newAccessKey();
+   await run(db,'UPDATE orders SET access_key_hash=?,updated_at=? WHERE id=?',await hashKey(fresh),Date.now(),row.id);
+   return J({ok:true,key:fresh});
+  }
+  const r=await confirmOrder(db,env,adminOrder[1],{by:'owner',origin:u.origin});
+  return J({ok:true,order:r.order});}
  if(path==='/api/owner/digest'&&req.method==='GET'){await owner(req,env);return J({text:await digest(env)});}
  if(path==='/api/owner/webhook'&&req.method==='POST'){await owner(req,env);return J(await setWebhook(env,env.APP_ORIGIN||u.origin));}
  if(path==='/api/salons'&&req.method==='POST'){const who=await owner(req,env);const b=await req.json(),id=uid();
@@ -191,7 +312,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   throw new Problem(404,'مسیر مدیریت یافت نشد');
  }
  if(route==='upload'&&req.method==='POST'){const kind=u.searchParams.get('kind')||'original';let s=null;if(kind==='brand'||kind==='portfolio')await owner(req,env);else{must(['original','reference'].includes(kind));s=await session(req,db,salon);await limited(db,'upload:'+s.id,30);}const bytes=new Uint8Array(await req.arrayBuffer());return J({id:await putImage(env,salon,s,bytes,kind)});}
- if(route.startsWith('media/')){const id=route.slice(6),m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,salon.id);must(m,'عکس یافت نشد',404);const profile=parse(salon.profile);let visible=m.kind==='brand'&&PROFILE_IMAGES.some(k=>profile[k]===id);if(!visible)visible=!!await one(db,'SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)',salon.id,id);if(!visible){let isOwner=false;try{await owner(req,env);isOwner=true}catch{}if(!isOwner){const s=await session(req,db,salon);await ownMedia(db,s,id);}}const object=await bucketFor(env).get(m.object_key);must(object,'عکس در دسترس نیست',410);return new Response(object.body,{headers:{'Content-Type':m.mime,'Cache-Control':visible?'public,max-age=300':'private,no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"}});}
+ if(route.startsWith('media/')){const id=route.slice(6),m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,salon.id);must(m,'عکس یافت نشد',404);const profile=parse(salon.profile);let visible=m.kind==='brand'&&PROFILE_IMAGES.some(k=>profile[k]===id);if(!visible)visible=!!await one(db,'SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)',salon.id,id);if(!visible){let isOwner=false;try{await owner(req,env);isOwner=true}catch{}if(!isOwner){const s=await session(req,db,salon);await ownMedia(db,s,id);}}const object=await getImage(env,m.object_key);must(object,'عکس در دسترس نیست',410);return new Response(object.body,{headers:{'Content-Type':m.mime,'Cache-Control':visible?'public,max-age=300':'private,no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"}});}
  if(route==='ref'&&req.method==='POST'){const b=await req.json().catch(()=>({}));await limited(db,'ref:'+salon.id+':'+clientIp(req),3000);return J(await attribute(db,salon,String(b.v||''),String(b.r||'')));}
  if(route==='track'&&req.method==='POST'){const b=await req.json().catch(()=>({}));must(TRACK_KINDS.includes(b.kind)&&b.kind!=='sent','رویداد معتبر نیست');await limited(db,'track:'+salon.id+':'+clientIp(req),800);await logEvent(db,salon.id,b.kind,String(b.v||''),typeof b.meta==='string'||typeof b.meta==='number'?String(b.meta):'');return J({ok:true});}
  const s=await session(req,db,salon);

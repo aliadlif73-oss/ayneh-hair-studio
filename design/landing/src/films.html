@@ -1,0 +1,48 @@
+  <!-- ============ 3. Showcase films (the three service videos) ============ -->
+  <!-- One screen, three tabs: the same film the salon will show its own customers. Each
+       clip is only downloaded when it is first asked for (preload=none), so the page does
+       not pay 14 MB to someone who never scrolls here. -->
+  <section id="films" class="section films" aria-labelledby="h-films">
+    <div class="band">
+      <div class="films__head">
+        <div>
+          <h2 id="h-films" class="h2">یک بار ببینید، <em>بعد برای مشتری‌تان بگذارید</em></h2>
+          <p class="sub">سه ویدئوی کوتاه: مو، مژه و ناخن. همان چیزی که مشتری شما در صفحهٔ اختصاصی‌اش می‌بیند.</p>
+        </div>
+        <div class="films__tabs" role="group" aria-label="انتخاب ویدئو">
+          <button type="button" class="film-tab" data-film="hair" aria-pressed="true">
+            <span class="film-tab__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7.5 14.5a3 3 0 1 0 3 3l7-9.5m0 6.5a3 3 0 1 1-3 3L7.5 8.5" stroke-linecap="round"/></svg></span>
+            <span>مو</span>
+          </button>
+          <button type="button" class="film-tab" data-film="lashes" aria-pressed="false">
+            <span class="film-tab__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 13.5c4.5 4 9.5 4 14 0" stroke-linecap="round"/><path d="M7 17l-1 2m5-1.4-.6 2.2m5.1-2.2.6 2.2M17 17l1 2" stroke-linecap="round"/></svg></span>
+            <span>مژه</span>
+          </button>
+          <button type="button" class="film-tab" data-film="nails" aria-pressed="false">
+            <span class="film-tab__icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8.5 14.5V9.5a3.5 3.5 0 0 1 7 0v5Z" stroke-linejoin="round"/><path d="M8 17h8" stroke-linecap="round"/></svg></span>
+            <span>ناخن</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="films__frame">
+        <div class="films__screen">
+          <video id="filmVideo" class="films__video" muted loop playsinline
+                 disablepictureinpicture disableremoteplayback noreferrer preload="none"
+                 poster="assets/hair-poster.webp" width="960" height="540"
+                 aria-label="ویدئوی مدل مو">
+            <source src="assets/video/hair.mp4" type="video/mp4">
+          </video>
+          <button type="button" class="films__play" id="filmPlay" aria-label="پخش ویدئو">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6.5v11l9-5.5z" fill="currentColor"/></svg>
+          </button>
+          <p class="films__error" id="filmError" role="status" hidden></p>
+        </div>
+        <div class="films__caption">
+          <strong id="filmTitle">مدل مو</strong>
+          <p id="filmText">مشتری مدل را روی عکس خودش می‌بیند و همان را برای شما می‌فرستد.</p>
+          <a class="films__cta" href="#salon-example">همین حالا با نام خودتان امتحان کنید <span aria-hidden="true">←</span></a>
+        </div>
+      </div>
+    </div>
+  </section>

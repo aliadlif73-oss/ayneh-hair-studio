@@ -58,6 +58,24 @@ h3.sub{font-size:15px;margin:16px 0 4px}
 .rtree details>summary .node::before{content:'▸';font-size:11px;color:var(--muted)}
 .rtree details[open]>summary .node::before{content:'▾'}
 .tree-pick{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.pay-admin{display:grid;gap:10px}
+.pay-admin__row{display:grid;gap:8px;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end}
+@media(max-width:720px){.pay-admin__row{grid-template-columns:1fr}}
+.pay-admin__card{font-family:ui-monospace,Menlo,monospace;direction:ltr;text-align:right;font-size:15px;letter-spacing:.06em;background:var(--surface-2);border-radius:12px;padding:10px 12px}
+.pay-admin__card.is-empty{color:var(--muted);font-family:inherit;letter-spacing:0}
+.hook{display:grid;gap:6px;background:var(--surface-2);border-radius:12px;padding:12px}
+.hook code{font-family:ui-monospace,Menlo,monospace;font-size:12px;direction:ltr;text-align:left;word-break:break-all;color:var(--accent-ink)}
+.hook small{color:var(--muted);font-size:11.5px;line-height:1.8}
+.orders{display:grid;gap:8px;max-height:520px;overflow:auto}
+.order-row{display:grid;gap:6px;padding:12px 14px;border-radius:14px;background:var(--surface-2);border:1px solid transparent}
+.order-row.is-wait{background:#fbf1de;border-color:#eed9b4}
+.order-row.is-review{background:#e6eefb;border-color:#c8d9f3}
+.order-row.is-paid{background:#e2f1ea;border-color:#bfe0d2}
+.order-row.is-dead{opacity:.66}
+.order-row__top{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.order-row b{font-size:14px}
+.order-row small{color:var(--muted);font-size:12px}
+.order-row__acts{display:flex;gap:6px;flex-wrap:wrap}
 .dgrid.dgrid--1{grid-template-columns:minmax(0,1fr)}
 .hbar{display:grid;grid-template-columns:minmax(90px,38%) 1fr auto;gap:10px;align-items:center;font-size:13.5px;border-radius:8px;outline-offset:3px}
 .hbar:hover .hbar__fill,.hbar:focus .hbar__fill{filter:brightness(1.15)}
@@ -345,6 +363,63 @@ function activationCard(){
  })}
  return el('section',{class:'card'},[h('h2','درخواست‌های فعال‌سازی صفحهٔ سالن'),list,more]);
 }
+function payCard(){
+ var body=el('div',{class:'pay-admin'}),out=el('p',{class:'hint'});
+ var cardEl=el('input',{id:'payCardNumber',dir:'ltr',inputmode:'numeric',maxlength:'19',placeholder:'۱۶ رقم، بدون خط تیره',autocomplete:'off'});
+ var ownerEl=el('input',{id:'payCardOwner',maxlength:'60',placeholder:'نام و نام خانوادگی صاحب کارت'});
+ var saveBtn=el('button',{class:'btn btn--primary',type:'button',text:'ذخیرهٔ کارت',onclick:act(function(){
+  return api('/api/owner/payment',{card:cardEl.value,owner:ownerEl.value}).then(function(d){out.textContent='ذخیره شد: '+d.card.number;out.hidden=false;load()})
+ })});
+ // Persian digits and spaces are forgiven; the server still validates the number.
+ cardEl.addEventListener('input',function(){cardEl.value=cardEl.value.replace(/[۰-۹]/g,function(x){return '۰۱۲۳۴۵۶۷۸۹'.indexOf(x)}).replace(/[^0-9 ]/g,'').replace(/(\d{4})(?=\d)/g,'$1 ').slice(0,19)});
+ var orders=el('div',{class:'orders'});
+ function orderRow(o){
+  var tone=o.status==='paid'?'paid':o.status==='reviewing'?'review':o.status==='open'?(o.expires_at>Date.now()?'wait':'dead'):'dead';
+  var label={open:'منتظر واریز',reviewing:'رسید فرستاده',paid:'تأیید‌شده',expired:'مهلت تمام',cancelled:'لغو‌شده'}[o.status]||o.status;
+  var left=o.status==='open'?Math.max(0,Math.round((o.expires_at-Date.now())/60000)):0;
+  var acts=[];
+  if(o.status==='open'||o.status==='reviewing')acts.push(el('button',{class:'btn btn--primary btn--sm',type:'button',text:'تأیید پرداخت',onclick:act(function(){return api('/api/owner/orders/'+o.id+'/confirm',{}).then(function(){toast('پرداخت تأیید شد؛ سالن ساخته می‌شود.');load()})})}));
+  if(o.status==='open'||o.status==='reviewing')acts.push(el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'لغو',onclick:act(function(){return api('/api/owner/orders/'+o.id+'/cancel',{}).then(function(){toast('سفارش لغو شد.');load()})})}));
+  if(o.status==='paid')acts.push(el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'ساخت کلید تازه',onclick:act(function(){
+   var k=prompt('کلید تازه برای ورود سالن. همین حالا به مشتری بدهید؛ دوباره نشان داده نمی‌شود.');
+   if(!k)return;return api('/api/owner/orders/'+o.id+'/rekey',{}).then(function(r){toast('کلید تازه: '+r.key);load()})
+  })}));
+  return el('div',{class:'order-row is-'+tone},[
+   el('div',{class:'order-row__top'},[h('b',o.salon_name+' · '+o.plan),el('span',{class:'badge',text:label})]),
+   h('small',o.contact_name+' · '+o.contact_phone+' · '+fa(o.amount)+' تومان · کد '+o.ref+(o.status==='open'?' · '+fa(left)+' دقیقه مانده':'')),
+   o.receipt_note?h('small','رسید/توضیح مشتری: '+o.receipt_note):null,
+   acts.length?el('div',{class:'order-row__acts'},acts.map(function(x){return x})):null
+  ]);
+ }
+ function load(){
+  return Promise.all([api('/api/owner/payment'),api('/api/owner/orders')]).then(function(r){
+   var p=r[0],o=r[1];
+   cardEl.value=p.card||'';(function(){if(!ownerEl.value)ownerEl.value=p.owner||''})();
+   out.hidden=true;
+   var row=el('div',{class:'pay-admin__row'},[el('label',{class:'field'},[h('span','شمارهٔ کارت','lbl'),cardEl]),el('label',{class:'field'},[h('span','صاحب کارت','lbl'),ownerEl]),saveBtn]);
+   body.replaceChildren(
+    h('p','مشتری بعد از انتخاب پنل، همین کارت را می‌بیند و مبلغ را واریز می‌کند. تا این کارت پر نشود، صفحهٔ پرداخت جای آن را خالی می‌گذارد و هیچ شماره‌ای از خودش نمی‌سازد.','lead'),
+    el('div',{class:'pay-admin__card'+(p.valid?'':' is-empty'),text:p.valid?p.card:'شمارهٔ کارت هنوز ذخیره نشده'}),
+    row,out,
+    h('h3','اتصال سایت پرداخت','sub'),
+    h('p','هر سرویسی که بتواند یک درخواست POST بفرستد، با این توکن پرداخت را تأیید می‌کند: سفارش با همان کد یا شناسه، خودکار تأیید و پنل مشتری باز می‌شود.','lead'),
+    el('div',{class:'hook'},[
+     h('small','نشانی (POST)'),el('code',{text:p.webhook.url}),
+     h('small','هدر Authorization'),el('code',{text:'Bearer '+p.webhook.key}),
+     h('small','بدنهٔ نمونه'),el('code',{text:'{"ref":"'+((o.orders[0]||{}).ref||'AY······')+'","status":"paid","amount_rial":29000000,"transaction_id":"bank-transfer-id"}'}),
+     el('div',{class:'row'},[el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'ساخت توکن تازه',onclick:act(function(){if(!confirm('توکن قبلی از کار می‌افتد؛ سرویس سایت پرداخت را هم به‌روز کنید. ادامه؟'))return;return api('/api/owner/payment',{rotate:true}).then(load)})})])
+    ]),
+    h('h3','سفارش‌ها','sub'),
+    o.orders.length?orders:null
+   );
+   orders.replaceChildren.apply(orders,o.orders.map(orderRow));
+   if(!o.orders.length)body.append(h('p','هنوز سفارشی نیامده.','empty-note'));
+  });
+ }
+ load().catch(function(e){body.append(el('p',{class:'notice notice--warn',text:e.message}))});
+ return el('section',{class:'card'},[h('h2','پرداخت و پنل'),body]);
+}
+
 function home(){return api('/api/owner').then(function(d){
  var head=el('div',{class:'page-head'},[el('div',{},[h('h1','داشبورد'),h('p','مشتری‌ها چطور از صفحه‌ها استفاده می‌کنند و سالن‌ها چقدر جواب می‌دهند. پایین صفحه، فهرست سالن‌ها و تنظیمات ربات است.')])]);
  var list=el('div',{class:'salons'});
@@ -356,7 +431,7 @@ function home(){return api('/api/owner').then(function(d){
   var prev=el('span',{class:'hint slug-preview'});si.closest('.field').append(prev);
   function show(){var v=si.value;prev.textContent=v?'صفحهٔ مشتری: '+location.host+'/s/'+v:''}
   si.addEventListener('input',function(){var c=si.value.toLowerCase().replace(/[\s_]+/g,'-').replace(/[^a-z0-9-]/g,'').replace(/-+/g,'-');if(c!==si.value)si.value=c;show()});show()})();
- $('#app').replaceChildren(head,activationCard(),dashboard(d.salons),el('h2',{class:'section-title',text:'سالن‌ها'}),el('div',{class:'grid grid--2'},[el('div',{class:'stack'},[list,create]),el('div',{class:'stack'},[alertsCard(d),botCard(d.bot),smsCard(d.sms||{}),imageCard(d.image)])]));
+ $('#app').replaceChildren(head,payCard(),activationCard(),dashboard(d.salons),el('h2',{class:'section-title',text:'سالن‌ها'}),el('div',{class:'grid grid--2'},[el('div',{class:'stack'},[list,create]),el('div',{class:'stack'},[alertsCard(d),botCard(d.bot),smsCard(d.sms||{}),imageCard(d.image)])]));
 })}
 function smsCard(sms){
  var st=function(ok,on,off){return el('li',{class:ok?'on':'off'},[h('span',ok?'✓':'–','dot'),h('span',ok?on:off)])};

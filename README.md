@@ -84,3 +84,7 @@ Simulations use Nano Banana Pro at 2K by default (per-salon switch to Nano Banan
 - https://docs.kie.ai/market/common/get-task-detail
 - https://core.telegram.org/bots/api
 - https://dev.bale.ai (Bale Bot API, Telegram-compatible at `tapi.bale.ai`)
+
+## پرداخت پنل‌ها
+
+فروش پنل‌ها کارت‌به‌کارت است: مشتری پنل را می‌خرد، مبلغ و شمارهٔ کارت را می‌بیند، ۱۰ دقیقه فرصت دارد و بعد مدیر (یا سایت پرداخت از طریق وب‌هوک) واریز را تأیید می‌کند؛ همان لحظه پنل سالن و صفحهٔ اختصاصی باز می‌شود. راهنمای کامل: [SETUP-PAYMENT.md](SETUP-PAYMENT.md).
