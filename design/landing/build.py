@@ -123,11 +123,11 @@ assert 'ayneh-build' in h
 # owner says "nothing changed" and the server is serving the new build, this is what separates
 # "a stale tab is still open" from "the deploy never happened" without opening devtools.
 h = h.replace('</body>', '<script>window.__AYNEH_BUILD=' + repr(STAMP).replace("'", '"') + ';</script>' + NL + '</body>')
-# A visible build tag, bottom-left, tiny. It exists for exactly one conversation — "nothing
+# A build tag, bottom corner, tiny — shown only with ?build or on /new, never to visitors. It exists for exactly one conversation — "nothing
 # changed in the preview" — and it answers it on screen instead of in devtools. It names the
 # build, and it says how long this copy has been open, because a tab left open from before a
 # change keeps showing the page it loaded.
-h = h.replace('</body>', '''<div id="aynehBuildTag" aria-hidden="true" style="position:fixed;inset-inline-start:6px;bottom:6px;z-index:60;font:600 10px/1.4 ui-monospace,Menlo,monospace;direction:ltr;color:#0A202A;background:rgba(252,243,235,.92);border:1px solid rgba(10,32,42,.14);border-radius:7px;padding:3px 6px;pointer-events:none;letter-spacing:.02em"></div><script>(function(){var d=document.getElementById('aynehBuildTag'),t=Date.now();function tick(){var m=Math.floor((Date.now()-t)/60000);d.textContent=window.__AYNEH_BUILD+' · '+(m<1?'just loaded':m+'m open')}tick();setInterval(tick,20000)})();</script>''' + NL + '</body>')
+h = h.replace('</body>', '''<div id="aynehBuildTag" aria-hidden="true" style="position:fixed;inset-inline-start:6px;bottom:6px;z-index:60;font:600 10px/1.4 ui-monospace,Menlo,monospace;direction:ltr;color:#0A202A;background:rgba(252,243,235,.92);border:1px solid rgba(10,32,42,.14);border-radius:7px;padding:3px 6px;pointer-events:none;letter-spacing:.02em"></div><script>(function(){var d=document.getElementById('aynehBuildTag'),t=Date.now();if(!/[?&]build(=|&|$)/.test(location.search)&&location.pathname!=='/new'){d.remove();return}function tick(){var m=Math.floor((Date.now()-t)/60000);d.textContent=window.__AYNEH_BUILD+' · '+(m<1?'just loaded':m+'m open')}tick();setInterval(tick,20000)})();</script>''' + NL + '</body>')
 
 
 # followup.js and lead.js retired with the demo-request form: the page now has exactly two

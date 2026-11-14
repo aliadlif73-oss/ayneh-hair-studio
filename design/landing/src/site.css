@@ -1214,3 +1214,65 @@ body{background:transparent}
   .story__page.is-turning{animation:none;opacity:0}
   .story__page.is-turning::after{animation:none}
 }
+
+/* ============================================================================
+   UI/UX pass (measured with Playwright at 375 and 1440px)
+   ============================================================================ */
+/* Touch targets: every control reaches 44x44. Small round icons keep their look and get an
+   invisible hit area around them instead of a bigger drawing. */
+.svc__go,.foot-social a{position:relative}
+.svc__go::before,.nav-btn::before,.foot-social a::before{content:"";position:absolute;inset:-7px;border-radius:50%}
+.nav-btn::before{inset:-8px}
+.btn--login,.site-header .header-cta .btn{min-height:44px}
+.brand{min-height:44px}
+.sb-add{min-height:44px}
+.sb-color input[type=color]{height:44px}
+.foot-col a{min-height:40px}
+.foot-col li{margin-bottom:2px}
+/* the testimonial dots were 7px wide targets: now 32px buttons that draw the same dot */
+.quote-dots{gap:0}
+.quote-dots button{position:relative;width:32px;height:32px;background:transparent!important;border-radius:50%}
+.quote-dots button::after{content:"";position:absolute;top:50%;left:50%;width:7px;height:7px;border-radius:50%;transform:translate(-50%,-50%);
+  background:var(--line-2);transition:width .2s var(--ease),background .2s var(--ease)}
+.quote-dots button[aria-selected="true"]{width:32px}
+.quote-dots button[aria-selected="true"]::after{width:20px;border-radius:4px;background:var(--emerald)}
+/* Readable labels: nothing a visitor has to read is under 12px. */
+.play-card__nm{font-size:12px}
+.play-sw__nm{font-size:10.5px}
+.play-hint{font-size:12.5px}
+.play-dock__top h3 span,.play-dock__count{font-size:12.5px}
+.play__note,.tryon__badge{font-size:12.5px}
+.compare__tag,.compare__badge{font-size:12px}
+.sample{font-size:11.5px}
+.quote__flag{font-size:12px}
+#slugHint{font-size:12.5px}
+@media(max-width:520px){
+  .play-sw{width:56px;height:46px}
+  .play-sw__nm{font-size:10px}
+  .play-card{flex-basis:68px}
+  .play-card__nm{font-size:11.5px}
+  .play-hint{font-size:12px}
+}
+/* Focus stays visible on the dark footer and the dark film panel. */
+.site-footer :focus-visible,.films :focus-visible{outline-color:var(--cream)}
+.btn--login{min-width:44px;justify-content:center}
+.foot-col a{min-height:44px}
+.quote-dots button,.quote-dots button[aria-selected="true"]{width:44px;height:44px}
+#salon-example .sb-color input[type=color]{height:44px}
+.play-picked span{font-size:12px}
+.play-palette h3{font-size:13px}
+.play-sw{height:auto;min-height:46px}
+.play-sw__nm{font-size:11px;white-space:normal;text-overflow:clip;line-height:1.3;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+@media(max-width:520px){
+  .play-sw{width:62px;min-height:52px}
+  .play-sw__nm{font-size:11px}
+  .play-card__nm{font-size:12px}
+}
+/* Story art never reaches under the text column: each strip is capped to the outer 22% of
+   the viewport and cropped from its inner side. */
+@media(min-width:901px){
+  .story__art{width:22vw;height:100vh;max-height:none;object-fit:cover;opacity:.46}
+  .story__art--l{object-position:0 50%}
+  .story__art--r{object-position:100% 50%}
+}
