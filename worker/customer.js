@@ -604,6 +604,7 @@ function track(kind,meta,once){if(STUDIO_PREVIEW)return;if(once){if(tracked[kind
  if(refIn&&history.replaceState){try{history.replaceState(null,'',location.pathname)}catch(e){}}
  if(state.mine)state.pub.portfolio=(state.pub.portfolio||[]).slice().sort(function(a,b){return (b.maker===state.mine)-(a.maker===state.mine)});
  document.title=state.pub.salon.name+' | آینه';
+ if(state.pub.salon.profile?.brand)applyBrand(state.pub.salon.profile.brand);
  if(state.pub.trial)trialBar(state.pub.trial);
  if((state.pub.demo||FROM_LANDING)&&!$('.trialbar'))ownerReturnBar();
  var lq=(location.search.match(/[?&]l=(hair|color|nails|lashes)/)||[])[1];var lm=null;try{lm=localStorage.getItem('ayneh-line-'+SLUG)}catch(e){}
