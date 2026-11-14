@@ -14,7 +14,7 @@
 
 .sb-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 auto clamp(20px,2.6vw,28px);
   max-width:900px;counter-reset:sb}
-.sb-steps li{position:relative;display:grid;gap:2px;padding:14px 14px 14px 46px;border-radius:var(--r-md);
+.sb-steps li{position:relative;display:grid;gap:2px;padding-block:14px;padding-inline:46px 14px;border-radius:var(--r-md);
   background:var(--paper);border:1px solid var(--line);font-size:13px;color:var(--ink-soft);line-height:1.75}
 .sb-steps li::before{counter-increment:sb;content:counter(sb,persian);position:absolute;inset-inline-start:12px;top:14px;
   display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--emerald-wash);

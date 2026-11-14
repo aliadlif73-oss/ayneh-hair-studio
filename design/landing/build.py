@@ -16,7 +16,7 @@ W = lambda p, s: open(p, 'w', encoding='utf8').write(s)
 # Everything the new page references, synced into public/landing/ so the worker
 # and the static preview read the same bytes.
 DEMOS = ['demo-%s-%s.webp' % (s, k) for s in ('style', 'color', 'lashes', 'nails') for k in ('before', 'after')]
-SYNC = re.compile(r'(hero\.webp|salon-film-0[1-5]\.webp|(?:hair|lashes|nails)-end\.webp|%s|estedad\.woff2|look-s\d\d\.webp)$' % '|'.join(re.escape(d) for d in DEMOS))
+SYNC = re.compile(r'(hero\.webp|salon-film-0[1-5]\.webp|(?:hair|lashes|nails)-end\.webp|%s|estedad\.woff2|look-s\d\d\.webp|(?:hero|look-s\d\d)-hd\.webp|story-\d[lr]\.webp)$' % '|'.join(re.escape(d) for d in DEMOS))
 for asset in os.listdir('assets'):
     if SYNC.match(asset):
         shutil.copyfile('assets/' + asset, '../../public/landing/' + asset)
@@ -123,18 +123,18 @@ assert 'ayneh-build' in h
 # owner says "nothing changed" and the server is serving the new build, this is what separates
 # "a stale tab is still open" from "the deploy never happened" without opening devtools.
 h = h.replace('</body>', '<script>window.__AYNEH_BUILD=' + repr(STAMP).replace("'", '"') + ';</script>' + NL + '</body>')
-# A visible build tag, bottom-left, tiny. It exists for exactly one conversation — "nothing
+# A build tag, bottom corner, tiny — shown only with ?build or on /new, never to visitors. It exists for exactly one conversation — "nothing
 # changed in the preview" — and it answers it on screen instead of in devtools. It names the
 # build, and it says how long this copy has been open, because a tab left open from before a
 # change keeps showing the page it loaded.
-h = h.replace('</body>', '''<div id="aynehBuildTag" aria-hidden="true" style="position:fixed;inset-inline-start:6px;bottom:6px;z-index:60;font:600 10px/1.4 ui-monospace,Menlo,monospace;direction:ltr;color:#0A202A;background:rgba(252,243,235,.92);border:1px solid rgba(10,32,42,.14);border-radius:7px;padding:3px 6px;pointer-events:none;letter-spacing:.02em"></div><script>(function(){var d=document.getElementById('aynehBuildTag'),t=Date.now();function tick(){var m=Math.floor((Date.now()-t)/60000);d.textContent=window.__AYNEH_BUILD+' · '+(m<1?'just loaded':m+'m open')}tick();setInterval(tick,20000)})();</script>''' + NL + '</body>')
+h = h.replace('</body>', '''<div id="aynehBuildTag" aria-hidden="true" style="position:fixed;inset-inline-start:6px;bottom:6px;z-index:60;font:600 10px/1.4 ui-monospace,Menlo,monospace;direction:ltr;color:#0A202A;background:rgba(252,243,235,.92);border:1px solid rgba(10,32,42,.14);border-radius:7px;padding:3px 6px;pointer-events:none;letter-spacing:.02em"></div><script>(function(){var d=document.getElementById('aynehBuildTag'),t=Date.now();if(!/[?&]build(=|&|$)/.test(location.search)&&location.pathname!=='/new'){d.remove();return}function tick(){var m=Math.floor((Date.now()-t)/60000);d.textContent=window.__AYNEH_BUILD+' · '+(m<1?'just loaded':m+'m open')}tick();setInterval(tick,20000)})();</script>''' + NL + '</body>')
 
 
 # followup.js and lead.js retired with the demo-request form: the page now has exactly two
 # actions — look at the samples, or buy a panel — so there is no request to send and no
 # follow-up message to show.
-SCRIPTS = ['funnel.js', 'films.js', 'tryon.js', 'play.js', 'draft.js', 'portrait.js',
-           'hair-color.js', 'compare.js', 'try.js', 'reveal.js', 'cinema2.js',
+SCRIPTS = ['funnel.js', 'story.js', 'films.js', 'tryon.js', 'play.js', 'draft.js', 'portrait.js',
+           'hair-color.js', 'try.js', 'reveal.js', 'cinema2.js',
            'builder.js', 'refine.js', 'pay.js', 'cta.js']
 # Hair-colour maths and the photo handoff are used by the studio. hero.js, scenes.js,
 # and cinema.js drove the retired film sections. cta.js owns the mobile sticky action,

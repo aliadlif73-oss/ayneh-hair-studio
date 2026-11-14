@@ -86,14 +86,14 @@ ul,ol{padding:0;list-style:none}
 .brand__mark{width:42px;height:42px;color:var(--emerald);flex:0 0 auto}
 .brand__mark svg{width:100%;height:100%;display:block}
 .brand__word{font-size:27px;font-weight:900;line-height:1;color:var(--teal-ink);letter-spacing:-.01em}
-.nav{display:flex;align-items:center;gap:clamp(12px,2vw,34px);margin-inline-start:auto;font-size:15.5px;font-weight:700;color:var(--ink)}
+.nav{display:flex;align-items:center;gap:clamp(12px,2vw,34px);margin-inline-start:clamp(14px,2.6vw,44px);font-size:15.5px;font-weight:700;color:var(--ink)}
 .nav a{position:relative;padding:10px 1px;white-space:nowrap}
 .nav a::after{content:"";position:absolute;inset-inline:0;bottom:1px;height:3px;border-radius:3px;background:var(--emerald);
   transform:scaleX(0);transform-origin:center;transition:transform .2s var(--ease)}
 .nav a:hover::after{transform:scaleX(1)}
 .nav a[aria-current="page"]{color:var(--ink)}
 .nav a[aria-current="page"]::after{transform:scaleX(1)}
-.header-cta{display:flex;align-items:center;gap:9px;margin-inline-start:clamp(6px,1.4vw,20px)}
+.header-cta{display:flex;align-items:center;gap:9px;margin-inline-start:auto}
 .btn--login{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 15px;border-radius:var(--r-pill);
   border:1px solid var(--line-2);background:var(--paper);font-size:13.5px;font-weight:700;white-space:nowrap}
 .btn--login svg{width:16px;height:16px;color:var(--ink-2)}
@@ -165,7 +165,7 @@ ul,ol{padding:0;list-style:none}
   aspect-ratio:4/3.4;touch-action:pan-y;isolation:isolate;min-width:0}
 .compare__img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 40%;
   user-select:none;-webkit-user-drag:none}
-.compare__img--after{clip-path:inset(0 0 0 calc(100% - var(--split,50%)))}
+.compare__img--after{clip-path:inset(0 var(--split,50%) 0 0)}
 .compare__badge{position:absolute;top:10px;inset-inline-start:10px;z-index:3;display:inline-flex;align-items:center;gap:5px;
   min-height:27px;padding:0 10px;border-radius:var(--r-pill);background:rgba(10,32,42,.74);color:#fff;
   font-size:11.5px;font-weight:800;backdrop-filter:blur(5px);pointer-events:none}
@@ -782,9 +782,12 @@ body.is-paying .sticky-cta{display:none!important}
   background:var(--emerald-wash);border-radius:var(--r-pill);padding:6px 14px;white-space:nowrap}
 .play__count-badge i{font-style:normal;opacity:.5}
 .play__frame{display:grid;grid-template-columns:minmax(260px,.78fr) minmax(0,1.68fr);gap:clamp(18px,3vw,42px);align-items:center}
-.mirror{position:relative;display:flex;flex-direction:column;min-width:0;width:100%;justify-self:stretch;border-radius:var(--r-xl);
-  background:linear-gradient(160deg,#E4EBE8,#EFF1EC);border:1px solid var(--line);box-shadow:var(--shadow-sm);isolation:isolate}
-.play-screen{position:relative;overflow:hidden;flex:none;width:100%;height:clamp(420px,42vw,560px);min-height:0;border-radius:var(--r-xl);
+.mirror{--screen-h:clamp(440px,40vw,560px);position:relative;display:flex;flex-direction:column;min-width:0;width:100%;justify-self:stretch;border-radius:var(--r-xl);
+  background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow-sm);isolation:isolate}
+/* The stage is the photo and nothing else: no panel ever sits on the face or the hair. The
+   colour rail rides the empty wall to the left of the mirror; the model dock and the
+   selection live under the stage. */
+.play-screen{position:relative;overflow:hidden;flex:none;width:100%;height:var(--screen-h);min-height:0;border-radius:var(--r-xl) var(--r-xl) 0 0;
   background:radial-gradient(120% 90% at 50% 30%,#F1F4F1,#DDE5E2)}
 .play-screen::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(10,32,42,.07)}
 .play-screen::before{content:"";position:absolute;z-index:2;inset:-25% -55%;pointer-events:none;opacity:0;background:linear-gradient(108deg,transparent 40%,rgba(255,255,255,.52) 49%,rgba(255,255,255,.08) 54%,transparent 62%);transform:translateX(-55%)}
@@ -795,28 +798,32 @@ body.is-paying .sticky-cta{display:none!important}
 .play-front{position:absolute;inset:0}
 .glass{background:rgba(252,243,235,.9);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   border:1px solid rgba(10,32,42,.12);box-shadow:0 14px 34px rgba(10,32,42,.16)}
-.play-dock{position:absolute;z-index:5;left:50%;bottom:14px;transform:translateX(-50%);width:min(340px,42%);min-width:280px;margin:0;border-radius:17px;padding:9px 11px;background:rgba(252,243,235,.88)}
-.play-dock__top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:6px}
-.play-dock__top h3{display:grid;gap:1px;margin:0;font-size:13px;font-weight:900;color:var(--ink)}
-.play-dock__top h3 span{font-size:10px;font-weight:700;color:var(--muted)}
+.play-dock{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,.42fr);grid-template-areas:"top picked" "rail picked";
+  column-gap:16px;row-gap:6px;align-items:center;margin:0;border:0;border-top:1px solid var(--line);border-radius:0 0 var(--r-xl) var(--r-xl);
+  padding:12px 16px 14px;background:var(--cream);box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+.play-dock__top{grid-area:top}
+.play-scroll{grid-area:rail}
+.play-dock__top{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.play-dock__top h3{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 8px;margin:0;font-size:14px;font-weight:900;color:var(--ink)}
+.play-dock__top h3 span{font-size:11.5px;font-weight:700;color:var(--muted)}
 .play-dock__count{font-size:11.5px;font-weight:700;color:var(--muted)}
 .play-scroll{position:relative;min-width:0}
 .play-track{display:flex;min-width:0;gap:7px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:3px;
   scrollbar-width:none;-ms-overflow-style:none}
 .play-track::-webkit-scrollbar{display:none}
 .play-track.dragging{cursor:grabbing;scroll-snap-type:none}
-.play-card{position:relative;flex:0 0 62px;display:grid;gap:3px;padding:4px;border:1.5px solid transparent;border-radius:12px;
+.play-card{position:relative;flex:0 0 72px;display:grid;gap:3px;padding:4px;border:1.5px solid transparent;border-radius:12px;
   background:rgba(255,255,255,.7);cursor:pointer;font:inherit;scroll-snap-align:start;transition:border-color .16s var(--ease)}
 .play-card__ph{display:block;border-radius:9px;overflow:hidden;background:var(--cream-3);aspect-ratio:4/5}
 .play-card__ph img{width:100%;height:100%;object-fit:cover;object-position:50% 22%}
-.play-card__nm{font-size:9.5px;font-weight:700;line-height:1.35;color:var(--ink-2);text-align:center;
+.play-card__nm{font-size:10.5px;font-weight:700;line-height:1.35;color:var(--ink-2);text-align:center;
   overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.play-card__kind{font-size:8.5px;font-weight:700;color:var(--muted);text-align:center}
+.play-card__kind{display:none;font-size:8.5px;font-weight:700;color:var(--muted);text-align:center}
 .play-card[aria-checked="true"]{border-color:var(--emerald);background:var(--emerald-wash)}
 .play-ring{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0}
 .play-card[aria-checked="true"] .play-ring,.play-sw[aria-checked="true"] .play-ring{opacity:1}
 .play-ring circle{fill:none;stroke:var(--emerald);stroke-width:2;vector-effect:non-scaling-stroke;stroke-dasharray:12 88}
-.play-palette{position:absolute;z-index:6;left:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;
+.play-palette{position:absolute;z-index:6;left:14px;top:calc(var(--screen-h) / 2);transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;
   width:88px;border-radius:999px;padding:12px 7px;background:rgba(252,243,235,.9)}
 .play-palette h3{margin:0;font-size:11.5px;font-weight:900;color:var(--ink);white-space:nowrap}
 .play-swatches{display:flex;flex-direction:column;align-items:center;flex-wrap:nowrap;min-width:0;gap:3px}
@@ -842,38 +849,45 @@ body.is-paying .sticky-cta{display:none!important}
 .play__count-badge{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:var(--emerald-deep);background:var(--emerald-wash);border-radius:var(--r-pill);padding:6px 12px;white-space:nowrap}
 .play__count-badge i{font-style:normal;opacity:.5}
 .play__note{margin:0;font-size:11.5px;line-height:1.8;color:var(--muted)}
-.play-picked{position:absolute;z-index:7;top:22px;right:18%;display:grid;grid-template-columns:64px minmax(0,1fr);gap:10px;align-items:center;
-  width:min(230px,37%);padding:8px;border-radius:18px;background:rgba(252,243,235,.9);opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-8px);transition:opacity .28s,transform .28s,visibility .28s}
-.play.has-choice .play-picked{opacity:1;visibility:visible;pointer-events:auto;transform:none}
-.play-picked>img{width:64px;height:78px;object-fit:cover;object-position:50% 22%;border-radius:11px;background:var(--cream-3)}
-.play-picked>div{display:grid;gap:2px;min-width:0}
-.play-picked span{font-size:10px;font-weight:700;color:var(--muted)}
-.play-picked b{font-size:13px;font-weight:900;color:var(--ink);line-height:1.4}
-.play-picked a{font-size:10px;font-weight:800;color:var(--emerald-deep);text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
-.play-hint{position:absolute;z-index:6;top:18px;left:14%;padding:8px 16px;border:1px solid var(--line-2);border-radius:var(--r-pill);
-  background:rgba(252,243,235,.88);color:var(--ink-soft);font-size:11.5px;box-shadow:var(--shadow-sm)}
+/* The selection, shown with the dock rather than on the stage. */
+.play-picked{grid-area:picked;align-self:stretch;display:grid;grid-template-columns:56px minmax(0,1fr);grid-template-rows:1fr auto;gap:4px 10px;align-items:center;
+  padding:8px 10px;border-radius:16px;background:var(--paper);border:1px solid var(--line);opacity:.55;transition:opacity .28s,border-color .28s}
+.play.has-choice .play-picked{opacity:1;border-color:var(--emerald-soft,#9fd3c0)}
+.play-picked>img{grid-row:1/3;width:56px;height:70px;object-fit:cover;object-position:50% 22%;border-radius:11px;background:var(--cream-3)}
+.play-picked>div{display:grid;gap:1px;min-width:0}
+.play-picked span{font-size:10.5px;font-weight:700;color:var(--muted)}
+.play-picked b{font-size:13px;font-weight:900;color:var(--ink);line-height:1.45}
+.play-picked a{font-size:11px;font-weight:800;color:var(--emerald-deep);text-decoration:underline;text-underline-offset:3px;white-space:nowrap;min-height:24px;display:inline-flex;align-items:center}
+.play:not(.has-choice) .play-picked a{visibility:hidden}
+.play-hint{position:absolute;z-index:6;top:14px;left:14px;padding:7px 14px;border:1px solid var(--line-2);border-radius:var(--r-pill);
+  background:rgba(252,243,235,.9);color:var(--ink-soft);font-size:11.5px;font-weight:700;box-shadow:var(--shadow-sm);transition:opacity .3s}
+.play.has-choice .play-hint{opacity:0;pointer-events:none}
 .play-replay{position:absolute;z-index:7;left:12px;bottom:12px;min-height:40px;padding:0 14px;border:1px solid var(--line-2);border-radius:var(--r-pill);
   background:rgba(252,243,235,.9);color:var(--ink-2);font:inherit;font-size:11px;font-weight:800;cursor:pointer;box-shadow:var(--shadow-sm)}
 @media(max-width:980px){
   .play__frame{grid-template-columns:minmax(0,1fr)}
   .play__side{order:0;padding:0 0 18px}
-  .mirror{order:1}
-  .play-screen{height:clamp(360px,58vw,500px)}
+  .mirror{order:1;--screen-h:clamp(380px,62vw,520px)}
+}
+@media(max-width:720px){
+  .play-dock{grid-template-columns:minmax(0,1fr);grid-template-areas:"top" "rail" "picked";padding:10px 10px 12px}
+  .play-picked{grid-template-columns:44px minmax(0,1fr) auto;grid-template-rows:auto;align-self:auto;padding:6px 8px}
+  .play-picked>img{grid-row:auto;width:44px;height:54px}
 }
 @media(max-width:520px){
-  .play-card{flex-basis:56px}
-  .play-dock{position:relative;left:auto;bottom:auto;transform:none;width:auto;min-width:0;margin:8px 7px 7px;padding:8px;order:3}
+  /* Phones: the mirror is tall, so the stage is too — the face fills the width instead of
+     floating in a short letterbox. The colour rail moves under the stage, where the thumb is. */
+  .mirror{--screen-h:min(124vw,520px)}
+  .play-card{flex-basis:62px}
   .play-palette{position:relative;left:auto;top:auto;transform:none;flex-direction:row;justify-content:space-between;align-items:center;
-    width:auto;margin:8px 7px 0;padding:7px 10px;border-radius:14px;order:2}
-  .play-swatches{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;max-width:calc(100% - 60px)}
+    width:auto;margin:0;padding:9px 10px;border-radius:0;border:0;border-top:1px solid var(--line);background:var(--cream);box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+  .play-swatches{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;max-width:calc(100% - 60px);padding:3px 2px}
   .play-swatches::-webkit-scrollbar{display:none}
-  .play-sw{grid-template-rows:24px auto;width:38px;height:38px}.play-sw__dot{width:22px;height:22px}
-  .play-sw__nm{font-size:8px}
-  .play-picked{top:12px;right:12px;width:min(205px,58%);grid-template-columns:48px minmax(0,1fr);gap:7px;padding:6px}
-  .play-picked>img{width:48px;height:58px}
-  .play-hint{left:10px;top:12px;font-size:9px;padding:7px 10px;max-width:40%}
-  .play-replay{left:10px;bottom:10px;min-height:36px;font-size:10px}
-  .play-screen{height:clamp(340px,92vw,440px)}
+  .play-sw{grid-template-rows:26px auto;width:48px;height:44px}.play-sw__dot{width:26px;height:26px}
+  .play-sw__nm{font-size:8.5px}
+  .play-dock{border-radius:0 0 var(--r-xl) var(--r-xl)}
+  .play-hint{left:50%;transform:translateX(-50%);top:10px;font-size:10.5px;padding:6px 12px;white-space:nowrap}
+  .play-replay{display:none}
 }
 
 /* ---------------------------------------------------------------------------
@@ -1151,4 +1165,141 @@ body.is-paying .sticky-cta{display:none!important}
 :is(.svc__icon,.step__icon,.why__icon,.proof-stat__icon,.hero-benefits__icon) svg{
   position:relative;z-index:1;
   filter:drop-shadow(0 1px 0 rgba(255,255,255,.92)) drop-shadow(0 2px 1px rgba(11,59,50,.24));
+}
+
+/* ============================================================================
+   The storybook — one salon day, dawn to dusk, in six illustrated chapters
+   (src/story.js). The layer is fixed under the content (z-index -1, the page
+   colour lives on <html>), its art only fills the side margins, and turning
+   into the next chapter turns the current page over like a book page.
+   ============================================================================ */
+html{background:var(--cream)}
+body{background:transparent}
+/* The sections stop painting their own flat colour so the chapter shows through; the
+   alternating rhythm survives as a light veil instead of an opaque block. */
+.section--soft,.tryon,#salon-example{background:rgba(248,240,232,.5)}
+.films,.play,.cta-section{background:transparent}
+.story{position:fixed;inset:0;z-index:-1;pointer-events:none;perspective:2200px;overflow:hidden;contain:strict}
+.story__page{position:absolute;inset:0;opacity:0;visibility:hidden;transform-style:preserve-3d;backface-visibility:hidden;
+  transform-origin:100% 50%;transition:opacity .45s var(--ease),visibility 0s .45s}
+.story__page.is-on{opacity:1;visibility:visible;transition:opacity .45s var(--ease),visibility 0s}
+.story__page.is-under{z-index:1}
+.story__page.is-turning{z-index:2;animation:storyTurn 1s cubic-bezier(.55,.05,.35,1) forwards}
+.story__page.is-turning.is-back{transform-origin:0% 50%;animation-name:storyTurnBack}
+/* the turning page catches light, then falls into shadow as it goes over */
+.story__page::after{content:"";position:absolute;inset:0;opacity:0;
+  background:linear-gradient(90deg,rgba(10,32,42,.10),rgba(252,243,235,.0) 40%,rgba(252,243,235,.55) 100%)}
+.story__page.is-turning::after{animation:storyShade 1s ease-in-out forwards}
+@keyframes storyTurn{0%{transform:rotateY(0)}100%{transform:rotateY(-105deg);opacity:.15}}
+@keyframes storyTurnBack{0%{transform:rotateY(0)}100%{transform:rotateY(105deg);opacity:.15}}
+@keyframes storyShade{0%{opacity:0}45%{opacity:1}100%{opacity:.6}}
+.story__art{position:absolute;top:50%;height:min(100vh,1040px);width:auto;max-width:none;transform:translateY(-50%);opacity:.5}
+.story__art--l{left:0}
+.story__art--r{right:0}
+/* the folio: which chapter of the day this is */
+.story__folio{position:absolute;left:clamp(14px,2vw,28px);bottom:clamp(14px,2.4vh,26px);display:grid;gap:1px;
+  padding:7px 13px;border-radius:var(--r-pill);background:rgba(252,243,235,.86);border:1px solid var(--line-2);
+  box-shadow:var(--shadow-sm);font-size:11px;line-height:1.6;color:var(--ink-soft)}
+.story__num{font-weight:800;color:var(--emerald-deep);letter-spacing:.01em}
+.story__name{font-weight:700}
+@media(max-width:1100px){.story__folio{display:none}}
+@media(max-width:900px){
+  /* Phones and tablets: the margins are thin, so each chapter keeps one corner of art at the
+     top and one at the bottom, smaller and lighter, behind the content. */
+  .story__art{height:36vh;opacity:.2;transform:none}
+  .story__art--l{top:0}
+  .story__art--r{top:auto;bottom:0}
+}
+@media(prefers-reduced-motion:reduce){
+  .story__page.is-turning{animation:none;opacity:0}
+  .story__page.is-turning::after{animation:none}
+}
+
+/* ============================================================================
+   UI/UX pass (measured with Playwright at 375 and 1440px)
+   ============================================================================ */
+/* Touch targets: every control reaches 44x44. Small round icons keep their look and get an
+   invisible hit area around them instead of a bigger drawing. */
+.svc__go,.foot-social a{position:relative}
+.svc__go::before,.nav-btn::before,.foot-social a::before{content:"";position:absolute;inset:-7px;border-radius:50%}
+.nav-btn::before{inset:-8px}
+.btn--login,.site-header .header-cta .btn{min-height:44px}
+.brand{min-height:44px}
+.sb-add{min-height:44px}
+.sb-color input[type=color]{height:44px}
+.foot-col a{min-height:40px}
+.foot-col li{margin-bottom:2px}
+/* the testimonial dots were 7px wide targets: now 32px buttons that draw the same dot */
+.quote-dots{gap:0}
+.quote-dots button{position:relative;width:32px;height:32px;background:transparent!important;border-radius:50%}
+.quote-dots button::after{content:"";position:absolute;top:50%;left:50%;width:7px;height:7px;border-radius:50%;transform:translate(-50%,-50%);
+  background:var(--line-2);transition:width .2s var(--ease),background .2s var(--ease)}
+.quote-dots button[aria-selected="true"]{width:32px}
+.quote-dots button[aria-selected="true"]::after{width:20px;border-radius:4px;background:var(--emerald)}
+/* Readable labels: nothing a visitor has to read is under 12px. */
+.play-card__nm{font-size:12px}
+.play-sw__nm{font-size:10.5px}
+.play-hint{font-size:12.5px}
+.play-dock__top h3 span,.play-dock__count{font-size:12.5px}
+.play__note,.tryon__badge{font-size:12.5px}
+.compare__tag,.compare__badge{font-size:12px}
+.sample{font-size:11.5px}
+.quote__flag{font-size:12px}
+#slugHint{font-size:12.5px}
+@media(max-width:520px){
+  .play-sw{width:56px;height:46px}
+  .play-sw__nm{font-size:10px}
+  .play-card{flex-basis:68px}
+  .play-card__nm{font-size:11.5px}
+  .play-hint{font-size:12px}
+}
+/* Focus stays visible on the dark footer and the dark film panel. */
+.site-footer :focus-visible,.films :focus-visible{outline-color:var(--cream)}
+.btn--login{min-width:44px;justify-content:center}
+.foot-col a{min-height:44px}
+.quote-dots button,.quote-dots button[aria-selected="true"]{width:44px;height:44px}
+#salon-example .sb-color input[type=color]{height:44px}
+.play-picked span{font-size:12px}
+.play-palette h3{font-size:13px}
+.play-sw{height:auto;min-height:46px}
+.play-sw__nm{font-size:11px;white-space:normal;text-overflow:clip;line-height:1.3;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+@media(max-width:520px){
+  .play-sw{width:62px;min-height:52px}
+  .play-sw__nm{font-size:11px}
+  .play-card__nm{font-size:12px}
+}
+/* Story art never reaches under the text column: each strip is capped to the outer 22% of
+   the viewport and cropped from its inner side. */
+@media(min-width:901px){
+  .story__art{width:22vw;height:100vh;max-height:none;object-fit:cover;opacity:.46}
+  .story__art--l{object-position:0 50%}
+  .story__art--r{object-position:100% 50%}
+}
+
+/* ── strict review, round 2 ── */
+/* The AI badge labels the simulated side, so it sits over «بعد» (left in RTL), not «قبل». */
+.compare__badge{inset-inline-start:auto;inset-inline-end:10px}
+/* «امکانات و خدمات»: five cards in two columns left the last one alone on its row. The odd
+   last card spans the row and lays its photo beside its text. */
+@media(min-width:861px){
+  .svc-grid>.svc:last-child:nth-child(odd){grid-column:1/-1;flex-direction:row;align-items:stretch}
+  .svc-grid>.svc:last-child:nth-child(odd) .svc__media{flex:0 0 50%;aspect-ratio:auto;height:260px}
+  .svc-grid>.svc:last-child:nth-child(odd) .svc__media img{position:absolute;inset:0;height:100%}
+  .svc-grid>.svc:last-child:nth-child(odd) .svc__foot{flex:1;align-self:center;padding:clamp(18px,2.4vw,32px)}
+}
+/* CTA chips: the forced two-line break only makes sense in the three-up row. */
+@media(max-width:560px){.cta-chips br{display:none}}
+/* Header: the menu item for the section on screen is the one underlined. */
+.nav a:not([aria-current="page"])::after{transform:scaleX(0)}
+.nav a:hover::after{transform:scaleX(1)}
+.play-replay{font-size:12.5px;min-height:44px}
+.quote-nav{flex-basis:44px;width:44px;height:44px}
+.play-sw__nm,.sample{font-size:12px}
+@media(max-width:520px){.play-sw__nm{font-size:11.5px}}
+.nav a{padding-inline:8px}
+/* The colour rail owns the left wall; the hint and the replay pill take the right wall. */
+@media(min-width:521px){
+  .play-hint{left:auto;right:14px}
+  .play-replay{left:auto;right:12px}
 }

@@ -1634,7 +1634,7 @@ test('step 28 try-on: the demo salon is on the page, with the phone step still i
 test('step 29 mirror: the character can restyle hair and colour, on a real photo',()=>{
  const section=landingHTML.match(/<section id="play"[\s\S]*?<\/section>/)[0]||'';
  assert.ok(section,'the mirror section ships');
- assert.match(section,/id="playRoom"[^>]*src="(?:\/landing\/|assets\/)hero\.webp\?v=mirror-original"/,'the original photo remains the single base render');
+ assert.match(section,/id="playRoom"[^>]*src="(?:\/landing\/|assets\/)hero-hd\.webp"/,'the original photo, at 2x, remains the single base render');
  assert.doesNotMatch(section,/class="play-backdrop"/,'no second photograph is layered under the selected character');
  // 19 styles and 7 colours, as in the version that earned the request for it.
  const js=landingHTML.match(/<script>([\s\S]*?)<\/script>/g).map(x=>x.slice(8,-9)).join('\n');
@@ -1656,9 +1656,15 @@ test('step 29 mirror: the character can restyle hair and colour, on a real photo
  assert.ok(js.includes("loadImg(SRC('hair-mask','png'))"),'the hair mask is in the bundle');
  // The plate frames the mirror assembly, whose side panels are real reflections baked into
  // the single source photo; there is no independent portrait overlay.
- assert.ok(js.includes('const MIRROR = {x:478,y:145,w:436,h:580}'),'the mirror frame includes its central and side reflections');
+ assert.ok(js.includes('const WIDE = {x:440,y:118,w:496,h:440}'),'the wide frame holds the central mirror and both side reflections');
+ assert.ok(js.includes('NARROW = {x:556,y:122,w:264,h:398}')&&js.includes('MAX = 1.3'),'phones frame the central mirror, and the render is never blown up past 1.3x');
+ assert.ok(/name:'آمبره'[^}]*ombre:true/.test(js),'آمبره keeps its root-to-ends gradient, as on the live studio');
+ // Nothing is laid over the photo except the colour rail on the empty wall: the dock and the
+ // selection sit under the stage, so no panel can cover the face or the hair.
+ const stage=section.match(/<div class="play-screen"[\s\S]*?<\/button>\s*<\/div>/)[0];
+ assert.ok(!stage.includes('play-dock')&&!stage.includes('play-picked'),'the dock and the selection are outside the photo stage');
  assert.ok(js.includes('window.__AYN_PORTRAIT.compose'),'style changes preserve one shared face instead of layering another portrait');
- assert.ok(js.includes('const zoom=Math.min(W/boxW,H/boxH)'),'the complete mirror assembly stays centered and proportional');
+ assert.ok(js.includes('const fit=Math.min(W/(box.w*PAD),H/(box.h*PAD))'),'the complete mirror assembly stays centered and proportional');
  assert.ok(section.includes('id="playChoiceThumb"')&&section.includes('id="playReplay"'),'the selected model card and replay control ship');
  assert.ok(js.includes('choiceThumb.src = thumb.currentSrc || thumb.src')&&js.includes("$('playReplay').addEventListener('click'"),'the card follows the selection and replay control is wired');
  assert.ok(js.includes('id="playStyles"')||section.includes('id="playStyles"'),'the style rail exists');
@@ -1710,4 +1716,25 @@ test('step 30 cinema: every section has a scroll-scrubbed entrance, and none can
  assert.ok(landingHTML.includes('.cine-word'),'the word keyframes ship');
  assert.ok(landingHTML.includes('class="no-cinema"'),'the no-JS guard is on the root element');
  assert.ok(landingHTML.includes('cine-word'),'headlines are split into words at runtime');
+});
+
+test('storybook: six illustrated chapters turn like pages behind the sections',()=>{
+ assert.ok(landingHTML.includes("className = 'story'")&&landingHTML.includes("setAttribute('aria-hidden', 'true')"),'the story layer ships and is decorative');
+ for(const id of ['intro','features','films','try-on','play','how','why','proof','services','cta','faq','salon-example'])
+  assert.ok(landingHTML.includes("'"+id+"'"),'section '+id+' belongs to a chapter');
+ for(let n=1;n<=6;n++)for(const s of ['l','r'])
+  assert.ok(existsSync(new URL('../public/landing/story-'+n+s+'.webp',import.meta.url)),'chapter '+n+s+' art ships');
+ assert.match(landingHTML,/\.story\{position:fixed;inset:0;z-index:-1;pointer-events:none/,'the art sits under the content and never takes a click');
+ assert.match(landingHTML,/prefers-reduced-motion:reduce\)\{[^}]*\.story__page\.is-turning\{animation:none/,'reduced motion gets a fade, not a turning page');
+});
+
+test('before/after follows the finger in RTL, plays itself first, and step labels clear their numbers',()=>{
+ // --split is measured from the RIGHT edge, so pointer maths and the range direction must be too
+ assert.ok(landingHTML.includes('set((r.right-e.clientX)/r.width*100)'),'the divider follows the pointer');
+ assert.equal((landingHTML.match(/class="compare__range"[^>]*dir="rtl"/g)||[]).length,2,'both sliders run right-to-left');
+ assert.match(landingHTML,/\.compare__img--after\{clip-path:inset\(0 var\(--split,50%\) 0 0\)\}/,'«بعد» is the left side, under its tag');
+ assert.ok(landingHTML.includes('engines.set(box,play)')&&landingHTML.includes('engines.get(heroBox)'),'each item plays its own before → after');
+ // RTL: the step number sits at the inline start, so the padding that clears it must too
+ assert.match(landingHTML,/\.sb-steps li\{[^}]*padding-inline:46px 14px/,'studio step titles are not under their numbers');
+ assert.doesNotMatch(landingHTML,/\.nav\{[^}]*margin-inline-start:auto/,'the header menu sits beside the logo, not pushed to the left');
 });
