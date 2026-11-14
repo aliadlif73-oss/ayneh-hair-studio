@@ -1,11 +1,6 @@
-/* The mirror game: one plate (1376x768 design pixels) carries the photo, the hair canvas
-   and the pickers; this file only sizes the plate, so the recolour can never drift off the
-   hair. Colour is painted through the hair mask for real — it is the same engine the old
-   landing page used, scoped to #play so it cannot touch the new layout.
-
-   The 19 names are the old list; a style is only drawn on the mirror when a render for it
-   exists (assets/look-sNN + mask-sNN). Otherwise the card says «عکس مرجع» and points at the
-   photo demo, instead of pretending to change the mirror. */
+/* The original interactive mirror studio, brought back inside the current page system.
+   One live photo node and a hair-only canvas carry the experience; style renders are composed
+   onto the same face, and the mirror, colour rail, and model dock remain one responsive unit. */
 (()=>{
   const root = document.getElementById('play'); if (!root) return;
   const $ = id => document.getElementById(id);
@@ -56,28 +51,20 @@
     b.tabIndex = i === Math.max(0, idx) ? 0 : -1;
   });
 
-  /* ---------- plate placement ----------
-     The photo is 1376x768, but the thing the section is about — the three-panel mirror —
-     occupies only the middle of it (MIRROR box, in photo pixels, observed from the render).
-     On a screen wider than that box, the plate is zoomed to the box and the box is centred,
-     so the mirror fills the frame instead of floating in a wall of empty room; on a phone the
-     plate is fitted instead, so the two side panels never get cropped away. Either way the
-     whole mirror stays in view. */
-  const MIRROR = {x: 478, y: 132, w: 436, h: 330}, PAD = 1.1;
+  /* Frame the original central vanity mirror as a whole. Its two side mirrors are reflections
+     of the same model, exactly as in the old studio; no second portrait is layered in. */
+  const MIRROR = {x:478,y:145,w:436,h:580}, PAD=1.08;
 
   function layout(){
-    const W = screen.clientWidth, H = screen.clientHeight; if (!W || !H) return;
-    const fitW = W / 1376;
-    const boxW = MIRROR.w * PAD, boxH = MIRROR.h * PAD;
-    const zoom = Math.min(W / boxW, H / boxH);
-    /* never below the width of the frame (no empty gutters), never past a point where the
-       photo would be a blur of upscaled pixels */
-    const s = Math.min(2.4, Math.max(fitW, zoom));
-    const pw = 1376 * s, ph = 768 * s;
-    const cx = (MIRROR.x + MIRROR.w / 2) * s, cy = (MIRROR.y + MIRROR.h / 2) * s;
-    const x = Math.round(Math.min(0, Math.max(W - pw, W / 2 - cx)));
-    const y = Math.round(Math.min(0, Math.max(H - ph, H / 2 - cy)));
-    Object.assign(plate.style, {width: pw + 'px', height: ph + 'px', left: x + 'px', top: y + 'px'});
+    const W=screen.clientWidth,H=screen.clientHeight;if(!W||!H)return;
+    const fitW=W/1376,boxW=MIRROR.w*PAD,boxH=MIRROR.h*PAD;
+    const zoom=Math.min(W/boxW,H/boxH);
+    const s=Math.min(2.4,Math.max(fitW,zoom));
+    const pw=1376*s,ph=768*s;
+    const cx=(MIRROR.x+MIRROR.w/2)*s,cy=(MIRROR.y+MIRROR.h/2)*s;
+    const x=Math.round(Math.min(0,Math.max(W-pw,W/2-cx)));
+    const y=Math.round(Math.min(0,Math.max(H-ph,H/2-cy)));
+    Object.assign(plate.style,{width:pw+'px',height:ph+'px',left:x+'px',top:y+'px'});
   }
   if (window.ResizeObserver) new ResizeObserver(layout).observe(screen);
   addEventListener('resize', layout, {passive: true});
@@ -232,14 +219,26 @@
     ctx.clearRect(0,0,1376,768); ctx.putImageData(out, R.x, R.y);
   }
 
-  const choice = $('playChoice');
+  const choice = $('playChoice'), choiceThumb = $('playChoiceThumb');
   function summary(){
     const parts = [];
     if (st.style != null) parts.push(STYLES[st.style]);
     if (st.color != null) parts.push(COLORS[st.color].name);
     choice.textContent = parts.length ? parts.join(' · ') : 'هنوز چیزی انتخاب نشده';
+    if (parts.length) {
+      const i = st.style ?? 0, thumb = cards[i]?.querySelector('img');
+      if (thumb) { choiceThumb.src = thumb.currentSrc || thumb.src; choiceThumb.alt = 'پیش‌نمایش ' + STYLES[i]; }
+    }
     root.classList.toggle('has-choice', parts.length > 0);
   }
+  $('playReplay').addEventListener('click', () => {
+    if (reduced) return;
+    screen.classList.remove('is-replaying');
+    void screen.offsetWidth;
+    screen.classList.add('is-replaying');
+    setTimeout(() => screen.classList.remove('is-replaying'), 1150);
+    $('playReplay').animate([{transform:'translateY(0)'},{transform:'translateY(-2px)'},{transform:'translateY(0)'}],{duration:260,easing:'ease-out'});
+  });
   async function pickColor(i){
     const next = COLORS[i];
     st.color = i; mark(sws, i); summary();

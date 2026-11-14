@@ -8,6 +8,16 @@
  const objectURLs=new Map();
  const imageTypes=['image/jpeg','image/png','image/webp'];
  const validPhoto=file=>imageTypes.includes(file.type)&&file.size>0&&file.size<=12_000_000;
+ /* The salon may choose a very pale brand colour. Keep the tint, but darken the
+    button/icon variant just enough that white action text stays readable. */
+ function actionBrand(hex){
+  const rgb=hex.match(/[0-9a-f]{2}/gi)?.map(v=>parseInt(v,16))||[6,143,108];
+  const lum=color=>color.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4})
+    .reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+  let factor=.82,action=rgb.map(v=>Math.round(v*factor));
+  while(1.05/(lum(action)+.05)<4.5&&factor>.04){factor-=.02;action=rgb.map(v=>Math.round(v*factor))}
+  return '#'+action.map(v=>v.toString(16).padStart(2,'0')).join('');
+ }
  const photoHelp='عکس JPG، PNG یا WebP با حجم حداکثر ۱۲ مگابایت انتخاب کنید.';
 
  const serviceNames={hair:'مدل مو',color:'رنگ مو',nails:'ناخن',lashes:'مژه'};
@@ -28,6 +38,8 @@
   const slug=get('slug')||'your-salon';
   $('builderAddress').textContent='ayneh-salon.site/s/'+slug;
   live.style.setProperty('--salon-brand',get('brand'));
+  live.style.setProperty('--brand-action',actionBrand(get('brand')));
+  $('livePage').style.setProperty('--brand',get('brand'));
   $('builderBrandHex').textContent=get('brand').toUpperCase();
   $('liveName').textContent=name;$('liveInitial').textContent=get('name')[0]||'س';
   $('liveBio').textContent=get('bio')||'مدل دلخواهت را روی عکس خودت ببین و انتخابت را برای سالن بفرست.';

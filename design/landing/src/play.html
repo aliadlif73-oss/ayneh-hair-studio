@@ -1,35 +1,43 @@
-  <!-- ============ 5. The mirror game (a character you can restyle) ============ -->
-  <!-- The old page's mirror, rebuilt in the new palette: one plate carries the photo, the
-       hair canvas and the two pickers, so a recolour can never drift off the hair. 19
-       hairstyles and 7 colours; the colour is painted through the hair mask, for real. -->
+  <!-- ============ 5. The mirror studio ============ -->
+  <!-- Original interactive studio: one shared portrait render, real masked hair tinting, and
+       the model dock / colour rail arranged around the mirror. -->
   <section id="play" class="section play" aria-labelledby="h-play">
     <div class="band">
-      <div class="play__head">
-        <div>
-          <h2 id="h-play" class="h2">مدل و رنگ را <em>روی یک چهره امتحان کنید</em></h2>
-          <p class="sub">بدون عکس، بدون شماره: مدل را از فهرست بچینید و رنگ را روی مو ببینید. برای دیدن همین روی عکس خودتان، بخش بالا را امتحان کنید.</p>
-        </div>
-        <span class="play__count-badge">۱۹ مدل <i aria-hidden="true">·</i> ۷ رنگ</span>
-      </div>
-
       <div class="play__frame">
+        <div class="play__side">
+          <span class="play__eyebrow">برای صاحبان سالن مو، ناخن و مژه</span>
+          <h2 id="h-play" class="h2">مدل دلخواه مشتری <em>روی عکس خودش</em> و پیش از مراجعه</h2>
+          <p class="sub">با صفحهٔ اختصاصی سالن، مشتری مدل و رنگ مو، طرح ناخن یا مژه را روی عکس خودش امتحان می‌کند؛ انتخاب و عکسش را برای تأیید یا رد به سالن می‌فرستد.</p>
+          <div class="play__actions">
+            <a class="btn" href="#try-on">امتحان روی چهرهٔ خودتان</a>
+            <span class="play__count-badge">۱۹ مدل <i aria-hidden="true">·</i> ۷ رنگ</span>
+          </div>
+          <p class="play__note">شبیه‌سازی تقریبی است و نتیجهٔ نهایی را تضمین نمی‌کند.</p>
+        </div>
+
         <div class="mirror" id="playMirror">
           <div class="play-screen" id="playScreen">
             <div class="play-plate" id="playPlate">
-              <img class="play-backdrop" src="assets/hero.webp" width="1376" height="768" alt="" aria-hidden="true">
               <div class="play-front" id="playFront">
-                <img id="playRoom" src="assets/hero.webp" width="1376" height="768" fetchpriority="low" decoding="async" alt="آینهٔ سه‌تکه با تصویر یک مدل، برای امتحان مدل و رنگ مو">
+                <img id="playRoom" src="assets/hero.webp?v=mirror-original" width="1376" height="768" fetchpriority="low" decoding="async" alt="مدل مو در آینهٔ استودیو؛ انتخاب مدل و رنگ روی همان چهره نمایش داده می‌شود">
                 <canvas id="playCanvas" width="1376" height="768" aria-hidden="true"></canvas>
               </div>
             </div>
+            <span class="play-hint">مدل و رنگ دلخواهتان را انتخاب کنید.</span>
+            <div class="play-picked glass" id="playPickedCard" aria-live="polite">
+              <img id="playChoiceThumb" src="assets/s01.webp" width="72" height="88" alt="">
+              <div><span>انتخاب شما</span><b id="playChoice">هنوز چیزی انتخاب نشده</b><a href="#try-on">امتحان روی عکس خودم ←</a></div>
+            </div>
+            <button type="button" class="play-replay" id="playReplay">پخش دوبارهٔ نمایش</button>
           </div>
+
           <div class="play-palette glass" id="playColors">
             <h3 id="playColorsTitle">رنگ مو</h3>
             <div class="play-swatches" id="playSwatches" role="radiogroup" aria-labelledby="playColorsTitle"></div>
           </div>
           <div class="play-dock glass" id="playDock">
             <div class="play-dock__top">
-              <h3 id="playDockTitle">مدل مو</h3>
+              <h3 id="playDockTitle">مدل مو <span>روی همین چهره امتحان کنید</span></h3>
               <span class="play-dock__count" id="playCount"></span>
             </div>
             <div class="play-scroll">
@@ -38,19 +46,6 @@
               <button type="button" class="nav-btn nav-l" id="playNext" aria-label="مدل‌های بعدی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
             </div>
           </div>
-        </div>
-        <div class="play__side">
-          <div class="play__picked">
-            <span>انتخاب شما</span>
-            <b id="playChoice">هنوز چیزی انتخاب نشده</b>
-          </div>
-          <ol class="play__how">
-            <li><b>۱</b><span>مدل را از نوار پایین آینه بچینید.</span></li>
-            <li><b>۲</b><span>رنگ را از پالت کنار آینه انتخاب کنید؛ مو همان لحظه رنگ می‌شود.</span></li>
-            <li><b>۳</b><span>برای همین روی عکس خودتان، «شروع با عکس خودم» را بزنید.</span></li>
-          </ol>
-          <a class="btn btn--block" href="#try-on">امتحان روی عکس خودم</a>
-          <p class="play__note">بعضی مدل‌ها فقط عکس مرجع دارند و همین‌جا روی آینه ساخته نمی‌شوند — روی عکس خودتان همه‌شان قابل انتخاب‌اند.</p>
         </div>
       </div>
     </div>

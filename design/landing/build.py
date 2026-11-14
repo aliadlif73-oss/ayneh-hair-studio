@@ -135,11 +135,10 @@ h = h.replace('</body>', '''<div id="aynehBuildTag" aria-hidden="true" style="po
 # follow-up message to show.
 SCRIPTS = ['funnel.js', 'films.js', 'tryon.js', 'play.js', 'draft.js', 'portrait.js',
            'hair-color.js', 'compare.js', 'try.js', 'reveal.js', 'cinema2.js',
-           'builder.js', 'refine.js', 'pay.js']
+           'builder.js', 'refine.js', 'pay.js', 'cta.js']
 # Hair-colour maths and the photo handoff are used by the studio. hero.js, scenes.js,
-# cinema.js and cta.js drove the retired film sections (and cta.js looked for a
-# .film-player that no longer exists), so they are no longer shipped; the page's own
-# inline script owns the sticky action.
+# and cinema.js drove the retired film sections. cta.js owns the mobile sticky action,
+# keeping it clear of the film, the salon-page builder, duplicate CTAs, and open dialogs.
 for name in SCRIPTS:
     assert os.path.exists('src/' + name), name
 scripts = ''.join('<script>' + NL + R('src/' + n) + NL + '</script>' + NL for n in SCRIPTS)

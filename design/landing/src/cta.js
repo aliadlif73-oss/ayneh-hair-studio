@@ -1,9 +1,9 @@
-/* Keep the mobile action out of the hero, inquiry and try-on dialog. */
+/* Keep the mobile action out of the hero, salon builder, inquiry and dialogs. */
 (()=>{
  const bar=document.getElementById('stickyCta');
  const hero=document.getElementById('intro');
  const inquiry=document.getElementById('start');
- const player=document.querySelector('.film-player');
+ const studio=document.getElementById('salon-example');
  if(!bar||!hero||!inquiry)return;
  const mobile=matchMedia('(max-width:900px)');
  let queued=false,geo=null;
@@ -13,9 +13,8 @@
     getBoundingClientRect() inside a scroll handler forces a synchronous
     layout on every frame — the single biggest cause of sticky scrolling. */
  function measure(){
-  const ht=docTop(hero),ft=docTop(inquiry),pt=player?docTop(player):0;
+  const ht=docTop(hero),ft=docTop(inquiry);
   geo={heroBottom:ht+hero.offsetHeight,formTop:ft,
-       filmTop:player?pt:Infinity,filmBottom:player?pt+player.offsetHeight:-Infinity,
        twins:twins.map(a=>{const t=docTop(a);return {t,b:t+a.offsetHeight}})};
  }
  function sync(){
@@ -23,10 +22,12 @@
   const y=window.scrollY,vh=window.innerHeight;
   const afterHero=geo.heroBottom-y<80;
   const beforeForm=geo.formTop-y>=vh;
-  const overFilm=geo.filmTop-y<vh&&geo.filmBottom-y>0;
-  // Never show the same action twice on screen.
+  const studioRect=studio?studio.getBoundingClientRect():null;
+  const overStudio=!!studioRect&&studioRect.bottom>0&&studioRect.top<vh;
+  // Keep the bar out of the salon-page builder as well: it must not cover the
+  // preview or its purchase form while someone is actively creating a page.
   const twin=geo.twins.some(r=>r.b-y>0&&r.t-y<vh);
-  bar.hidden=!(mobile.matches&&afterHero&&beforeForm&&!overFilm&&!twin&&!document.querySelector('dialog[open]'));
+  bar.hidden=!(mobile.matches&&afterHero&&beforeForm&&!overStudio&&!twin&&!document.querySelector('dialog[open]'));
  }
  function schedule(){if(!queued){queued=true;requestAnimationFrame(sync)}}
  addEventListener('scroll',schedule,{passive:true});

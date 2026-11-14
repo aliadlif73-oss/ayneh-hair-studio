@@ -32,6 +32,20 @@ test('pages parse; typed colour overrides the reference colour in every mode; Ir
  assert(!/appointment|services|staff|kavenegar/i.test(customerHTML.match(/<script>([\s\S]*?)<\/script>/)[1]),'customer page no longer books or texts');
 });
 
+test('custom salon colours keep white actions and dark labels readable',()=>{
+ const body=customerHTML.match(/function applyBrand\(brand\)\{[\s\S]*?\n\}/)?.[0];
+ assert.ok(body,'customer brand tint helper ships');
+ const vars={},apply=new Function('document',body+';return applyBrand')({documentElement:{style:{setProperty:(k,v)=>vars[k]=v}}});
+ const rgb=value=>value.match(/[0-9.]+/g).slice(0,3).map(Number);
+ const luminance=value=>rgb(value).map(c=>{c/=255;return c<=.04045?c/12.92:((c+.055)/1.055)**2.4}).reduce((n,c,i)=>n+c*[.2126,.7152,.0722][i],0);
+ const ratio=(a,b)=>{const x=luminance(a),y=luminance(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+ for(const color of ['#068F6C','#FFFF00','#FFFFFF','#FF00FF','#1267FF','#000000']){
+  apply(color);
+  assert.ok(ratio('rgb(255,255,255)',vars['--accent'])>=4.5,'white button text on '+color);
+  assert.ok(ratio(vars['--accent-ink'],vars['--accent-soft'])>=4.5,'dark text on soft brand surface '+color);
+ }
+});
+
 test('only the project owner manages salons; salon panel routes are gone',async()=>{const e=fixture();
  assert.equal((await call(e,'/api/salons',{slug:'x-salon',name:'x'},{user:'stranger',email:'someone@else'})).status,403);
  const s=await salon(e);
@@ -1120,13 +1134,23 @@ test('step 24 palette: cream ground, ink type, a single emerald accent',()=>{
  assert.match(landingHTML,/--emerald-deep:#0A6B54/);
  assert.match(landingHTML,/--emerald-soft:#9BD9C5/);
  assert.match(landingHTML,/--font:"Estedad","Vazirmatn"/,'the app font stack is shared');
+ const siteCSS=readFileSync(new URL('../design/landing/src/site.css',import.meta.url),'utf8');
+ assert.match(siteCSS,/:is\(\.svc__icon,\.step__icon,\.why__icon,\.proof-stat__icon,\.hero-benefits__icon\)\{[\s\S]*?box-shadow:inset 2px 2px 4px/,'the main icon tiles use dimensional highlights and shadows');
+ assert.match(siteCSS,/drop-shadow\(0 1px 0 rgba\(255,255,255,\.92\)\) drop-shadow\(0 2px 1px rgba\(11,59,50,\.24\)\)/,'icon glyphs keep a raised 3D edge');
  // The old espresso/brass tokens must not survive.
  assert.doesNotMatch(landingHTML,/--brass:#/);
  assert.doesNotMatch(landingHTML,/--espresso:#/);
  assert.doesNotMatch(landingHTML,/16100B|101E38/i,'no left-over espresso surface');
  assert.doesNotMatch(landingHTML,/#D8A63C|#7A5712/i,'no left-over brass');
- // Contrast floor: body copy is the darker grey on cream.
+ // WCAG AA for normal text: the quiet labels and white action text must meet 4.5:1,
+ // including the pale cream and green-wash surfaces used across the page.
  assert.match(landingHTML,/--ink-soft:#4A5C5C/);
+ assert.match(landingHTML,/--muted:#5D6B68/);
+ const lum=hex=>{const c=hex.match(/[0-9A-F]{2}/gi).map(x=>parseInt(x,16)/255).map(x=>x<=.04045?x/12.92:((x+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+ const contrast=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+ const muted='#5D6B68';
+ for(const bg of ['#FCF3EB','#F8F0E8','#E4F4EE','#FFFFFF'])assert.ok(contrast(muted,bg)>=4.5,'muted body copy passes on '+bg);
+ for(const bg of ['#0A6B54','#057A5C'])assert.ok(contrast('#FFFFFF',bg)>=4.5,'white action text passes on '+bg);
 });
 
 test('step 24 layout: the grids collapse cleanly at 1120 / 900 / 600',()=>{
@@ -1207,7 +1231,17 @@ test('step 24 studio: the live salon preview survives the rebuild',()=>{
  assert.doesNotMatch(bundle,/\/api\/activation/,'the studio uploads nothing');
  assert.doesNotMatch(bundle,/demo\/otp/,'no phone verification on the landing page');
  assert.match(landingHTML,/id="builderActivate" href="#services"/,'the studio hands over to the panels');
+ assert.match(landingHTML,/const studio=document\.getElementById\('salon-example'\)/,'mobile sticky action knows the builder section');
+ assert.match(landingHTML,/!overStudio/,'mobile sticky action stays out of the live builder');
  assert.match(bundle,/querySelector\('\.upload-name'\)/,'the file label keeps a node to update');
+ const builder=readFileSync(new URL('../design/landing/src/builder.js',import.meta.url),'utf8');
+ const studioCss=readFileSync(new URL('../design/landing/src/studio.css',import.meta.url),'utf8');
+ assert.ok(builder.includes("style.setProperty('--brand',get('brand'))"),'the selected salon colour reaches the live preview');
+ assert.ok(builder.includes("style.setProperty('--brand-action',actionBrand(get('brand')))")&&studioCss.includes('var(--brand-action,var(--brand))'),'white action labels use a contrast-safe tint');
+ const actionSource=builder.match(/function actionBrand\(hex\)\{[\s\S]*?\n \}/)?.[0];assert.ok(actionSource);
+ const actionBrand=new Function(actionSource+';return actionBrand')();
+ const lightness=hex=>{const c=hex.slice(1).match(/.{2}/g).map(x=>parseInt(x,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4);return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+ for(const color of ['#068F6C','#FFFF00','#FFFFFF','#FF00FF','#1267FF','#000000'])assert.ok(1.05/(lightness(actionBrand(color))+.05)>=4.5,'live preview action remains legible for '+color);
 });
 
 test('step 24 budget: payload and markup stay inside the review envelope',()=>{
@@ -1600,6 +1634,8 @@ test('step 28 try-on: the demo salon is on the page, with the phone step still i
 test('step 29 mirror: the character can restyle hair and colour, on a real photo',()=>{
  const section=landingHTML.match(/<section id="play"[\s\S]*?<\/section>/)[0]||'';
  assert.ok(section,'the mirror section ships');
+ assert.match(section,/id="playRoom"[^>]*src="(?:\/landing\/|assets\/)hero\.webp\?v=mirror-original"/,'the original photo remains the single base render');
+ assert.doesNotMatch(section,/class="play-backdrop"/,'no second photograph is layered under the selected character');
  // 19 styles and 7 colours, as in the version that earned the request for it.
  const js=landingHTML.match(/<script>([\s\S]*?)<\/script>/g).map(x=>x.slice(8,-9)).join('\n');
  const start=js.indexOf("const STYLES = ['"), end=js.indexOf('];',start);
@@ -1618,8 +1654,13 @@ test('step 29 mirror: the character can restyle hair and colour, on a real photo
  assert.ok(customerJS.length>0);
  assert.ok(js.includes('__AYN_HAIR_COLOR.tint'),'the real tint engine is used');
  assert.ok(js.includes("loadImg(SRC('hair-mask','png'))"),'the hair mask is in the bundle');
- // The plate is placed by the script, on the mirror's own box, so it can never drift off it.
- assert.ok(js.includes('const MIRROR = {x: 478, y: 132, w: 436, h: 330}'),'the plate is anchored on the mirror box');
+ // The plate frames the mirror assembly, whose side panels are real reflections baked into
+ // the single source photo; there is no independent portrait overlay.
+ assert.ok(js.includes('const MIRROR = {x:478,y:145,w:436,h:580}'),'the mirror frame includes its central and side reflections');
+ assert.ok(js.includes('window.__AYN_PORTRAIT.compose'),'style changes preserve one shared face instead of layering another portrait');
+ assert.ok(js.includes('const zoom=Math.min(W/boxW,H/boxH)'),'the complete mirror assembly stays centered and proportional');
+ assert.ok(section.includes('id="playChoiceThumb"')&&section.includes('id="playReplay"'),'the selected model card and replay control ship');
+ assert.ok(js.includes('choiceThumb.src = thumb.currentSrc || thumb.src')&&js.includes("$('playReplay').addEventListener('click'"),'the card follows the selection and replay control is wired');
  assert.ok(js.includes('id="playStyles"')||section.includes('id="playStyles"'),'the style rail exists');
  assert.ok(section.includes('id="playSwatches"'),'the colour palette exists');
  // Every style that claims to render on the mirror has its two files.

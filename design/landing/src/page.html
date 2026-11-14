@@ -439,7 +439,7 @@
           </ul>
         </div>
         <div class="cta-hero__media">
-          <img src="assets/salon-film-03.webp" width="1672" height="941" loading="lazy" alt="فضای یک سالن زیبایی با صندلی و آینه">
+          <img src="assets/salon-film-03.webp" width="1672" height="941" loading="lazy" alt="مشتری و آرایشگر در حال مشاورهٔ رنگ مو در سالن روشن">
         </div>
       </div>
     </div>
@@ -618,20 +618,6 @@
    const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('is-in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -12% 0px',threshold:.12});
    items.forEach(el=>io.observe(el));
   }
- }
- /* mobile sticky action */
- const sticky=document.getElementById('stickyCta');
- if(sticky){
-  /* The demo bar steps aside while the payment sheet is open: a "free demo" button over a
-     checkout is the one place it would be actively misleading. pay.js sets the flag. */
-  const sync=()=>{
-   const paying=document.body.classList.contains('is-paying');
-   const show=!paying&&scrollY>innerHeight*.75;
-   sticky.classList.toggle('show',show);sticky.hidden=false;
-  };
-  addEventListener('scroll',sync,{passive:true});sync();
-  /* pay.js dispatches this whenever the sheet changes state. */
-  addEventListener('ayneh:pay-state',sync);
  }
 })();
 </script>
