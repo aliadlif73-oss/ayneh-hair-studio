@@ -13,6 +13,8 @@
 // Secrets: TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_USERNAME, TELEGRAM_WEBHOOK_SECRET,
 //          BALE_BOT_TOKEN, BALE_BOT_USERNAME (BALE_WEBHOOK_SECRET defaults to the Telegram one).
 import {Problem,must,uid,hash,text,phone,safeLink,digits,limited} from './domain.js';
+import {planOf} from './credits.js';
+import {can} from './plans.js';
 import {inviteReady,sendInvite} from './sms.js';
 import {shareLinks,shareKeyboard} from './share.js';
 import {bucketFor,putImage} from './storage.js';
@@ -434,6 +436,18 @@ const customerText=(status,salon,origin)=>{const prof=parse(salon.profile),tel=p
  return '⏳ «'+salon.name+'» هنوز درخواستت را جواب نداده. اگر عجله داری، مستقیم تماس بگیر.'+tel;
 };
 
+/* One way to move a request's status, for the bot buttons and the panel alike: the salon's
+   status, the first-handled time, and one message to a following customer when it changes. */
+export async function setLeadStatus(env,salon,lead,status,origin=''){
+ if(!LABEL[status])throw new Problem(400,'وضعیت معتبر نیست');
+ const changed=lead.salon_status!==status;
+ await run(env.DB,'UPDATE leads SET salon_status=?,handled_at=COALESCE(handled_at,?) WHERE id=?',status,Date.now(),lead.id);
+ const fresh={...lead,salon_status:status};
+ if(changed)await notifyCustomer(env,fresh,salon,customerText(status,salon,origin));
+ return {changed,lead:fresh};
+}
+export {notifyCustomer};
+
 /* ---------- salon buttons under each submission ---------- */
 const LABEL={called:'📞 تماس گرفتم',booked:'✅ نوبت دادم',declined:'🚫 قابل اجرا نیست'};
 export function leadKeyboard(lead,p,members=[]){
@@ -467,12 +481,11 @@ async function onCallback(ctx,q){
     if(!lead)note='این درخواست دیگر در سیستم نیست';
     else if(!mayAct)note='این درخواست مال نیروی دیگری است';
     else{
-     const changed=lead.salon_status!==status;
-     await run(db,'UPDATE leads SET salon_status=?,handled_at=COALESCE(handled_at,?) WHERE id=?',status,Date.now(),lead.id);
-     const fresh={...lead,salon_status:status};
+     const {lead:fresh}=await setLeadStatus(env,salon,lead,status,ctx.origin);
      try{await call(env,p,'editMessageReplyMarkup',{chat_id:chat,message_id:q.message.message_id,reply_markup:leadKeyboard(fresh,p,fresh.staff_id?[]:await teamOf(db,salon.id))})}catch{}
-     if(changed)await notifyCustomer(env,fresh,salon,customerText(status,salon,ctx.origin));
      note=lead.follow_chat?'ثبت شد و به مشتری خبر دادیم':'ثبت شد';
+     // On a plan with booking, the day and time are set in the panel.
+     if(status==='booked'&&planOf(salon)&&can(salon,'booking'))await ctx.say('📅 برای ثبت روز و ساعت نوبت «'+lead.name+'» و یادآوری خودکار به مشتری، از پنل سالن استفاده کنید:\n'+(ctx.origin||'')+'/panel');
     }
    }
   }
@@ -617,6 +630,12 @@ export async function deliverLead(env,lead){
  const member=lead.staff_id?await one(db,'SELECT * FROM team WHERE id=?',lead.staff_id):null;
  const target=member||salon,members=member?[]:await teamOf(db,salon.id);
  const targets=inboxes(env,target);
+ // A salon on a paid plan reads its own (manager-scope) requests in /panel when its plan has no
+ // bot, or when the bot is not linked yet: nothing waits, nothing is sent, no stuck alert.
+ if(!member&&planOf(salon)&&(!can(salon,'bot')||!targets.length)){
+  await run(db,"UPDATE leads SET status='panel',waiting=0 WHERE id=? AND status IN('queued','retry')",lead.id);
+  return true;
+ }
  if(member&&!targets.length){
   const mark=await run(db,'UPDATE leads SET waiting=1 WHERE id=? AND waiting=0',lead.id);
   if(mark.meta.changes){

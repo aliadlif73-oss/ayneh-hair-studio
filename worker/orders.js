@@ -16,6 +16,7 @@
 import {must, phone, text, uid, digits, hash} from './domain.js';
 import {PLANS, PRICE_MINUTES, TOPUP} from './prices.js';
 import {applyPlan, grant, balance, MONTH} from './credits.js';
+import {featuresOf, OPENED_BY} from './plans.js';
 
 const run = (db, sql, ...a) => db.prepare(sql).bind(...a).run();
 const one = (db, sql, ...a) => db.prepare(sql).bind(...a).first();
@@ -386,6 +387,9 @@ export async function panelDashboard(db, env, {order, salon}) {
     plan: credit ? (PLANS[credit.plan]?.name || credit.plan) : (PLANS[order.plan]?.name || order.plan),
     paid_at: order.confirmed_at, ref: order.ref,
     credits: credit, topup: {images: TOPUP.images, amount: TOPUP.amount},
+    /* What this plan opens; a locked card names the plan that opens it and links to the plans. */
+    features: featuresOf(salon), opened_by: OPENED_BY, service: (() => { try { return JSON.parse(salon.settings || '{}').service || order.service || 'hair'; } catch { return 'hair'; } })(),
+    bot_linked: !!(salon.telegram_chat_id || salon.bale_chat_id),
     topups: topups.map(t => ({ref: t.ref, credits: t.credits, amount: toman(t.amount), status: t.status, created_at: t.created_at})),
     leads: leads.map(l => ({id: l.id, status: l.status, created_at: l.created_at})),
     portfolio: portfolio.map(x => ({id: x.id, title: x.title, line: x.line, image: (JSON.parse(x.images || '[]')[0]) || ''})),

@@ -1833,3 +1833,126 @@ test('credits: a plan salon stops making images at zero or after its end; failed
   const over=await gen();assert.equal(over.status,402);assert.match(over.data.error,/مهلت پلن این سالن تمام شده/);
  }finally{globalThis.fetch=previous}
 });
+
+import {bookingTick, whenText} from '../worker/panelapi.js';
+import {weeklyText} from '../worker/reports.js';
+import {can, FEATURES} from '../worker/plans.js';
+
+/* A salon bought through the checkout, logged in to its panel. */
+async function planSalon(e,plan,phone='09125550000'){
+ const o=await call(e,'/api/order',orderBody(plan,{phone,salon:'Plan Salon'}));
+ await call(e,'/api/owner/orders/'+o.data.id+'/confirm',{},OWNER);
+ const login=await call(e,'/api/panel/login',{key:o.data.access_key});
+ const slug=e.DB.sql.prepare('SELECT s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.id=?').get(o.data.id).slug;
+ return {slug,cookie:login.cookie,order:o.data};
+}
+const panel=(e,ctx,path,body)=>call(e,'/api/panel/'+path,body,{cookie:ctx.cookie});
+
+test('plans: features open per plan; a salon without a plan keeps everything',()=>{
+ const withPlan=key=>({settings:JSON.stringify({plan:{key,start:1,until:Date.now()+86400000}})});
+ for(const f of ['page','gallery','reference','inbox'])assert.ok(can(withPlan('essential'),f),'ESSENTIAL '+f);
+ for(const f of ['bot','booking','report_simple','report_full','archive','priority_support'])assert.equal(can(withPlan('essential'),f),false,'ESSENTIAL has no '+f);
+ for(const f of ['bot','booking','report_simple'])assert.ok(can(withPlan('pro'),f),'PRO '+f);
+ for(const f of ['report_full','archive','priority_support'])assert.equal(can(withPlan('pro'),f),false,'PRO has no '+f);
+ for(const f of FEATURES.signature)assert.ok(can(withPlan('signature'),f),'SIGNATURE '+f);
+ for(const f of FEATURES.signature)assert.ok(can({settings:'{}'},f),'no plan, nothing locked: '+f);
+});
+
+test('panel inbox: an ESSENTIAL salon receives requests in /panel with photos and status buttons; locked features say so',async()=>{
+ const e=tgEnv(fixture());const tg=mockTelegram();try{
+ const ctx=await planSalon(e,'essential');
+ const s={slug:ctx.slug},g=await guest(e,s);
+ const pub=await call(e,'/api/s/'+ctx.slug+'/public');assert.equal(pub.data.telegram,true,'the page offers sending even with no bot');
+ const original=await upload(e,s,g);
+ const sent=await call(e,'/api/s/'+ctx.slug+'/leads',lead(original),g);assert.equal(sent.status,200,JSON.stringify(sent));
+ const row=e.DB.sql.prepare('SELECT status,waiting FROM leads').get();assert.equal(row.status,'panel');assert.equal(row.waiting,0);
+ assert.equal(tg.calls.filter(c=>c.method==='sendPhoto'||c.method==='sendMediaGroup').length,0,'nothing is sent to a bot');
+ assert.equal(tg.calls.filter(c=>/منتظر مدیر/.test(JSON.stringify(c.body))).length,0,'no stuck alert: the panel is the inbox');
+ const list=await panel(e,ctx,'requests');assert.equal(list.status,200,JSON.stringify(list));assert.equal(list.data.requests.length,1);
+ const r=list.data.requests[0];assert.equal(r.name,'سارا محمدی');
+ const img=await app.fetch(new Request(origin+'/api/panel/media/'+r.original_id,{headers:{cookie:ctx.cookie}}),e);assert.equal(img.status,200,'the panel sees its own photo');
+ assert.equal((await app.fetch(new Request(origin+'/api/panel/media/'+r.original_id),e)).status,401,'not without the session');
+ const st=await panel(e,ctx,'requests/'+r.id+'/status',{status:'called'});assert.equal(st.status,200);
+ assert.equal(e.DB.sql.prepare('SELECT salon_status s FROM leads').get().s,'called');
+ for(const [path,body] of [['bookings',undefined],['report',undefined],['customers',undefined],['support',{message:'سلام سلام'}],['bot-link',{}]]){
+  const x=await panel(e,ctx,path,body);assert.equal(x.status,403,path+' is locked on ESSENTIAL');assert.match(x.data.error,/در پلن (PRO|SIGNATURE) و بالاتر باز است/);
+ }
+ const me=await app.fetch(new Request(origin+'/api/panel/me',{headers:{cookie:ctx.cookie}}),e);const d=await me.json();
+ assert.deepEqual(d.features,['page','gallery','reference','inbox']);assert.equal(d.opened_by.archive,'SIGNATURE');
+ }finally{tg.restore()}
+});
+
+test('booking (PRO): a dated booking from a request marks it booked, tells a following customer, reminds once and follows up once',async()=>{
+ const e=tgEnv(fixture());const tg=mockTelegram();try{
+ const ctx=await planSalon(e,'pro');
+ const s={slug:ctx.slug},g=await guest(e,s);const original=await upload(e,s,g);
+ await call(e,'/api/s/'+ctx.slug+'/leads',lead(original),g);
+ const l=e.DB.sql.prepare('SELECT id FROM leads').get();
+ e.DB.sql.prepare("UPDATE leads SET follow_chat='555',follow_platform='telegram' WHERE id=?").run(l.id);
+ // a fixed moment at 12:00 Tehran (08:30 UTC)
+ const noon=Date.UTC(2026,10,16,8,30);
+ const at=noon+20*3600000;
+ const b=await panel(e,ctx,'bookings',{lead_id:l.id,starts_at:Date.now()+20*3600000,duration_min:90,note:'رنگ'});assert.equal(b.status,200,JSON.stringify(b));
+ assert.equal(e.DB.sql.prepare('SELECT salon_status s FROM leads').get().s,'booked');
+ assert.ok(b.data.told,'the following customer is told');
+ assert.ok(tg.calls.some(c=>c.body.chat_id==555&&/نوبت شما در/.test(c.body.text)),'confirmation reached her chat');
+ assert.equal((await panel(e,ctx,'bookings',{lead_id:l.id,starts_at:Date.now()+30*3600000})).status,409,'one active booking per request');
+ const list=await panel(e,ctx,'bookings');assert.equal(list.data.bookings.length,1);assert.match(list.data.bookings[0].when,/ساعت/);
+ // reminder: once, inside Tehran hours
+ e.DB.sql.prepare('UPDATE bookings SET starts_at=?').run(at);
+ const before=tg.calls.length;
+ assert.equal((await bookingTick(e,origin,noon)).reminded,1);
+ assert.equal((await bookingTick(e,origin,noon)).reminded,0,'never twice');
+ assert.ok(tg.calls.slice(before).some(c=>/یادآوری/.test(c.body.text)));
+ e.DB.sql.prepare('UPDATE bookings SET reminded_at=NULL').run();
+ assert.equal((await bookingTick(e,origin,Date.UTC(2026,10,16,19,30))).reminded,0,'not at 23:00 Tehran');
+ // follow-up the day after
+ e.DB.sql.prepare("UPDATE bookings SET status='done',starts_at=?",).run(noon-26*3600000);
+ assert.equal((await bookingTick(e,origin,noon)).followed,1);
+ assert.equal((await bookingTick(e,origin,noon)).followed,0);
+ // move and cancel tell her too
+ const nb=await panel(e,ctx,'bookings',{name:'مشتری حضوری',phone:'09121112233',starts_at:Date.now()+48*3600000});assert.equal(nb.status,200);
+ const mv=await panel(e,ctx,'bookings/'+nb.data.id,{action:'move',starts_at:Date.now()+72*3600000});assert.equal(mv.status,200);
+ const cx=await panel(e,ctx,'bookings/'+nb.data.id,{action:'cancel'});assert.equal(cx.data.status,'cancelled');
+ // PRO: simple report, no archive
+ const rep=await panel(e,ctx,'report');assert.equal(rep.status,200);assert.equal(rep.data.level,'simple');assert.equal(rep.data.current.requests,1);assert.equal(rep.data.current.booked,1);
+ assert.equal(rep.data.current.bookings,1,'a booking made this month counts even when it falls on a later day (the cancelled one does not)');
+ assert.equal((await panel(e,ctx,'customers')).status,403);
+ }finally{tg.restore()}
+});
+
+test('SIGNATURE: full report, customer archive with search and an Excel-ready CSV, priority support',async()=>{
+ const e=tgEnv(fixture());const tg=mockTelegram();try{
+ const ctx=await planSalon(e,'signature');
+ const s={slug:ctx.slug},g=await guest(e,s);const original=await upload(e,s,g);
+ await call(e,'/api/s/'+ctx.slug+'/leads',lead(original),g);
+ await call(e,'/api/s/'+ctx.slug+'/leads',lead(original,{name:'سارا م.'}),g);
+ const rep=await panel(e,ctx,'report');assert.equal(rep.data.level,'full');assert.ok(Array.isArray(rep.data.funnel));assert.ok(Array.isArray(rep.data.staff));
+ const cs=await panel(e,ctx,'customers');assert.equal(cs.status,200);assert.equal(cs.data.customers.length,1,'grouped by mobile');
+ assert.equal(cs.data.customers[0].requests,2);assert.equal(cs.data.customers[0].phone,'09121234567');
+ assert.equal((await panel(e,ctx,'customers?q=0912123')).data.customers.length,1,'search by mobile');
+ assert.equal((await panel(e,ctx,'customers?q=نیست')).data.customers.length,0);
+ const csv=await app.fetch(new Request(origin+'/api/panel/customers.csv',{headers:{cookie:ctx.cookie}}),e);
+ const raw=new Uint8Array(await csv.arrayBuffer());assert.deepEqual([...raw.slice(0,3)],[0xEF,0xBB,0xBF],'UTF-8 BOM so Excel reads Persian');
+ assert.match(new TextDecoder().decode(raw),/09121234567/);
+ assert.equal((await app.fetch(new Request(origin+'/api/panel/customers.csv'),e)).status,401);
+ const sup=await panel(e,ctx,'support',{topic:'راه‌اندازی',message:'ربات را چطور وصل کنم؟'});assert.equal(sup.status,200);
+ for(let i=0;i<8;i++)await panel(e,ctx,'support',{message:'پیام شمارهٔ '+i});
+ assert.equal((await panel(e,ctx,'support',{message:'یکی دیگر'})).status,429,'rate-limited');
+ }finally{tg.restore()}
+});
+
+test('weekly summary text carries counts only, never a mobile; booking times read in Persian',()=>{
+ const t=weeklyText({name:'سالن نمونه'},{level:'full',current:{visitors:12,tries:5,requests:3,booked:2,declined:1,bookings:2,visits:1},previous:{requests:1},response_minutes:14});
+ assert.match(t,/خلاصهٔ هفتگی/);assert.doesNotMatch(t,/09\d{9}|\+98/);
+ assert.match(whenText(Date.UTC(2026,10,16,12,30)),/ساعت ۱۶:۰۰/,'12:30 UTC is 16:00 in Tehran');
+});
+
+test('a request without a valid photo id is a clear 400, not a server error',async()=>{
+ const e=fixture(),s=await salon(e),g=await guest(e,s);
+ await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true},OWNER);
+ for(const bad of [undefined,'','not-an-id']){
+  const r=await call(e,'/api/s/salon-a/leads',lead(bad),g);
+  assert.notEqual(r.status,500,'never a 500 for '+JSON.stringify(bad));
+ }
+});

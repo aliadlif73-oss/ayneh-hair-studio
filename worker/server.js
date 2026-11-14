@@ -13,7 +13,10 @@ import {createTrial,trialOf,trialLive,trialPublic,spendTrialImage} from './trial
 import {PLANS as PLANS_TABLE} from './prices.js';
 import {createOrder,createTopup,customerOrder,setCoupon,markReviewing,confirmOrder,reopenOrder,rekeyOrder,closeExpired,cardSetting,saveCard,
  webhookKey,rotateWebhookKey,panelLogin,panelSalon,panelLogout,panelDashboard,orderById,ORDER_MINUTES,SERVICE_LABEL} from './orders.js';
-import {spendCredit} from './credits.js';
+import {spendCredit,planOf} from './credits.js';
+import {can,featuresOf,OPENED_BY} from './plans.js';
+import {panelApi,bookingTick} from './panelapi.js';
+import {weeklySummaries} from './reports.js';
 export {putImage};
 
 const J=(v,s=200,h={})=>new Response(JSON.stringify(v),{status:s,headers:{'Content-Type':'application/json;charset=utf-8','Cache-Control':'no-store',...h}});
@@ -83,7 +86,7 @@ export async function session(req,db,salon){const t=(req.headers.get('cookie')||
 async function newSession(db,salon){const raw=token(),s={id:uid(),salon_id:salon.id,customer_id:null,token_hash:await hash(raw),expires_at:Date.now()+7*86400000,created_at:Date.now()};await run(db,'INSERT INTO sessions(id,salon_id,customer_id,token_hash,expires_at,created_at) VALUES(?,?,?,?,?,?)',...Object.values(s));return {s,raw};}
 const clientIp=req=>req.headers.get('cf-connecting-ip')||(req.headers.get('x-forwarded-for')||'').split(',')[0].trim()||req.headers.get('x-real-ip')||'unknown';
 // A customer may only use their own uploads, or published portfolio items the salon marked for try-on.
-async function ownMedia(db,s,id){const m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,s.salon_id);must(m,'عکس یافت نشد');if(m.session_id!==s.id)must(await one(db,"SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND try_on=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)",s.salon_id,id),'عکس متعلق به این جلسه نیست',403);return m;}
+async function ownMedia(db,s,id){must(/^[a-f0-9-]{36}$/.test(String(id||'')),'عکس معتبر نیست؛ دوباره عکس بگذارید',400);const m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,s.salon_id);must(m,'عکس یافت نشد');if(m.session_id!==s.id)must(await one(db,"SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND try_on=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)",s.salon_id,id),'عکس متعلق به این جلسه نیست',403);return m;}
 
 // Retention: customer photos, simulations and submissions are kept (the owner asked for permanent
 // records: referrals and customer ownership depend on them). Only expired technical rows go.
@@ -97,10 +100,13 @@ async function cleanup(env){const now=Date.now();
  return {media:0,leads:0};
 }
 export async function tick(env,origin){if(!env.DB)return {ready:false};const delivered=await deliverPending(env,origin);
+ // Booking reminders and follow-ups, and the Saturday summary for plan salons; neither may stop the rest.
+ const bookings=await bookingTick(env,origin).catch(e=>{console.error('bookings tick',e?.message);return null});
+ const weekly=await weeklySummaries(env).catch(e=>{console.error('weekly',e?.message);return 0});
  const expired=await expireStates(env).catch(e=>{console.error('expire',e?.message);return 0});
  const unanswered=await alertUnanswered(env).catch(e=>{console.error('unanswered',e?.message);return 0});
  const digestSent=await maybeDigest(env).catch(e=>{console.error('digest',e?.message);return false});
- const cleaned=await cleanup(env);return {ready:true,delivered,expired,unanswered,digest:digestSent,...cleaned};}
+ const cleaned=await cleanup(env);return {ready:true,delivered,expired,unanswered,digest:digestSent,bookings,weekly,...cleaned};}
 
 async function provider(env,path,body){must(env.KIE_API_KEY,'تولید واقعی هنوز متصل نشده است',503);const res=await fetch('https://api.kie.ai'+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+env.KIE_API_KEY,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const d=await res.json();must(res.ok&&d.code===200,'سرویس تصویر درخواست را نپذیرفت',502);return d.data;}
 // Image model per salon: 'pro' (Nano Banana Pro, best quality, default) or 'fast' (Nano Banana 2.1).
@@ -195,6 +201,8 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  }
 
  /* ---------- salon panel (the door the plan opens) ---------- */
+ // Requests, bot link, bookings, report, archive and support (worker/panelapi.js).
+ {const pa=await panelApi(req,env,u,path);if(pa)return pa;}
  if(path==='/api/panel/login'&&req.method==='POST'){
   await limited(db,'panel-login:'+clientIp(req),20,'تلاش‌های زیاد؛ کمی بعد دوباره امتحان کنید');
   const b=await req.json().catch(()=>({}));
@@ -284,7 +292,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(trial&&!trialLive(trial)&&route!=='public'&&!route.startsWith('owner'))throw new Problem(410,'مهلت ۱۰ ساعتهٔ صفحهٔ آزمایشی تمام شده است؛ برای ادامه با ما تماس بگیرید');
  const readOnly=route==='public'||route==='owner'||route==='requests'||route.startsWith('media/')||route.startsWith('generation/');
  must(route==='session'?['GET','POST'].includes(req.method):req.method===(readOnly?'GET':'POST'),'متد مجاز نیست',405);
- if(route==='public')return J({salon:publicSalon(salon),portfolio:await all(db,'SELECT id,title,category,description,stylist,staff_id AS maker,line,images,try_on,1 AS published FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 ORDER BY created_at DESC',salon.id),generation:!!env.KIE_API_KEY&&!!cfg.generation_enabled&&(!demo||smsReady(env)),reference:refOn(cfg),telegram:inboxes(env,salon).length>0||!!await one(db,'SELECT 1 FROM team WHERE salon_id=? AND active=1',salon.id),follow:Object.keys(followLinks(env,'x')),otp:smsReady(env),notice:'خروجی شبیه‌سازی پیشنهادی است و تضمین اجرا نیست.',trial:trialPublic(trial),demo});
+ if(route==='public')return J({salon:publicSalon(salon),portfolio:await all(db,'SELECT id,title,category,description,stylist,staff_id AS maker,line,images,try_on,1 AS published FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 ORDER BY created_at DESC',salon.id),generation:!!env.KIE_API_KEY&&!!cfg.generation_enabled&&(!demo||smsReady(env)),reference:refOn(cfg),telegram:inboxes(env,salon).length>0||!!planOf(salon)||!!await one(db,'SELECT 1 FROM team WHERE salon_id=? AND active=1',salon.id),follow:Object.keys(followLinks(env,'x')),otp:smsReady(env),notice:'خروجی شبیه‌سازی پیشنهادی است و تضمین اجرا نیست.',trial:trialPublic(trial),demo});
  if(route==='session'&&req.method==='POST'){await limited(db,'session:'+salon.id+':'+clientIp(req),30);const {raw}=await newSession(db,salon);return J({ok:true},200,{'Set-Cookie':cookie(raw)});}
  if(route.startsWith('owner')){
   await owner(req,env);const r=route.slice(6),b=req.method==='GET'?{}:await req.json();
@@ -357,7 +365,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   const cut=(v,n)=>String(v??'').slice(0,n);const name=s.verified_name||text(cut(b.name,100),100);must(name.length>=2,'نام را وارد کنید');const number=s.verified_phone||phone(b.phone);
   const visitorIn=/^[a-f0-9]{16,32}$/.test(String(b.v||''))?String(b.v):'';
   const hasTeam=!!await one(db,'SELECT 1 FROM team WHERE salon_id=? AND active=1',salon.id);
-  must(inboxes(env,salon).length||hasTeam,'این سالن هنوز ارسال آنلاین را فعال نکرده؛ مستقیم با سالن تماس بگیرید',503);
+  must(inboxes(env,salon).length||hasTeam||!!planOf(salon),'این سالن هنوز ارسال آنلاین را فعال نکرده؛ مستقیم با سالن تماس بگیرید',503);
   let handle=text(String(b.telegram||''),40).replace(/^@/,'').replace(/^https?:\/\/t\.me\//,'');if(handle)must(/^[A-Za-z][A-Za-z0-9_]{4,31}$/.test(handle),'آیدی تلگرام معتبر نیست');
   const original=await ownMedia(db,s,b.original_id);must(original.kind==='original','عکس خودتان لازم است');
   if(b.reference_id)await ownMedia(db,s,b.reference_id);
