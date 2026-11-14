@@ -1727,3 +1727,14 @@ test('storybook: six illustrated chapters turn like pages behind the sections',(
  assert.match(landingHTML,/\.story\{position:fixed;inset:0;z-index:-1;pointer-events:none/,'the art sits under the content and never takes a click');
  assert.match(landingHTML,/prefers-reduced-motion:reduce\)\{[^}]*\.story__page\.is-turning\{animation:none/,'reduced motion gets a fade, not a turning page');
 });
+
+test('before/after follows the finger in RTL, plays itself first, and step labels clear their numbers',()=>{
+ // --split is measured from the RIGHT edge, so pointer maths and the range direction must be too
+ assert.ok(landingHTML.includes('set((r.right-e.clientX)/r.width*100)'),'the divider follows the pointer');
+ assert.equal((landingHTML.match(/class="compare__range"[^>]*dir="rtl"/g)||[]).length,2,'both sliders run right-to-left');
+ assert.match(landingHTML,/\.compare__img--after\{clip-path:inset\(0 var\(--split,50%\) 0 0\)\}/,'«بعد» is the left side, under its tag');
+ assert.ok(landingHTML.includes('engines.set(box,play)')&&landingHTML.includes('engines.get(heroBox)'),'each item plays its own before → after');
+ // RTL: the step number sits at the inline start, so the padding that clears it must too
+ assert.match(landingHTML,/\.sb-steps li\{[^}]*padding-inline:46px 14px/,'studio step titles are not under their numbers');
+ assert.doesNotMatch(landingHTML,/\.nav\{[^}]*margin-inline-start:auto/,'the header menu sits beside the logo, not pushed to the left');
+});

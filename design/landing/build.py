@@ -134,7 +134,7 @@ h = h.replace('</body>', '''<div id="aynehBuildTag" aria-hidden="true" style="po
 # actions — look at the samples, or buy a panel — so there is no request to send and no
 # follow-up message to show.
 SCRIPTS = ['funnel.js', 'story.js', 'films.js', 'tryon.js', 'play.js', 'draft.js', 'portrait.js',
-           'hair-color.js', 'compare.js', 'try.js', 'reveal.js', 'cinema2.js',
+           'hair-color.js', 'try.js', 'reveal.js', 'cinema2.js',
            'builder.js', 'refine.js', 'pay.js', 'cta.js']
 # Hair-colour maths and the photo handoff are used by the studio. hero.js, scenes.js,
 # and cinema.js drove the retired film sections. cta.js owns the mobile sticky action,
