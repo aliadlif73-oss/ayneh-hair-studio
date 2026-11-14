@@ -16,7 +16,7 @@ W = lambda p, s: open(p, 'w', encoding='utf8').write(s)
 # Everything the new page references, synced into public/landing/ so the worker
 # and the static preview read the same bytes.
 DEMOS = ['demo-%s-%s.webp' % (s, k) for s in ('style', 'color', 'lashes', 'nails') for k in ('before', 'after')]
-SYNC = re.compile(r'(hero\.webp|salon-film-0[1-5]\.webp|(?:hair|lashes|nails)-end\.webp|%s|estedad\.woff2|look-s\d\d\.webp|(?:hero|look-s\d\d)-hd\.webp)$' % '|'.join(re.escape(d) for d in DEMOS))
+SYNC = re.compile(r'(hero\.webp|salon-film-0[1-5]\.webp|(?:hair|lashes|nails)-end\.webp|%s|estedad\.woff2|look-s\d\d\.webp|(?:hero|look-s\d\d)-hd\.webp|story-\d[lr]\.webp)$' % '|'.join(re.escape(d) for d in DEMOS))
 for asset in os.listdir('assets'):
     if SYNC.match(asset):
         shutil.copyfile('assets/' + asset, '../../public/landing/' + asset)
@@ -133,7 +133,7 @@ h = h.replace('</body>', '''<div id="aynehBuildTag" aria-hidden="true" style="po
 # followup.js and lead.js retired with the demo-request form: the page now has exactly two
 # actions — look at the samples, or buy a panel — so there is no request to send and no
 # follow-up message to show.
-SCRIPTS = ['funnel.js', 'films.js', 'tryon.js', 'play.js', 'draft.js', 'portrait.js',
+SCRIPTS = ['funnel.js', 'story.js', 'films.js', 'tryon.js', 'play.js', 'draft.js', 'portrait.js',
            'hair-color.js', 'compare.js', 'try.js', 'reveal.js', 'cinema2.js',
            'builder.js', 'refine.js', 'pay.js', 'cta.js']
 # Hair-colour maths and the photo handoff are used by the studio. hero.js, scenes.js,

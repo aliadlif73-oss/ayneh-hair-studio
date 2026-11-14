@@ -1166,3 +1166,51 @@ body.is-paying .sticky-cta{display:none!important}
   position:relative;z-index:1;
   filter:drop-shadow(0 1px 0 rgba(255,255,255,.92)) drop-shadow(0 2px 1px rgba(11,59,50,.24));
 }
+
+/* ============================================================================
+   The storybook — one salon day, dawn to dusk, in six illustrated chapters
+   (src/story.js). The layer is fixed under the content (z-index -1, the page
+   colour lives on <html>), its art only fills the side margins, and turning
+   into the next chapter turns the current page over like a book page.
+   ============================================================================ */
+html{background:var(--cream)}
+body{background:transparent}
+/* The sections stop painting their own flat colour so the chapter shows through; the
+   alternating rhythm survives as a light veil instead of an opaque block. */
+.section--soft,.tryon,#salon-example{background:rgba(248,240,232,.5)}
+.films,.play,.cta-section{background:transparent}
+.story{position:fixed;inset:0;z-index:-1;pointer-events:none;perspective:2200px;overflow:hidden;contain:strict}
+.story__page{position:absolute;inset:0;opacity:0;visibility:hidden;transform-style:preserve-3d;backface-visibility:hidden;
+  transform-origin:100% 50%;transition:opacity .45s var(--ease),visibility 0s .45s}
+.story__page.is-on{opacity:1;visibility:visible;transition:opacity .45s var(--ease),visibility 0s}
+.story__page.is-under{z-index:1}
+.story__page.is-turning{z-index:2;animation:storyTurn 1s cubic-bezier(.55,.05,.35,1) forwards}
+.story__page.is-turning.is-back{transform-origin:0% 50%;animation-name:storyTurnBack}
+/* the turning page catches light, then falls into shadow as it goes over */
+.story__page::after{content:"";position:absolute;inset:0;opacity:0;
+  background:linear-gradient(90deg,rgba(10,32,42,.10),rgba(252,243,235,.0) 40%,rgba(252,243,235,.55) 100%)}
+.story__page.is-turning::after{animation:storyShade 1s ease-in-out forwards}
+@keyframes storyTurn{0%{transform:rotateY(0)}100%{transform:rotateY(-105deg);opacity:.15}}
+@keyframes storyTurnBack{0%{transform:rotateY(0)}100%{transform:rotateY(105deg);opacity:.15}}
+@keyframes storyShade{0%{opacity:0}45%{opacity:1}100%{opacity:.6}}
+.story__art{position:absolute;top:50%;height:min(100vh,1040px);width:auto;max-width:none;transform:translateY(-50%);opacity:.5}
+.story__art--l{left:0}
+.story__art--r{right:0}
+/* the folio: which chapter of the day this is */
+.story__folio{position:absolute;left:clamp(14px,2vw,28px);bottom:clamp(14px,2.4vh,26px);display:grid;gap:1px;
+  padding:7px 13px;border-radius:var(--r-pill);background:rgba(252,243,235,.86);border:1px solid var(--line-2);
+  box-shadow:var(--shadow-sm);font-size:11px;line-height:1.6;color:var(--ink-soft)}
+.story__num{font-weight:800;color:var(--emerald-deep);letter-spacing:.01em}
+.story__name{font-weight:700}
+@media(max-width:1100px){.story__folio{display:none}}
+@media(max-width:900px){
+  /* Phones and tablets: the margins are thin, so each chapter keeps one corner of art at the
+     top and one at the bottom, smaller and lighter, behind the content. */
+  .story__art{height:36vh;opacity:.2;transform:none}
+  .story__art--l{top:0}
+  .story__art--r{top:auto;bottom:0}
+}
+@media(prefers-reduced-motion:reduce){
+  .story__page.is-turning{animation:none;opacity:0}
+  .story__page.is-turning::after{animation:none}
+}

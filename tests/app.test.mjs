@@ -1717,3 +1717,13 @@ test('step 30 cinema: every section has a scroll-scrubbed entrance, and none can
  assert.ok(landingHTML.includes('class="no-cinema"'),'the no-JS guard is on the root element');
  assert.ok(landingHTML.includes('cine-word'),'headlines are split into words at runtime');
 });
+
+test('storybook: six illustrated chapters turn like pages behind the sections',()=>{
+ assert.ok(landingHTML.includes("className = 'story'")&&landingHTML.includes("setAttribute('aria-hidden', 'true')"),'the story layer ships and is decorative');
+ for(const id of ['intro','features','films','try-on','play','how','why','proof','services','cta','faq','salon-example'])
+  assert.ok(landingHTML.includes("'"+id+"'"),'section '+id+' belongs to a chapter');
+ for(let n=1;n<=6;n++)for(const s of ['l','r'])
+  assert.ok(existsSync(new URL('../public/landing/story-'+n+s+'.webp',import.meta.url)),'chapter '+n+s+' art ships');
+ assert.match(landingHTML,/\.story\{position:fixed;inset:0;z-index:-1;pointer-events:none/,'the art sits under the content and never takes a click');
+ assert.match(landingHTML,/prefers-reduced-motion:reduce\)\{[^}]*\.story__page\.is-turning\{animation:none/,'reduced motion gets a fade, not a turning page');
+});
