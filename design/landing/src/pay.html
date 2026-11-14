@@ -8,7 +8,7 @@
         <div class="pay-card__head">
           <span class="eyebrow">پرداخت</span>
           <h2 id="h-pay" class="h2">خرید <em id="payPlan">—</em></h2>
-          <p class="sub" id="paySub">مبلغ را به شمارهٔ کارت زیر واریز کنید؛ مهلت پرداخت با شمارش معکوس پایین می‌آید.</p>
+          <p class="sub" id="paySub">مبلغ را کارت‌به‌کارت واریز کنید و رسید را همین‌جا بفرستید.</p>
         </div>
 
         <!-- step 1: the customer's details (only when they came here without the form) -->
@@ -35,11 +35,16 @@
             <div class="pay-figure pay-figure--timer">
               <span>مهلت پرداخت</span>
               <b><span id="payClock" dir="ltr">۱۰:۰۰</span></b>
-              <em id="payDeadlineHint">پس از پایان این زمان، سفارش بسته می‌شود.</em>
+              <em id="payDeadlineHint">اگر وقت تمام شد، دوباره «خرید» را بزنید. اگر واریز کرده‌اید، نگران نباشید و رسید را بفرستید.</em>
             </div>
           </div>
 
           <div class="pay-timer" aria-hidden="true"><span id="payTimerBar"></span></div>
+          <form class="pay-coupon" id="payCoupon" novalidate>
+            <label class="field"><span>کد تخفیف <small>اختیاری</small></span><input id="payCouponCode" name="coupon" maxlength="24" dir="ltr" placeholder="AYNEH…"></label>
+            <button class="btn btn--ghost" type="submit" id="payCouponApply">اعمال</button>
+          </form>
+          <p class="pay-err" id="payCouponErr" role="alert" hidden></p>
 
           <div class="pay-card-box">
             <div class="pay-card-box__label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M2.5 10h19" stroke-linecap="round"/></svg><span>شمارهٔ کارت برای واریز</span></div>
@@ -48,34 +53,15 @@
               <button class="btn btn--ghost btn--sm" type="button" id="payCopy">کپی</button>
             </div>
             <p class="pay-card-box__owner" id="payCardOwner">—</p>
-            <p class="pay-card-box__warn" id="payCardWarn" hidden>شمارهٔ کارت هنوز از پنل مدیر پر نشده است. تا آن لحظه به هیچ حسابی واریز نکنید؛ همین صفحه پس از ثبت شماره، خودکار تازه می‌شود.</p>
-            <p class="pay-ref">در توضیحات واریز این کد را بنویسید: <b id="payRef" dir="ltr">—</b></p>
-          <div class="pay-key" id="payKeyBox" hidden>
-            <span>کلید ورود شما به پنل</span>
-            <b id="payKey" dir="ltr">—</b>
-            <button class="btn btn--ghost btn--sm" type="button" id="payKeyKeep">کپی کلید</button>
-            <em>این کلید بعد از تأیید پرداخت هم یک بار دیگر نشان داده می‌شود، ولی جای دیگری ذخیره نیست. همین حالا کپی کنید و جای امنی نگه دارید.</em>
+            <p class="pay-card-box__warn" id="payCardWarn" hidden>پرداخت موقتاً بسته است: شمارهٔ کارت آینه هنوز ثبت نشده. به هیچ حسابی واریز نکنید؛ همین صفحه پس از ثبت شماره خودکار تازه می‌شود. سؤال دارید؟ ۰۹۱۰۵۶۴۷۴۹۷</p>
+            <p class="pay-ref">این کد را در توضیحات واریز بنویسید تا واریزتان شناخته شود: <b id="payRef" dir="ltr">—</b></p>
           </div>
-          <p class="pay-key-lost" id="payKeyLost" hidden>کلید ورود را در باز شدن سفارش دیدید. اگر آن را نگه نداشته‌اید، بعد از تأیید پرداخت از پشتیبانی بخواهید کلید تازه بسازد.</p>
-          </div>
-
-          <ol class="pay-steps">
-            <li>مبلغ را کارت‌به‌کارت واریز کنید.</li>
-            <li>رسید یا شمارهٔ پیگیری را همین‌جا بفرستید.</li>
-            <li>پس از تأیید، پنل سالن و لینک اختصاصی شما باز می‌شود.</li>
-          </ol>
 
           <form class="pay-receipt" id="payReceipt" novalidate>
-            <label class="field"><span>شمارهٔ پیگیری یا توضیح واریز <small>اختیاری</small></span><input id="payReceiptNote" name="receipt" maxlength="120" placeholder="مثلاً ۱۲۳۴۵۶ یا ۴ رقم آخر کارت"></label>
+            <label class="field"><span>شمارهٔ پیگیری بانک یا ۴ رقم آخر کارتتان</span><input id="payReceiptNote" name="receipt" maxlength="120" placeholder="مثلاً ۱۲۳۴۵۶ یا ۶۰۳۷"><small class="field__hint">هر کدام کافی است؛ با آن واریزتان را پیدا می‌کنیم.</small></label>
             <button class="btn btn--lg btn--block" type="submit" id="paySent">پرداخت کردم</button>
           </form>
           <p class="pay-err" id="payReceiptErr" role="alert" hidden></p>
-
-          <form class="pay-coupon" id="payCoupon" novalidate>
-            <label class="field"><span>کد تخفیف <small>اختیاری</small></span><input id="payCouponCode" name="coupon" maxlength="24" dir="ltr" placeholder="AYNEH…"></label>
-            <button class="btn btn--ghost" type="submit" id="payCouponApply">اعمال</button>
-          </form>
-          <p class="pay-err" id="payCouponErr" role="alert" hidden></p>
         </div>
 
         <!-- step 3: waiting for the owner or the payment site to confirm -->
@@ -84,6 +70,13 @@
           <h3>رسید شما ثبت شد</h3>
           <p id="payWaitText">در حال بررسی واریز هستیم. این صفحه هر چند ثانیه خودش را تازه می‌کند؛ لازم نیست کاری کنید.</p>
           <p class="pay-wait__ref">کد سفارش: <b id="payWaitRef" dir="ltr">—</b></p>
+          <div class="pay-key" id="payKeyBox" hidden>
+            <span>کلید ورود به پنل شما</span>
+            <b id="payKey" dir="ltr">—</b>
+            <button class="btn btn--ghost btn--sm" type="button" id="payKeyKeep">کپی کلید</button>
+            <em>بعد از تأیید پرداخت، با این کلید وارد پنل می‌شوید. همین حالا کپی کنید و جایی نگه دارید (مثلاً در «پیام‌های ذخیره‌شده» تلگرام).</em>
+          </div>
+          <p class="pay-key-lost" id="payKeyLost" hidden>کلید ورود روی مرورگری ساخته شد که خرید را با آن شروع کردید. اگر آن را نگه نداشته‌اید، بعد از تأیید پرداخت از پشتیبانی بخواهید کلید تازه بسازد.</p>
           <button class="btn btn--ghost" type="button" id="payCheck">بررسی دوبارهٔ وضعیت</button>
           <a class="pay-wait__call" href="tel:09105647497">یا با ما تماس بگیرید: ۰۹۱۰۵۶۴۷۴۹۷</a>
         </div>
@@ -92,7 +85,7 @@
         <div class="pay-done" id="payDone" hidden>
           <div class="pay-done__tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
           <h3>پرداخت تأیید شد</h3>
-          <p>پنل سالن و صفحهٔ اختصاصی شما باز شد. کلید ورود همان است که هنگام پرداخت دیدید؛ اگر کپی نکرده‌اید، همین حالا بردارید.</p>
+          <p>صفحهٔ اختصاصی و پنل شما باز شد. این کلید ورود به پنل است؛ اگر کپی نکرده‌اید، همین حالا بردارید و جایی نگه دارید.</p>
           <div class="pay-done__key">
             <span>کلید ورود به پنل</span>
             <b id="payAccessKey" dir="ltr">—</b>
@@ -102,7 +95,7 @@
             <a class="btn btn--lg" id="payPanelLink" href="/panel" hidden>ورود به پنل سالن</a>
             <a class="btn btn--ghost btn--lg" id="payPageLink" href="#" hidden>دیدن صفحهٔ اختصاصی</a>
           </div>
-          <p class="pay-done__note" id="payDoneNote" hidden>کلید ورود همان است که هنگام باز شدن سفارش دیدید. اگر آن را نگه نداشته‌اید، از پشتیبانی بخواهید کلید تازه بسازد.</p>
+          <p class="pay-done__note" id="payDoneNote" hidden>کلید ورود روی همان مرورگری بود که خرید را شروع کردید. اگر آن را نگه نداشته‌اید، از پشتیبانی بخواهید کلید تازه بسازد.</p>
         </div>
 
         <!-- step 5: the window closed -->

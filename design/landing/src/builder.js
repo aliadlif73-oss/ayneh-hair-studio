@@ -100,7 +100,7 @@
   if(!wizardReady){document.getElementById('wizardNext')?.click();return}
   location.hash='#services';
  });
- activate.addEventListener('click',()=>{window.__AYN_TRACK?.('cta_click',{label:'خرید پنل',href:'#services',where:'studio'})});
+ activate.addEventListener('click',()=>{window.__AYN_TRACK?.('cta_click',{label:'انتخاب پلن',href:'#services',where:'studio'})});
  addEventListener('ayneh:wizard-ready',()=>{
   if(wizardReady)return;
   wizardReady=true;
@@ -108,6 +108,6 @@
   /* The preview is the free half of the journey; the paid half is one anchor away.
      The button under the preview appears with it, so the next step is always visible. */
   activate.hidden=false;
-  hint.textContent='پیش‌نمایش آماده است. برای باز کردن این صفحه با نشانی خودتان، پنل مناسب را بخرید.';
+  hint.textContent='پیش‌نمایش آماده است. برای باز کردن این صفحه با نشانی خودتان، پلن مناسب را بخرید.';
  });
 })();

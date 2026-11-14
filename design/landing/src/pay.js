@@ -124,7 +124,11 @@
     $('payCardOwner').textContent = order.card_owner || 'صاحب حساب: —';
     $('payCardWarn').hidden = !!order.card;
     $('payCopy').disabled = !order.card;
-    /* The key is shown here (twice at most: now and on the done screen) and nowhere else. */
+    /* No card saved yet: nothing can be paid, so no clock and no "I paid" button either. */
+    $('payReceipt').hidden = !order.card;
+    view.live.querySelector('.pay-figure--timer').hidden = !order.card;
+    view.live.querySelector('.pay-timer').hidden = !order.card;
+    /* The key is drawn on the waiting screen and again on the done screen, nowhere else. */
     $('payKeyBox').hidden = !state.key;
     $('payKey').textContent = state.key || '—';
     $('payKeyLost').hidden = !!state.key;
@@ -191,6 +195,12 @@
       show('expired');
       return;
     }
+    /* Still open (no receipt yet): stay on the live screen. Redraw only when the owner has
+       just saved the card, so the warning gives way to the real number. */
+    if (order.status === 'open') {
+      if (view.live.hidden || ($('payCardWarn').hidden !== !!order.card)) draw(order);
+      return;
+    }
     if (order.status === 'reviewing') {
       $('payWaitText').textContent = 'رسید شما ثبت شد و در حال بررسی است. به‌محض تأیید، همین صفحه پنل و لینک اختصاصی را نشان می‌دهد.';
       $('payWait').querySelector('h3').textContent = 'در انتظار تأیید';
@@ -226,7 +236,7 @@
       if (!open) {
         const note = document.querySelector('.plan__state[data-for="' + key + '"]');
         if (note) {
-          note.textContent = 'مبلغ این پنل هنوز نهایی نشده است؛ به‌محض نهایی‌شدن، همین‌جا و در فهرست پایین پنل‌ها نوشته می‌شود. تا آن روز چیزی پرداخت نمی‌کنید.';
+          note.textContent = 'مبلغ این پلن هنوز نهایی نشده است؛ به‌محض نهایی‌شدن، همین‌جا نوشته می‌شود. تا آن روز چیزی پرداخت نمی‌کنید.';
           note.hidden = false;
         }
         track('buy_unpriced', key);
@@ -238,7 +248,7 @@
       state.plan = key;
       section.hidden = false;
       $('payPlan').textContent = (planOf(key)?.querySelector('h3')?.textContent || '').trim();
-      $('paySub').textContent = 'خرید پلن ' + $('payPlan').textContent + '. مبلغ را کارت‌به‌کارت واریز کنید؛ مهلت با شمارش معکوس پایین می‌آید.';
+      $('paySub').textContent = 'مبلغ را کارت‌به‌کارت واریز کنید و رسید را همین‌جا بفرستید.';
       show('form');
       section.scrollIntoView({behavior: 'smooth', block: 'start'});
       if ($('paySalon').value.trim() && $('payName').value.trim() && $('payPhone').value.trim()) open(key);

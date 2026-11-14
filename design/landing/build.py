@@ -61,6 +61,28 @@ def millions(toman):
     return fa_int(s).replace('.', '٫')
 
 
+# Plain-words notes under the owner's bullet wording (the wording itself stays exactly as on
+# the price sheet). Keyed by the bullet; a gift-credit bullet matches by prefix.
+PLAN_NOTES = {
+    'صفحه اختصاصی متخصص': 'یک لینک به نام شما برای بیو اینستاگرام',
+    'گالری نمونه‌کار': 'کارهای خودتان را از پنل اضافه می‌کنید',
+    'تست مدل با عکس مرجع': 'مشتری عکس مدلی را که دوست دارد هم می‌گذارد',
+    'دریافت درخواست مشتری': 'با عکس و انتخاب مشتری، در پنل شما',
+    'اعتبار هدیه': 'هر تصویری که برای مشتری ساخته شود یک اعتبار است؛ ناموفق‌ها حساب نمی‌شوند',
+    'اتصال پیام‌رسان': 'درخواست‌ها در تلگرام یا بله هم می‌رسد',
+    'نوبت‌دهی و پیگیری': 'شما نوبت را ثبت می‌کنید؛ تأیید و یادآوری در تلگرام یا بله به مشتری می‌رسد',
+    'گزارش عملکرد ساده': 'بازدید، امتحان، درخواست و نوبت‌های ماه',
+    'گزارش عملکرد کامل': 'به‌علاوهٔ مدل‌های پرطرفدار، آمار هر همکار و زمان پاسخ',
+    'آرشیو مشتریان': 'فهرست مشتری‌ها با جستجو و خروجی اکسل',
+    'پشتیبانی ویژه': 'پیام از داخل پنل، با اولویت پاسخ',
+}
+
+
+def plan_note(f):
+    n = PLAN_NOTES.get(f) or next((v for k, v in PLAN_NOTES.items() if f.startswith(k)), '')
+    return '<span>' + f + ('<small>' + n + '</small>' if n else '') + '</span>'
+
+
 TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 CAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3.5V6M16 3.5V6" stroke-linecap="round"/></svg>'
 CROWN = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 8l4.5 3.5L12 5l4.5 6.5L21 8l-2 10H5Z"/></svg>'
@@ -70,7 +92,7 @@ def plan_card(p):
     lead = ' plan--lead' if p['badge'] else ''
     badge = ('<span class="plan__badge">' + CROWN + p['badge'] + '</span>') if p['badge'] else ''
     was = ('<p class="plan__was"><s>' + millions(p['was']) + ' میلیون تومان</s></p>') if p['was'] else '<p class="plan__was" aria-hidden="true">&nbsp;</p>'
-    feats = ''.join('<li>' + TICK + f + '</li>' for f in p['features'])
+    feats = ''.join('<li>' + TICK + plan_note(f) + '</li>' for f in p['features'])
     return (
         '<article class="plan' + lead + '" data-plan="' + p['key'] + '">' + badge
         + '<h3 lang="en" dir="ltr">' + p['name'] + '</h3>'
@@ -127,9 +149,11 @@ SERVICES = {
         'eyebrow': 'برای متخصصان مدل و رنگ مو',
         'h1': 'مشتری مدل و رنگ مو را', 'accent': 'روی عکس خودش ببیند',
         'lead': 'اگر در لاین مدل مو و رنگ مو فعالیت دارید، آینه به مشتری‌تان اجازه می‌دهد کوتاهی، مدل و رنگ دلخواهش را پیش از مراجعه روی عکس خودش امتحان کند و همان انتخاب را با عکس برایتان بفرستد.',
-        'points': ['۱۹ مدل مو و ۷ رنگ، روی همان چهره', 'تست مدل با عکس مرجعِ خودِ مشتری', 'درخواست مستقیم با عکس، در تلگرام یا بله'],
+        'points': ['۱۹ مدل مو و ۷ رنگ، روی چهرهٔ خودِ مشتری', 'تست مدل با عکس مرجعِ خودِ مشتری', 'درخواست با عکس، در پنل شما (و در PRO در تلگرام یا بله)'],
         'pairs': [('style', 'مدل مو'), ('color', 'رنگ مو')], 'films': ['hair'], 'lines': ['hair', 'color'], 'play': True,
         'films_sub': 'یک ویدئوی کوتاه از کاری که مشتری شما برای مدل و رنگ مو در صفحهٔ اختصاصی‌تان انجام می‌دهد.',
+        'how': ('مشتری یک عکس روبه‌رو از چهره‌اش می‌گذارد.', 'انتخاب مدل یا رنگ مو', 'مدل یا رنگ مو را انتخاب می‌کند؛ اگر بخواهد عکس مرجعِ مدل دلخواهش را هم می‌گذارد.'),
+        'photo': 'یک عکس روبه‌رو با صورت و موی کامل، بدون کلاه و عینک آفتابی، در نور طبیعی. برای رنگ مو، موهای باز بهتر جواب می‌دهد.',
     },
     'nails': {
         'label': 'ناخن', 'path': '/nails',
@@ -138,9 +162,11 @@ SERVICES = {
         'eyebrow': 'برای متخصصان ناخن',
         'h1': 'مشتری طرح و رنگ ناخن را', 'accent': 'روی دست خودش ببیند',
         'lead': 'اگر در لاین ناخن فعالیت دارید، آینه به مشتری‌تان اجازه می‌دهد طرح و رنگ دلخواهش را پیش از مراجعه روی عکس دست خودش امتحان کند و همان انتخاب را با عکس برایتان بفرستد.',
-        'points': ['طرح و رنگ ناخن روی عکس دست خودِ مشتری', 'تست طرح با عکس مرجع', 'درخواست مستقیم با عکس، در تلگرام یا بله'],
+        'points': ['طرح و رنگ ناخن روی عکس دست خودِ مشتری', 'تست طرح با عکس مرجع', 'درخواست با عکس، در پنل شما (و در PRO در تلگرام یا بله)'],
         'pairs': [('nails', 'ناخن')], 'films': ['nails'], 'lines': ['nails'], 'play': False,
         'films_sub': 'یک ویدئوی کوتاه از کاری که مشتری شما برای ناخن در صفحهٔ اختصاصی‌تان انجام می‌دهد.',
+        'how': ('مشتری یک عکس واضح از دستش می‌گذارد.', 'انتخاب طرح و رنگ ناخن', 'طرح و رنگ ناخن را انتخاب می‌کند؛ اگر بخواهد عکس مرجعِ طرح دلخواهش را هم می‌گذارد.'),
+        'photo': 'یک عکس واضح از پشت دست با انگشت‌های باز، روی زمینهٔ ساده و در نور طبیعی.',
     },
     'lashes': {
         'label': 'مژه', 'path': '/lashes',
@@ -149,9 +175,11 @@ SERVICES = {
         'eyebrow': 'برای متخصصان مژه',
         'h1': 'مشتری مدل مژه را', 'accent': 'روی عکس خودش ببیند',
         'lead': 'اگر در لاین مژه فعالیت دارید، آینه به مشتری‌تان اجازه می‌دهد مدل مژهٔ دلخواهش را پیش از مراجعه روی عکس چشم خودش امتحان کند و همان انتخاب را با عکس برایتان بفرستد.',
-        'points': ['مدل مژه روی عکس چشم خودِ مشتری', 'تست مدل با عکس مرجع', 'درخواست مستقیم با عکس، در تلگرام یا بله'],
+        'points': ['مدل مژه روی عکس چشم خودِ مشتری', 'تست مدل با عکس مرجع', 'درخواست با عکس، در پنل شما (و در PRO در تلگرام یا بله)'],
         'pairs': [('lashes', 'مژه')], 'films': ['lashes'], 'lines': ['lashes'], 'play': False,
         'films_sub': 'یک ویدئوی کوتاه از کاری که مشتری شما برای مژه در صفحهٔ اختصاصی‌تان انجام می‌دهد.',
+        'how': ('مشتری یک عکس نزدیک و روبه‌رو از چشم‌هایش می‌گذارد.', 'انتخاب مدل مژه', 'مدل مژه را انتخاب می‌کند؛ اگر بخواهد عکس مرجعِ مدل دلخواهش را هم می‌گذارد.'),
+        'photo': 'یک عکس نزدیک و روبه‌رو از چشم‌ها، بدون عینک، با چشم باز و در نور طبیعی.',
     },
 }
 CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.4 2.6 2.6L16 9.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -189,7 +217,7 @@ def shell(h, main, items, cta, service='', title='', desc=''):
     out = re.sub(r'<main id="main">[\s\S]*?</main>', lambda m: '<main id="main">\n' + main + '\n</main>', h, count=1)
     out = re.sub(r'(<nav class="nav" aria-label="ناوبری اصلی">)[\s\S]*?(</nav>)', lambda m: m.group(1) + nav(items) + m.group(2), out, count=1)
     out = re.sub(r'(<nav id="mobile-menu"[^>]*>)[\s\S]*?(</nav>)', lambda m: m.group(1) + mobile(items, cta) + m.group(2), out, count=1)
-    out = re.sub(r'(<div class="header-cta">[\s\S]*?)<a class="btn" href="#services">(<svg[\s\S]*?</svg>)خرید پنل</a>',
+    out = re.sub(r'(<div class="header-cta">[\s\S]*?)<a class="btn" href="#services">(<svg[\s\S]*?</svg>)خرید پلن</a>',
                  lambda m: m.group(1) + '<a class="btn" href="' + cta[0] + '">' + m.group(2) + cta[1] + '</a>', out, count=1)
     if service:
         out = out.replace('<body>', '<body data-service="' + service + '">', 1)
@@ -201,7 +229,7 @@ def shell(h, main, items, cta, service='', title='', desc=''):
         out = re.sub(r'(<meta property="og:description" content=")[^"]*', lambda m: m.group(1) + desc, out, count=1)
     # An in-page link to a section this page does not carry goes to the page that does.
     ids = set(re.findall(r'\bid="([\w-]+)"', out))
-    home_ids = {'samples', 'choose', 'why', 'proof'}
+    home_ids = {'samples', 'choose', 'why'}
     def fix(m):
         target = m.group(1)
         if target in ids:
@@ -217,16 +245,15 @@ def make_pages(full):
     home_main = (
         section(src, 'intro')
         .replace('<a class="btn btn--lg" href="#services">', '<a class="btn btn--lg" href="#choose">', 1)
-        .replace('خرید پنل</a>', 'انتخاب خدمت</a>', 1)
+        .replace('خرید پلن</a>', 'امتحان رایگان و قیمت‌ها</a>', 1)
         .replace('<a class="btn btn--ghost btn--lg" href="#how">', '<a class="btn btn--ghost btn--lg" href="#samples">', 1)
         .replace('مشاهده معرفی در ۲ دقیقه', 'دیدن نمونه‌کارها', 1)
         + R('src/samples.html') + section(src, 'why') + R('src/services-cta.html')
-        + section(src, 'proof')
-        + faq.replace('href="#services">دیدن پنل‌ها و خرید</a>', 'href="#choose">انتخاب خدمت</a>')
+        + faq.replace('href="#services">دیدن پلن‌ها و قیمت</a>', 'href="#choose">انتخاب خدمت و قیمت‌ها</a>')
     )
     pages = {'home': shell(full, home_main,
                            [('#intro', 'خانه'), ('#samples', 'نمونه‌کارها'), ('#choose', 'خدمات'), ('#why', 'چرا آینه؟'), ('#faq', 'سوالات متداول')],
-                           ('#choose', 'انتخاب خدمت'))}
+                           ('#choose', 'امتحان و قیمت'))}
     hero_tpl = R('src/service-hero.html')
     for key, s in SERVICES.items():
         first, first_label = s['pairs'][0]
@@ -246,11 +273,23 @@ def make_pages(full):
         tryon = keep_buttons(R('src/tryon.html'), 'data-line', s['lines'])
         if len(s['lines']) == 1:
             tryon = tryon.replace('<div class="tryon__lines"', '<div class="tryon__lines" hidden', 1)
-        tryon = tryon.replace('href="#services" class="tryon__buy">این را برای مشتری‌های خودتان می‌خواهید؟ دیدن پنل‌ها',
-                              'href="#services" class="tryon__buy">این را برای مشتری‌های خودتان می‌خواهید؟ دیدن پلن‌ها')
+        how = section(src, 'how')
+        how = how.replace('<p>مشتری از چهره یا موی خود عکس بارگذاری می‌کند.</p>', '<p>' + s['how'][0] + '</p>', 1)
+        how = how.replace('<h3>انتخاب خدمت و مدل</h3>', '<h3>' + s['how'][1] + '</h3>', 1)
+        how = how.replace('<p>خدمت موردنظر (مثل رنگ، کوتاهی و…) و مدل دلخواه را انتخاب می‌کند.</p>', '<p>' + s['how'][2] + '</p>', 1)
+        assert s['how'][2] in how, key + ': how-it-works copy'
+        if first != 'style':
+            # The step pictures follow the service, not the hairstyle demo.
+            how = re.sub(r'<span class="step__picks"[\s\S]*?</span>\n?', '', how, count=1)
+            how = re.sub(r'assets/demo-(?:style|color)-(before|after)\.webp', lambda m: 'assets/demo-' + first + '-' + m.group(1) + '.webp', how)
+            how = how.replace('مشتری از چهره یا موی خود عکس می‌گذارد', s['how'][0].rstrip('.'))
+        sfaq = faq.replace('<summary>آینه دقیقاً چه کاری برای من می‌کند؟</summary>',
+                           '<summary>مشتری چه عکسی باید بگذارد؟</summary>\n            <div class="faq-item__body">' + s['photo'] + '</div>\n          </details>\n          <details class="faq-item">\n            <summary>آینه دقیقاً چه کاری برای من می‌کند؟</summary>', 1)
+        sfaq = sfaq.replace('<details class="faq-item" open>', '<details class="faq-item">', 1).replace('<details class="faq-item">', '<details class="faq-item" open>', 1)
+        cta = section(src, 'cta').replace('مشتری‌های شما، نتیجه را', 'مشتری‌های ' + s['label'] + ' شما، نتیجه را', 1)
         main = (hero + films + (R('src/play.html') if s['play'] else '') + tryon
-                + section(src, 'how') + section(src, 'services') + R('src/pay.html') + studio
-                + section(src, 'cta') + faq)
+                + how + studio + section(src, 'services') + R('src/pay.html')
+                + cta + sfaq)
         others = [(v['path'], v['label']) for k, v in SERVICES.items() if k != key]
         pages[key] = shell(full, main,
                            [('/', 'آینه')] + others + [('#services', 'تعرفه‌ها'), ('#faq', 'سوالات متداول')],

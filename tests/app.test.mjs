@@ -1011,16 +1011,15 @@ test('landing funnel events are first-party, validated and attributed',async()=>
 
 test('step 24 reference: the page opens with one hero, one headline and the four benefit cards',()=>{
  assert.equal((landingHTML.match(/<h1[\s>]/g)||[]).length,1,'exactly one h1');
- assert.match(landingHTML,/آینه، دستیار هوشمند<span class="h1__accent">رشد سالن زیبایی شما<\/span>/,'the two-tone reference headline');
+ assert.match(landingHTML,/مشتری، نتیجه را قبل از آمدن<span class="h1__accent">روی عکس خودش ببیند<\/span>/,'the headline states the real promise');
  assert.match(landingHTML,/id="heroCompare"/,'the before/simulation card leads the visual');
  assert.match(landingHTML,/compare__badge[^>]*>[\s\S]{0,200}نتیجه با هوش مصنوعی/,'the AI result badge is labelled');
  assert.equal((landingHTML.match(/class="hero-thumb"/g)||[]).length,4,'four services in the hero thumbnail rail');
  assert.equal((landingHTML.match(/class="hero-benefits__icon"/g)||[]).length,4,'four benefit cards under the fold');
- for(const label of ['رشد رزروها و درآمد','مدیریت آسان مشتریان','نوبت‌دهی آنلاین ۲۴ ساعته','اعتماد و رضایت بیشتر'])
+ for(const label of ['رفت‌وبرگشت کمتر','درخواست کامل، از همان اول','صفحه‌ای برای بیو اینستاگرام','مشتریِ مطمئن‌تر'])
   assert.ok(landingHTML.includes(label),'benefit '+label);
  assert.match(landingHTML,/نمونهٔ موقت؛ شبیه‌سازی تقریبی است/,'the simulation is not sold as a guarantee');
 });
-
 test('step 24 reference: header, nav and the two header actions follow the sheet',()=>{
  const headerOf=html=>(html.match(/<header class="site-header">[\s\S]*?<\/header>/)||[])[0]||'';
  const header=headerOf(landingHTML);
@@ -1031,7 +1030,7 @@ test('step 24 reference: header, nav and the two header actions follow the sheet
  assert.match(header,/aria-current="page"/,'the active item keeps the underline');
  const actions=(header.match(/<div class="header-cta">[\s\S]*?<\/div>/)||[])[0]||'';
  assert.match(actions,/class="btn--login"[\s\S]*?ورود به پنل/,'login button');
- assert.match(actions,/class="btn" href="#choose"[\s\S]*?انتخاب خدمت/,'on home the header sends you to pick your service');
+ assert.match(actions,/class="btn" href="#choose"[\s\S]*?امتحان و قیمت/,'on home the header sends you to try and see prices');
  const hair=headerOf(servicePages.hair);
  for(const item of ['href="/">آینه','href="/nails">ناخن','href="/lashes">مژه','#services">تعرفه‌ها','#faq">سوالات متداول'])
   assert.ok(hair.includes(item),'service nav '+item);
@@ -1039,73 +1038,73 @@ test('step 24 reference: header, nav and the two header actions follow the sheet
  assert.match(header,/class="menu-toggle"/,'mobile menu hook');
  assert.match(landingHTML,/@media\(max-width:1120px\)\{[\s\S]{0,120}\.nav\{display:none\}/,'nav collapses before it can crowd the bar');
 });
-
 test('step 24 reference: section order matches the six reference sheets',()=>{
  const ids=html=>[...html.matchAll(/<main id="main">[\s\S]*?<\/main>/g)][0][0].match(/<section id="[\w-]+"/g).map(s=>s.slice(13,-1));
- assert.deepEqual(ids(landingHTML),['intro','samples','why','choose','proof','faq'],'home: Ayneh, samples, benefits, the three doors, proof, FAQ');
- assert.deepEqual(ids(servicePages.hair),['intro','films','play','try-on','how','services','pay','salon-example','cta','faq'],'hair page');
- for(const k of ['nails','lashes'])assert.deepEqual(ids(servicePages[k]),['intro','films','try-on','how','services','pay','salon-example','cta','faq'],k+' page (no mirror studio)');
- for(const title of ['قبل و بعد، <em>روی عکس خودِ مشتری</em>','چرا سالن‌داران <em>«آینه»</em> را انتخاب می‌کنند؟',
-  'شما در کدام لاین <em>فعالیت دارید؟</em>','اعتماد حرفه‌ای‌ها <em>به آینه</em>','پرسش‌های متداول <em>صاحبان سالن‌های زیبایی</em>'])
+ assert.deepEqual(ids(landingHTML),['intro','samples','why','choose','faq'],'home: Ayneh, samples, honest reasons, the three doors, FAQ');
+ /* The builder ("see it with your name") comes before the prices; the payment sheet follows them. */
+ assert.deepEqual(ids(servicePages.hair),['intro','films','play','try-on','how','salon-example','services','pay','cta','faq'],'hair page');
+ for(const k of ['nails','lashes'])assert.deepEqual(ids(servicePages[k]),['intro','films','try-on','how','salon-example','services','pay','cta','faq'],k+' page (no mirror studio)');
+ for(const title of ['قبل و بعد، <em>روی عکس خودِ مشتری</em>','چرا می‌شود <em>به آینه</em> اعتماد کرد؟',
+  'شما در کدام لاین <em>فعالیت دارید؟</em>','پرسش‌های <em>پیش از شروع</em>'])
   assert.ok(landingHTML.includes(title),'home title '+title);
- for(const title of ['آینه <em>چگونه کار می‌کند؟</em>','پلن‌های آینه <em>برای متخصصان زیبایی</em>','یک قدم تا <em>مدیریت حرفه‌ای</em>'])
+ for(const title of ['آینه <em>چگونه کار می‌کند؟</em>','پلن‌های آینه <em>برای متخصصان زیبایی</em>','مشتری‌های مدل و رنگ مو شما، نتیجه را <em>قبل از آمدن</em> ببینند'])
   assert.ok(servicePages.hair.includes(title),'service title '+title);
 });
-
 test('step 24 reference: home speaks to each specialist; service pages keep the four numbered steps',()=>{
- for(const [line,href] of [['مدل مو و رنگ مو','/hair'],['ناخن','/nails'],['مژه','/lashes']]){
-  assert.ok(landingHTML.includes('اگر در لاین '+line+' فعالیت دارید، می‌توانید از این خدمت استفاده کنید.'),'CTA box for '+line);
+ for(const [line,href] of [['کوتاهی، مدل و رنگ مو','/hair'],['کار ناخن','/nails'],['اکستنشن و لیفت مژه','/lashes']]){
+  assert.ok(landingHTML.includes('<b>برای '+line+':'),'CTA box for '+line);
   assert.ok(landingHTML.includes('class="choose-card" href="'+href+'"'),'the box opens '+href);
  }
+ assert.doesNotMatch(landingHTML,/می‌توانید از این خدمت استفاده کنید/,'no repeated boilerplate in the three boxes');
  assert.equal((landingHTML.match(/class="sample-card"/g)||[]).length,4,'four sample before/afters on the home page');
- assert.equal((landingHTML.match(/class="why__icon"/g)||[]).length,6,'six benefit cards in the why grid');
+ assert.equal((landingHTML.match(/class="why__icon"/g)||[]).length,6,'six reasons in the why grid');
  const hair=servicePages.hair;
  assert.equal((hair.match(/class="step__num"/g)||[]).length,4,'four numbered steps');
- for(const step of ['بارگذاری عکس مشتری','انتخاب خدمت و مدل','ساخت پیش‌نمایش با هوش مصنوعی','ارسال درخواست به سالن'])
+ for(const step of ['بارگذاری عکس مشتری','انتخاب مدل یا رنگ مو','ساخت پیش‌نمایش با هوش مصنوعی','ارسال درخواست به سالن'])
   assert.ok(hair.includes(step),'step '+step);
+ assert.match(servicePages.nails,/مشتری یک عکس واضح از دستش می‌گذارد/,'nails steps speak about hands');
+ assert.match(servicePages.lashes,/انتخاب مدل مژه/,'lashes steps speak about lashes');
+ assert.doesNotMatch(servicePages.nails,/چهره یا موی خود/,'no hair wording on the nails page');
  assert.match(hair,/<span class="step__num" aria-hidden="true">۱<\/span>/,'steps are numbered right-to-left');
  for(const k of ['hair','nails','lashes'])assert.doesNotMatch(servicePages[k],/id="choose"|id="samples"/,k+' does not repeat the home page');
 });
-
-test('step 24 reference: social proof ships as clearly marked temporary samples',()=>{
- // The owner's standing rule: no invented clients, quotes, ratings or totals.
- assert.equal((landingHTML.match(/class="quote"/g)||[]).length,3,'three quote slots');
- assert.equal((landingHTML.match(/نمونهٔ موقت<\/b>/g)||[]).length,3,'each quote is flagged as a sample');
- assert.match(landingHTML,/نقل‌قول ساختگی منتشر نمی‌کنیم/,'no fabricated quote is presented as real');
- for(const stat of ['+۱۲٬۰۰۰','۴.۸','+۱٬۵۰۰٬۰۰۰']){
-  assert.ok(landingHTML.includes(stat),'counter '+stat);
-  assert.match(landingHTML,new RegExp(stat.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'[\\s\\S]{0,160}نمونه'),'counter '+stat+' is marked نمونه');
+test('honesty: no fake proof, no promises the product does not keep, plan is never called panel',()=>{
+ // The owner's standing rule: no invented clients, quotes, ratings or totals. Placeholder
+ // testimonials and sample counters read as fake, so the section is gone until real ones exist.
+ for(const html of [landingHTML,...Object.values(servicePages)]){
+  assert.doesNotMatch(html,/class="quote"|class="proof-stat"|\+۱۲٬۰۰۰|هزاران مدیر سالن/,'no placeholder proof');
+  assert.doesNotMatch(html,/نوبت‌دهی آنلاین ۲۴ ساعته|رزرو و نوبت‌دهی آنلاین|پلتفرم مدیریت سالن|بدون نوبت‌های خالی|گزارش روزانه/,'no self-booking or daily-report promise');
+  assert.doesNotMatch(html,/خرید پنل|پنل‌ها و خرید|دیدن پنل‌ها|پنل خودتان را بخرید|مشاوره تخصصی <br>و رایگان/,'what you buy is a plan (پلن), the panel is where you log in');
  }
- assert.match(landingHTML,/ارقام این بخش نمونهٔ موقت‌اند/,'the counters are declared as samples in prose');
- assert.match(landingHTML,/انتخاب مطمئن مدیران/,'the trust badge from the sheet');
- assert.equal((landingHTML.match(/class="quote-dots"/g)||[]).length,1,'one dot navigator');
 });
-
 test('step 24 reference: FAQ answers the five sheet questions and quotes the owner\'s price sheet',()=>{
  for(const html of [landingHTML,servicePages.hair]){
   const faq=(html.match(/<section id="faq"[\s\S]*?<\/section>/)||[])[0]||'';
-  assert.equal((faq.match(/class="faq-item"/g)||[]).length,7,'seven questions');
-  for(const q of ['آینه دقیقاً چه کمکی به مدیریت سالن من می‌کند؟','راه‌اندازی و آموزش چقدر زمان می‌برد؟',
+  for(const q of ['آینه دقیقاً چه کاری برای من می‌کند؟','راه‌اندازی و آموزش چقدر زمان می‌برد؟',
    'آیا امکان استفاده روی موبایل وجود دارد؟','هزینهٔ استفاده از آینه چگونه است؟',
-   'آیا پشتیبانی و مشاوره در طول استفاده دارم؟'])
+   '«اعتبار عکس» یعنی چه و چطور مصرف می‌شود؟','درخواست مشتری را کجا می‌بینم؟','وقتی پلن تمام شود چه می‌شود؟'])
    assert.ok(faq.includes(q),'faq '+q);
+  assert.match(faq,/در پلن ESSENTIAL درخواست‌ها در پنل شما می‌نشیند/,'where requests land depends on the plan');
   assert.match(faq,/ESSENTIAL یک‌ماهه ۲٫۹ میلیون تومان، PRO سه‌ماهه ۶ میلیون تومان و SIGNATURE شش‌ماهه ۱۰ میلیون تومان/,'the cost answer quotes the sheet');
   assert.match(faq,/هر ۱۰ عکس ۲۰۰ هزار تومان/,'and the top-up price');
  }
+ assert.equal((landingHTML.match(/<section id="faq"[\s\S]*?<\/section>/)[0].match(/<details class="faq-item/g)||[]).length,10,'ten questions on home');
+ for(const k of ['hair','nails','lashes'])assert.match(servicePages[k],/<summary>مشتری چه عکسی باید بگذارد؟<\/summary>/,k+' FAQ opens with its own photo question');
+ assert.match(servicePages.nails,/پشت دست با انگشت‌های باز/,'the nails photo answer is about hands');
  assert.match(landingHTML,/href="\/hair#services">بخش تعرفه‌ها/,'on home the cost answer opens the plans on a service page');
 });
-
 test('step 24 reference: footer keeps the four columns, contacts and the copyright line',()=>{
  const foot=(landingHTML.match(/<footer class="site-footer">[\s\S]*?<\/footer>/)||[])[0]||'';
  assert.ok(foot,'footer exists');
  for(const col of ['دسترسی سریع','لینک‌های مفید','ارتباط با ما'])assert.ok(foot.includes(col),'column '+col);
- assert.match(foot,/دستیار هوشمند مدیریت<br>سالن‌های زیبایی/);
- assert.match(foot,/0910 564 7497/);assert.match(foot,/omidadli78@gmail\.com/);
+ assert.match(foot,/پیش‌نمایش روی عکس خودِ مشتری،<br>برای سالن‌ها و متخصصان زیبایی/);
+ assert.match(foot,/0910 564 7497/);
+ assert.doesNotMatch(foot,/mailto:|@gmail\.com/,'no personal mailbox on the public page');
+ assert.doesNotMatch(foot,/نمونهٔ موقت‌اند/,'the footer no longer calls the whole page a sample');
  assert.match(foot,/© ۱۴۰۵ آینه/);
  assert.equal((foot.match(/class="foot-social"/g)||[]).length,1);
  assert.equal((foot.match(/class="brand__mark"/g)||[]).length,1,'the teal mark returns in the footer');
 });
-
 test('step 24 brand: one teal face mark, no leftover brass mirror',()=>{
  const {brandMark,faviconMark}=brand();
  const svg=readFileSync(new URL('../design/landing/assets/ayneh-mark.svg',import.meta.url),'utf8');
@@ -1584,7 +1583,7 @@ test('step 25 pages: /panel and /pay are real routes, the panel page parses, and
   for(const k of ['hair','nails','lashes']){
    const html=servicePages[k];
    assert.equal((html.match(/data-state="open"/g)||[]).length,3,k+': all three plans sell');
-   assert.match(html,/شمارهٔ کارت هنوز از پنل مدیر پر نشده است/);
+   assert.match(html,/پرداخت موقتاً بسته است: شمارهٔ کارت آینه هنوز ثبت نشده/);
    assert.match(html,/هر سفارش ۱۰ دقیقه اعتبار دارد/);
    assert.doesNotMatch(html,/[0-9۰-۹]{16}/,'no card number is ever baked into the page');
   }
