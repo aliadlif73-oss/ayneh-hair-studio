@@ -8,14 +8,16 @@
   const SRC = (k, e) => 'assets/' + k + '.' + (e || 'webp');
   const fa = n => new Intl.NumberFormat('fa-IR').format(n);
   const STYLES = ['لیر بلند','کوتاهی پروانه‌ای','ولف‌کات','هاش‌کات','لُب (باب بلند)','باب کوتاه','کوتاهی جلوبلند','پیکسی','چتری پرده‌ای','چتری پروانه‌ای','چتری کج','چتری صاف کامل','براشینگ حجیم','صاف و براق','ویو درشت','فر طبیعی','فر درشت لوله‌ای','مدل گوجه‌ای','شینیون پایین'];
+  /* The same colour table as the live studio. «ombre» is what makes آمبره a gradient (dark
+     roots into light ends) in hair-color.js; without it the swatch paints one flat colour. */
   const COLORS = [
-    {name:'بلوند شامپاینی', rgb:[190,166,120], css:'linear-gradient(145deg,#F3E2B8,#D3B677)'},
-    {name:'کاراملی',        rgb:[139,94,57],   css:'linear-gradient(145deg,#C98745,#8A5424)'},
-    {name:'اسپرسو',         rgb:[49,36,29],    css:'linear-gradient(145deg,#4F3322,#1C110A)'},
-    {name:'آمبره',          rgb:[180,146,99],  css:'linear-gradient(180deg,#2A1A10,#D6B27A)'},
-    {name:'مسی',            rgb:[150,79,47],   css:'linear-gradient(145deg,#CF6C3C,#8C3D1B)'},
-    {name:'بلوند پلاتینی',  rgb:[211,201,181], css:'linear-gradient(145deg,#F4EFE2,#CBC3AE)'},
-    {name:'شرابی',          rgb:[91,39,53],    css:'linear-gradient(145deg,#8E3050,#481327)'},
+    {name:'بلوند شامپاینی', rgb:[190,166,120], h:43,  s:.36, l:.7,  css:'linear-gradient(145deg,#F3E2B8,#D3B677)'},
+    {name:'کاراملی',        rgb:[139,94,57],   h:28,  s:.62, l:.46, css:'linear-gradient(145deg,#C98745,#8A5424)'},
+    {name:'اسپرسو',         rgb:[49,36,29],    h:22,  s:.42, l:.17, css:'linear-gradient(145deg,#4F3322,#1C110A)'},
+    {name:'آمبره',          rgb:[180,146,99],  h:30,  s:.5,  l:.4,  ombre:true, css:'linear-gradient(180deg,#2A1A10,#D6B27A)'},
+    {name:'مسی',            rgb:[150,79,47],   h:16,  s:.72, l:.43, css:'linear-gradient(145deg,#CF6C3C,#8C3D1B)'},
+    {name:'بلوند پلاتینی',  rgb:[211,201,181], h:50,  s:.2,  l:.86, css:'linear-gradient(145deg,#F4EFE2,#CBC3AE)'},
+    {name:'شرابی',          rgb:[91,39,53],    h:343, s:.55, l:.27, css:'linear-gradient(145deg,#8E3050,#481327)'},
   ];
   /* look-sNN exists for NN 02..19; style 1 (index 0) is the untouched photo. */
   const READY = new Set([1, ...Array.from({length:18}, (_, i) => i + 2)]);
@@ -51,17 +53,21 @@
     b.tabIndex = i === Math.max(0, idx) ? 0 : -1;
   });
 
-  /* Frame the original central vanity mirror as a whole. Its two side mirrors are reflections
-     of the same model, exactly as in the old studio; no second portrait is layered in. */
-  const MIRROR = {x:478,y:145,w:436,h:580}, PAD=1.08;
+  /* Frame the vanity, not the room. The stage holds only the photo (the dock and the selection
+     sit under it), so the three mirrors and the top of the podium fill it. A narrow phone stage
+     frames the central mirror and lets the side reflections run off the edges, as the live
+     studio does, so the face stays large. Never enlarge past 1.3x: the render is 1376x768 and
+     a softer face would undo the point of the demo. */
+  const WIDE = {x:440,y:118,w:496,h:440}, NARROW = {x:556,y:122,w:264,h:398}, PAD = 1.04, MAX = 1.3;
 
   function layout(){
     const W=screen.clientWidth,H=screen.clientHeight;if(!W||!H)return;
-    const fitW=W/1376,boxW=MIRROR.w*PAD,boxH=MIRROR.h*PAD;
-    const zoom=Math.min(W/boxW,H/boxH);
-    const s=Math.min(2.4,Math.max(fitW,zoom));
+    const box=W<560?NARROW:WIDE;
+    const cover=Math.max(W/1376,H/768);
+    const fit=Math.min(W/(box.w*PAD),H/(box.h*PAD));
+    const s=Math.max(cover,Math.min(MAX,fit));
     const pw=1376*s,ph=768*s;
-    const cx=(MIRROR.x+MIRROR.w/2)*s,cy=(MIRROR.y+MIRROR.h/2)*s;
+    const cx=(box.x+box.w/2)*s,cy=(box.y+box.h/2)*s;
     const x=Math.round(Math.min(0,Math.max(W-pw,W/2-cx)));
     const y=Math.round(Math.min(0,Math.max(H-ph,H/2-cy)));
     Object.assign(plate.style,{width:pw+'px',height:ph+'px',left:x+'px',top:y+'px'});
@@ -268,7 +274,6 @@
     prepare('base').then(p => {
       if (!p) return;
       img.src = p.src; px = p;
-      cards[0].querySelector('img').src = p.src;
     });
   }, {rootMargin: '300px'}).observe(root);
   layout(); sync();

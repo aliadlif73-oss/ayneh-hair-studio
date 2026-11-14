@@ -1656,9 +1656,15 @@ test('step 29 mirror: the character can restyle hair and colour, on a real photo
  assert.ok(js.includes("loadImg(SRC('hair-mask','png'))"),'the hair mask is in the bundle');
  // The plate frames the mirror assembly, whose side panels are real reflections baked into
  // the single source photo; there is no independent portrait overlay.
- assert.ok(js.includes('const MIRROR = {x:478,y:145,w:436,h:580}'),'the mirror frame includes its central and side reflections');
+ assert.ok(js.includes('const WIDE = {x:440,y:118,w:496,h:440}'),'the wide frame holds the central mirror and both side reflections');
+ assert.ok(js.includes('NARROW = {x:556,y:122,w:264,h:398}')&&js.includes('MAX = 1.3'),'phones frame the central mirror, and the render is never blown up past 1.3x');
+ assert.ok(/name:'آمبره'[^}]*ombre:true/.test(js),'آمبره keeps its root-to-ends gradient, as on the live studio');
+ // Nothing is laid over the photo except the colour rail on the empty wall: the dock and the
+ // selection sit under the stage, so no panel can cover the face or the hair.
+ const stage=section.match(/<div class="play-screen"[\s\S]*?<\/button>\s*<\/div>/)[0];
+ assert.ok(!stage.includes('play-dock')&&!stage.includes('play-picked'),'the dock and the selection are outside the photo stage');
  assert.ok(js.includes('window.__AYN_PORTRAIT.compose'),'style changes preserve one shared face instead of layering another portrait');
- assert.ok(js.includes('const zoom=Math.min(W/boxW,H/boxH)'),'the complete mirror assembly stays centered and proportional');
+ assert.ok(js.includes('const fit=Math.min(W/(box.w*PAD),H/(box.h*PAD))'),'the complete mirror assembly stays centered and proportional');
  assert.ok(section.includes('id="playChoiceThumb"')&&section.includes('id="playReplay"'),'the selected model card and replay control ship');
  assert.ok(js.includes('choiceThumb.src = thumb.currentSrc || thumb.src')&&js.includes("$('playReplay').addEventListener('click'"),'the card follows the selection and replay control is wired');
  assert.ok(js.includes('id="playStyles"')||section.includes('id="playStyles"'),'the style rail exists');
