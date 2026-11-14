@@ -8,7 +8,7 @@ const css = String.raw`
 .pn{max-width:1080px;margin:0 auto;padding:16px 16px 56px}
 .pn-bar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:18px}
 .pn-brand{display:flex;gap:10px;align-items:center;font-weight:800;color:var(--ink)}
-.pn-brand svg{width:34px;height:34px}
+.pn-brand svg{width:29px;height:42px}
 .pn-card{background:var(--surface);border:1px solid var(--line-2);border-radius:18px;padding:18px 20px;display:grid;gap:12px}
 .pn-card{align-content:start}
 .pn-card>.btn,.pn-card>a.btn{justify-self:start}

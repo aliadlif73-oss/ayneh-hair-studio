@@ -83,7 +83,7 @@ ul,ol{padding:0;list-style:none}
 .site-header .bar{display:flex;align-items:center;gap:clamp(8px,1.8vw,26px);min-height:80px;
   max-width:1400px;margin:0 auto;padding-inline:var(--gut)}
 .brand{display:inline-flex;align-items:center;gap:9px;flex:0 0 auto}
-.brand__mark{width:42px;height:42px;color:var(--emerald);flex:0 0 auto}
+.brand__mark{width:36px;height:52px;color:var(--emerald);flex:0 0 auto}
 .brand__mark svg{width:100%;height:100%;display:block}
 .brand__word{font-size:27px;font-weight:900;line-height:1;color:var(--teal-ink);letter-spacing:-.01em}
 .nav{display:flex;align-items:center;gap:clamp(12px,2vw,34px);margin-inline-start:clamp(14px,2.6vw,44px);font-size:15.5px;font-weight:700;color:var(--ink)}
@@ -120,7 +120,7 @@ ul,ol{padding:0;list-style:none}
 }
 @media(max-width:640px){
   .site-header .bar{min-height:68px;gap:8px}
-  .brand__mark{width:36px;height:36px}
+  .brand__mark{width:32px;height:46px}
   .brand__word{font-size:23px}
   .btn--login{padding:0 11px;font-size:12.5px;min-height:42px}
   .header-cta .btn{min-height:42px;padding:0 13px;font-size:13px}
@@ -132,7 +132,7 @@ ul,ol{padding:0;list-style:none}
 @media(max-width:380px){
   .site-header .bar{gap:6px;padding-inline:12px}
   .brand{gap:7px}
-  .brand__mark{width:32px;height:32px}
+  .brand__mark{width:29px;height:42px}
   .brand__word{font-size:20px}
   .header-cta{gap:6px;margin-inline-start:auto}
   .header-cta .btn{padding:0 11px;font-size:12.5px;gap:0}
@@ -473,7 +473,7 @@ ul,ol{padding:0;list-style:none}
 .foot-grid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.35fr) repeat(2,minmax(0,1fr)) minmax(0,1.15fr);
   gap:clamp(18px,2.8vw,38px)}
 .foot-brand .brand__word{color:var(--cream);font-size:25px}
-.foot-brand .brand__mark{color:var(--emerald-soft);width:38px;height:38px}
+.foot-brand .brand__mark{color:var(--emerald-soft);width:41px;height:60px}
 .foot-tag{margin-top:10px;font-size:13px;line-height:1.85;color:rgba(252,243,235,.66)}
 .foot-social{display:flex;gap:8px;margin-top:14px}
 .foot-social a{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;

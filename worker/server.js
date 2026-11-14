@@ -423,6 +423,8 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
    must(await one(db,"SELECT 1 FROM generations WHERE result_id=? AND original_id=? AND session_id=? AND salon_id=? AND state='success' AND line='hair'",b.base_id,b.original_id,s.id,salon.id),'مدل موی انتخابی معتبر نیست');
    base=await ownMedia(db,s,b.base_id);baseId=b.base_id;
   }
+  // Every photo this build sends must still be in storage, checked before any quota, credit or provider call.
+  for(const [m,msg] of [[base,'عکست دیگر در دسترس نیست؛ دوباره عکس بگذار.'],[reference,'عکس این مدل در دسترس نیست؛ یک مدل دیگر انتخاب کن.']]){if(m&&typeof bucketFor(env).head==='function')must(await bucketFor(env).head(m.object_key),msg,410);else if(m)must(await bucketFor(env).get(m.object_key),msg,410);}
   const visitor=visitorOf(b),free=await unlimited(db,s);if(!trial&&!demo&&!free)await spendQuota(db,salon,s,visitor,line);
   // A salon on a paid plan spends one image credit per image; none left, or the plan ended, stops it here.
   if(!trial&&!demo&&!free)await spendCredit(db,env,salon);

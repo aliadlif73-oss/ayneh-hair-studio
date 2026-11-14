@@ -10,7 +10,7 @@ const customerCSS=String.raw`
 .hero{position:relative;padding:14px 0 22px}
 .hero__bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
 .brand{display:inline-flex;align-items:center;gap:8px;color:var(--ink-2);font-size:13px;font-weight:600}
-.brand svg{width:20px;height:25px}
+.brand svg{width:22px;height:32px}
 .icon-btn{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--surface);display:grid;place-items:center;color:var(--ink);transition:background-color .14s var(--ease),border-color .14s var(--ease)}
 .icon-btn:hover{border-color:#b3c0bb}
 .icon-btn svg{width:20px;height:20px}

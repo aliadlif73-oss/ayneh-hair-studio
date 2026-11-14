@@ -1105,22 +1105,15 @@ test('step 24 reference: footer keeps the four columns, contacts and the copyrig
  assert.equal((foot.match(/class="foot-social"/g)||[]).length,1);
  assert.equal((foot.match(/class="brand__mark"/g)||[]).length,1,'the teal mark returns in the footer');
 });
-test('step 24 brand: one teal face mark, no leftover brass mirror',()=>{
+test('step 24 brand: the owner\'s mirror logo is the one mark everywhere',()=>{
  const {brandMark,faviconMark}=brand();
  const svg=readFileSync(new URL('../design/landing/assets/ayneh-mark.svg',import.meta.url),'utf8');
- assert.match(svg,/viewBox="0 0 64 64"/);
- assert.match(svg,/fill="currentColor"/,'the disc takes the brand colour');
- assert.equal((svg.match(/stroke="#FCF3EB"/g)||[]).length,1,'the strands are punched in cream');
- assert.doesNotMatch(svg,/brass|#D6BE8C|#C9A227/i,'the brass mark is retired');
- assert.ok(brandMark.includes('aynDisc'),'the generated mark is the traced face');
- // Every place that prints the mark prints this one.
- for(const slot of ['brand__mark','foot-brand']){
-  assert.ok(landingHTML.includes(slot),slot+' slot exists');
- }
- const markIds=[...landingHTML.matchAll(/id="(aynDisc[^"]*)"/g)].map(m=>m[1]);
- assert.equal(markIds.length,2,'the landing page prints a header and footer mark');
- assert.equal(new Set(markIds).size,markIds.length,'each inline SVG clip path has a unique document ID');
- assert.ok(faviconMark.length>100,'favicon is generated from the new brand');
+ assert.match(svg,/viewBox="0 0 76 112"/,'the arched mirror keeps its upright shape');
+ assert.match(svg,/data:image\/webp;base64,/,'the cleaned logo (transparent outside the mirror) is embedded');
+ assert.equal(brandMark,svg,'the generated mark is the logo file');
+ assert.equal((landingHTML.match(/viewBox="0 0 76 112"/g)||[]).length,2,'header and footer');
+ for(const slot of ['brand__mark','foot-brand'])assert.ok(landingHTML.includes(slot),slot+' slot exists');
+ assert.ok(faviconMark.length>100,'favicon is generated from the logo');
 });
 
 test('step 24 palette: cream ground, ink type, a single emerald accent',()=>{
@@ -1313,7 +1306,7 @@ test('step 25 narrow phones: nothing in the header or the studio preview widens 
   const studio = readFileSync(new URL('../design/landing/src/studio.css', import.meta.url), 'utf8');
   const narrow = site.match(/@media\(max-width:380px\)\{[\s\S]*?\n\}/);
   assert.ok(narrow, 'the small-phone header block exists');
-  for (const rule of ['.brand__mark{width:32px', '.brand__word{font-size:20px', '.header-cta .btn svg{display:none}'])
+  for (const rule of ['.brand__mark{width:29px', '.brand__word{font-size:20px', '.header-cta .btn svg{display:none}'])
     assert.ok(narrow[0].includes(rule), 'small-phone header: ' + rule);
   assert.match(studio, /@media \(max-width:430px\)\{[\s\S]*?\.sb-browser\{flex-wrap:wrap/,
     'the studio address row wraps instead of overflowing');
@@ -1618,11 +1611,10 @@ test('step 25 checkout never leaves a "buy a panel" bar over a payment, and an u
   assert.equal((landingHTML.match(/data-state="open"/g) || []).length, 0);
 });
 
-test('step 25 brand: the favicon carries the cream/emerald palette, never the retired brass', () => {
+test('step 25 brand: the favicon is the owner\'s mirror logo, never the retired brass mark', () => {
   assert.doesNotMatch(faviconMark, /#D9B775|#1B130E/i, 'no brass-on-espresso favicon');
-  assert.match(faviconMark, /#FCF3EB/i, 'the cream ground');
-  assert.match(faviconMark, /#068F6C/i, 'the emerald disc');
-  assert.ok(generatedMark.includes('aynDisc'), 'the same one-face mark everywhere');
+  assert.match(faviconMark, /data:image\/png;base64,/, 'the cleaned mirror logo, scaled for a tab');
+  assert.match(generatedMark, /data:image\/webp;base64,/, 'the same logo everywhere');
 });
 
 test('step 28 try-on: the demo salon is on the page, with the phone step still in front',()=>{
@@ -2053,5 +2045,17 @@ test('quota message on a paid hair salon names only its own services (no nails o
   const fourth=await gen();assert.equal(fourth.status,429);
   assert.match(fourth.data.error,/برای تو تمام شد[\s\S]*«رنگ مو»/);
   assert.doesNotMatch(fourth.data.error,/ناخن|مژه/,'a hair salon never suggests nails or lashes');
+ }finally{globalThis.fetch=previous}
+});
+
+test('a build whose photo is gone from storage stops with a plain message before any quota, credit or provider call',async()=>{
+ const e=fixture(),s=await salon(e),g=await guest(e,s);e.KIE_API_KEY='mock';await call(e,'/api/s/salon-a/owner/settings',{generation_enabled:true,reference_verified:true},OWNER);
+ const previous=globalThis.fetch;let calls=0;globalThis.fetch=async u=>{calls++;return previous(u)};
+ try{
+  const original=await upload(e,s,g);
+  const key=e.DB.sql.prepare('SELECT object_key FROM media WHERE id=?').get(original).object_key;await e.BUCKET.delete(key);
+  const r=await call(e,'/api/s/salon-a/generate',{v:'ef'.repeat(16),image_consent:true,idem:crypto.randomUUID(),line:'hair',original_id:original,style:0},g);
+  assert.equal(r.status,410,JSON.stringify(r));assert.match(r.data.error,/در دسترس نیست/);
+  assert.equal(calls,0,'no provider call');assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM generations').get().n,0,'nothing counted');
  }finally{globalThis.fetch=previous}
 });
