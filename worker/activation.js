@@ -9,6 +9,22 @@ const brandSlots=['logo','cover','portrait'];
 
 export async function saveActivation(req,db,session){
  must(session.verified_phone,'ابتدا شمارهٔ موبایل را تأیید کنید.',403);
+ const form=await readDraftForm(req);
+ const id=form.get('id');
+ must(typeof id==='string'&&idPattern.test(id),'شناسهٔ درخواست معتبر نیست.');
+ const existing=await db.prepare('SELECT contact_phone FROM salon_activations WHERE id=?').bind(id).first();
+ if(existing){must(existing.contact_phone===session.verified_phone,'شناسهٔ درخواست معتبر نیست.',409);return {ok:true,id}}
+ const {draft,assets}=await readSalonDraft(form,db);
+ try{
+  await db.batch([db.prepare('INSERT INTO salon_activations VALUES(?,?,?,?,?)').bind(id,session.verified_name,session.verified_phone,JSON.stringify(draft),Date.now()),...assets.map(({slot,mime,bytes})=>db.prepare('INSERT INTO salon_activation_assets VALUES(?,?,?,?)').bind(id,slot,mime,bytes))]);
+ }catch(error){
+  const duplicate=await db.prepare('SELECT contact_phone FROM salon_activations WHERE id=?').bind(id).first();
+  if(duplicate?.contact_phone!==session.verified_phone)throw error;
+ }
+ return {ok:true,id};
+}
+
+export async function readDraftForm(req){
  const max=4_000_000,type=req.headers.get('Content-Type')||'';
  must(/^multipart\/form-data\s*;/i.test(type),'فرم درخواست معتبر نیست.');
  must(req.body,'فرم درخواست معتبر نیست.');
@@ -29,10 +45,10 @@ export async function saveActivation(req,db,session){
  }finally{reader.releaseLock()}
  const form=await new Response(new Blob(chunks),{headers:{'Content-Type':type}}).formData().catch(()=>null);
  must(form,'فرم درخواست معتبر نیست.');
- const id=form.get('id');
- must(typeof id==='string'&&idPattern.test(id),'شناسهٔ درخواست معتبر نیست.');
- const existing=await db.prepare('SELECT contact_phone FROM salon_activations WHERE id=?').bind(id).first();
- if(existing){must(existing.contact_phone===session.verified_phone,'شناسهٔ درخواست معتبر نیست.',409);return {ok:true,id}}
+ return form;
+}
+
+export async function readSalonDraft(form,db){
  let input;
  try{input=JSON.parse(form.get('draft'));}catch{}
  must(input&&typeof input==='object'&&input.profile&&typeof input.profile==='object'&&!Array.isArray(input.profile),'مشخصات سالن را وارد کنید.');
@@ -62,15 +78,9 @@ export async function saveActivation(req,db,session){
   must(typeof file==='object'&&file.size>=100&&file.size<=400_000,'حجم هر عکس باید کمتر از ۴۰۰ کیلوبایت باشد.');
   const bytes=new Uint8Array(await file.arrayBuffer()),mime=imageType(bytes);
   if(brandSlots.includes(slot))profile[slot]=slot;
-  assets.push(db.prepare('INSERT INTO salon_activation_assets VALUES(?,?,?,?)').bind(id,slot,mime,bytes));
+  assets.push({slot,mime,bytes});
  }
- try{
-  await db.batch([db.prepare('INSERT INTO salon_activations VALUES(?,?,?,?,?)').bind(id,session.verified_name,session.verified_phone,JSON.stringify({name,slug,brand:input.brand,profile,portfolio}),Date.now()),...assets]);
- }catch(error){
-  const duplicate=await db.prepare('SELECT contact_phone FROM salon_activations WHERE id=?').bind(id).first();
-  if(duplicate?.contact_phone!==session.verified_phone)throw error;
- }
- return {ok:true,id};
+ return {draft:{name,slug,brand:input.brand,profile,portfolio},assets};
 }
 
 export async function activationAsset(db,id,slot){

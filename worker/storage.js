@@ -4,6 +4,8 @@
 const DEFAULT_MIME='application/octet-stream';
 export function maxUpload(env){if(env?.BUCKET)return 5*1024*1024;if(env?.KV)return 5*1024*1024;return 850*1024}
 export function bucketFor(env){if(env?.BUCKET)return env.BUCKET;if(env?.KV)return kvBucket(env.KV);return d1Bucket(env.DB)}
+// Paid drafts move to D1 atomically with the public page even on hosts with a bucket.
+export function getImage(env,key){return (key.startsWith('order-draft/')?d1Bucket(env.DB):bucketFor(env)).get(key)}
 function bufferOf(value){const bytes=value instanceof Uint8Array?value:new Uint8Array(value);return bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)}
 function kvBucket(kv){return {
  async put(key,value,options){await kv.put(key,bufferOf(value),{metadata:{contentType:options?.httpMetadata?.contentType||DEFAULT_MIME}})},

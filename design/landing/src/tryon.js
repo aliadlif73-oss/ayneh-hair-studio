@@ -14,16 +14,17 @@
     nails:  ['ناخن',     'پشت دست، انگشت‌ها کنار هم و همهٔ ناخن‌ها در قاب، در نور روز.'],
     lashes: ['مژه',      'از نزدیک و روبه‌رو، هر دو چشم باز و کامل در قاب، بدون عینک.'],
   };
-  let line = 'hair', loaded = false;
+  let line = 'hair', loaded = false, photo = null;
 
   function select(key) {
+    if(loaded && line===key)return;
     line = LINES[key] ? key : 'hair';
     name.textContent = LINES[line][0];
     hint.textContent = LINES[line][1];
     tabs.forEach(t => t.setAttribute('aria-pressed', String(t.dataset.line === line)));
     /* Switching the service after the demo is open reloads it on the other line, so the
        choice made here is never only cosmetic. */
-    if (loaded) obj.src = '/s/demo?l=' + line + '&from=landing';
+    if(loaded && photo)openPhoto(photo);
   }
   tabs.forEach(t => t.addEventListener('click', () => select(t.dataset.line)));
 
@@ -57,20 +58,26 @@
     if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 25 * 1024 * 1024) {
       alert('یک تصویر JPG، PNG یا WebP با حجم کمتر از ۲۵ مگابایت انتخاب کنید.'); return;
     }
-    const selection = { ...(window.__AYN_SEL || {}) };
-    try { await window.__AYN_DRAFT.put({ file, line, selection }); }
-    catch (_) { alert('باز کردن عکس ممکن نشد. دوباره انتخاب کنید.'); return; }
-    const q = new URLSearchParams({ l: line, draft: '1', embed: '1' });
-    if (line === 'hair') { q.set('s', selection.styleIdx ?? 0); if (selection.color) q.set('c', selection.color); }
-    ready(q);
+    photo=file;
+    await openPhoto(file);
   });
+  async function openPhoto(file) {
+    const selectedLine=line;
+    const selection = { ...(window.__AYN_SEL || {}) };
+    try { await window.__AYN_DRAFT.put({ file, line:selectedLine, selection }); }
+    catch (_) { alert('باز کردن عکس ممکن نشد. دوباره انتخاب کنید.'); return; }
+    if(selectedLine!==line||photo!==file)return;
+    const q = new URLSearchParams({ l: selectedLine, draft: '1', embed: '1' });
+    if (selectedLine === 'hair') { q.set('s', selection.styleIdx ?? 0); if (selection.color) q.set('c', selection.color); }
+    ready(q);
+  }
 
   /* The demo reports how tall its screen really is. The frame follows, between a floor and a
      ceiling, so the visitor never has to scroll inside a scroll — and a short step (the
      upload) does not leave a screen of empty white below it. */
   const MIN = 420, MAX = 1240;
   addEventListener('message', e => {
-    if (e.origin !== location.origin || !e.data || typeof e.data.aynehDemoHeight !== 'number') return;
+    if (e.source !== obj.contentWindow || e.origin !== location.origin || !e.data || typeof e.data.aynehDemoHeight !== 'number') return;
     const h = Math.max(MIN, Math.min(MAX, Math.round(e.data.aynehDemoHeight)));
     obj.style.height = h + 'px';
   });

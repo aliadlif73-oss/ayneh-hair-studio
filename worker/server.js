@@ -1,8 +1,8 @@
-import {saveActivation,activationAsset} from './activation.js';
+import {saveActivation,activationAsset,readDraftForm,readSalonDraft} from './activation.js';
 import {Problem,must,phone,text,safeLink,transferPrompt,uid,token,hash,digits,limited} from './domain.js';
 import {styles} from './legacy.js';
 import {identity,issueCookie,clearCookie,same,passwordLoginEnabled} from './auth.js';
-import {bucketFor,putImage} from './storage.js';
+import {bucketFor,getImage,putImage} from './storage.js';
 import {botReady,deliverLead,deliverPending,newLinkCode,setWebhook,inboxes,followLinks,PLATFORMS,platformReady,baleSecret,staffInvite,notifyConflict,expireStates} from './telegram.js';
 import {LINE_KEYS,lineStyles,cleanOptions,linePrompt,optionText,LINE_LABEL} from './lines.js';
 import {ownerLink,alertUnanswered,maybeDigest,setupStatus,digest,notifyOwner,setting} from './alerts.js';
@@ -12,7 +12,7 @@ import {smsReady,inviteReady,sendOtp} from './sms.js';
 import {createTrial,trialOf,trialLive,trialPublic,spendTrialImage} from './trial.js';
 import {PLANS as PLANS_TABLE} from './prices.js';
 import {createOrder,customerOrder,newAccessKey,setCoupon,markReviewing,confirmOrder,closeExpired,cardSetting,saveCard,
- webhookKey,rotateWebhookKey,panelLogin,panelSalon,panelDashboard,hashKey,ORDER_MINUTES,PAY_CARD,WEBHOOK_KEY,COUPONS} from './orders.js';
+ checkoutToken,newCheckoutToken,webhookKey,rotateWebhookKey,panelLogin,panelSalon,panelDashboard,hashKey,ORDER_MINUTES,PAY_CARD,WEBHOOK_KEY,COUPONS} from './orders.js';
 export {putImage};
 
 const J=(v,s=200,h={})=>new Response(JSON.stringify(v),{status:s,headers:{'Content-Type':'application/json;charset=utf-8','Cache-Control':'no-store',...h}});
@@ -108,7 +108,7 @@ async function provider(env,path,body){must(env.KIE_API_KEY,'تولید واقع
 export const IMAGE_MODELS={pro:'nano-banana-pro',fast:'nano-banana-2-1'};
 const FALLBACK_MODEL='nano-banana-2';
 async function createImageTask(env,cfg,input){const model=IMAGE_MODELS[cfg.image_model]||IMAGE_MODELS.pro;try{return {...await provider(env,'/api/v1/jobs/createTask',{model,input}),model}}catch(e){if(!(e instanceof Problem)||e.status!==502||model===FALLBACK_MODEL)throw e;return {...await provider(env,'/api/v1/jobs/createTask',{model:FALLBACK_MODEL,input}),model:FALLBACK_MODEL}}}
-async function uploadProvider(env,m){const object=await bucketFor(env).get(m.object_key);must(object,'عکس در دسترس نیست',410);const bytes=new Uint8Array(await object.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.slice(i,i+8192));const res=await fetch('https://kieai.redpandaai.co/api/file-base64-upload',{method:'POST',headers:{Authorization:'Bearer '+env.KIE_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({base64Data:'data:'+m.mime+';base64,'+btoa(binary),uploadPath:'ayneh',fileName:uid()+'.jpg'})});const d=await res.json();must(d.success&&d.data?.downloadUrl,'ارسال عکس انجام نشد',502);return d.data.downloadUrl;}
+async function uploadProvider(env,m){const object=await getImage(env,m.object_key);must(object,'عکس در دسترس نیست',410);const bytes=new Uint8Array(await object.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.slice(i,i+8192));const res=await fetch('https://kieai.redpandaai.co/api/file-base64-upload',{method:'POST',headers:{Authorization:'Bearer '+env.KIE_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({base64Data:'data:'+m.mime+';base64,'+btoa(binary),uploadPath:'ayneh',fileName:uid()+'.jpg'})});const d=await res.json();must(d.success&&d.data?.downloadUrl,'ارسال عکس انجام نشد',502);return d.data.downloadUrl;}
 
 export async function api(req,env){const u=new URL(req.url),path=u.pathname;must(env.DB,'پایگاه داده هنوز آماده نیست',503);const db=env.DB;
  /* The origin check is what makes the cookie-authenticated routes safe: a browser always
@@ -161,30 +161,39 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  // POST /api/order: opens the 10-minute window and returns the amount, card and deadline.
  if(path==='/api/order'&&req.method==='POST'){
   await limited(db,'order:'+clientIp(req),12,'سفارش‌های زیادی از این شبکه باز شده؛ کمی بعد دوباره امتحان کنید');
-  const b=await req.json().catch(()=>({}));
+  const form=/^multipart\/form-data\s*;/i.test(req.headers.get('content-type')||'')?await readDraftForm(req):null;
+  const b=form?Object.fromEntries(form):await req.json().catch(()=>({}));
+  must(b&&typeof b==='object'&&!Array.isArray(b),'فرم سفارش معتبر نیست.');
+  if(form)b.consent=b.consent==='true';
   if(String(b.website||'').trim())return J({ok:true,id:'x'});// honeypot
-  return J(await createOrder(db,env,b,u.origin));
+  const checkout=checkoutToken(req)||newCheckoutToken();
+  const order=await createOrder(db,env,b,u.origin,checkout,form?.has('draft')?()=>readSalonDraft(form,db):null);
+  return J(order,200,{'Set-Cookie':'ayneh_checkout='+checkout+'; HttpOnly'+(u.protocol==='https:'?'; Secure':'')+'; SameSite=Lax; Path=/api/order; Max-Age=2592000'});
  }
  const orderGet=path.match(/^\/api\/order\/([a-f0-9-]{36})$/);
- if(orderGet&&req.method==='GET')return J(await customerOrder(db,env,orderGet[1],u.origin));
+ if(orderGet&&req.method==='GET')return J(await customerOrder(db,env,orderGet[1],u.origin,req));
  const orderAct=path.match(/^\/api\/order\/([a-f0-9-]{36})\/(receipt|coupon)$/);
  if(orderAct&&req.method==='POST'){
   await limited(db,'order-act:'+clientIp(req),40);
   const b=await req.json().catch(()=>({}));
-  return J(orderAct[2]==='receipt'?await markReviewing(db,env,orderAct[1],b.note,u.origin):await setCoupon(db,env,orderAct[1],b.coupon,u.origin));
+  return J(orderAct[2]==='receipt'?await markReviewing(db,env,orderAct[1],b.note,u.origin,req):await setCoupon(db,env,orderAct[1],b.coupon,u.origin,req));
  }
  // The payment site's door. A single token in Authorization (Bearer) or X-Webhook-Key;
- // body {ref} or {order}, plus optional amount/status. Constant-time compare, never a cookie.
+ // Confirm a verified transfer with its exact rial amount and unique bank transaction ID.
  if(path==='/api/pay/confirm'&&req.method==='POST'){
   const expected=await webhookKey(db);
   const given=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'')||req.headers.get('x-webhook-key')||'';
   must(expected&&same(String(given),expected),'توکن وب‌هوک معتبر نیست',401);
-  const b=await req.json().catch(()=>({}));
+  must(/^application\/json(?:\s*;|$)/i.test(req.headers.get('content-type')||''),'بدنهٔ JSON لازم است.');
+  const b=await req.json().catch(()=>null);
+  must(b&&typeof b==='object'&&!Array.isArray(b),'بدنهٔ درخواست معتبر نیست.');
+  if(!['paid','success','confirmed','ok'].includes(String(b.status).toLowerCase()))return J({ok:true,ignored:true});
+  must(Number.isSafeInteger(b.amount_rial)&&b.amount_rial>0,'مبلغ واریز را به ریال بفرستید.');
+  must(typeof b.transaction_id==='string'&&/^[a-zA-Z0-9._:-]{1,128}$/.test(b.transaction_id),'شناسهٔ تراکنش معتبر نیست.');
   const byRef=b.ref?await one(db,'SELECT id FROM orders WHERE ref=?',String(b.ref).toUpperCase().slice(0,12)):null;
   const id=byRef?.id||String(b.order||'');
   must(id,'سفارش پیدا نشد',404);
-  if(b.status&&!['paid','success','confirmed','ok'].includes(String(b.status).toLowerCase()))return J({ok:true,ignored:true});
-  const r=await confirmOrder(db,env,id,{by:'webhook',origin:u.origin});
+  const r=await confirmOrder(db,env,id,{by:'webhook',origin:u.origin,transfer:{id:b.transaction_id,rial:b.amount_rial}});
   return J({ok:true,status:r.order.status,ref:r.order.ref,page:r.order.page_url});
  }
 
@@ -303,7 +312,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   throw new Problem(404,'مسیر مدیریت یافت نشد');
  }
  if(route==='upload'&&req.method==='POST'){const kind=u.searchParams.get('kind')||'original';let s=null;if(kind==='brand'||kind==='portfolio')await owner(req,env);else{must(['original','reference'].includes(kind));s=await session(req,db,salon);await limited(db,'upload:'+s.id,30);}const bytes=new Uint8Array(await req.arrayBuffer());return J({id:await putImage(env,salon,s,bytes,kind)});}
- if(route.startsWith('media/')){const id=route.slice(6),m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,salon.id);must(m,'عکس یافت نشد',404);const profile=parse(salon.profile);let visible=m.kind==='brand'&&PROFILE_IMAGES.some(k=>profile[k]===id);if(!visible)visible=!!await one(db,'SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)',salon.id,id);if(!visible){let isOwner=false;try{await owner(req,env);isOwner=true}catch{}if(!isOwner){const s=await session(req,db,salon);await ownMedia(db,s,id);}}const object=await bucketFor(env).get(m.object_key);must(object,'عکس در دسترس نیست',410);return new Response(object.body,{headers:{'Content-Type':m.mime,'Cache-Control':visible?'public,max-age=300':'private,no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"}});}
+ if(route.startsWith('media/')){const id=route.slice(6),m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,salon.id);must(m,'عکس یافت نشد',404);const profile=parse(salon.profile);let visible=m.kind==='brand'&&PROFILE_IMAGES.some(k=>profile[k]===id);if(!visible)visible=!!await one(db,'SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)',salon.id,id);if(!visible){let isOwner=false;try{await owner(req,env);isOwner=true}catch{}if(!isOwner){const s=await session(req,db,salon);await ownMedia(db,s,id);}}const object=await getImage(env,m.object_key);must(object,'عکس در دسترس نیست',410);return new Response(object.body,{headers:{'Content-Type':m.mime,'Cache-Control':visible?'public,max-age=300':'private,no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"}});}
  if(route==='ref'&&req.method==='POST'){const b=await req.json().catch(()=>({}));await limited(db,'ref:'+salon.id+':'+clientIp(req),3000);return J(await attribute(db,salon,String(b.v||''),String(b.r||'')));}
  if(route==='track'&&req.method==='POST'){const b=await req.json().catch(()=>({}));must(TRACK_KINDS.includes(b.kind)&&b.kind!=='sent','رویداد معتبر نیست');await limited(db,'track:'+salon.id+':'+clientIp(req),800);await logEvent(db,salon.id,b.kind,String(b.v||''),typeof b.meta==='string'||typeof b.meta==='number'?String(b.meta):'');return J({ok:true});}
  const s=await session(req,db,salon);

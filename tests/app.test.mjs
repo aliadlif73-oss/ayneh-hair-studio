@@ -1093,7 +1093,7 @@ test('step 24 reference: FAQ answers the five sheet questions and never names a 
   'آیا امکان استفاده روی موبایل وجود دارد؟','هزینهٔ استفاده از آینه چگونه است؟',
   'آیا پشتیبانی و مشاوره در طول استفاده دارم؟'])
   assert.ok(faq.includes(q),'faq '+q);
- assert.match(faq,/مبلغ و سهمیهٔ تصویر در حال نهایی‌شدن است/,'the cost answer stays honest');
+ assert.match(faq,/قیمت، مدت و اعتبار هدیه/);
  assert.doesNotMatch(faq,/میلیون|\d+\s*تومان/,'no figure is invented');
  assert.match(faq,/href="#services"/,'the cost answer points at the panels');
 });
@@ -1168,16 +1168,18 @@ test('step 24 layout: the grids collapse cleanly at 1120 / 900 / 600',()=>{
  assert.match(landingHTML,/\[hidden\]\{display:none!important\}/,'hidden always wins over a display rule');
 });
 
-test('step 24 pricing: three named panels, two figure slots each, no invented number',()=>{
- assert.equal((landingHTML.match(/data-price="(?:solo|salon|chain)"/g)||[]).length,6,'amount + quota for three panels');
- assert.equal((landingHTML.match(/<b class="slot">/g)||[]).length,6,'all six slots render');
- for(const name of ['<h3>آرایشگر</h3>','<h3>آرایشگاه</h3>','<h3>مجموعه</h3>'])
-  assert.ok(landingHTML.includes(name),'panel '+name);
- assert.equal((landingHTML.match(/تومان/g)||[]).length,5,'three plan amounts, the checkout figure and its toman formatter');
- assert.doesNotMatch(landingHTML,/میلیون|[۰-۹0-9]\s*تومان/,'no number before the owner decides');
- assert.match(landingHTML,/مبلغ و سهمیهٔ تصویر در حال نهایی‌شدن است/);
- assert.match(landingHTML,/لینک شخصی برای هر آرایشگر/);
- assert.match(landingHTML,/جابه‌جایی درخواست‌های بی‌پاسخ/);
+test('pricing cards display the approved prices, durations and gift credits',()=>{
+ for(const [key,name,amount,quota,term] of [
+  ['solo','ESSENTIAL','۲٫۹۰۰٫۰۰۰','۲۰','۱'],
+  ['salon','PRO','۶٫۰۰۰٫۰۰۰','۷۵','۳'],
+  ['chain','SIGNATURE','۱۰٫۰۰۰٫۰۰۰','۱۸۰','۶'],
+ ]){
+  const card=landingHTML.split('data-plan="'+key+'">')[1].split('</article>')[0];
+  for(const label of [name,amount,'اعتبار هدیه '+quota+' عکس',term+' ماهه'])assert.ok(card.includes(label),label);
+ }
+ assert.match(landingHTML,/<s class="plan__old">۸٫۷ میلیون تومان<\/s>/);
+ assert.match(landingHTML,/<s class="plan__old">۱۷٫۴ میلیون تومان<\/s>/);
+ assert.match(landingHTML,/هر ۱۰ عکس ۲۰۰ هزار تومان/);
 });
 
 test('step 27 films: the three service clips ship in one player, with a poster each',()=>{
@@ -1280,29 +1282,13 @@ function priced(plan, amount, quota = 30) {
   return () => Object.assign(PLANS[plan], before);
 }
 
-test('step 25 funnel: the button says «خرید» and, with no price, still explains itself', () => {
-  // The owner asked for one flow: the visitor sees the panels, clicks buy on the one she
-  // wants, and gets a card number with a deadline. With the amounts unapproved there is no
-  // money to take yet, so the same button carries her to the note under the panels and says
-  // why — never a dead button, never a checkout that cannot take payment, never a figure.
-  const labels = [...landingHTML.matchAll(/<a\b[^>]*data-buy="([a-z]+)"[^>]*>([^<]*)<\/a>/g)];
-  assert.equal(labels.length, 3, 'three plan buttons');
-  for (const [, plan, text] of labels) {
-    const tag = landingHTML.match(new RegExp('<a\\b[^>]*data-buy="' + plan + '"[^>]*>'))[0];
-    assert.equal(text.trim(), 'خرید', plan + ' is a buy button');
-    assert.match(tag, /href="#plan-note"/, plan + ' lands on the note that explains the figure');
-    assert.doesNotMatch(tag, /href="#pay"/, plan + ' does not open a payment it cannot take');
-  }
-  // Every unpriced panel explains itself in words next to the button.
-  assert.equal((landingHTML.match(/مبلغ در حال نهایی‌شدن است و پیش از خرید نوشته می‌شود\./g) || []).length, 3,
-    'each unpriced panel says the amount is being finalized');
-  // The click is not swallowed: it falls through to the anchor and leaves a note behind.
-  assert.match(payJS, /if \(!open\) \{[\s\S]{0,400}?return; \/\/ the anchor still carries/,
-    'an unpriced click explains itself and then lets the anchor do the work');
-  assert.match(landingHTML, /id="plan-note"/, 'the anchor has a real destination');
-  assert.match(landingHTML, /data-state="soon"/, 'and the shipped panels are still unpriced');
-  assert.equal(PLANS.solo.amount + PLANS.salon.amount + PLANS.chain.amount, 0,
-    'no plan carries a figure the owner has not approved');
+test('approved plan buttons open checkout and unpriced plans offer a demo request',()=>{
+ for(const [key,{amount}] of Object.entries(PLANS)){
+  const tag=landingHTML.match(new RegExp('<a[^>]*data-buy="'+key+'"[^>]*>خرید</a>'))[0];
+  assert.match(tag,/data-state="open"/);
+  assert.ok(tag.includes('data-amount="'+amount+'"'));
+ }
+ assert.match(payJS,/call\('\/api\/inquiry'/);
 });
 
 test('step 25 narrow phones: nothing in the header or the studio preview widens the page under 430px', () => {
@@ -1325,10 +1311,12 @@ test('step 25 narrow phones: nothing in the header or the studio preview widens 
 
 test('step 25 pricing: with no approved amount a plan cannot be bought, and the server says so', async () => {
   const e = fixture();
-  assert.equal(PLANS.salon.amount, 0, 'the shipped table has no invented figure');
-  const r = await call(e, '/api/order', orderBody());
-  assert.equal(r.status, 409);
-  assert.match(r.data.error, /مبلغ این پنل هنوز نهایی نشده/);
+  const restore=priced('salon',0);
+  try{
+    const r=await call(e,'/api/order',orderBody());
+    assert.equal(r.status,409);
+    assert.match(r.data.error,/مبلغ این پنل هنوز نهایی نشده/);
+  }finally{restore()}
   const unknown = await call(e, '/api/order', orderBody('platinum'));
   assert.equal(unknown.status, 404);
 });
@@ -1352,7 +1340,7 @@ test('step 25 order: a valid order returns the amount in toman, a 10-minute wind
     const saved = await call(e, '/api/owner/payment', {card: CARD, owner: 'علی ادلی'}, OWNER);
     assert.equal(saved.status, 200, JSON.stringify(saved));
     assert.deepEqual(saved.data.card, {number: '6037991122334455', owner: 'علی ادلی'});
-    const again = await call(e, '/api/order/' + first.data.id);
+    const again = await call(e, '/api/order/' + first.data.id, undefined, {cookie:first.cookie});
     assert.equal(again.data.card, '6037991122334455');
     assert.equal(again.data.card_owner, 'علی ادلی');
     assert.equal(again.data.access_key, '', 'the key is never re-sent');
@@ -1374,11 +1362,11 @@ test('step 25 expiry: the window is enforced by the server, and a closed order c
     const r = await call(e, '/api/order', orderBody());
     assert.equal(r.status, 200);
     e.DB.sql.prepare('UPDATE orders SET expires_at=? WHERE id=?').run(Date.now() - 1000, r.data.id);
-    const after = await call(e, '/api/order/' + r.data.id);
+    const after = await call(e, '/api/order/' + r.data.id, undefined, {cookie:r.cookie});
     assert.equal(after.data.status, 'expired');
     const confirm = await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER);
     assert.equal(confirm.status, 409);
-    const receipt = await call(e, '/api/order/' + r.data.id + '/receipt', {note: '123456'});
+    const receipt = await call(e, '/api/order/' + r.data.id + '/receipt', {note: '123456'}, {cookie:r.cookie});
     assert.equal(receipt.status, 410);
     const panel = await call(e, '/api/panel/me');
     assert.equal(panel.data.salon, null, 'no panel before payment');
@@ -1390,7 +1378,12 @@ test('step 25 one open order per mobile: a second click resumes the first instea
   const restore = priced('solo', 500000);
   try {
     const a = await call(e, '/api/order', orderBody('solo'));
-    const b = await call(e, '/api/order', orderBody('solo'));
+    const stranger=await call(e,'/api/order',orderBody('solo',{name:'شخص دیگر'}));
+    assert.equal(stranger.status,409);
+    assert.equal(stranger.data.id,undefined);
+    assert.equal((await call(e,'/api/order/'+a.data.id)).status,404);
+    assert.equal((await call(e,'/api/order/'+a.data.id+'/receipt',{note:'test'})).status,404);
+    const b = await call(e, '/api/order', orderBody('solo'), {cookie:a.cookie});
     assert.equal(a.data.id, b.data.id);
     assert.equal(b.data.access_key, '', 'a resumed order never re-issues the key');
     const count = e.DB.sql.prepare('SELECT count(*) n FROM orders').get().n;
@@ -1404,18 +1397,18 @@ test('step 25 coupons: one code per order lowers the toman amount; a bad code is
   try {
     e.DB.sql.prepare("INSERT INTO app_settings(key,value,updated_at) VALUES('pay_coupons','{\"AYNEH20\":{\"percent\":20,\"max\":1},\"OFF500\":{\"amount\":500000,\"max\":0}}',?)").run(Date.now());
     const r = await call(e, '/api/order', orderBody());
-    const c = await call(e, '/api/order/' + r.data.id + '/coupon', {coupon: 'ayneh20'});
+    const c = await call(e, '/api/order/' + r.data.id + '/coupon', {coupon: 'ayneh20'}, {cookie:r.cookie});
     assert.equal(c.status, 200, JSON.stringify(c));
     assert.equal(c.data.discount, 400000);
     assert.equal(c.data.amount, 1600000);
-    const bad = await call(e, '/api/order/' + r.data.id + '/coupon', {coupon: 'NOPE'});
+    const bad = await call(e, '/api/order/' + r.data.id + '/coupon', {coupon: 'NOPE'}, {cookie:r.cookie});
     assert.equal(bad.status, 422);
     // The code is spent when the customer commits (sends a receipt), not when a window opens.
-    assert.equal((await call(e, '/api/order/' + r.data.id + '/receipt', {note: '۱۲۳۴'})).data.status, 'reviewing');
+    assert.equal((await call(e, '/api/order/' + r.data.id + '/receipt', {note: '۱۲۳۴'}, {cookie:r.cookie})).data.status, 'reviewing');
     const other = await call(e, '/api/order', orderBody('salon', {phone: '۰۹۱۲۰۰۰۰۰۰۰'}));
-    const used = await call(e, '/api/order/' + other.data.id + '/coupon', {coupon: 'AYNEH20'});
+    const used = await call(e, '/api/order/' + other.data.id + '/coupon', {coupon: 'AYNEH20'}, {cookie:other.cookie});
     assert.equal(used.status, 422, 'max:1 is used up');
-    const fixed = await call(e, '/api/order/' + other.data.id + '/coupon', {coupon: 'OFF500'});
+    const fixed = await call(e, '/api/order/' + other.data.id + '/coupon', {coupon: 'OFF500'}, {cookie:other.cookie});
     assert.equal(fixed.status, 200);
     assert.equal(fixed.data.amount, 1500000);
   } finally { restore() }
@@ -1428,7 +1421,11 @@ test('step 25 confirm: the owner turns an order into a salon page + a working pa
     const r = await call(e, '/api/order', orderBody());
     assert.equal((await call(e, '/api/owner/orders', undefined, OWNER)).data.orders.length, 1);
     assert.equal((await call(e, '/api/owner/orders')).status, 401);
-    const ok = await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER);
+    const [ok, concurrent] = await Promise.all([
+      call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER),
+      call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER),
+    ]);
+    assert.equal(concurrent.data.order.page_url,ok.data.order.page_url);
     assert.equal(ok.status, 200, JSON.stringify(ok));
     assert.equal(ok.data.order.status, 'paid');
     assert.match(ok.data.order.page_url, /\/s\/salon$/);
@@ -1474,12 +1471,18 @@ test('step 25 webhook: the payment site confirms with its token; a wrong token, 
     const ignored = await post({ref: r.data.ref, status: 'failed'}, {authorization: 'Bearer ' + key});
     assert.equal((await ignored.json()).ignored, true);
     assert.equal((await call(e, '/api/owner/orders', undefined, OWNER)).data.orders[0].status, 'open');
-    const ok = await post({ref: r.data.ref, status: 'paid'}, {'x-webhook-key': key});
+    const transfer={ref:r.data.ref,status:'paid',amount_rial:r.data.amount*10,transaction_id:'transfer-1'};
+    assert.equal((await post({...transfer,amount_rial:1},{'x-webhook-key':key})).status,409);
+    assert.equal((await post({...transfer,ref:'AYUNKNOWN'},{'x-webhook-key':key})).status,404);
+    const ok=await post(transfer,{'x-webhook-key':key});
+    assert.equal((await post(transfer,{'x-webhook-key':key})).status,200);
+    const other=await call(e,'/api/order',orderBody('chain',{phone:'09120000000'}));
+    assert.equal((await post({...transfer,ref:other.data.ref},{'x-webhook-key':key})).status,409);
     const body = await ok.json();
     assert.equal(body.status, 'paid');
     assert.match(body.page, /\/s\//);
     // The webhook path never hands out the access key; the owner resends it instead.
-    assert.equal((await call(e, '/api/order/' + r.data.id)).data.access_key, '');
+    assert.equal((await call(e, '/api/order/' + r.data.id, undefined, {cookie:r.cookie})).data.access_key, '');
     // Rotating the token invalidates the old one.
     const rotated = await call(e, '/api/owner/payment', {rotate: true}, OWNER);
     assert.notEqual(rotated.data.key, key);
@@ -1495,7 +1498,7 @@ test('step 25 webhook: a server with no Origin reaches the token; every other ro
     const key = (await call(e, '/api/owner/payment', undefined, OWNER)).data.webhook.key;
     const post = (path, body, headers = {}) => app.fetch(new Request(origin + path, {method: 'POST', headers: {'content-type': 'application/json', ...headers}, body: JSON.stringify(body)}), e);
     // Exactly what the payment site sends: no Origin, a bearer token.
-    const ok = await post('/api/pay/confirm', {ref: r.data.ref, status: 'paid'}, {authorization: 'Bearer ' + key});
+    const ok = await post('/api/pay/confirm', {ref: r.data.ref, status: 'paid',amount_rial:r.data.amount*10,transaction_id:'no-origin'}, {authorization: 'Bearer ' + key});
     assert.equal(ok.status, 200, 'a token-bearing webhook is not blocked for lacking an Origin');
     assert.equal((await ok.json()).status, 'paid');
     // The exemption is that one path only: a cross-site POST is still refused everywhere else.
@@ -1517,7 +1520,6 @@ test('step 25 last step: the paid page opens the customer\'s own panel with one 
     // The done screen: the panel button carries the key, so the customer does not retype it.
     assert.match(payJS, /panel\.href = '\/panel\?key=' \+ encodeURIComponent\(shown\)/,
       'the paid screen hands the key to the panel door');
-    assert.match(payJS, /state\.entered/, 'it does it once, not on every poll');
     // The panel trades the key for its cookie, then removes it from the address bar.
     const panel = panelHTML;
     assert.match(panel, /\[\?&\]key=\(\[\^&\]\+\)/, 'the panel reads the key from the URL');
@@ -1536,16 +1538,17 @@ test('step 25 receipt: sending one moves the order to reviewing and the panel st
   const restore = priced('solo', 900000);
   try {
     const r = await call(e, '/api/order', orderBody('solo'));
-    const v = await call(e, '/api/order/' + r.data.id + '/receipt', {note: '۴ رقم آخر ۴۵۵'});
+    const v = await call(e, '/api/order/' + r.data.id + '/receipt', {note: '۴ رقم آخر ۴۵۵'}, {cookie:r.cookie});
     assert.equal(v.data.status, 'reviewing');
     assert.equal((await call(e, '/api/panel/me')).data.salon, null);
     const list = (await call(e, '/api/owner/orders', undefined, OWNER)).data.orders[0];
     assert.equal(list.receipt_note, '۴ رقم آخر ۴۵۵');
-    assert.equal(list.plan, 'آرایشگر', 'the console shows the Persian plan name');
+    assert.equal(list.plan,'ESSENTIAL');
     assert.equal(list.contact_phone, '09121234567', 'and a local mobile, not +98');
     assert.equal(list.amount, 900000, 'amount in toman');
     e.DB.sql.prepare('UPDATE orders SET expires_at=? WHERE id=?').run(Date.now() - 1, r.data.id);
-    assert.equal((await call(e, '/api/order/' + r.data.id)).data.status, 'expired');
+    assert.equal((await call(e, '/api/order/' + r.data.id, undefined, {cookie:r.cookie})).data.status, 'reviewing');
+    assert.equal((await call(e,'/api/owner/orders/'+r.data.id+'/confirm',{},OWNER)).data.order.status,'paid');
   } finally { restore() }
 });
 
@@ -1555,7 +1558,7 @@ test('step 25 key: the panel key is handed out when the order opens (once), neve
   try {
     const r = await call(e, '/api/order', orderBody());
     assert.match(r.data.access_key, /^AY-[2-9A-HJ-NP-Z]{9}$/);
-    assert.equal((await call(e, '/api/order/' + r.data.id)).data.access_key, '', 'a plain read never returns the key');
+    assert.equal((await call(e, '/api/order/' + r.data.id, undefined, {cookie:r.cookie})).data.access_key, '', 'a plain read never returns the key');
     assert.equal((await call(e, '/api/panel/login', {key: 'AY-AAAAAAAAA'})).status, 401);
     assert.equal((await call(e, '/api/panel/login', {key: 'nonsense'})).status, 401);
     await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER);
@@ -1567,12 +1570,10 @@ test('step 25 key: the panel key is handed out when the order opens (once), neve
   } finally { restore() }
 });
 
-test('step 25 pages: /panel and /pay are real routes, the panel page parses, and the landing checkout is off until a price exists', () => {
+test('step 25 pages: /panel and /pay are real routes, the panel page parses, and the landing checkout uses the approved prices', () => {
   new Function(panelHTML.split('<script>')[1].split('</script>')[0]);
   assert.match(landingHTML, /id="pay"/);
-  assert.equal((landingHTML.match(/data-state="open"/g) || []).length, 0, 'no plan sells itself before the owner sets an amount');
-  assert.equal((landingHTML.match(/data-state="soon"/g) || []).length, 3);
-  assert.equal((landingHTML.match(/data-amount="0"/g) || []).length, 3);
+  assert.equal((landingHTML.match(/data-state="open"/g) || []).length, 3);
   assert.match(landingHTML, /شمارهٔ کارت هنوز از پنل مدیر پر نشده است/);
   assert.match(landingHTML, /هر سفارش ۱۰ دقیقه اعتبار دارد/);
   assert.doesNotMatch(landingHTML, /[0-9۰-۹]{16}/, 'no card number is ever baked into the page');
@@ -1595,11 +1596,11 @@ test('step 25 checkout never leaves a "buy a panel" bar over a payment, and an u
   const js = landingHTML.match(/<script>([\s\S]*?)<\/script>/g).map(s => s.slice(8, -9)).join('\n');
   assert.match(js, /is-paying/, 'the sheet flags the page while paying');
   assert.match(js, /ayneh:pay-state/, 'the sticky bar listens for that flag');
-  assert.match(js, /await call\('\/api\/order', body\)/, 'the order is opened on the server');
+  assert.match(js, /await call\('\/api\/order', form\)/, 'the order is opened on the server');
   assert.match(js, /order\//, 'status, receipt and coupon all go through the order endpoints');
   assert.match(js, /expires_at/, 'the countdown mirrors the server deadline');
   assert.doesNotMatch(js, /تومان\/\s*\d/, 'the page does not compute its own prices');
-  assert.equal((landingHTML.match(/data-state="open"/g) || []).length, 0);
+  assert.equal((landingHTML.match(/data-state="open"/g) || []).length, 3);
 });
 
 test('step 25 brand: the favicon carries the cream/emerald palette, never the retired brass', () => {
@@ -1710,4 +1711,27 @@ test('step 30 cinema: every section has a scroll-scrubbed entrance, and none can
  assert.ok(landingHTML.includes('.cine-word'),'the word keyframes ship');
  assert.ok(landingHTML.includes('class="no-cinema"'),'the no-JS guard is on the root element');
  assert.ok(landingHTML.includes('cine-word'),'headlines are split into words at runtime');
+});
+
+test('paid studio draft publishes the chosen slug, profile, brand and portfolio in one confirmation',async()=>{
+ const e=fixture(), form=new FormData();
+ for(const [key,value] of Object.entries(orderBody('solo')))form.set(key,String(value));
+ form.set('draft',JSON.stringify({slug:'preview-salon',name:'نام پیش‌نمایش',brand:'#087D64',
+  profile:{bio:'متن پیش‌نمایش'},portfolio:[{title:'نمونه اول',line:'hair',description:'توضیح'}]}));
+ for(const slot of ['logo','work-0'])form.set(slot,new Blob([png()],{type:'image/png'}),slot+'.png');
+ const created=await app.fetch(new Request(origin+'/api/order',{method:'POST',headers:{origin},body:form}),e);
+ const order=await created.json();
+ assert.equal(created.status,200,JSON.stringify(order));
+ assert.equal((await call(e,'/api/salons',{slug:'preview-salon',name:'سالن دیگر'},OWNER)).status,409);
+ assert.equal((await app.fetch(new Request(origin+'/s/preview-salon'),e)).status,404);
+ const paid=await call(e,'/api/owner/orders/'+order.id+'/confirm',{},OWNER);
+ assert.equal(paid.status,200,JSON.stringify(paid));
+ const page=await call(e,'/api/s/preview-salon/public');
+ assert.equal(page.data.salon.name,'نام پیش‌نمایش');
+ assert.equal(page.data.salon.profile.brand,'#087D64');
+ assert.equal(page.data.salon.profile.bio,'متن پیش‌نمایش');
+ assert.equal(page.data.portfolio[0].title,'نمونه اول');
+ const logo=await app.fetch(new Request(origin+'/api/s/preview-salon/media/'+page.data.salon.profile.logo),e);
+ assert.equal(logo.status,200);
+ assert.deepEqual(new Uint8Array(await logo.arrayBuffer()),png());
 });

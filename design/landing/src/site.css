@@ -323,6 +323,7 @@ ul,ol{padding:0;list-style:none}
   padding:0 12px;border-radius:var(--r-pill);background:var(--emerald-deep);color:#fff;font-size:12px;font-weight:800}
 .plan h3{font-size:20px;font-weight:900;color:var(--ink)}
 .plan__deck{font-size:13.5px;line-height:1.7;color:var(--muted);min-height:2.6em}
+.plan__old{display:block;color:var(--muted);font-size:13px;text-decoration-color:#a4403f}
 .plan__price{margin-top:2px;padding-top:13px;border-top:1px solid var(--line)}
 .plan__amount{display:flex;align-items:baseline;gap:7px;font-weight:900;color:var(--ink);line-height:1.5}
 .plan__amount b{font-size:clamp(20px,2.2vw,26px)}

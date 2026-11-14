@@ -93,6 +93,42 @@
   works.append(item);add.disabled=works.children.length>=6;change();
   item.querySelector('input').focus();
  });
+ window.__AYN_CHECKOUT_DRAFT=async checkout=>{
+  if(!wizardReady)return;
+  const fields=form.elements;
+  const get=key=>fields[key].value.trim();
+  const profile=Object.fromEntries(['bio','manager','address','hours','phone',...Object.keys(linkNames)].map(key=>[key,get(key)]));
+  const portfolio=[];
+  for(const key of ['logo','cover','portrait']){
+   const file=fields[key].files[0];
+   if(file)checkout.set(key,await checkoutPhoto(file));
+  }
+  for(const row of works.children){
+   const field=key=>row.querySelector('[data-work="'+key+'"]');
+   const title=field('title').value.trim(), file=field('file').files[0];
+   if(!file||title.length<2)throw new Error('برای هر نمونه‌کار در استودیو تصویر و عنوان وارد کنید.');
+   checkout.set('work-'+portfolio.length,await checkoutPhoto(file));
+   portfolio.push({title,line:field('line').value,description:field('description').value.trim()});
+  }
+  checkout.set('draft',JSON.stringify({name:get('name'),slug:get('slug'),brand:get('brand'),profile,portfolio}));
+ };
+ async function checkoutPhoto(file){
+  if(!validPhoto(file))throw new Error(photoHelp);
+  if(file.size<=400000)return file;
+  const image=await createImageBitmap(file);
+  try{
+   const canvas=document.createElement('canvas');
+   for(let limit=1400;limit>=350;limit=Math.floor(limit*.7)){
+    const scale=Math.min(1,limit/Math.max(image.width,image.height));
+    canvas.width=Math.max(1,Math.round(image.width*scale));
+    canvas.height=Math.max(1,Math.round(image.height*scale));
+    canvas.getContext('2d').drawImage(image,0,0,canvas.width,canvas.height);
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/webp',.84));
+    if(blob&&blob.size<=400000)return new File([blob],file.name,{type:blob.type});
+   }
+  }finally{image.close()}
+  throw new Error('تصویر استودیو آماده نشد؛ عکس دیگری انتخاب کنید.');
+ }
  form.addEventListener('submit',e=>{
   e.preventDefault();
   /* Enter advances the two-question wizard; once the preview is ready the same
@@ -108,6 +144,8 @@
   /* The preview is the free half of the journey; the paid half is one anchor away.
      The button under the preview appears with it, so the next step is always visible. */
   activate.hidden=false;
+  const salonField=$('paySalon');
+  if(salonField&&!salonField.value)salonField.value=form.elements.name.value.trim();
   hint.textContent='پیش‌نمایش آماده است. برای باز کردن این صفحه با نشانی خودتان، پنل مناسب را بخرید.';
  });
 })();

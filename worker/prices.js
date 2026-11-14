@@ -3,10 +3,10 @@
 // build.py (one place), rebuild, and both the page and the server move together.
 //
 // amount: TOMAN per month · 0 = the panel is not for sale yet (no checkout, no countdown).
-// quota: images per month · 0 = not decided (the page shows «سهمیه»).
+// quota: gift images · 0 = not decided (the page shows «سهمیه»).
 export const PRICE_MINUTES = 10;
 export const PLANS = {
-  solo: {name: 'آرایشگر', amount: 0, quota: 0},
-  salon: {name: 'آرایشگاه', amount: 0, quota: 0},
-  chain: {name: 'مجموعه', amount: 0, quota: 0},
+  solo: {name: 'ESSENTIAL', amount: 2900000, quota: 20},
+  salon: {name: 'PRO', amount: 6000000, quota: 75},
+  chain: {name: 'SIGNATURE', amount: 10000000, quota: 180},
 };

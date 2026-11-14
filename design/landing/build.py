@@ -37,11 +37,11 @@ assert '.site-header{' in css, 'site.css must own the header'
 # digit. Format: amount in TOMAN as a plain integer ('2900000' → ۲٫۹۰۰٫۰۰۰), quota in images.
 # This table also generates worker/prices.js (the table the checkout charges from), so a number
 # can never appear on the page while the checkout believes something else.
-PANEL_FIGURES = {'solo': (0, 0), 'salon': (0, 0), 'chain': (0, 0)}
+PANEL_FIGURES = {'solo': (2_900_000, 20), 'salon': (6_000_000, 75), 'chain': (10_000_000, 180)}
 #
 # Open a plan for purchase by setting its amount; leave it 0 to keep it "coming soon".
 # Nothing is charged, no countdown runs and no card is shown for a plan with amount 0.
-PLAN_NAMES = {'solo': 'آرایشگر', 'salon': 'آرایشگاه', 'chain': 'مجموعه'}
+PLAN_NAMES = {'solo': 'ESSENTIAL', 'salon': 'PRO', 'chain': 'SIGNATURE'}
 # The checkout window the customer sees and the server enforces (worker/orders.js).
 PRICE_MINUTES = 10
 
@@ -86,7 +86,7 @@ W('../../worker/prices.js',
   + '// build.py (one place), rebuild, and both the page and the server move together.' + NL
   + '//' + NL
   + '// amount: TOMAN per month · 0 = the panel is not for sale yet (no checkout, no countdown).' + NL
-  + '// quota: images per month · 0 = not decided (the page shows «سهمیه»).' + NL
+  + '// quota: gift images · 0 = not decided (the page shows «سهمیه»).' + NL
   + 'export const PRICE_MINUTES = %d;' % PRICE_MINUTES + NL
   + 'export const PLANS = {' + NL + plans_js + '};' + NL)
 
@@ -182,7 +182,7 @@ faces = ('@font-face{font-family:"Vazirmatn";font-style:normal;font-weight:100 9
          + '@font-face{font-family:"Vazirmatn";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/vazirmatn-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-200B,U+2012-206F,U+20AC,U+2122,U+2212}' + NL
          + '@font-face{font-family:"Estedad";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/estedad-arabic.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200F,U+FB50-FDFF,U+FE70-FEFC}')
 p = re.sub(r'@font-face\{font-family:"Estedad"[^\n]*\}', lambda m: faces, p, count=1)
-assert '"Estedad","Vazirmatn"' in p, 'font stack keeps the app grid fonts' 
+assert '"Estedad","Vazirmatn"' in p, 'font stack keeps the app grid fonts'
 p = re.sub(r'<meta name="robots"[^>]*>(<!--.*?-->)?' + NL, '', p)
 assert '`' not in p and '${' not in p, 'template literal unsafe'
 
