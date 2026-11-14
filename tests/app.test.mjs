@@ -391,7 +391,7 @@ test('salon taps a status button: the lead updates, the keyboard marks it, a fol
  await hook(e,{callback_query:{id:'q2',data:'ls:booked:'+d.id,message:{chat:{id:777},message_id:9}}});
  const row=e.DB.sql.prepare('SELECT salon_status s,handled_at h FROM leads').get();assert.equal(row.s,'booked');assert(row.h>0);
  const edit=tg.calls.find(c=>c.method==='editMessageReplyMarkup');assert(edit.body.reply_markup.inline_keyboard.flat().some(b=>b.text.startsWith('✔︎ ')&&b.callback_data.startsWith('ls:booked')));
- assert.match(tg.calls.filter(c=>c.method==='sendMessage'&&c.body.chat_id==='5150').at(-1).body.text,/نوبت شما را هماهنگ کرد/);
+ assert.match(tg.calls.filter(c=>c.method==='sendMessage'&&c.body.chat_id==='5150').at(-1).body.text,/نوبتت را هماهنگ کرد/);
  const mine=await call(e,'/api/s/salon-a/requests',undefined,g);assert.equal(mine.data.requests[0].salon_status,'booked');assert.equal(mine.data.requests[0].followed,1);
  const other=await guest(e,s);assert.equal((await call(e,'/api/s/salon-a/requests',undefined,other)).data.requests.length,0,'a customer sees only her own requests');
  await hook(e,{message:{chat:{id:6000,type:'private'},text:'/start f_'+'0'.repeat(24)}});assert.match(tg.calls.at(-1).body.text,/منقضی/);
@@ -1895,7 +1895,7 @@ test('booking (PRO): a dated booking from a request marks it booked, tells a fol
  const b=await panel(e,ctx,'bookings',{lead_id:l.id,starts_at:Date.now()+20*3600000,duration_min:90,note:'رنگ'});assert.equal(b.status,200,JSON.stringify(b));
  assert.equal(e.DB.sql.prepare('SELECT salon_status s FROM leads').get().s,'booked');
  assert.ok(b.data.told,'the following customer is told');
- assert.ok(tg.calls.some(c=>c.body.chat_id==555&&/نوبت شما در/.test(c.body.text)),'confirmation reached her chat');
+ assert.ok(tg.calls.some(c=>c.body.chat_id==555&&/نوبتت در/.test(c.body.text)),'confirmation reached her chat');
  assert.equal((await panel(e,ctx,'bookings',{lead_id:l.id,starts_at:Date.now()+30*3600000})).status,409,'one active booking per request');
  const list=await panel(e,ctx,'bookings');assert.equal(list.data.bookings.length,1);assert.match(list.data.bookings[0].when,/ساعت/);
  // reminder: once, inside Tehran hours

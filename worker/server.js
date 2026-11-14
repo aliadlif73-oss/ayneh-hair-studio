@@ -66,7 +66,7 @@ const quotaLeft=used=>Object.fromEntries(LINE_KEYS.map(k=>[k,Math.max(0,QUOTA_PE
 async function spendQuota(db,salon,s,visitor,line){
  const left=quotaLeft(await quotaUsed(db,salon,s,visitor));
  if(left[line]>0)return;
- const others=LINE_KEYS.filter(k=>k!==line&&left[k]>0).map(k=>'«'+LINE_LABEL[k]+'»');
+ const offered=salonLines(salon)||LINE_KEYS;const others=offered.filter(k=>k!==line&&left[k]>0).map(k=>'«'+LINE_LABEL[k]+'»');
  throw new Problem(429,'سهم امتحان «'+LINE_LABEL[line]+'» برای شما تمام شد ('+QUOTA_PER_LINE.toLocaleString('fa-IR')+' تصویر). '+(others.length?'هنوز می‌توانی '+others.join('، ')+' را امتحان کنی، یا همین نتیجه‌ها را برای سالن بفرستی.':'سهم امتحان همهٔ بخش‌ها تمام شده؛ می‌توانی همین نتیجه‌ها را برای سالن بفرستی تا با تو تماس بگیرند.'));
 }
 // The project's own team: verified mobiles listed in app_settings 'unlimited_phones' (a JSON list,

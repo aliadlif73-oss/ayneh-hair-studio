@@ -1270,7 +1270,9 @@ function stepResult(){
   box.append(sendNote());
  }else if(!state.busy){
   if(!canGenerate()){
-   box.append(notice('info',!state.pub.generation?'این سالن پیش‌نمایش تصویری را فعال نکرده. عکس و انتخابت را برای '+artist()+' بفرست تا بررسی کند.':(!hasChoice()?missingReason()+'.':'ساخت تصویر از این انتخاب هنوز فعال نیست. عکس و انتخابت را مستقیم برای '+artist()+' بفرست.')));
+   /* Out of images for this service: say exactly that (once), never «not active yet». */
+   if(quotaLeft()===0&&state.pub.generation){if(!/سهم امتحان/.test(state.error||''))box.append(notice('info',quotaOut()))}
+   else box.append(notice('info',!state.pub.generation?'این سالن پیش‌نمایش تصویری را فعال نکرده. عکس و انتخابت را برای '+artist()+' بفرست تا بررسی کند.':(!hasChoice()?missingReason()+'.':state.reference&&!state.pub.reference?'ساخت تصویر از عکس مدل خودت در این سالن فعال نیست. عکس و انتخابت را مستقیم برای '+artist()+' بفرست.':'ساخت تصویر از این انتخاب هنوز فعال نیست. عکس و انتخابت را مستقیم برای '+artist()+' بفرست.')));
    box.append(el('div',{class:'flow__nav'},[!hasChoice()&&state.original?el('button',{class:'btn btn--ghost',type:'button',onclick:function(){go(2)},text:'انتخاب'}):null,sendButton()]));
    box.append(sendNote());
   }else{
@@ -1291,7 +1293,7 @@ function startBuildClock(){
 }
 function sendNote(){
  var name=state.pub.salon.name;
- return el('p',{class:'send-note'},[el('span',{html:ICO.send}),el('span',{text:state.pub.telegram?'عکس و مدلت با اسم و شماره‌ات در تلگرام برای «'+name+'» فرستاده می‌شود. خود سالن با تو تماس می‌گیرد یا در تلگرام پیام می‌دهد.':'«'+name+'» هنوز ارسال آنلاین را فعال نکرده؛ با زدن این دکمه راه‌های تماس با سالن را می‌بینی.'})]);
+ return el('p',{class:'send-note'},[el('span',{html:ICO.send}),el('span',{text:state.pub.telegram?'عکس و مدلت با اسم و شماره‌ات برای «'+name+'» فرستاده می‌شود و خود سالن با تو تماس می‌گیرد.':'«'+name+'» هنوز ارسال آنلاین را فعال نکرده؛ با زدن این دکمه راه‌های تماس با سالن را می‌بینی.'})]);
 }
 
 /* ---------- side: the salon's own work ---------- */
@@ -1315,7 +1317,7 @@ function renderDock(){
   primary=el('button',{class:'btn btn--primary',type:'button',disabled:!ready,onclick:build,html:can?ICO.spark+'<span>بساز</span>':out?ICO.send+'<span>فرستادن</span>':ICO.arrow+'<span>ادامه</span>'});
  }else{
   if(state.busy){hint='در حال ساخت…';primary=el('button',{class:'btn btn--primary',type:'button',disabled:true,text:'در حال ساخت…'})}
-  else if(state.result||!canGenerate()){hint='فرستادن در تلگرام برای سالن';primary=el('button',{class:'btn btn--primary',type:'button',onclick:openRequest,html:ICO.send+'<span>فرستادن برای '+artist()+'</span>'})}
+  else if(state.result||!canGenerate()){hint='فرستادن برای سالن';primary=el('button',{class:'btn btn--primary',type:'button',onclick:openRequest,html:ICO.send+'<span>فرستادن برای '+artist()+'</span>'})}
   else{hint='آمادهٔ ساخت';primary=el('button',{class:'btn btn--primary',type:'button',onclick:generate,html:ICO.spark+'<span>بساز</span>'})}
  }
  inner.append(el('div',{class:'dock__hint',text:hint}),el('button',{class:'btn btn--ghost',type:'button',onclick:openAbout,'aria-label':'دربارهٔ سالن',html:ICO.info}),primary);
@@ -1675,7 +1677,7 @@ function openOtp(next){
  var timer=null;
  function shut(){clearInterval(timer);closeSheet()}
  var panel=el('div',{class:'sheet__panel'});
- var head=el('div',{class:'sheet__head'},[h('h2','برای ساخت تصویر، ابتدا وارد شوید'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:shut})]);
+ var head=el('div',{class:'sheet__head'},[h('h2','اول شماره‌ات را تأیید کن'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:shut})]);
  var me=state.me||{},bits=String(me.name||'').trim().split(/\s+/);
  var firstWrap=wrapField('otpFirst','نام','text',bits[0]||'','',{autocomplete:'given-name'});
  var lastWrap=wrapField('otpLast','نام خانوادگی','text',bits.slice(1).join(' '),'',{autocomplete:'family-name'});
@@ -1690,7 +1692,7 @@ function openOtp(next){
   var verify=el('button',{class:'btn btn--primary btn--block',type:'submit',text:'تأیید'});
   var again=el('button',{class:'btn btn--ghost btn--block',type:'button',disabled:true,text:''});
   var f2=el('form',{novalidate:'true'},[codeWrap,verify,again]);
-  panel.replaceChildren(head,h('p','کد به '+last.shown+' پیامک شد. تا چند لحظهٔ دیگر می‌رسد.','muted'),f2);
+  panel.replaceChildren(head,h('p','کد به '+fa0(last.shown)+' پیامک شد. تا چند لحظهٔ دیگر می‌رسد.','muted'),f2);
   var left=60;
   function tickDown(){
    if(!panel.isConnected){clearInterval(timer);return}
@@ -1759,13 +1761,13 @@ function openRequest(){
   state.reference&&!state.refTitle?el('img',{src:media(state.reference),alt:'عکس مدل'}):null
  ]);
  panel.append(el('div',{class:'outbox'},[thumbs,el('div',{},[
-  h('b','در تلگرام برای «'+s.name+'» فرستاده می‌شود'),
+  h('b','برای «'+s.name+'» فرستاده می‌شود'),
   h('p',[state.result?'عکس خودت و نتیجهٔ شبیه‌سازی':'عکس خودت',lookName()?'انتخاب: '+lookName():'',(state.line==='nails'||state.line==='lashes')&&state.color?'رنگ: '+state.color:''].filter(Boolean).join('، ')+'، به همراه نام، شماره و توضیحت.')
  ])]));
  panel.append(el('ol',{class:'how'},[
-  el('li',{text:'پیام همین الان در تلگرام به دست سالن می‌رسد.'}),
+  el('li',{text:'درخواستت همین الان به دست سالن می‌رسد.'}),
   el('li',{text:artist()+' عکس‌ها را می‌بیند و امکان اجرا را بررسی می‌کند.'}),
-  el('li',{text:'خود سالن به شماره‌ات زنگ می‌زند'+' یا اگر آیدی تلگرام بدهی، همان‌جا پیام می‌دهد.'})
+  el('li',{text:'خود سالن به شماره‌ات زنگ می‌زند؛ اگر آیدی تلگرام بدهی، شاید همان‌جا پیام بدهد.'})
  ]));
  var form=el('form',{novalidate:'true'});
  var nameWrap=wrapField('name','نام و نام خانوادگی','text',state.me&&state.me.name||'','',{autocomplete:'name'});

@@ -176,7 +176,7 @@ export async function panelApi(req, env, u, path) {
     /* The request becomes «نوبت داده شد»; the customer gets the dated message below instead of
        the generic one. */
     if (lead && lead.salon_status !== 'booked') await run(db, "UPDATE leads SET salon_status='booked',handled_at=COALESCE(handled_at,?) WHERE id=?", now, lead.id);
-    const told = await tellCustomer(env, salon, lead?.id, '📅 نوبت شما در «' + salon.name + '» برای ' + whenText(at) + ' ثبت شد.' + salonLine(salon) + '\nیک روز قبل همین‌جا یادآوری می‌کنیم.');
+    const told = await tellCustomer(env, salon, lead?.id, '📅 نوبتت در «' + salon.name + '» برای ' + whenText(at) + ' ثبت شد.' + salonLine(salon) + '\nیک روز قبل همین‌جا یادآوری می‌کنیم.');
     const overlap = await one(db, "SELECT COUNT(*) n FROM bookings WHERE salon_id=? AND id<>? AND status='scheduled' AND COALESCE(staff_id,'')=? AND starts_at<? AND starts_at+duration_min*60000>?", salon.id, id, staff || '', at + dur * 60000, at);
     return J({ok: true, id, when: whenText(at), told, overlap: Number(overlap?.n || 0)});
   }
@@ -193,14 +193,14 @@ export async function panelApi(req, env, u, path) {
       must(Number.isFinite(at) && at > now - 3600000 && at < now + 366 * DAY, 'روز و ساعت نوبت معتبر نیست.');
       must(bk.status === 'scheduled', 'فقط نوبت فعال جابه‌جا می‌شود.', 409);
       await run(db, 'UPDATE bookings SET starts_at=?,reminded_at=NULL,updated_at=? WHERE id=?', at, now, bk.id);
-      const told = await tellCustomer(env, salon, bk.lead_id, '🔄 نوبت شما در «' + salon.name + '» به ' + whenText(at) + ' تغییر کرد.' + salonLine(salon));
+      const told = await tellCustomer(env, salon, bk.lead_id, '🔄 نوبتت در «' + salon.name + '» به ' + whenText(at) + ' تغییر کرد.' + salonLine(salon));
       return J({ok: true, when: whenText(at), told});
     }
     const to = {done: 'done', no_show: 'no_show', cancel: 'cancelled'}[action];
     must(to, 'کار نامعتبر.');
     await run(db, 'UPDATE bookings SET status=?,updated_at=? WHERE id=?', to, now, bk.id);
     let told = false;
-    if (to === 'cancelled' && bk.status === 'scheduled') told = await tellCustomer(env, salon, bk.lead_id, 'نوبت شما در «' + salon.name + '» برای ' + whenText(bk.starts_at) + ' لغو شد. برای هماهنگی دوباره با سالن تماس بگیرید.' + salonLine(salon));
+    if (to === 'cancelled' && bk.status === 'scheduled') told = await tellCustomer(env, salon, bk.lead_id, 'نوبتت در «' + salon.name + '» برای ' + whenText(bk.starts_at) + ' لغو شد. برای هماهنگی دوباره با سالن تماس بگیر.' + salonLine(salon));
     return J({ok: true, status: to, told});
   }
 
@@ -260,7 +260,7 @@ export async function bookingTick(env, origin = '', now = Date.now()) {
     if (!claim.meta.changes) continue;
     const salon = await one(env.DB, 'SELECT * FROM salons WHERE id=?', bk.salon_id);
     if (!salon) continue;
-    if (await tellCustomer(env, salon, bk.lead_id, '⏰ یادآوری: نوبت شما در «' + salon.name + '» ' + whenText(bk.starts_at) + ' است.' + salonLine(salon))) reminded++;
+    if (await tellCustomer(env, salon, bk.lead_id, '⏰ یادآوری: نوبتت در «' + salon.name + '» ' + whenText(bk.starts_at) + ' است.' + salonLine(salon))) reminded++;
   }
   /* Follow-up: the day after the visit (marked done, or still scheduled and well past). */
   for (const bk of await all(env.DB, "SELECT * FROM bookings WHERE status IN('done','scheduled') AND followed_at IS NULL AND starts_at<? LIMIT 50", now - 20 * 3600000)) {
@@ -268,7 +268,7 @@ export async function bookingTick(env, origin = '', now = Date.now()) {
     if (!claim.meta.changes) continue;
     const salon = await one(env.DB, 'SELECT * FROM salons WHERE id=?', bk.salon_id);
     if (!salon) continue;
-    if (await tellCustomer(env, salon, bk.lead_id, '💐 از اینکه به «' + salon.name + '» آمدید ممنونیم. برای نوبت بعدی یا امتحان یک مدل تازه:\n' + (origin || '') + '/s/' + salon.slug)) followed++;
+    if (await tellCustomer(env, salon, bk.lead_id, '💐 ممنون که به «' + salon.name + '» آمدی. برای نوبت بعدی یا امتحان یک مدل تازه:\n' + (origin || '') + '/s/' + salon.slug)) followed++;
   }
   return {reminded, followed};
 }

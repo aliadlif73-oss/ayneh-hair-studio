@@ -12,7 +12,7 @@ test('review Site serves the real customer flow, restricts its proxy, and labels
   execFileSync(process.execPath,['scripts/prepare-design-preview.mjs',folder],{cwd:new URL('..',import.meta.url)});
   const {default:app}=await import(pathToFileURL(join(folder,'worker/index.js')));
   const calls=[];globalThis.fetch=async(url,options)=>{calls.push({url,options});return new Response(new Uint8Array([1,2,3]),{headers:{'Content-Type':'application/octet-stream'}})};
-  const page=await app.fetch(new Request('https://review.example/s/demo?draft=1'));assert.equal(page.status,200);assert.match(await page.text(),/برای ساخت تصویر، ابتدا وارد شوید/);
+  const page=await app.fetch(new Request('https://review.example/s/demo?draft=1'));assert.equal(page.status,200);assert.match(await page.text(),/اول شماره‌ات را تأیید کن/);
   const landing=await app.fetch(new Request('https://review.example/'));
   assert.equal(landing.headers.get('X-Robots-Tag'),'noindex, nofollow');
   // Budget for the real production landing (not the 3 MB single-file artifact).

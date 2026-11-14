@@ -418,7 +418,7 @@ export async function expireStates(env,now=Date.now()){
 }
 
 /* ---------- customer follow: she taps "خبرم کن" on the page and starts the bot ---------- */
-const STATUS={new:'هنوز منتظر تماس سالن',called:'سالن با شما تماس گرفته',booked:'نوبت هماهنگ شد',declined:'سالن گفت این مدل قابل اجرا نیست'};
+const STATUS={new:'هنوز منتظر تماس سالن',called:'سالن با تو تماس گرفته',booked:'نوبت هماهنگ شد',declined:'سالن گفت این مدل قابل اجرا نیست'};
 async function follow(ctx,token){
  const lead=await one(ctx.db,'SELECT l.*,s.name AS salon_name FROM leads l JOIN salons s ON s.id=l.salon_id WHERE l.follow_hash=?',await hash(token));
  if(!lead){await ctx.say('این لینک پیگیری منقضی شده یا درست نیست.');return}
@@ -430,9 +430,9 @@ async function notifyCustomer(env,lead,salon,textOut){
  try{await call(env,lead.follow_platform,'sendMessage',{chat_id:lead.follow_chat,text:textOut})}catch(e){console.error('notify customer',e?.message)}
 }
 const customerText=(status,salon,origin)=>{const prof=parse(salon.profile),tel=prof.phone?'\n📞 شمارهٔ سالن: '+local(prof.phone):'';
- if(status==='called')return '📞 «'+salon.name+'» اعلام کرد که با شما تماس گرفته است. اگر تماسی نداشتید، خودتان زنگ بزنید.'+tel;
- if(status==='booked')return '✅ «'+salon.name+'» نوبت شما را هماهنگ کرد. منتظر دیدنتان هستند!';
- if(status==='declined')return '«'+salon.name+'» گفت مدلی که انتخاب کردید در سالن قابل اجرا نیست. می‌توانید مدل دیگری را امتحان کنید'+(origin?':\n'+origin+'/s/'+salon.slug:'.')+tel;
+ if(status==='called')return '📞 «'+salon.name+'» اعلام کرد که با تو تماس گرفته. اگر تماسی نداشتی، خودت زنگ بزن.'+tel;
+ if(status==='booked')return '✅ «'+salon.name+'» نوبتت را هماهنگ کرد. منتظر دیدنت هستند!';
+ if(status==='declined')return '«'+salon.name+'» گفت مدلی که انتخاب کردی در سالن قابل اجرا نیست. می‌توانی مدل دیگری را امتحان کنی'+(origin?':\n'+origin+'/s/'+salon.slug:'.')+tel;
  return '⏳ «'+salon.name+'» هنوز درخواستت را جواب نداده. اگر عجله داری، مستقیم تماس بگیر.'+tel;
 };
 
