@@ -33,6 +33,13 @@
   const track = (kind, meta) => window.__AYN_TRACK?.(kind, meta);
 
   const state = {order: null, plan: null, poll: null, tick: null, done: false, key: '', entered: false};
+  /* The order and its panel key are kept in this browser until the panel opens. A customer who
+     switches to the bank app, or reloads, comes back to the same order with the same key;
+     another browser (or another person with the same mobile) gets nothing from it. */
+  const STORE = 'ayneh-order';
+  const remember = (id, key) => { try { localStorage.setItem(STORE, JSON.stringify({id, key, at: Date.now()})); } catch {} };
+  const recall = () => { try { const v = JSON.parse(localStorage.getItem(STORE) || 'null'); return v && /^[a-f0-9-]{36}$/.test(v.id) ? v : null; } catch { return null; } };
+  const service = document.body.dataset.service || '';
   const view = {
     form: $('payForm'), live: $('payLive'), wait: $('payWait'), done: $('payDone'), expired: $('payExpired'),
   };
@@ -61,6 +68,7 @@
     err($('payErr'), '');
     const body = {
       plan,
+      service,
       salon: $('paySalon').value.trim(),
       name: $('payName').value.trim(),
       phone: $('payPhone').value.trim(),
@@ -74,9 +82,10 @@
     try {
       const order = await call('/api/order', body);
       state.order = order;
-      /* The server hands the panel key out exactly once, here. Keep it in memory so the
-         done screen can repeat it after the customer has paid; it is never stored. */
+      /* The server hands the panel key out once, here. It is kept in this browser (see
+         remember) so the done screen can open the panel even after a reload. */
       if (order.access_key) state.key = order.access_key;
+      remember(order.id, state.key);
       track('order_open', plan);
       draw(order);
       view.form.hidden = true;
@@ -229,7 +238,7 @@
       state.plan = key;
       section.hidden = false;
       $('payPlan').textContent = (planOf(key)?.querySelector('h3')?.textContent || '').trim();
-      $('paySub').textContent = 'مقصد پرداخت: پنل ' + $('payPlan').textContent + '. مبلغ را کارت‌به‌کارت واریز کنید؛ مهلت با شمارش معکوس پایین می‌آید.';
+      $('paySub').textContent = 'خرید پلن ' + $('payPlan').textContent + '. مبلغ را کارت‌به‌کارت واریز کنید؛ مهلت با شمارش معکوس پایین می‌آید.';
       show('form');
       section.scrollIntoView({behavior: 'smooth', block: 'start'});
       if ($('paySalon').value.trim() && $('payName').value.trim() && $('payPhone').value.trim()) open(key);
@@ -318,15 +327,21 @@
     section.scrollIntoView({behavior: 'smooth', block: 'start'});
   });
 
-  /* Coming back from a refresh with ?order= reopens the same order (the phone's link). */
-  const wanted = new URLSearchParams(location.search).get('order');
+  /* Coming back: ?order= (a top-up from the panel, or a shared link) or the order this
+     browser opened earlier. The key is only ever restored from this browser's own store. */
+  const kept = recall();
+  const wanted = new URLSearchParams(location.search).get('order') || (kept && Date.now() - kept.at < 7 * 86400000 ? kept.id : '');
   if (wanted) {
     call('/api/order/' + encodeURIComponent(wanted))
       .then(order => {
+        if (order.status === 'cancelled' || (order.status === 'expired' && !new URLSearchParams(location.search).get('order'))) return;
         state.order = order;
-        if (order.access_key) state.key = order.access_key;
+        if (kept && kept.id === order.id && kept.key) state.key = kept.key;
         draw(order);
         if (order.status === 'reviewing' || order.status === 'paid' || order.status === 'expired') drawState(order);
+        /* Arriving with ?order= (a top-up from the panel, a shared link) means the checkout is
+           the point of the visit: take the reader straight to it. */
+        if (new URLSearchParams(location.search).get('order')) requestAnimationFrame(() => section.scrollIntoView({block: 'start'}));
       })
       .catch(() => {});
   }

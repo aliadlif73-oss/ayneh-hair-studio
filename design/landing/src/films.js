@@ -74,5 +74,5 @@
     if (visible && auto) { wanted = true; play(); } else if (!visible) stop();
   }, { threshold: [.35] }).observe(video);
   document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else play(); });
-  select('hair', auto);
+  select(tabs[0] ? tabs[0].dataset.film : 'hair', auto);
 })();

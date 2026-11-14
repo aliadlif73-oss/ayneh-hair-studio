@@ -26,6 +26,13 @@ const css = String.raw`
 .pn-start .field{display:grid;gap:6px;font-size:13.5px;font-weight:600}
 .pn-start input{min-height:50px;border:1px solid #d9c7b2;border-radius:12px;padding:0 14px;font:inherit;direction:ltr;text-align:left;letter-spacing:.06em}
 .pn-who{font-size:12.5px;color:var(--muted)}
+.pn-credit{display:grid;gap:4px}
+.pn-credit b{font-size:30px;font-weight:900;color:var(--ink);line-height:1.2}
+.pn-credit.is-low b{color:#B4553C}
+.pn-packs{display:flex;flex-wrap:wrap;gap:8px}
+.pn-packs .btn{min-height:44px}
+.pn-note{font-size:12.5px;color:var(--muted)}
+.pn [hidden]{display:none!important}
 `;
 
 const lib = String.raw`
@@ -59,6 +66,25 @@ function gate(msg){
 
 const dash = String.raw`
 function stepRow(s){return el('li',{'class':s.done?'is-done':''},[h('span','✓','pn-tick'),h('span',s.label)])}
+/* Plan and image credits: what is left, until when, and buying more through the same checkout. */
+function creditCard(d){
+ var c=d.credits;
+ if(!c)return el('div',{class:'pn-card'},[h('h2','اعتبار تصویر'),h('p','این سالن پلن فعالی ندارد؛ تصویرها محدودیت اعتباری ندارند.')]);
+ var low=c.left<=Math.max(3,Math.round(c.granted*.1));
+ var err=el('p',{class:'notice notice--warn',hidden:true});
+ var buy=function(packs){return el('button',{class:'btn btn--primary btn--sm',type:'button',text:fa(packs*d.topup.images)+' عکس · '+fa(packs*d.topup.amount)+' تومان',onclick:function(e){
+  e.target.disabled=true;err.hidden=true;
+  api('/api/panel/topup',{packs:packs}).then(function(o){location.href='/pay?order='+encodeURIComponent(o.id)}).catch(function(x){err.textContent=x.message;err.hidden=false;e.target.disabled=false});
+ }})};
+ return el('div',{class:'pn-card'},[
+  h('h2','پلن '+d.plan+' و اعتبار تصویر'),
+  el('div',{class:'pn-credit'+(low?' is-low':'')},[h('span','عکس باقی‌مانده','pn-who'),h('b',fa(c.left)+' از '+fa(c.granted)),h('span',fa(c.used)+' عکس ساخته شده؛ عکس‌های ناموفق حساب نمی‌شوند.','pn-who')]),
+  h('p',c.expired?'مهلت پلن تمام شده و ساخت تصویر متوقف است؛ برای تمدید با پشتیبانی آینه تماس بگیرید یا از صفحهٔ خدمت خود پلن تازه بخرید.':'پلن تا '+fmt(c.until)+' فعال است ('+fa(c.days_left)+' روز مانده).'),
+  h('p','خرید اعتبار بیشتر: هر '+fa(d.topup.images)+' عکس '+fa(d.topup.amount)+' تومان.','pn-note'),
+  el('div',{class:'pn-packs'},[buy(1),buy(2),buy(5)]),
+  err
+ ]);
+}
 function dash(d){
  var copy=function(){
   var code=$('#pnLink').textContent;
@@ -77,6 +103,7 @@ function dash(d){
    h('small','سفارش '+d.ref+' · تأیید‌شده در '+fmt(d.paid_at),'pn-who')
   ]),
   el('div',{class:'pn-grid'},[
+   creditCard(d),
    el('div',{class:'pn-card'},[
     h('h2','راه‌اندازی'),
     h('p',fa(d.setup.done)+' از '+fa(d.setup.total)+' قدم انجام شده.'),
@@ -107,6 +134,7 @@ const boot = String.raw`
  fromUrl=fromUrl?decodeURIComponent(fromUrl.replace(/\+/g,' ')).trim().toUpperCase():'';
  function enter(){
   api('/api/panel/login',{key:fromUrl}).then(function(){
+   try{localStorage.removeItem('ayneh-order')}catch(e){}
    try{history.replaceState(null,'',location.pathname)}catch(e){}
    location.replace('/panel');
   }).catch(function(){

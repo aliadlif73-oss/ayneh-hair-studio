@@ -91,5 +91,5 @@
     start.onclick = () => location.assign('/s/demo?l=' + line + '&from=landing');
   });
 
-  select('hair');
+  select(tabs[0] ? tabs[0].dataset.line : 'hair');
 })();

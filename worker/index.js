@@ -9,7 +9,7 @@ import {fontResponse} from './fonts.js';
 import {webhook,baleWebhook} from './telegram.js';
 import {favicon,baseCSS} from './design.js';
 import {sharePage} from './share.js';
-import {landingHTML} from './landing.js';
+import {landingHTML,servicePages} from './landing.js';
 const htmlHeaders={'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self' data:; media-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",'Permissions-Policy':'camera=(self), geolocation=(), microphone=()'};
 // Only real pages are served the app shell; everything else is a 404, never a blank app page.
 const pages=[/^\/admin\/?$/,/^\/admin\/[a-z0-9-]{1,64}\/?$/,/^\/s\/[a-z0-9-]{1,64}\/?$/,/^\/i\/[a-z0-9-]{1,64}\/?$/,/^\/panel\/?$/,/^\/pay\/?$/,/^\/signin-with-chatgpt(\/.*)?$/];
@@ -43,13 +43,16 @@ export default {
   // /pay is the checkout's own address (shared links and the QR on a receipt); the landing
   // page carries the same sheet inline, so both land on the same server-side order.
   if(/^\/panel\/?$/.test(u.pathname))return new Response(panelHTML,{headers:{...htmlHeaders,'X-Robots-Tag':'noindex'}});
-  if(/^\/pay\/?$/.test(u.pathname))return new Response(landingHTML.replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-store','X-Robots-Tag':'noindex'}});
+  if(/^\/pay\/?$/.test(u.pathname))return new Response(servicePages.hair.replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-store','X-Robots-Tag':'noindex'}});
   if(u.pathname==='/salon-preview')return new Response(customerHTML,{headers:{...htmlHeaders,'X-Frame-Options':'SAMEORIGIN','X-Robots-Tag':'noindex','Content-Security-Policy':htmlHeaders['Content-Security-Policy'].replace("frame-ancestors 'none'","frame-ancestors 'self'")}});
   /* The landing page is the one thing the owner keeps reloading while we work on it, and a
      five-minute max-age with an hour of stale-while-revalidate meant a phone could show a
      build from an hour ago while the server was already serving the new one. The page is not
      an asset: let the browser revalidate it every time, cheaply (304 via ETag below). */
   if(u.pathname==='/')return new Response(landingHTML.replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-cache'}});
+  /* One page per service: /hair (style and colour), /nails, /lashes. Same headers as the home page. */
+  const svc=u.pathname.match(/^\/(hair|nails|lashes)\/?$/);
+  if(svc)return new Response(servicePages[svc[1]].replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-cache'}});
   /* Hit when a preview is holding an old copy and no amount of reloading helps: a URL that
      has never existed cannot be cached, so /new serves the current build under a fresh path.
      It carries no robots policy change — it is the same page, just honest about being new. */

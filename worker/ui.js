@@ -380,12 +380,13 @@ function payCard(){
   var acts=[];
   if(o.status==='open'||o.status==='reviewing')acts.push(el('button',{class:'btn btn--primary btn--sm',type:'button',text:'تأیید پرداخت',onclick:act(function(){return api('/api/owner/orders/'+o.id+'/confirm',{}).then(function(){toast('پرداخت تأیید شد؛ سالن ساخته می‌شود.');load()})})}));
   if(o.status==='open'||o.status==='reviewing')acts.push(el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'لغو',onclick:act(function(){return api('/api/owner/orders/'+o.id+'/cancel',{}).then(function(){toast('سفارش لغو شد.');load()})})}));
-  if(o.status==='paid')acts.push(el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'ساخت کلید تازه',onclick:act(function(){
-   var k=prompt('کلید تازه برای ورود سالن. همین حالا به مشتری بدهید؛ دوباره نشان داده نمی‌شود.');
-   if(!k)return;return api('/api/owner/orders/'+o.id+'/rekey',{}).then(function(r){toast('کلید تازه: '+r.key);load()})
+  if(o.status==='expired')acts.push(el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'بازگشایی ۱۰ دقیقه',onclick:act(function(){return api('/api/owner/orders/'+o.id+'/reopen',{}).then(function(){toast('سفارش دوباره باز شد.');load()})})}));
+  if(o.status==='paid'&&o.kind!=='topup')acts.push(el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'ساخت کلید تازه',onclick:act(function(){
+   if(!confirm('کلید قبلی و همهٔ ورودهای باز پنل این سالن باطل می‌شود. ادامه؟'))return;
+   return api('/api/owner/orders/'+o.id+'/rekey',{}).then(function(r){prompt('کلید تازه؛ همین حالا به سالن بدهید (دوباره نشان داده نمی‌شود):',r.key);load()})
   })}));
   return el('div',{class:'order-row is-'+tone},[
-   el('div',{class:'order-row__top'},[h('b',o.salon_name+' · '+o.plan),el('span',{class:'badge',text:label})]),
+   el('div',{class:'order-row__top'},[h('b',o.salon_name+' · '+o.plan+(o.service_label?' · '+o.service_label:'')),el('span',{class:'badge',text:label})]),
    h('small',o.contact_name+' · '+o.contact_phone+' · '+fa(o.amount)+' تومان · کد '+o.ref+(o.status==='open'?' · '+fa(left)+' دقیقه مانده':'')),
    o.receipt_note?h('small','رسید/توضیح مشتری: '+o.receipt_note):null,
    acts.length?el('div',{class:'order-row__acts'},acts.map(function(x){return x})):null

@@ -5,16 +5,19 @@
    of every illustration is blank paper), so it never sits under the text.
    Decorative only: aria-hidden, no focusable content, nothing here is needed to use the page. */
 (()=>{
-  const CHAPTERS = [
-    {ids:['intro','features'],          name:'سپیده‌دمِ سالن'},
-    {ids:['films','try-on'],             name:'انتخاب در خانه'},
-    {ids:['play','how'],                 name:'روبه‌روی آینه'},
-    {ids:['why','proof'],                name:'روزِ پرکار سالن'},
-    {ids:['services','cta'],             name:'دفترِ صاحب سالن'},
-    {ids:['faq','salon-example'],        name:'پایان روز، آغاز صفحهٔ شما'},
-  ];
-  const sections = CHAPTERS.map(c => c.ids.map(id => document.getElementById(id)).filter(Boolean));
-  if (!sections.some(s => s.length)) return;
+  /* Six chapters of one salon day. The home page and each service page carry different
+     sections, so the chapters are cut from the sections this page actually has: in order,
+     split as evenly as possible into at most six. */
+  const NAMES = ['سپیده‌دمِ سالن', 'انتخاب در خانه', 'روبه‌روی آینه', 'روزِ پرکار سالن', 'دفترِ صاحب سالن', 'پایان روز، آغاز صفحهٔ شما'];
+  const present = [...document.querySelectorAll('main > section[id]')].filter(el => !el.hidden);
+  if (!present.length) return;
+  const count = Math.min(NAMES.length, present.length);
+  const CHAPTERS = Array.from({length: count}, (_, i) => ({
+    els: present.slice(Math.floor(i * present.length / count), Math.floor((i + 1) * present.length / count)),
+    name: NAMES[Math.round(i * (NAMES.length - 1) / Math.max(1, count - 1))],
+    art: Math.round(i * (NAMES.length - 1) / Math.max(1, count - 1)) + 1,
+  }));
+  const sections = CHAPTERS.map(c => c.els);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const base = (window.__AYN_BASE || 'assets/');
   const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
@@ -28,7 +31,7 @@
       const img = document.createElement('img');
       img.className = 'story__art story__art--' + side;
       img.alt = ''; img.decoding = 'async'; img.width = 429; img.height = 780;
-      img.dataset.src = base + 'story-' + (i + 1) + side + '.webp';
+      img.dataset.src = base + 'story-' + c.art + side + '.webp';
       p.append(img);
     });
     layer.append(p); return p;

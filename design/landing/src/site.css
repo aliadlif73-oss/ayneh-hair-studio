@@ -1303,3 +1303,63 @@ body{background:transparent}
   .play-hint{left:auto;right:14px}
   .play-replay{left:auto;right:12px}
 }
+
+/* ============================================================================
+   Home · sample work and the three service doors
+   ============================================================================ */
+.samples__grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(10px,1.4vw,18px)}
+.sample-card{display:grid;gap:0;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+.sample-card .compare{border-radius:0;aspect-ratio:3/4}
+.sample-card__foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;min-height:52px}
+.sample-card__foot b{font-size:15px;font-weight:800;color:var(--ink)}
+.sample-card__foot a{display:inline-flex;align-items:center;gap:5px;min-height:44px;font-size:12.5px;font-weight:800;color:var(--emerald-deep)}
+.samples__note{margin-top:12px;text-align:center;font-size:12.5px;color:var(--muted)}
+@media(max-width:960px){.samples__grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:420px){.samples__grid{grid-template-columns:1fr}}
+
+.choose{background:transparent}
+.choose__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,1.6vw,20px)}
+.choose-card{display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-xl);
+  overflow:hidden;box-shadow:var(--shadow-sm);color:inherit;transition:box-shadow .2s var(--ease),transform .2s var(--ease),border-color .2s var(--ease)}
+.choose-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--emerald-soft)}
+.choose-card__media{display:block;aspect-ratio:16/10;overflow:hidden;background:var(--cream-3)}
+.choose-card__media img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
+.choose-card__body{display:flex;flex-direction:column;gap:9px;padding:clamp(16px,1.9vw,22px);flex:1}
+.choose-card__kicker{align-self:flex-start;display:inline-flex;align-items:center;min-height:28px;padding:0 12px;border-radius:var(--r-pill);
+  background:var(--emerald-wash);color:var(--emerald-deep);font-size:13px;font-weight:800}
+.choose-card__body b{font-size:16.5px;font-weight:800;line-height:1.75;color:var(--ink)}
+.choose-card__text{font-size:14px;line-height:1.9;color:var(--ink-soft)}
+.choose-card__go{margin-top:auto;align-self:stretch}
+@media(max-width:900px){.choose__grid{grid-template-columns:1fr}.choose-card{flex-direction:row}.choose-card__media{flex:0 0 38%;aspect-ratio:auto}}
+@media(max-width:520px){.choose-card{flex-direction:column}.choose-card__media{aspect-ratio:16/9}}
+
+/* Service page hero */
+.hero-back{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin-bottom:6px;font-size:13px;font-weight:700;color:var(--ink-soft)}
+.hero-back:hover{color:var(--emerald-deep)}
+.hero--service .eyebrow{margin-bottom:12px}
+.compare-wrap--single{grid-template-columns:minmax(0,1fr)}
+
+/* ============================================================================
+   Plans — drawn like the owner's price sheet
+   ============================================================================ */
+.plans{align-items:stretch}
+.plan{gap:12px;text-align:center;padding-top:clamp(24px,2.6vw,30px)}
+.plan h3{font-family:Georgia,"Times New Roman",serif;font-size:clamp(24px,2.4vw,30px);font-weight:700;letter-spacing:.02em;color:var(--ink)}
+.plan__months{align-self:center;display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:0 16px;border-radius:var(--r-pill);
+  background:var(--emerald-wash);color:var(--ink);font-size:15px;font-weight:800}
+.plan__months svg{width:18px;height:18px;color:var(--emerald-deep)}
+.plan__price{display:grid;gap:6px;justify-items:stretch}
+.plan__was{margin:0;min-height:24px;font-size:15px;font-weight:700;color:var(--muted)}
+.plan__was s{text-decoration-color:#C0392B;text-decoration-thickness:2px}
+.plan__amount{display:block;margin:0;padding:14px 12px;border-radius:16px;background:var(--emerald-deep);color:#fff;
+  font-size:clamp(19px,1.9vw,23px);font-weight:900;line-height:1.4;text-align:center}
+.plan__amount b{font-size:1.25em}
+.plan ul{text-align:start}
+.plan ul li{padding-block:6px;border-bottom:1px solid var(--line)}
+.plan ul li:last-child{border-bottom:0}
+.plan--lead{border:2px solid #D8B46A;background:linear-gradient(180deg,#F1F8F4,#fff 40%)}
+.plan__badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#C9A15A,#E6C989);color:#3B2A0B;
+  inset-inline-start:50%;transform:translateX(50%);white-space:nowrap}
+.plan__badge svg{width:15px;height:15px}
+.plan-note{justify-content:center;text-align:center;font-weight:800;color:var(--ink)}
+@media(max-width:860px){.plan__was[aria-hidden="true"]{display:none}}
