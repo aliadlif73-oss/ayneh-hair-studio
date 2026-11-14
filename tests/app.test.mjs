@@ -2021,3 +2021,19 @@ test('/hair: the mirror and the photo try-on are one block with two tabs; one su
  for(const html of [landingHTML,...Object.values(servicePages)])assert.deepEqual([...new Set([...html.matchAll(/tel:(\d+)/g)].map(m=>m[1]))],[SUPPORT_TEL]);
  assert.ok(panelHTML.includes(JSON.stringify(SUPPORT_TEL)),'the panel gate offers the same number for a lost key');
 });
+
+test('migration 0017: salons made before the fix lose the copied buyer mobile and name, nothing else',async()=>{
+ const e=fixture();
+ const a=await planSalon(e,'essential','09125550101'),b=await planSalon(e,'essential','09125550102');
+ // Recreate the old provisioning: the buyer's mobile and name copied onto the public profile.
+ const old=(slug,phone)=>e.DB.sql.prepare("UPDATE salons SET profile=json_object('manager','سارا محمدی','phone',?,'address','تهران') WHERE slug=?").run(phone,slug);
+ old(a.slug,'09125550101');old(b.slug,'09129998877'); // b later wrote its own page phone
+ e.DB.sql.prepare("INSERT INTO salons(id,slug,owner_id,name,profile,settings,created_at) VALUES('legacy-1','legacy-one','owner-x','قدیمی',json_object('manager','سارا محمدی','phone','09125550101'),'{}',1)").run();
+ e.DB.sql.exec(readFileSync(new URL('../drizzle/0017_buyer_contact_cleanup.sql',import.meta.url),'utf8'));
+ const prof=slug=>JSON.parse(e.DB.sql.prepare('SELECT profile FROM salons WHERE slug=?').get(slug).profile);
+ assert.deepEqual(prof(a.slug),{address:'تهران'},'copied mobile and name removed, the rest kept');
+ assert.equal(prof(b.slug).phone,'09129998877','a phone the salon wrote itself is kept');
+ assert.equal(prof(b.slug).manager,undefined);
+ assert.deepEqual(prof('legacy-one'),{manager:'سارا محمدی',phone:'09125550101'},'a salon not made by the checkout is untouched');
+ assert.doesNotMatch(JSON.stringify((await call(e,'/api/s/'+a.slug+'/public')).data),/9125550101|سارا محمدی/,'nothing of the buyer on the public page');
+});
