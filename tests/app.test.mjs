@@ -1634,7 +1634,7 @@ test('step 28 try-on: the demo salon is on the page, with the phone step still i
 test('step 29 mirror: the character can restyle hair and colour, on a real photo',()=>{
  const section=landingHTML.match(/<section id="play"[\s\S]*?<\/section>/)[0]||'';
  assert.ok(section,'the mirror section ships');
- assert.match(section,/id="playRoom"[^>]*src="(?:\/landing\/|assets\/)hero\.webp\?v=mirror-original"/,'the original photo remains the single base render');
+ assert.match(section,/id="playRoom"[^>]*src="(?:\/landing\/|assets\/)hero-hd\.webp"/,'the original photo, at 2x, remains the single base render');
  assert.doesNotMatch(section,/class="play-backdrop"/,'no second photograph is layered under the selected character');
  // 19 styles and 7 colours, as in the version that earned the request for it.
  const js=landingHTML.match(/<script>([\s\S]*?)<\/script>/g).map(x=>x.slice(8,-9)).join('\n');

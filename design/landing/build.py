@@ -16,7 +16,7 @@ W = lambda p, s: open(p, 'w', encoding='utf8').write(s)
 # Everything the new page references, synced into public/landing/ so the worker
 # and the static preview read the same bytes.
 DEMOS = ['demo-%s-%s.webp' % (s, k) for s in ('style', 'color', 'lashes', 'nails') for k in ('before', 'after')]
-SYNC = re.compile(r'(hero\.webp|salon-film-0[1-5]\.webp|(?:hair|lashes|nails)-end\.webp|%s|estedad\.woff2|look-s\d\d\.webp)$' % '|'.join(re.escape(d) for d in DEMOS))
+SYNC = re.compile(r'(hero\.webp|salon-film-0[1-5]\.webp|(?:hair|lashes|nails)-end\.webp|%s|estedad\.woff2|look-s\d\d\.webp|(?:hero|look-s\d\d)-hd\.webp)$' % '|'.join(re.escape(d) for d in DEMOS))
 for asset in os.listdir('assets'):
     if SYNC.match(asset):
         shutil.copyfile('assets/' + asset, '../../public/landing/' + asset)
