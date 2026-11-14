@@ -1800,7 +1800,7 @@ function openRequest(){
    panel.replaceChildren(el('div',{class:'sent'},[
     el('span',{class:'sent__mark',html:ICO.check}),
     h('h2',d.delivered?'برای سالن فرستاده شد':d.waiting?'درخواستت ثبت شد':'در صف ارسال است'),
-    h('p',d.delivered?'«'+s.name+'» عکس و مدلت را در تلگرام دریافت کرد. منتظر تماس سالن'+(tg?' یا پیامش در تلگرام':'')+' باش.':(d.waiting?'درخواستت ذخیره شد و به‌زودی به دست آرایشگرت در «'+s.name+'» می‌رسد. منتظر تماسش باش.':'تلگرام الان جواب نداد؛ درخواستت ذخیره شد و چند دقیقهٔ دیگر خودکار برای سالن فرستاده می‌شود.')),
+    h('p',d.delivered?'«'+s.name+'» عکس و مدلت را دریافت کرد. منتظر تماس سالن'+(tg?' یا پیامش در تلگرام':'')+' باش.':(d.waiting?'درخواستت ذخیره شد و به‌زودی به دست آرایشگرت در «'+s.name+'» می‌رسد. منتظر تماسش باش.':'تلگرام الان جواب نداد؛ درخواستت ذخیره شد و چند دقیقهٔ دیگر خودکار برای سالن فرستاده می‌شود.')),
     fl.length?el('div',{class:'sent__follow'},[h('p','می‌خواهی وقتی سالن جواب داد خبردار شوی؟ یک بار ربات را باز کن و Start بزن.','sent__hint')].concat(fl)):null,
     el('button',{class:fl.length?'btn btn--ghost btn--block':'btn btn--primary btn--block',type:'button',onclick:closeSheet,text:fl.length?'نه، ممنون':'باشه'})
    ]));

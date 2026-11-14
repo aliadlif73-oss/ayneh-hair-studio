@@ -175,6 +175,7 @@
       if (!shown && order.same_key) {
         $('payDoneNote').textContent = 'با همان کلید قبلی‌تان وارد پنل شوید؛ پلن و اعتبار جدید همان‌جاست.';
         $('payAccessKey').closest('.pay-done__key').hidden = true;
+        $('payDoneLead').textContent = order.kind === 'topup' ? 'اعتبار عکس به پنل شما اضافه شد.' : 'پلن شما تمدید شد و اعتبار عکس تازه به پنل اضافه شد.';
       }
       const panel = $('payPanelLink'), page = $('payPageLink');
       panel.href = order.panel_url || '/panel';

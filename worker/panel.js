@@ -10,6 +10,8 @@ const css = String.raw`
 .pn-brand{display:flex;gap:10px;align-items:center;font-weight:800;color:var(--ink)}
 .pn-brand svg{width:34px;height:34px}
 .pn-card{background:var(--surface);border:1px solid var(--line-2);border-radius:18px;padding:18px 20px;display:grid;gap:12px}
+.pn-card{align-content:start}
+.pn-card>.btn,.pn-card>a.btn{justify-self:start}
 .pn-card h2{margin:0;font-size:17px}
 .pn-card p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.9}
 .pn-hero{background:linear-gradient(180deg,#fff,#f2f7f4);border-color:#cfe3da}
@@ -44,6 +46,8 @@ const css = String.raw`
 .pn-sample::after{content:'نمونه';position:absolute;inset-inline-end:10px;top:10px;font-size:11px;font-weight:800;background:#efe5da;border-radius:99px;padding:2px 8px;color:#6b5a48}
 .pn-pick{display:flex!important;align-items:center;gap:10px;flex-wrap:wrap;cursor:pointer}
 .pn-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.pn-noimg{display:block;width:72px;height:90px;border-radius:10px;background:#efe5da}
+.pn-shot .pn-noimg{width:100%;height:100%}
 .pn-gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px}
 .pn-shot{position:relative;border-radius:12px;overflow:hidden;background:#efe5da;aspect-ratio:4/5}
 .pn-shot img{width:100%;height:100%;object-fit:cover;display:block}
@@ -156,17 +160,18 @@ function locked(d,f,title,why){
 /* Persian day chips for the next 14 days and a 24-hour time: Tehran midnight + hh:mm. */
 var DAY=86400000,TEH=12600000;
 function tehranMidnight(k){return Math.floor((Date.now()+TEH)/DAY)*DAY-TEH+k*DAY}
-function dayChips(onPick){
- var box=el('div',{class:'pn-days',role:'group','aria-label':'روز نوبت'}),chosen=0,btns=[];
+function dayChips(onPick,start){
+ var box=el('div',{class:'pn-days',role:'group','aria-label':'روز نوبت'}),chosen=start||0,btns=[];
  for(var k=0;k<14;k++)(function(k){var t=tehranMidnight(k)+12*3600000;
   var label=k===0?'امروز':k===1?'فردا':new Intl.DateTimeFormat('fa-IR',{weekday:'long',timeZone:'Asia/Tehran'}).format(t);
-  var b=el('button',{class:'pn-day',type:'button','aria-pressed':String(k===0),onclick:function(){chosen=k;btns.forEach(function(x,i){x.setAttribute('aria-pressed',String(i===k))});onPick&&onPick(k)}},[label,el('br'),new Intl.DateTimeFormat('fa-IR',{day:'numeric',month:'short',timeZone:'Asia/Tehran'}).format(t)]);
+  var b=el('button',{class:'pn-day',type:'button','aria-pressed':String(k===chosen),onclick:function(){chosen=k;btns.forEach(function(x,i){x.setAttribute('aria-pressed',String(i===k))});onPick&&onPick(k)}},[label,el('br'),new Intl.DateTimeFormat('fa-IR',{day:'numeric',month:'short',timeZone:'Asia/Tehran'}).format(t)]);
   btns.push(b);box.append(b)})(k);
  return {box:box,day:function(){return chosen}};
 }
 function bookingForm(d,lead,done){
- var nx=new Date(Date.now()+TEH+3600000),nh=nx.getUTCHours(),nm=nx.getUTCMinutes()<30?30:0;if(nm===0)nh=(nh+1)%24;if(nh<9)nh=9;if(nh>21)nh=16;
- var days=dayChips(),time=el('input',{type:'time',value:(nh<10?'0':'')+nh+':'+(nm?'30':'00'),step:'900','aria-label':'ساعت'});
+ var nx=new Date(Date.now()+TEH+3600000),nh=nx.getUTCHours(),nm=nx.getUTCMinutes()<30?30:0;if(nm===0)nh=(nh+1)%24;var late=nh>21||nh<nx.getUTCHours();if(late){nh=10;nm=0}else if(nh<9){nh=9;nm=0}
+ /* After 21:00 the form opens on tomorrow at 10:00, never on a time that has passed. */
+ var days=dayChips(null,late?1:0),time=el('input',{type:'time',value:(nh<10?'0':'')+nh+':'+(nm?'30':'00'),step:'900','aria-label':'ساعت'});
  var name=lead?null:el('input',{placeholder:'نام مشتری','aria-label':'نام مشتری'}),tel=lead?null:el('input',{placeholder:'موبایل (اختیاری)',inputmode:'tel',dir:'ltr','aria-label':'موبایل مشتری'});
  var dur=el('select',{'aria-label':'مدت'},[30,60,90,120,180].map(function(m){return el('option',{value:String(m),text:fa(m)+' دقیقه',selected:m===60})}));
  var note=el('input',{placeholder:'یادداشت (اختیاری)','aria-label':'یادداشت'}),err=el('p',{class:'notice notice--warn',hidden:true});
@@ -200,7 +205,7 @@ function requestsTab(d,box){
     var slot=el('div');
     if(has(d,'booking'))acts.append(el('button',{class:'btn btn--primary btn--sm',type:'button',text:l.booking_at?'📅 '+fmt(l.booking_at):'📅 ثبت نوبت',onclick:function(){slot.replaceChildren(bookingForm(d,l,function(){load()}))}}));
     list.append(el('div',{class:'pn-item'},[
-     img?el('img',{src:'/api/panel/media/'+img,alt:'عکس درخواست '+l.name,loading:'lazy'}):el('span'),
+     img?el('img',{src:'/api/panel/media/'+img,alt:'عکس درخواست '+l.name,loading:'lazy',onerror:function(e){e.target.replaceWith(el('span',{class:'pn-noimg','aria-label':'عکس در دسترس نیست'}))}}):el('span'),
      el('div',{},[
       el('div',{style:'display:flex;gap:8px;align-items:center;flex-wrap:wrap'},[h('b',l.name),h('span',STATUS_TEXT[l.salon_status]||'تازه','pn-badge')]),
       h('div',[LINE[l.line]||'',l.look,l.color].filter(Boolean).join(' · '),'meta'),
@@ -268,7 +273,7 @@ function customersTab(d,box){
    list.replaceChildren();
    if(!r.customers.length)list.append(h('p','مشتری‌ای پیدا نشد.'));
    r.customers.forEach(function(c){list.append(el('div',{class:'pn-item'},[
-    c.last_preview?el('img',{src:'/api/panel/media/'+c.last_preview,alt:'آخرین انتخاب '+c.name,loading:'lazy'}):el('span'),
+    c.last_preview?el('img',{src:'/api/panel/media/'+c.last_preview,alt:'آخرین انتخاب '+c.name,loading:'lazy',onerror:function(e){e.target.replaceWith(el('span',{class:'pn-noimg','aria-label':'عکس در دسترس نیست'}))}}):el('span'),
     el('div',{},[h('b',c.name||'—'),el('div',{class:'meta'},[el('a',{href:'tel:'+c.phone,dir:'ltr',text:c.phone})]),
      h('div',fa(c.requests)+' درخواست · '+fa(c.booked)+' نوبت · '+fa(c.visits)+' مراجعه','meta'),
      h('div',(c.lines||'').split(',').map(function(x){return LINE[x]||x}).join('، ')+(c.last_choice?' · '+c.last_choice:''),'meta'),
@@ -317,7 +322,7 @@ function pageTab(d,box){
  var grid=el('div',{class:'pn-gallery'}),gErr=el('p',{class:'pn-note',hidden:true});
  function draw(){
   grid.replaceChildren.apply(grid,d.portfolio.length?d.portfolio.map(function(p){return el('figure',{class:'pn-shot'},[
-   p.image?el('img',{src:'/api/panel/media/'+p.image,alt:p.title,loading:'lazy'}):null,
+   p.image?el('img',{src:'/api/panel/media/'+p.image,alt:p.title,loading:'lazy',onerror:function(e){e.target.replaceWith(el('span',{class:'pn-noimg','aria-label':'عکس در دسترس نیست'}))}}):null,
    el('figcaption',{text:p.title+' · '+(LINE[p.line]||p.line)}),
    el('button',{type:'button','aria-label':'حذف '+p.title,text:'✕',onclick:function(){if(!confirm('این نمونه‌کار حذف شود؟'))return;fetch('/api/panel/portfolio/'+p.id,{method:'DELETE'}).then(function(r){if(!r.ok)throw new Error('حذف نشد');d.portfolio=d.portfolio.filter(function(x){return x.id!==p.id});draw()}).catch(function(x){alert(x.message)})}})
   ])}):[h('p','هنوز نمونه‌کاری نیست. اولین کارتان را اضافه کنید تا مشتری‌ها در صفحه ببینند.')]);
