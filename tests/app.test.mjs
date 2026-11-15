@@ -2658,3 +2658,10 @@ test('panel checklist: «دعوت همکار» shows for «پنل آرایشگا
  assert.doesNotMatch(server,/UPDATE generations SET paid_by/,'paid_by is written with the generation row, never after it');
  assert.equal((server.match(/visitor,paid_by\) VALUES/g)||[]).length,2,'both the image and the 360 view write paid_by in their INSERT');
 });
+test('result: Instagram story keeps the result untouched and signs it with the right logo',()=>{
+ const js=customerHTML;
+ assert.ok(js.includes('قالب استوری اینستاگرام'),'story button on the result');
+ assert.ok(js.includes("g.filter='none';rr(dx,dy,dw,dh,rad);g.clip();g.drawImage(img,dx,dy,dw,dh)"),'the result itself is drawn whole and unfiltered');
+ assert.match(js,/\(state\.pub\.direct\|\|state\.pub\.demo\)\?\{name:'آینه',logo:'\/landing\/ayneh-logo-lg\.webp'/,'Ayneh pages sign with Ayneh');
+ assert.match(js,/logo:p\.logo\?media\(p\.logo\):''/,'salon pages sign with the salon logo');
+});
