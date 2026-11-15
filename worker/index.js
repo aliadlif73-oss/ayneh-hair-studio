@@ -56,7 +56,7 @@ export default {
   if(u.pathname==='/')return new Response(landingHTML.replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-cache',...refCookie(u,request)}});
   /* One page per service: /hair (style and colour), /nails, /lashes. Same headers as the home page. */
   const svc=u.pathname.match(/^\/(hair|color|nails|lashes|salon-panel|sample)\/?$/);
-  if(svc)return new Response(servicePages[svc[1]==='salon-panel'?'salon':svc[1]==='sample'?'try':svc[1]].replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-cache',...refCookie(u,request)}});
+  if(svc)return new Response(servicePages[svc[1]==='salon-panel'?'salon':svc[1]].replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-cache',...refCookie(u,request)}});
   /* The regular customer's page: no salon link, 3 free images, then her own packs. */
   if(/^\/try\/?$/.test(u.pathname)){must(env.DB,'پایگاه داده هنوز آماده نیست',503);const d=await directSalon(env.DB);return new Response(tryHTML(d.slug),{headers:{...htmlHeaders,...refCookie(u,request)}});}
   /* Hit when a preview is holding an old copy and no amount of reloading helps: a URL that

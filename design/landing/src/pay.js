@@ -35,14 +35,13 @@
   };
   const track = (kind, meta) => window.__AYN_TRACK?.(kind, meta);
 
-  const state = {order: null, plan: null, poll: null, tick: null, done: false, key: '', entered: false};
+  const state = {order: null, plan: null, buy: null, service: '', poll: null, tick: null, done: false, key: '', entered: false};
   /* The order and its panel key are kept in this browser until the panel opens. A customer who
      switches to the bank app, or reloads, comes back to the same order with the same key;
      another browser (or another person with the same mobile) gets nothing from it. */
   const STORE = 'ayneh-order';
   const remember = (id, key) => { try { localStorage.setItem(STORE, JSON.stringify({id, key, at: Date.now()})); } catch {} };
   const recall = () => { try { const v = JSON.parse(localStorage.getItem(STORE) || 'null'); return v && /^[a-f0-9-]{36}$/.test(v.id) ? v : null; } catch { return null; } };
-  const service = document.body.dataset.service || '';
   const view = {
     form: $('payForm'), live: $('payLive'), done: $('payDone'), expired: $('payExpired'),
   };
@@ -58,20 +57,45 @@
     return 'پلن ' + title + '\u200f · ' + fa(s.months) + ' ماهه' + (s.users > 1 ? ' · ' + fa(s.users) + ' کاربر' : '');
   };
 
+  /* The heading before the server answers: the same «پلن مدل مو · ۳ ماهه» from the card's own
+     data (build.py writes it from the plan table). */
+  const headOf = (title, months) => title ? 'پلن ' + title + (months ? '\u200f · ' + fa(months) + ' ماهه' : '') : '';
+
+  /* ---------- «پنل آرایشگاه»: the user count ----------
+     A preview only: total = base + max(0, users − seats) × seat_amount, all three numbers from the
+     card (the plan table). The server computes the amount again and its answer is what is paid. */
+  const usersBox = $('payUsersBox'), usersIn = $('payUsers');
+  const seatsOf = btn => Number(btn?.dataset.seats || 0);
+  const usersWanted = () => {
+    const n = Number(String(usersIn.value).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
+    return Number.isInteger(n) && n >= 1 ? n : 0;
+  };
+  function drawUsers() {
+    const btn = state.buy, seats = seatsOf(btn);
+    usersBox.hidden = !seats;
+    if (!seats) return;
+    const base = Number(btn.dataset.amount), rate = Number(btn.dataset.seatAmount), n = usersWanted();
+    if (!n) { $('payUsersTotal').textContent = 'تعداد کاربر را با عدد بنویسید.'; return; }
+    const extra = Math.max(0, n - seats);
+    $('payUsersTotal').textContent = extra
+      ? 'جمع: ' + money(base + extra * rate) + ' (' + money(base) + ' برای ' + fa(seats) + ' نفر + ' + fa(extra) + ' × ' + money(rate) + ')'
+      : 'جمع: ' + money(base) + ' برای تا ' + fa(seats) + ' کاربر';
+  }
+  usersIn.addEventListener('input', drawUsers);
+
   /* ---------- what each plan may do right now ---------- */
-  const planOf = key => document.querySelector('.plan[data-plan="' + key + '"]');
   const buyButtons = [...document.querySelectorAll('[data-buy]')];
   function syncPlans() {
     for (const btn of buyButtons) {
       const key = btn.dataset.buy;
       const open = btn.dataset.state === 'open' && Number(btn.dataset.amount) > 0;
-      const card = planOf(key);
+      const card = btn.closest('.plan');
       if (card) card.dataset.open = String(open);
       /* Not aria-disabled: an unpriced button still works, it opens the demo form. */
       btn.setAttribute('aria-disabled', 'false');
       /* The panel already says the amount is being finalized (build.py fills it), so the
          note stays empty here and only speaks up if the visitor clicks the buy button. */
-      const note = document.querySelector('.plan__state[data-for="' + key + '"]');
+      const note = card?.querySelector('.plan__state');
       if (note && !open) note.hidden = true;
     }
   }
@@ -82,7 +106,8 @@
     err($('payErr'), '');
     const body = {
       plan,
-      service,
+      /* the service of the card that was clicked (hair, color, nails, lashes; 'all' on the salon tab) */
+      service: state.service,
       salon: $('paySalon').value.trim(),
       name: $('payName').value.trim(),
       phone: $('payPhone').value.trim(),
@@ -91,6 +116,10 @@
     };
     if (body.salon.length < 2) return err($('payErr'), 'نام سالن را بنویسید.');
     if (body.name.length < 2) return err($('payErr'), 'نام و نام خانوادگی را بنویسید.');
+    if (seatsOf(state.buy)) {
+      body.users = usersWanted();
+      if (!body.users) return err($('payErr'), 'تعداد کاربر را با عدد بنویسید.');
+    }
     if (!body.consent) return err($('payErr'), 'برای هماهنگی راه‌اندازی، تأیید تماس لازم است.');
     $('payStart').disabled = true;
     try {
@@ -128,7 +157,8 @@
   function draw(order) {
     state.done = false;
     section.hidden = false;
-    $('payPlan').textContent = order.plan_name || '';
+    const sum = order.summary || {};
+    $('payPlan').textContent = (order.kind !== 'topup' && sum.months ? headOf(sum.title, sum.months) : '') || order.plan_name || '';
     $('paySummary').textContent = summaryOf(order);
     $('payAmount').textContent = fa(order.amount);
     $('payDiscount').hidden = !order.discount;
@@ -245,7 +275,7 @@
          broken and must not open a checkout that cannot take money. It follows the anchor
          to the note under the panels and says the same thing in the panel itself. */
       if (!open) {
-        const note = document.querySelector('.plan__state[data-for="' + key + '"]');
+        const note = btn.closest('.plan')?.querySelector('.plan__state');
         if (note) {
           note.textContent = 'مبلغ این پلن هنوز نهایی نشده است؛ به‌محض نهایی‌شدن، همین‌جا نوشته می‌شود. تا آن روز چیزی پرداخت نمی‌کنید.';
           note.hidden = false;
@@ -257,12 +287,16 @@
       /* The chosen plan is remembered here, so the details form below knows what it is for
          even when the customer fills it by hand. */
       state.plan = key;
+      state.buy = btn;
+      state.service = btn.dataset.service || document.body.dataset.service || '';
       section.hidden = false;
-      $('payPlan').textContent = (planOf(key)?.querySelector('h3')?.textContent || '').trim();
+      $('payPlan').textContent = headOf(btn.dataset.title, Number(btn.dataset.months)) || (btn.closest('.plan')?.querySelector('h3')?.textContent || '').trim();
+      drawUsers();
       $('paySub').textContent = 'کارت‌به‌کارت واریز کنید؛ پرداخت شما خودکار تأیید می‌شود.';
       show('form');
       section.scrollIntoView({behavior: 'smooth', block: 'start'});
-      if ($('paySalon').value.trim() && $('payName').value.trim() && $('payPhone').value.trim()) open(key);
+      /* Details already typed: go straight on, except on «پنل آرایشگاه», whose user count is chosen here. */
+      if (!seatsOf(btn) && $('paySalon').value.trim() && $('payName').value.trim() && $('payPhone').value.trim()) open(key);
       else setTimeout(() => $('paySalon').focus(), 350);
       track('order_intent', key);
     });

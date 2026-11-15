@@ -18,7 +18,7 @@
 //    provisions the salon and grants credits. Retries and double clicks are harmless.
 //  * Money is TOMAN on the page; amounts are stored in RIALS (×10).
 import {must, phone, text, uid, digits, hash} from './domain.js';
-import {PLANS, PRICE_MINUTES, TOPUP} from './prices.js';
+import {PLANS, PRICE_MINUTES, TOPUP, SERVICE_TITLES} from './prices.js';
 import {applyPlan, grant, balance, MONTH} from './credits.js';
 import {featuresOf, OPENED_BY, can, seatsOf} from './plans.js';
 import {confirmCustomerPack} from './customers.js';
@@ -112,12 +112,13 @@ export function discountFor(coupon, amountToman, table) {
 
 const toman = rial => Math.round(Number(rial || 0) / 10);
 
-/* The checkout's first line: «پلن … · ۳ ماهه» (+ the user count for a multi-user plan). The
-   plan table may carry a display title and a user count; without them the plan name stands. */
-function orderSummary(row) {
+/* The checkout's first line: «پلن مدل مو · ۳ ماهه» (+ «· ۵ کاربر» on «پنل آرایشگاه»). The title
+   comes from the generated plan table: a salon plan's own title, else the order's service. An
+   order without a known service (an old one) falls back to the plan name. */
+export function orderSummary(row) {
   if (row.kind === 'topup') return {title: planName(row), months: 0, users: 0};
   const p = PLANS[row.plan] || {};
-  return {title: String(p.title || p.name || row.plan), months: Number(p.months || 0), users: Number(row.users || p.users || 0)};
+  return {title: String(p.title || SERVICE_TITLES[row.service] || p.name || row.plan), months: Number(p.months || 0), users: Number(row.users || p.users || 0)};
 }
 
 /* What the page needs to draw: the figures, never the internals. */

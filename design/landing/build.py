@@ -109,7 +109,15 @@ CAL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="
 CROWN = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 8l4.5 3.5L12 5l4.5 6.5L21 8l-2 10H5Z"/></svg>'
 
 
-def plan_card(p):
+def per_person(toman, n):
+    """«۱٫۷» for 5,000,000 / 3 — rounded to one decimal; the caller adds «حدود» when it is not exact."""
+    m = round(toman / n / 1000000, 1)
+    return fa_int('%g' % m).replace('.', '٫'), m * 1000000 * n == toman
+
+
+def plan_card(p, service):
+    """One single-service card inside a service tab. The buy button names its own service, so the
+    checkout charges the right line whatever page the visitor is on."""
     lead = ' plan--lead' if p['badge'] else ''
     badge = ('<span class="plan__badge">' + CROWN + p['badge'] + '</span>') if p['badge'] else ''
     was = ('<p class="plan__was"><s>' + millions(p['was']) + ' میلیون تومان</s></p>') if p['was'] else '<p class="plan__was" aria-hidden="true">&nbsp;</p>'
@@ -121,17 +129,89 @@ def plan_card(p):
         + '<div class="plan__price" data-price-box="' + p['key'] + '">' + was
         + '<p class="plan__amount" data-price="' + p['key'] + '"><b>' + millions(p['amount']) + '</b> میلیون تومان</p></div>'
         + '<ul>' + feats + '</ul>'
-        + '<a class="btn plan__buy" href="#pay" data-buy="' + p['key'] + '" data-state="open" data-amount="' + str(p['amount']) + '">خرید</a>'
+        + '<a class="btn plan__buy" href="#pay" data-buy="' + p['key'] + '" data-service="' + service + '" data-title="' + SERVICE_TITLES[service]
+        + '" data-months="' + str(p['months']) + '" data-state="open" data-amount="' + str(p['amount']) + '">خرید</a>'
         + '<p class="plan__state" data-for="' + p['key'] + '" hidden></p>'
         + '</article>')
 
 
-plans = ('<div class="plans">' + ''.join(plan_card(p) for p in PLANS) + '</div>'
-         + '<p class="plan-note" id="plan-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M12 11v5" stroke-linecap="round"/></svg>'
-         + '<span>پس از اتمام اعتبار هدیه، هر ' + fa_int(TOPUP_IMAGES) + ' عکس ' + fa_int(TOPUP_AMOUNT // 1000) + ' هزار تومان</span></p>')
+def salon_card(p):
+    """One «پنل آرایشگاه» card. Every figure on it (price, per-person share, gift images, the
+    price of each user beyond SALON_SEATS) is computed here from SALON_PLANS."""
+    badge = SALON_BADGES.get(p['key'], '')
+    each, exact = per_person(p['amount'], p['seats'])
+    tier = next(x['name'] for x in PLANS if x['key'] == p['tier'])
+    feats = ['هر چهار خدمت: مدل مو، رنگ مو، ناخن و مژه',
+             'تا ' + fa_int(p['seats']) + ' کاربر؛ مدیر هم یکی از آن‌هاست',
+             'لینک اختصاصی برای هر همکار',
+             'اعتبار هدیه ' + fa_int(p['credits']) + ' عکس',
+             'امکانات <span lang="en" dir="ltr">' + tier + '</span> برای کل سالن']
+    return (
+        '<article class="plan plan--salon' + (' plan--lead' if badge else '') + '" data-plan="' + p['key'] + '">'
+        + (('<span class="plan__badge">' + CROWN + badge + '</span>') if badge else '')
+        + '<h3>پنل آرایشگاه</h3>'
+        + '<p class="plan__months">' + CAL + fa_int(p['months']) + ' ماهه</p>'
+        + '<div class="plan__price" data-price-box="' + p['key'] + '">'
+        + '<p class="plan__amount" data-price="' + p['key'] + '"><b>' + millions(p['amount']) + '</b> میلیون تومان</p>'
+        + '<p class="plan__each">برای ' + fa_int(p['seats']) + ' نفر: نفری ' + ('' if exact else 'حدود ') + each + ' میلیون تومان</p></div>'
+        + '<ul>' + ''.join('<li>' + TICK + '<span>' + f + '</span></li>' for f in feats) + '</ul>'
+        + '<a class="btn plan__buy" href="#pay" data-buy="' + p['key'] + '" data-service="all" data-title="' + SERVICE_TITLES['all']
+        + '" data-months="' + str(p['months']) + '" data-state="open" data-amount="' + str(p['amount'])
+        + '" data-seats="' + str(p['seats']) + '" data-seat-amount="' + str(p['seat_amount']) + '">خرید</a>'
+        + '<p class="plan__state" data-for="' + p['key'] + '" hidden></p>'
+        + '<p class="plan__extra">نفر ' + ORDINAL[p['seats'] + 1] + ' به بعد: هر نفر ' + millions(p['seat_amount']) + ' میلیون تومان برای کل دوره</p>'
+        + '</article>')
+
+
+# The title the checkout line uses: «پلن مدل مو · ۳ ماهه». Single-service plans take the
+# service's name; «پنل آرایشگاه» orders are service 'all'. Shared with worker/prices.js.
+SERVICE_TITLES = {'hair': 'مدل مو', 'color': 'رنگ مو', 'nails': 'ناخن', 'lashes': 'مژه', 'all': 'آرایشگاه'}
+ORDINAL = {2: 'دوم', 3: 'سوم', 4: 'چهارم', 5: 'پنجم'}
+# Badges on the salon tab. The whole tab is «به‌صرفه‌ترین برای ۲ نفر به بعد»: it is true only
+# while every salon plan costs less than two single-service plans of the same length (asserted).
+SALON_BADGES = {'salon6': 'بهترین'}
+SALON_VALUE = 'به‌صرفه‌ترین برای ۲ نفر به بعد'
+for _p in SALON_PLANS:
+    _single = next(x for x in PLANS if x['months'] == _p['months'])
+    assert _p['amount'] < 2 * _single['amount'], 'the «۲ نفر به بعد» badge would be false for ' + _p['key']
+PLAN_TABS = ['hair', 'color', 'nails', 'lashes']
+
+
+def plans_panel(tabs, selected):
+    """One panel. The four service tabs share ONE panel of the three single-service cards (the same
+    plans, the same prices): its buy buttons carry the selected service, and src/copy.js rewrites
+    data-service / data-title when another service tab is picked, so the checkout always charges
+    the line the visitor chose. Drawing the cards four times would only repeat identical markup.
+    The salon tab has its own panel. The selected tab is visible in the HTML itself."""
+    if tabs == ['salon']:
+        hide = '' if selected == 'salon' else ' hidden'
+        body = ('<p class="psalon"><span class="psalon__badge">' + SALON_VALUE + '</span>'
+                '<span>هر چهار خدمت برای کل سالن، تا ' + fa_int(SALON_SEATS) + ' کاربر.</span></p>'
+                + '<div class="plans">' + ''.join(salon_card(p) for p in SALON_PLANS) + '</div>')
+        pid = 'salon'
+    else:
+        service = selected if selected in tabs else tabs[0]
+        hide = '' if selected in tabs else ' hidden'
+        body = '<div class="plans">' + ''.join(plan_card(p, service) for p in PLANS) + '</div>'
+        pid = 'single'
+    return ('<div class="plans-panel" id="plans-' + pid + '" role="tabpanel" aria-labelledby="ptab-' + (selected if selected in tabs else tabs[0])
+            + '" data-plans-panel="' + ' '.join(tabs) + '"' + hide + '>' + body + '</div>')
+
+
+PLAN_NOTE = ('<p class="plan-note" id="plan-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M12 11v5" stroke-linecap="round"/></svg>'
+             + '<span>پس از اتمام اعتبار هدیه، هر ' + fa_int(TOPUP_IMAGES) + ' عکس ' + fa_int(TOPUP_AMOUNT // 1000) + ' هزار تومان</span></p>')
+
+
+def plans_block(tabs, selected):
+    single = [k for k in tabs if k in PLAN_TABS]
+    return ((plans_panel(single, selected) if single else '') + (plans_panel(['salon'], selected) if 'salon' in tabs else '')
+            + PLAN_NOTE)
+
+
+plans = '<!--PLANPANELS-->'  # filled per page by make_pages (pricing_for)
 assert all(p['amount'] > 0 for p in PLANS + SALON_PLANS)
-plans_js = ''.join("  %s: {name: '%s', months: %d, amount: %d, was: %d, credits: %d, tier: '%s', seats: %d, seat_amount: %d},\n"
-                   % (p['key'], p['name'], p['months'], p['amount'], p['was'], p['credits'], p['tier'], p['seats'], p['seat_amount'])
+plans_js = ''.join("  %s: {name: '%s', title: '%s', months: %d, amount: %d, was: %d, credits: %d, tier: '%s', seats: %d, seat_amount: %d},\n"
+                   % (p['key'], p['name'], SERVICE_TITLES['all'] if p['seats'] else '', p['months'], p['amount'], p['was'], p['credits'], p['tier'], p['seats'], p['seat_amount'])
                    for p in PLANS + SALON_PLANS)
 W('../../worker/prices.js',
   '// The plan table — GENERATED by design/landing/build.py from PLANS, the same table that draws' + NL
@@ -142,6 +222,8 @@ W('../../worker/prices.js',
   + '// beyond seats costs seat_amount toman for the whole period (the «پنل آرایشگاه» plans).' + NL
   + 'export const PRICE_MINUTES = %d;' % PRICE_MINUTES + NL
   + 'export const PLANS = {' + NL + plans_js + '};' + NL
+  + '// title: the checkout line «پلن <title> · ۳ ماهه»; empty = the service\'s own title below.' + NL
+  + 'export const SERVICE_TITLES = ' + json.dumps(SERVICE_TITLES, ensure_ascii=False).replace('"', "'") + ';' + NL
   + '// After the gift credit runs out: every TOPUP.images images cost TOPUP.amount toman.' + NL
   + 'export const TOPUP = {images: %d, amount: %d};' % (TOPUP_IMAGES, TOPUP_AMOUNT) + NL)
 
@@ -317,7 +399,29 @@ def make_pages(full):
     src = full
     home_src, service_src, salon_src = R('src/home.html'), R('src/service.html'), R('src/salon.html')
     topup = lambda t: t.replace('{{TOPUP_IMAGES}}', fa_int(TOPUP_IMAGES)).replace('{{TOPUP_PRICE}}', fa_int(TOPUP_AMOUNT // 1000))
-    pricing, faq = section(src, 'services'), topup(section(home_src, 'faq'))
+    pricing_src, faq = section(src, 'services'), topup(section(home_src, 'faq'))
+    assert all(SERVICE_TITLES[k] == LINE_TITLE[k] == SERVICES[k]['label'] for k in SERVICES), 'one name per service'
+
+    def pricing_for(tabs, selected):
+        """The price section with one panel per tab (src/copy.js switches them). The page's own
+        tab is selected in the HTML; with a single tab the row stays hidden."""
+        out = pricing_src.replace('<!--PLANPANELS-->', plans_block(tabs, selected))
+        for k in ['hair', 'color', 'nails', 'lashes', 'salon']:
+            m = re.search(r'\s*<button type="button" role="tab" id="ptab-' + k + r'"[^>]*>([^<]*)</button>', out)
+            btn = m.group(0)
+            assert m.group(1) == SERVICE_TITLES['all' if k == 'salon' else k], 'tab label is the checkout title: ' + k
+            if k in PLAN_TABS:
+                out = out.replace(btn, btn.replace('aria-controls="plans-' + k + '"', 'aria-controls="plans-single"'), 1)
+                btn = btn.replace('aria-controls="plans-' + k + '"', 'aria-controls="plans-single"')
+            if k not in tabs:
+                out = out.replace(btn, '', 1)
+            elif k == selected:
+                out = out.replace(btn, btn.replace('aria-selected="false" tabindex="-1"', 'aria-selected="true" tabindex="0"'), 1)
+        if len(tabs) > 1:
+            out = out.replace('<div class="ptabs" data-ptabs hidden>', '<div class="ptabs" data-ptabs>', 1)
+        assert '<!--PLANPANELS-->' not in out and out.count('data-plans-panel="') == bool(set(tabs) & set(PLAN_TABS)) + ('salon' in tabs)
+        return out
+    pricing = pricing_for(PLAN_TABS + ['salon'], 'hair')
     chat_tpl = R('src/chat.html')
     chat = lambda pair, req: chat_tpl.replace('{{PAIR}}', pair).replace('{{REQ}}', req)
 
@@ -396,14 +500,15 @@ def make_pages(full):
                     '<button type="button" role="tab" data-try="demo" aria-selected="false">روی عکس خودتان <small>با عکس شما</small></button></div>\n') + R('src/play.html')
         main = (hero(s['pair'], back, s['h1'], s['accent'], s['lead'], s['f2'], s['req'], SERVICE_NOTE, ' hero--service')
                 + play + demo([s['line']], s['demo_title'], 'چند لحظه طول می‌کشد؛ بدون نصب.', s['line'])
-                + sample + ben + studio + pricing + R('src/pay.html') + cta(s['cta_title']))
+                + sample + ben + studio + pricing_for(PLAN_TABS + ['salon'], key) + R('src/pay.html') + cta(s['cta_title']))
         pages[key] = shell(full, main, other_nav, service=key, title=s['title'], desc=s['desc'], tab=key)
 
     # ---- the salon panel ----
     S = SALON_HERO
     back = '          <a class="hero-back" href="/"><span aria-hidden="true">→</span> آینه · همهٔ خدمات</a>\n          <span class="eyebrow">' + S['eyebrow'] + '</span>\n'
-    salon_pricing = re.sub(r'<!--SINGLE-->[\s\S]*?<!--/SINGLE-->\s*', '', pricing).replace('<p class="pextra"', '<p class="pextra is-on"', 1).replace('پلن خدمت خودتان را <em>انتخاب کنید.</em>', 'پلن آرایشگاه را <em>انتخاب کنید.</em>', 1)
-    assert 'pbar' not in salon_pricing and 'is-on' in salon_pricing
+    salon_pricing = pricing_for(['salon'], 'salon')
+    salon_pricing = re.sub(r'<!--SINGLE-->[\s\S]*?<!--/SINGLE-->\s*', '', salon_pricing).replace('پلن خدمت خودتان را <em>انتخاب کنید.</em>', 'پلن آرایشگاه را <em>انتخاب کنید.</em>', 1)
+    assert 'pbar' not in salon_pricing and 'data-ptabs hidden' in salon_pricing
     salon_main = (
         hero('style', back, S['h1'], '', S['lead'], 'مدل را می‌بیند', 'درخواست تازه', HOME_NOTE, ' hero--service')
         + section(salon_src, 'glance').replace('{{GLANCE}}', NL.join(glance_card(k, s) for k, s in SERVICES.items()))
@@ -416,7 +521,7 @@ def make_pages(full):
 
     # ---- ساخت نمونه: the demo on a page of its own (for links from reels and the service pages) ----
     try_main = R('src/try.html') + demo(list(LINE_TITLE), '', '', 'hair')
-    pages['try'] = shell(full, try_main, [('/#choose', 'خدمات'), ('/#services', 'تعرفه‌ها'), ('/#faq', 'سؤالات')],
+    pages['sample'] = shell(full, try_main, [('/#choose', 'خدمات'), ('/#services', 'تعرفه‌ها'), ('/#faq', 'سؤالات')],
                          title='ساخت نمونه', desc='خدمت را انتخاب کنید، عکس روبه‌رو و روشن بگذارید و مدل را روی خودتان ببینید. نتیجه تقریبی است.')
     for k, v in pages.items():
         assert v.count('<main id="main">') == 1, k
@@ -424,7 +529,7 @@ def make_pages(full):
     for k in ['home', *SERVICES, 'salon']:
         assert 'id="services"' in pages[k] and 'id="pay"' in pages[k] and 'id="salon-example"' in pages[k], k
     assert 'id="choose"' in pages['home'] and 'id="faq"' in pages['home']
-    for k in [*SERVICES, 'salon', 'try']:
+    for k in [*SERVICES, 'salon', 'sample']:
         assert 'id="choose"' not in pages[k] and 'id="faq"' not in pages[k], k
     for old in ('۱۹ مدل', '۷ رنگ'):
         assert all(old not in v for v in pages.values()), old

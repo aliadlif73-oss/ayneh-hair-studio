@@ -145,8 +145,20 @@
 .pcompare thead th{font-size:14px;font-weight:900;background:var(--cream-2)}
 .pcompare tbody th{font-weight:800;color:var(--ink-2);white-space:nowrap}
 .pcompare .is-lead{background:#F1F8F4;font-weight:700;color:var(--ink)}
-.pextra{display:none;margin-top:14px;text-align:center;font-size:14px;font-weight:700;color:var(--ink-2)}
-.pextra.is-on{display:block}
+.pbar__actions{display:flex;flex-wrap:wrap;gap:8px}
+/* the salon tab: one value line, then the three salon cards; the per-person share and the price
+   of each extra user sit on the card itself (build.py computes both from SALON_PLANS) */
+.psalon{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;margin:0 0 clamp(22px,3vw,30px);text-align:center;font-size:14.5px;font-weight:700;color:var(--ink-2);line-height:1.8}
+.psalon__badge{display:inline-flex;align-items:center;min-height:30px;padding:0 14px;border-radius:var(--r-pill);background:var(--emerald-deep);color:#fff;font-size:13px;font-weight:800}
+.plan--salon h3{font-family:inherit;font-weight:900;font-size:clamp(20px,2vw,24px);letter-spacing:0}
+.plan__each{margin:0;font-size:13.5px;font-weight:700;color:var(--ink-2)}
+.plan__extra{margin:0;padding-top:10px;border-top:1px dashed var(--line);font-size:12.5px;font-weight:700;line-height:1.8;color:var(--ink-soft)}
+.pay-users{display:grid;grid-template-columns:minmax(0,180px) 1fr;gap:8px 14px;align-items:end}
+.pay-users[hidden]{display:none}
+.pay-users__total{margin:0 0 10px;font-size:13.5px;font-weight:800;line-height:1.8;color:var(--emerald-deep)}
+@media(max-width:600px){.pay-users{grid-template-columns:1fr}.pay-users__total{margin:0}}
+@media(max-width:430px){.ptabs__row{gap:2px;padding:4px;flex-wrap:nowrap}.ptabs__row button{padding:0 9px;font-size:13.5px;white-space:nowrap}}
+@media(max-width:600px) and (min-width:431px){.ptabs__row button{padding:0 14px}.pbar__actions{width:100%}.pbar__actions .btn{flex:1}}
 .plan-how{margin-top:clamp(20px,3vw,34px)}
 
 /* ---------- service pages ---------- */

@@ -72,11 +72,11 @@
       <div class="ptabs" data-ptabs hidden>
         <p class="ptabs__q" id="ptabsQ">خدمت شما کدام است؟</p>
         <div class="ptabs__row" role="tablist" aria-labelledby="ptabsQ">
-          <button type="button" role="tab" data-tab="hair" aria-selected="false">مدل مو</button>
-          <button type="button" role="tab" data-tab="color" aria-selected="false">رنگ مو</button>
-          <button type="button" role="tab" data-tab="nails" aria-selected="false">ناخن</button>
-          <button type="button" role="tab" data-tab="lashes" aria-selected="false">مژه</button>
-          <button type="button" role="tab" data-tab="salon" aria-selected="false">آرایشگاه</button>
+          <button type="button" role="tab" id="ptab-hair" aria-controls="plans-hair" data-tab="hair" aria-selected="false" tabindex="-1">مدل مو</button>
+          <button type="button" role="tab" id="ptab-color" aria-controls="plans-color" data-tab="color" aria-selected="false" tabindex="-1">رنگ مو</button>
+          <button type="button" role="tab" id="ptab-nails" aria-controls="plans-nails" data-tab="nails" aria-selected="false" tabindex="-1">ناخن</button>
+          <button type="button" role="tab" id="ptab-lashes" aria-controls="plans-lashes" data-tab="lashes" aria-selected="false" tabindex="-1">مژه</button>
+          <button type="button" role="tab" id="ptab-salon" aria-controls="plans-salon" data-tab="salon" aria-selected="false" tabindex="-1">آرایشگاه</button>
         </div>
       </div>
 <!--PLANS-->
@@ -86,7 +86,10 @@
           <b>دو نفرید یا بیشتر؟</b>
           <span>پنل آرایشگاه: هر چهار خدمت و تا ۳ کاربر، نفری حدوداً نصف.</span>
         </div>
-        <a class="btn btn--ghost" href="#compare">مقایسه با پنل آرایشگاه</a>
+        <span class="pbar__actions">
+          <a class="btn" href="#services" data-open-tab="salon">پلن آرایشگاه</a>
+          <a class="btn btn--ghost" href="#compare">مقایسه</a>
+        </span>
       </div>
       <div class="pcompare" id="compare" data-for="single">
         <table>
@@ -101,7 +104,6 @@
         </table>
       </div>
       <!--/SINGLE-->
-      <p class="pextra" data-for="salon">نفر چهارم به بعد با قیمت جدا به همین پنل اضافه می‌شود.</p>
       <div class="plan-how">
         <h3>بعد از پرداخت چه می‌شود؟</h3>
         <ol>

@@ -19,6 +19,12 @@
             <label class="field"><span>موبایل</span><input id="payPhone" name="phone" type="tel" inputmode="tel" dir="ltr" autocomplete="tel" placeholder="0912…" maxlength="15" required></label>
             <label class="field"><span>شهر <small>اختیاری</small></span><input id="payCity" name="city" maxlength="40"></label>
           </div>
+          <!-- «پنل آرایشگاه» only: how many users. The line under it is a preview from the same plan
+               table the cards use; the amount to pay is the one the server answers with. -->
+          <div class="pay-users" id="payUsersBox" hidden>
+            <label class="field"><span>تعداد کاربر <small>مدیر هم یکی است</small></span><input id="payUsers" name="users" type="number" inputmode="numeric" dir="ltr" min="1" max="50" step="1" value="3"></label>
+            <p class="pay-users__total" id="payUsersTotal" aria-live="polite"></p>
+          </div>
           <label class="pay-consent"><input type="checkbox" id="payConsent" name="consent"><span>با تماس تیم آینه برای هماهنگی راه‌اندازی موافقم.</span></label>
           <p class="pay-err" id="payErr" role="alert" hidden></p>
           <button class="btn btn--lg btn--block" type="submit" id="payStart">دریافت مبلغ و شمارهٔ کارت</button>
