@@ -564,12 +564,66 @@ test('a member who has not linked yet: the request waits, the manager only hears
  await hook(e,{message:{chat:{id:4001,type:'private'},text:'/start '+maryam.code}});
  assert(sentTo(tg,4001).some(c=>c.body.text?.includes('نگار')));assert.equal(e.DB.sql.prepare('SELECT waiting,status FROM leads').get().status,'sent');
  // Remove Maryam → Sara inherits customers, links and the open request.
- const r=await call(e,'/api/s/salon-a/owner/team/remove',{id:maryam.id,to:sara.id},OWNER);assert.equal(r.status,200);assert.equal(r.data.moved,1);
+ const r=await call(e,'/api/s/salon-a/owner/team/remove',{id:maryam.id,to:sara.id},OWNER);assert.equal(r.status,200);assert.equal(r.data.pending,true,'a member with customers is only asked');
+ assert.equal((await visit(e,s,V(1),'')).mine,maryam.id,'nothing moves before she agrees');assert.equal(e.DB.sql.prepare('SELECT active FROM team WHERE id=?').get(maryam.id).active,1);
+ const ask=sentTo(tg,4001).find(c=>c.body.reply_markup?.inline_keyboard?.[0]?.[0]?.callback_data?.startsWith('tr:y:'));assert(ask,'Maryam gets the ask in her own chat');assert(!ask.body.text.includes('نگار'));
+ await hook(e,{callback_query:{id:'ok',data:ask.body.reply_markup.inline_keyboard[0][0].callback_data,message:{chat:{id:4001},message_id:9}}});
  assert(sentTo(tg,4002).some(c=>c.body.text?.includes('نگار')));
  assert.equal((await visit(e,s,V(7),maryam.ref.split('r=')[1])).mine,sara.id,'old links now bring customers to Sara');
  assert.equal((await visit(e,s,V(1),'')).mine,sara.id);
  assert.equal((await call(e,'/api/s/salon-a/owner',undefined,OWNER)).data.team.length,1);
 }finally{tg.restore()}});
+
+test('transfer consent: only the member can approve, decline keeps everything, no customers means no ask, expiry closes it',async()=>{const e=tgEnv(fixture()),s=await salon(e);const tg=mockTelegram();try{
+ await linkSalon(e,s,777);const maryam=await addMember(e,s,'مریم',4001),sara=await addMember(e,s,'سارا',4002),lone=await addMember(e,s,'لیلا',4003);
+ await visit(e,s,V(1),maryam.ref.split('r=')[1]);
+ const rm=()=>call(e,'/api/s/salon-a/owner/team/remove',{id:maryam.id,to:sara.id},OWNER);
+ let r=await rm();assert.equal(r.data.pending,true);
+ const tm=await call(e,'/api/s/salon-a/owner',undefined,OWNER);assert(tm.data.team.find(t=>t.id===maryam.id).transfer,'pending shows to the manager');
+ const ask=sentTo(tg,4001).find(c=>c.body.reply_markup?.inline_keyboard?.[0]?.[0]?.callback_data?.startsWith('tr:'));const [yes,no]=ask.body.reply_markup.inline_keyboard[0].map(b=>b.callback_data);
+ // another member and the manager cannot approve for her
+ await hook(e,{callback_query:{id:'x1',data:yes,message:{chat:{id:4002},message_id:1}}});
+ await hook(e,{callback_query:{id:'x2',data:yes,message:{chat:{id:777},message_id:1}}});
+ assert.equal(e.DB.sql.prepare('SELECT status FROM staff_transfer_requests').get().status,'pending');assert.equal((await visit(e,s,V(1),'')).mine,maryam.id);
+ // she declines
+ await hook(e,{callback_query:{id:'x3',data:no,message:{chat:{id:4001},message_id:1}}});
+ assert.equal(e.DB.sql.prepare('SELECT status FROM staff_transfer_requests').get().status,'declined');assert.equal((await visit(e,s,V(1),'')).mine,maryam.id);assert.equal(e.DB.sql.prepare('SELECT active FROM team WHERE id=?').get(maryam.id).active,1);
+ assert(sentTo(tg,777).some(c=>/موافقت نکرد/.test(c.body.text||'')),'manager hears the decline');
+ // a decided request cannot be replayed
+ await hook(e,{callback_query:{id:'x4',data:yes,message:{chat:{id:4001},message_id:1}}});assert.equal((await visit(e,s,V(1),'')).mine,maryam.id);
+ // asked again, then it expires with no answer
+ r=await rm();assert.equal(r.data.pending,true);
+ await tick(e,origin);assert.equal(e.DB.sql.prepare("SELECT status FROM staff_transfer_requests WHERE status='pending'").all().length,1);
+ e.DB.sql.exec('UPDATE staff_transfer_requests SET expires_at=1 WHERE status=\'pending\'');await tick(e,origin);
+ assert.equal(e.DB.sql.prepare("SELECT status FROM staff_transfer_requests ORDER BY created_at DESC").get().status,'expired');assert.equal((await visit(e,s,V(1),'')).mine,maryam.id);
+ assert(sentTo(tg,777).some(c=>/مهلت درخواست انتقال/.test(c.body.text||'')));
+ // a member without any customers leaves at once, no ask
+ r=await call(e,'/api/s/salon-a/owner/team/remove',{id:lone.id,to:null},OWNER);assert.equal(r.data.pending,false);assert.equal(e.DB.sql.prepare('SELECT active FROM team WHERE id=?').get(lone.id).active,0);
+ // manager cancels a pending ask
+ await rm();r=await call(e,'/api/s/salon-a/owner/team/remove/cancel',{id:maryam.id},OWNER);assert.equal(r.data.cancelled,true);
+ assert.equal(e.DB.sql.prepare("SELECT count(*) n FROM staff_transfer_requests WHERE status='pending'").get().n,0);
+}finally{tg.restore()}});
+
+test('transfer consent through the bot: the manager button asks, an unlinked member is asked when she links, the ask carries no customer data',async()=>{const e=tgEnv(fixture()),s=await salon(e);const tg=mockTelegram();try{
+ await linkSalon(e,s,777);const maryam=await addMember(e,s,'مریم',null),sara=await addMember(e,s,'سارا',4002);
+ await visit(e,s,V(1),maryam.ref.split('r=')[1]);
+ await hook(e,{callback_query:{id:'m',data:'tm:x:'+maryam.id+':'+sara.id,message:{chat:{id:777},message_id:3}}});
+ assert.equal(e.DB.sql.prepare('SELECT active FROM team WHERE id=?').get(maryam.id).active,1,'not removed by the manager alone');
+ assert(tg.calls.some(c=>c.method==='editMessageText'&&/هنوز ربات را وصل نکرده/.test(c.body.text)));
+ assert.equal(e.DB.sql.prepare('SELECT notified FROM staff_transfer_requests').get().notified,0);
+ await hook(e,{message:{chat:{id:4001,type:'private'},text:'/start '+maryam.code}});await tick(e,origin);
+ const ask=sentTo(tg,4001).find(c=>c.body.reply_markup?.inline_keyboard?.[0]?.[0]?.callback_data?.startsWith('tr:y:'));assert(ask,'asked after linking');assert.equal(e.DB.sql.prepare('SELECT notified FROM staff_transfer_requests').get().notified,1);
+ assert(!/09\d{9}/.test(ask.body.text));
+}finally{tg.restore()}});
+
+test('result sharing: three actions, approximate note, friend share with the same link, Ayneh mark on the saved image, privacy text is the true one',()=>{
+ for(const x of ['درخواست نوبت می‌دهم','از دوستم نظر بپرسم','ذخیره تصویر','نتیجه تقریبی است.','کدوم مدل بیشتر بهم میاد؟','function openAsk','fillText(\'آینه\''])assert(customerJS.includes(x),x);
+ assert(customerJS.includes('openAsk')&&/var url=shareUrl\(\),both=ASK_TEXT/.test(customerJS),'the friend link is the visitor tag link of this salon');
+ const PRIV='عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.';
+ assert(customerJS.includes(PRIV)&&customerHTML.includes(PRIV),'one agreed privacy sentence');
+ assert(!customerJS.includes('عکس فقط برای همین سالن استفاده می‌شود')&&!customerHTML.includes('عکس‌ها فقط برای همین سالن'),'the old inaccurate sentence is gone');
+ assert(!/عکس‌ها خصوصی‌اند و برای کسی/.test(customerJS));
+});
 
 test('Bale: a member links through Bale and gets their customers there, in plain text',async()=>{const e=tgEnv(fixture());e.BALE_BOT_TOKEN='777:bale';e.BALE_BOT_USERNAME='ayneh_bale_bot';const s=await salon(e);
  const calls=[];const previous=globalThis.fetch;globalThis.fetch=async(url,init)=>{const u=String(url);if(!/api\.telegram\.org|tapi\.bale\.ai/.test(u))return previous(url,init);const host=u.includes('bale')?'bale':'tg',method=u.split('/').pop();let body=init?.body;if(body instanceof FormData){const o={};for(const [k,v] of body.entries())o[k]=typeof v==='string'?v:'<file>';body=o}else body=JSON.parse(body||'{}');calls.push({host,method,body});if(method==='sendMediaGroup')return Response.json({ok:true,result:[{message_id:1}]});return Response.json({ok:true,result:{message_id:2}})};
@@ -740,17 +794,21 @@ test('without SMS invites the bot offers messenger buttons and /i/ is a send pag
 // ---------- landing page and salon inquiries ----------
 test('landing page is public at / and the owner console stays at /admin',async()=>{const e=tgEnv(fixture());
  const r=await app.fetch(new Request(origin+'/'),e);assert.equal(r.status,200);const html=await r.text();
- assert.match(html,/id="choose"/);assert.match(html,/<title>آینه \| مشتری نتیجه را قبل از آمدن روی عکس خودش ببیند<\/title>/);assert.doesNotMatch(html,/noindex/);
+ assert.match(html,/id="choose"/);assert.match(html,/<title>آینه \| مشتری مدل را روی عکس خودش می‌بیند<\/title>/);assert.doesNotMatch(html,/noindex/);
  new Function(html.match(/<script>([\s\S]*?)<\/script>/g).map(s=>s.replace(/<\/?script>/g,'')).join('\n'));
  // one page per service, each with its own studio, plans and checkout, and scripts that parse
- for(const key of ['hair','nails','lashes']){
+ for(const key of ['hair','color','nails','lashes']){
   for(const path of ['/'+key,'/'+key+'/']){const s=await app.fetch(new Request(origin+path),e);assert.equal(s.status,200,path)}
   const page=await (await app.fetch(new Request(origin+'/'+key),e)).text();
   assert.match(page,/id="builderLive"/,key+' carries the page builder');assert.match(page,/id="services"/);assert.match(page,/id="payForm"/);
   assert.match(page,new RegExp('<body data-service="'+key+'">'),key+' tells the checkout its service');
   new Function(page.match(/<script>([\s\S]*?)<\/script>/g).map(s=>s.replace(/<\/?script>/g,'')).join('\n'));
  }
- assert.equal((await app.fetch(new Request(origin+'/hairs'),e)).status,404,'only the three service paths exist');
+ // the salon-panel page and the demo page are real routes too, on the same headers
+ for(const [path,marker] of [['/salon-panel','data-service="salon"'],['/sample','ساخت نمونه']]){
+  const r2=await app.fetch(new Request(origin+path),e);assert.equal(r2.status,200,path);assert.ok((await r2.text()).includes(marker),path+' serves its own page');
+ }
+ assert.equal((await app.fetch(new Request(origin+'/hairs'),e)).status,404,'only the listed page paths exist');
  assert.equal((await app.fetch(new Request(origin+'/admin'),e)).status,200);});
 
 test('free trial salon: built from the landing form, one per mobile, 5 images and 10 hours enforced by the server',async()=>{const e=tgEnv(fixture());e.KIE_API_KEY='mock';const tg=mockTelegram();const previous=globalThis.fetch;let tasks=0;
@@ -784,23 +842,35 @@ test('landing carries an absolute share image and revalidates instead of going s
  assert.match(html,/<meta name="ayneh-build" content="[a-f0-9]{12}">/,'the page names its build');
  assert.match(html,new RegExp('og:image" content="'+origin+'/landing/og.jpg"'));assert.doesNotMatch(html,/__ORIGIN__/);assert.ok(readFileSync(new URL('../public/landing/og.jpg',import.meta.url)).length>10000)});
 
-test('demo salon behind the landing: mobile confirmation first, 3 images a day per mobile, no 360 view, look handed over by the landing',async()=>{
+test('demo salon behind the landing: no sign-up, 2 images per visitor, a coarse network cap, no 360 view, look handed over by the landing',async()=>{
  const e=tgEnv(fixture());e.KIE_API_KEY='mock';const s={slug:'demo'};
- const pub=await call(e,'/api/s/demo/public');assert.equal(pub.status,200);assert.equal(pub.data.demo,true);assert.equal(pub.data.generation,false,'no SMS configured: demo generation stays off');
+ // Even with SMS configured, the visitor demo asks for no mobile (owner's decision).
+ smsEnv(e);
+ const pub=await call(e,'/api/s/demo/public');assert.equal(pub.status,200);assert.equal(pub.data.demo,true);
+ assert.equal(pub.data.generation,true,'the demo makes images without a sign-up');assert.equal(pub.data.otp,false,'no code in front of the demo');
+ const ip={'cf-connecting-ip':'198.51.100.7'},v='ab'.repeat(16);
  let g=await guest(e,s);const original=await upload(e,s,g);
- const gen=(extra={})=>call(e,'/api/s/demo/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:1,...extra},g);
- assert.equal((await gen()).status,503,'without SMS nobody can spend paid images');
- smsEnv(e);assert.equal((await call(e,'/api/s/demo/public')).data.generation,true);
- const need=await gen();assert.equal(need.status,403);assert.match(need.data.error,/را تأیید کن/,'the page opens its mobile dialog on this message');
- const sms=mockSms(),net=globalThis.fetch,prompts=[];
+ const gen=(extra={},who=g,img=original)=>call(e,'/api/s/demo/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:img,style:1,v,...extra},{...who,headers:ip});
+ const net=globalThis.fetch,prompts=[];
  globalThis.fetch=async(url,opts)=>{const u=String(url);if(u.includes('createTask'))prompts.push(JSON.parse(opts.body).input.prompt);if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(u.includes('createTask'))return Response.json({code:200,data:{taskId:'t'+crypto.randomUUID()}});return net(url,opts)};
- try{assert.equal((await call(e,'/api/s/demo/otp/send',otpBody(),g)).status,200);assert.equal((await call(e,'/api/s/demo/otp/verify',{code:'48213'},g)).status,200);
-  assert.equal((await gen({apply_color:true,color:'شرابی'})).status,200);assert.match(prompts[0],/burgundy/i);
+ try{
+  const first=await gen({apply_color:true,color:'شرابی'});assert.equal(first.status,200,JSON.stringify(first));assert.match(prompts[0],/burgundy/i);
   assert.equal((await gen()).status,200);assert.match(prompts[1],/original.*colou?r|colou?r.*original/i);
-  assert.equal((await gen()).status,200);
-  const fourth=await gen();assert.equal(fourth.status,429);
-  const v=await call(e,'/api/s/demo/views',{idem:crypto.randomUUID(),parent:'x'},g);assert.equal(v.status,400,'no 360 view in the demo');
- }finally{globalThis.fetch=net;sms.restore()}
+  const third=await gen();assert.equal(third.status,429);assert.match(third.data.error,/پنل آینه را بگیرید/);
+  // A new session in the same browser is the same visitor.
+  const g2=await guest(e,s),img2=await upload(e,s,g2);
+  assert.equal((await gen({},g2,img2)).status,429,'same browser id, same 2 images');
+  // A failed image does not count.
+  e.DB.sql.prepare("UPDATE generations SET state='fail' WHERE id=?").run(first.data.id);
+  assert.equal((await gen()).status,200,'the failed image gave its turn back');
+  const views=await call(e,'/api/s/demo/views',{idem:crypto.randomUUID(),parent:'x'},g);assert.equal(views.status,400,'no 360 view in the demo');
+  // Fresh browsers on one network: the hashed-IP counter stops them after DEMO_IP_DAILY images.
+  const {DEMO_IP_DAILY}=await import('../worker/demo.js');let stopped=null;
+  for(let i=0;i<DEMO_IP_DAILY+2&&!stopped;i++){const gi=await guest(e,s),im=await upload(e,s,gi);const r=await call(e,'/api/s/demo/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:im,style:1,v:crypto.randomUUID().replace(/-/g,'')},{...gi,headers:ip});if(r.status===429)stopped=r}
+  assert.ok(stopped,'the network counter stops a run of fresh visitors');assert.match(stopped.data.error,/از این شبکه/);
+  assert.equal(e.DB.sql.prepare("SELECT COUNT(*) n FROM limits").get().n>0,true);
+  assert.equal(e.DB.sql.prepare("SELECT COUNT(*) n FROM limits WHERE key LIKE '%198.51%'").get().n,0,'the address is stored only as a hash');
+ }finally{globalThis.fetch=net}
  assert.match(customerHTML,/location\.search\.match\(\/\[\?&\]s=/,'customer page reads the landing look');
 });
 test('customer page: four services, «بساز» starts building with no consent checkbox, one name per saved photo',()=>{
@@ -1009,64 +1079,107 @@ test('landing funnel events are first-party, validated and attributed',async()=>
 // the section order 1 hero → 2 امکانات → 3 نحوهٔ کار → 4 مزایا → 5 نظرات →
 // 6 تعرفه → 7 فراخوان → FAQ → footer) and the honesty rules that still apply.
 
-test('step 24 reference: the page opens with one hero, one headline and the four benefit cards',()=>{
+test('copy plan: the home page opens with one hero, the approved headline, one main button and the 8-second loop',()=>{
  assert.equal((landingHTML.match(/<h1[\s>]/g)||[]).length,1,'exactly one h1');
- assert.match(landingHTML,/مشتری، نتیجه را قبل از آمدن<span class="h1__accent">روی عکس خودش ببیند<\/span>/,'the headline states the real promise');
- assert.match(landingHTML,/id="heroCompare"/,'the before/simulation card leads the visual');
- assert.match(landingHTML,/compare__badge[^>]*>[\s\S]{0,200}نتیجه با هوش مصنوعی/,'the AI result badge is labelled');
- assert.equal((landingHTML.match(/class="hero-thumb"/g)||[]).length,4,'four services in the hero thumbnail rail');
- assert.equal((landingHTML.match(/class="hero-benefits__icon"/g)||[]).length,4,'four benefit cards under the fold');
- for(const label of ['رفت‌وبرگشت کمتر','درخواست کامل، از همان اول','صفحه‌ای برای بیو اینستاگرام','مشتریِ مطمئن‌تر'])
-  assert.ok(landingHTML.includes(label),'benefit '+label);
- assert.match(landingHTML,/نمونهٔ موقت؛ شبیه‌سازی تقریبی است/,'the simulation is not sold as a guarantee');
+ assert.match(landingHTML,/«این مدل بهم می‌اد؟» را<span class="h1__accent">با حدس جواب ندهید\.<\/span>/,'the headline states the real promise');
+ assert.ok(landingHTML.includes('مشتری مو، رنگ، ناخن و مژه را روی عکس خودش می‌بیند؛ مطمئن‌تر درخواست می‌دهد.'),'the approved subtitle');
+ const hero=(landingHTML.match(/<section id="intro"[\s\S]*?<\/section>/)||[])[0]||'';
+ assert.equal((hero.match(/class="btn btn--lg"/g)||[]).length,1,'one main button in the hero');
+ assert.match(hero,/class="btn btn--lg" href="#demo">روی عکس خودم امتحان کنم</,'it opens the live demo');
+ assert.match(hero,/class="hero-link" href="#services">قیمت پلن‌ها/,'the price link is a text link');
+ assert.doesNotMatch(hero,/ساخت صفحهٔ من|خرید پلن/,'no second sales button in the hero');
+ assert.equal((hero.match(/<figure class="loop__f /g)||[]).length,3,'three frames');
+ for(const f of ['مشتری عکس می‌گذارد','مدل را می‌بیند','درخواست به شما می‌رسد'])assert.ok(hero.includes(f),'frame '+f);
+ assert.ok(hero.includes('نمونهٔ نمایشی؛ شبیه‌سازی تقریبی است'),'the loop is labelled a sample and approximate');
+ assert.match(landingHTML,/\.loop__f\{[^}]*animation:loopFrame 8s linear infinite/,'a self-running 8-second loop, no scroll and no sound');
+ assert.doesNotMatch(hero,/<video|<audio/,'no sound');
+ assert.doesNotMatch(landingHTML,/id="heroCompare"|class="hero-thumb"|class="hero-benefits__icon"/,'the old hero mirror and benefit cards are gone');
 });
-test('step 24 reference: header, nav and the two header actions follow the sheet',()=>{
+test('copy plan: header has the logo, three links, one fixed «نمونه بساز» and a small «ورود»',()=>{
  const headerOf=html=>(html.match(/<header class="site-header">[\s\S]*?<\/header>/)||[])[0]||'';
  const header=headerOf(landingHTML);
  assert.ok(header,'header exists');
  assert.match(header,/class="brand__mark"/);assert.match(header,/class="brand__word">آینه</);
- for(const item of ['#intro">خانه','#samples">نمونه‌کارها','#choose">خدمات','#why">چرا آینه؟','#faq">سوالات متداول'])
-  assert.ok(header.includes(item),'home nav '+item);
- assert.match(header,/aria-current="page"/,'the active item keeps the underline');
+ const nav=(header.match(/<nav class="nav"[\s\S]*?<\/nav>/)||[])[0];
+ assert.equal((nav.match(/<a /g)||[]).length,3,'three menu items');
+ for(const item of ['#choose">خدمات','#services">تعرفه‌ها','#faq">سؤالات'])assert.ok(nav.includes(item),'home nav '+item);
  const actions=(header.match(/<div class="header-cta">[\s\S]*?<\/div>/)||[])[0]||'';
- assert.match(actions,/class="btn--login"[\s\S]*?ورود به پنل/,'login button');
- assert.match(actions,/class="btn" href="#choose"[\s\S]*?امتحان و قیمت/,'on home the header sends you to try and see prices');
- const hair=headerOf(servicePages.hair);
- for(const item of ['href="/">آینه','href="/nails">ناخن','href="/lashes">مژه','#services">تعرفه‌ها','#faq">سوالات متداول'])
-  assert.ok(hair.includes(item),'service nav '+item);
- assert.match(hair,/class="btn" href="#services"[\s\S]*?خرید پلن/,'on a service page the header sells a plan');
+ assert.match(actions,/class="btn--login"[\s\S]*?<span>ورود<\/span>/,'a small login for current members');
+ assert.match(actions,/class="btn" href="#demo">نمونه بساز</,'the fixed button builds a sample');
+ for(const k of ['hair','color','nails','lashes','salon','sample']){
+  const h=headerOf(servicePages[k]);
+  assert.match(h,/class="btn" href="#demo">نمونه بساز</,k+' header button');
+  assert.ok(h.includes('href="/#choose">خدمات')&&h.includes('href="/#faq">سؤالات')&&h.includes(k==='sample'?'href="/#services">تعرفه‌ها':'href="#services">تعرفه‌ها'),k+' links home for what it does not carry');
+ }
  assert.match(header,/class="menu-toggle"/,'mobile menu hook');
  assert.match(landingHTML,/@media\(max-width:1120px\)\{[\s\S]{0,120}\.nav\{display:none\}/,'nav collapses before it can crowd the bar');
+ assert.match(landingHTML,/@media\(max-width:640px\)\{\.btn--login\{display:none\}\}/,'on a phone the bar is logo, «نمونه بساز» and the menu');
 });
-test('step 24 reference: section order matches the six reference sheets',()=>{
+test('copy plan: home sections come in the approved order and every page has one h1',()=>{
  const ids=html=>[...html.matchAll(/<main id="main">[\s\S]*?<\/main>/g)][0][0].match(/<section id="[\w-]+"/g).map(s=>s.slice(13,-1));
- assert.deepEqual(ids(landingHTML),['intro','samples','why','choose','faq'],'home: Ayneh, samples, honest reasons, the three doors, FAQ');
- /* The builder ("see it with your name") comes before the prices; the payment sheet follows them. */
- assert.deepEqual(ids(servicePages.hair),['intro','films','play','try-on','how','salon-example','services','pay','cta','faq'],'hair page');
- for(const k of ['nails','lashes'])assert.deepEqual(ids(servicePages[k]),['intro','films','try-on','how','salon-example','services','pay','cta','faq'],k+' page (no mirror studio)');
- for(const title of ['قبل و بعد، <em>روی عکس خودِ مشتری</em>','چرا می‌شود <em>به آینه</em> اعتماد کرد؟',
-  'شما در کدام لاین <em>فعالیت دارید؟</em>','پرسش‌های <em>پیش از شروع</em>'])
+ assert.deepEqual(ids(landingHTML),['intro','demo','how','salon-example','get','choose','why','services','pay','faq','cta'],'home');
+ assert.deepEqual(ids(servicePages.hair),['intro','play','demo','sample','benefits','salon-example','services','pay','cta'],'hairstyle page (with the sample-face mirror)');
+ for(const k of ['color','nails','lashes'])assert.deepEqual(ids(servicePages[k]),['intro','demo','sample','benefits','salon-example','services','pay','cta'],k+' page: one template with its illustrative sample');
+ assert.deepEqual(ids(servicePages.salon),['intro','glance','team','demo','salon-example','bundle','services','pay','cta'],'salon panel page');
+ assert.deepEqual(ids(servicePages.sample),['intro','demo'],'the demo page');
+ for(const html of [landingHTML,...Object.values(servicePages)])assert.equal((html.match(/<h1[\s>]/g)||[]).length,1,'one h1');
+ for(const title of ['خودتان <em>امتحان کنید.</em>','راه‌اندازی در <em>۳ گام</em>','دیگر «یک عکس بفرست ببینم» <em>نمی‌خواهد.</em>',
+  'خدمت شما <em>کدام است؟</em>','چیزی <em>پنهان نیست.</em>','پیش از خرید <em>چه می‌پرسید؟</em>','اولین نمونه را همین الان روی عکس خودتان بسازید.'])
   assert.ok(landingHTML.includes(title),'home title '+title);
- for(const title of ['آینه <em>چگونه کار می‌کند؟</em>','پلن‌های آینه <em>برای متخصصان زیبایی</em>','مشتری‌های مدل و رنگ مو شما، نتیجه را <em>قبل از آمدن</em> ببینند'])
-  assert.ok(servicePages.hair.includes(title),'service title '+title);
+ assert.ok(landingHTML.includes('عکس، مدل و شمارهٔ مشتری یک‌جا می‌رسد.')&&landingHTML.includes('با یک ضربه وضعیت را بزنید؛ مشتری همان را می‌بیند.'));
+ // the services section is the sample work and the door in one: four cards, four prices pages
+ assert.equal((landingHTML.match(/class="sample-card"/g)||[]).length,4,'four service cards');
+ for(const [line,href] of [['مدل مو را قبل از قیچی می‌بیند.','/hair'],['رنگ را قبل از رنگ‌کردن می‌بیند.','/color'],['طرح روی دست خودش.','/nails'],['حجم مژه روی چشم خودش.','/lashes']])
+  assert.ok(landingHTML.includes(line)&&landingHTML.includes('<a class="btn" href="'+href+'">امتحان و قیمت</a>'),'card '+line);
+ assert.equal((landingHTML.match(/class="why__icon"/g)||[]).length,3,'three trust cards');
+ assert.equal((landingHTML.match(/class="setup__step"/g)||[]).length,3,'three setup steps');
+ assert.ok(landingHTML.includes('اسم سالن را بنویسید')&&landingHTML.includes('خدمت خودتان را بردارید')&&landingHTML.includes('لینک را در بیو بگذارید')&&landingHTML.includes('بدون نصب اپ، روی گوشی.'));
+ assert.doesNotMatch(landingHTML,/۱۹ مدل|۷ رنگ/,'the model and colour counts are gone');
+ for(const html of Object.values(servicePages))assert.doesNotMatch(html,/۱۹ مدل|۷ رنگ/,'no model or colour count on a service page');
 });
-test('step 24 reference: home speaks to each specialist; service pages keep the four numbered steps',()=>{
- for(const [line,href] of [['کوتاهی، مدل و رنگ مو','/hair'],['کار ناخن','/nails'],['اکستنشن و لیفت مژه','/lashes']]){
-  assert.ok(landingHTML.includes('<b>برای '+line+':'),'CTA box for '+line);
-  assert.ok(landingHTML.includes('class="choose-card" href="'+href+'"'),'the box opens '+href);
+test('copy plan: the four service pages share one template with their own lines, no invented sample',()=>{
+ for(const [k,h1,lead,benefit] of [
+  ['hair','مشتری می‌پرسد «این مدل به من می‌آید؟»','آینه جواب را روی عکس خودش نشان می‌دهد.','مشتری قبل از آمدن مدل را روی عکس خودش می‌بیند.'],
+  ['color','مشتری می‌گوید «این نبود که فکر می‌کردم.»','آینه رنگ را قبل از شروع، روی عکس خودش نشان می‌دهد.','رنگ را قبل از شروع روی عکس خودش می‌بیند.'],
+  ['nails','مشتری طرح اینستاگرام را نشان می‌دهد و مطمئن نیست.','آینه طرح را روی دست خودش نشان می‌دهد.','طرح را روی دست خودش می‌بیند.'],
+  ['lashes','مشتری از حجم و فرم مژه می‌ترسد.','آینه حالت را قبل از نوبت نشان می‌دهد.','حالت مژه را قبل از نوبت می‌بیند.']]){
+  const html=servicePages[k];
+  assert.ok(html.includes('<h1 id="h1" class="h1">'+h1),k+' hero line');assert.ok(html.includes(lead),k+' solution line');assert.ok(html.includes(benefit),k+' benefit');
+  assert.equal((html.match(/<ul class="benefits__list">[\s\S]*?<\/ul>/)[0].match(/<li>/g)||[]).length,3,k+': three benefits');
+  assert.ok(html.includes('نمونهٔ نمایشی. نتیجه تقریبی است؛ برای انتخاب قبل از نوبت.'),k+' near-image note');
+  assert.match(html,/id="sample"/,k+': illustrative before/after');assert.ok(html.includes('نمونهٔ نمایشی · تقریبی'),k+': labelled illustrative');assert.doesNotMatch(html,/نمونهٔ ساخته‌شده با آینه/,k+': never claimed as made by Ayneh');
+  assert.equal((html.match(/data-line="/g)||[]).length,1,k+' demo offers its own service only');
+  assert.ok(html.includes('data-line="'+({hair:'hair',color:'color',nails:'nails',lashes:'lashes'})[k]+'"'));
+  assert.doesNotMatch(html,/id="faq"|id="choose"|id="why"/,k+' does not repeat the home page');
  }
- assert.doesNotMatch(landingHTML,/می‌توانید از این خدمت استفاده کنید/,'no repeated boilerplate in the three boxes');
- assert.equal((landingHTML.match(/class="sample-card"/g)||[]).length,4,'four sample before/afters on the home page');
- assert.equal((landingHTML.match(/class="why__icon"/g)||[]).length,6,'six reasons in the why grid');
- const hair=servicePages.hair;
- assert.equal((hair.match(/class="step__num"/g)||[]).length,4,'four numbered steps');
- for(const step of ['بارگذاری عکس مشتری','انتخاب مدل یا رنگ مو','ساخت پیش‌نمایش با هوش مصنوعی','ارسال درخواست به سالن'])
-  assert.ok(hair.includes(step),'step '+step);
- assert.match(servicePages.nails,/مشتری یک عکس واضح از دستش می‌گذارد/,'nails steps speak about hands');
- assert.match(servicePages.lashes,/انتخاب مدل مژه/,'lashes steps speak about lashes');
- assert.doesNotMatch(servicePages.nails,/چهره یا موی خود/,'no hair wording on the nails page');
- assert.match(hair,/<span class="step__num" aria-hidden="true">۱<\/span>/,'steps are numbered right-to-left');
- for(const k of ['hair','nails','lashes'])assert.doesNotMatch(servicePages[k],/id="choose"|id="samples"/,k+' does not repeat the home page');
+ assert.match(servicePages.hair,/id="trySwitch"/,'the sample-face mirror stays on the hairstyle page');
+ for(const k of ['color','nails','lashes'])assert.doesNotMatch(servicePages[k],/id="trySwitch"|id="play"/,k+' has no mirror tabs');
+});
+test('copy plan: salon-panel page and the demo page',()=>{
+ const salon=servicePages.salon;
+ assert.ok(salon.includes('هر همکار مشتری را به روش خودش قانع می‌کند.'),'pain of the salon owner');
+ assert.equal((salon.match(/class="glance__card"/g)||[]).length,4,'four services at a glance');
+ assert.equal((salon.match(/<article class="why">/g)||[]).length,3,'teamwork in three cards');
+ assert.ok(salon.includes('لینک اختصاصی')&&salon.includes('درخواست‌ها فقط پیش خودش می‌رسد.'));
+ assert.ok(salon.includes('سه پنل جدا یا <em>یک پنل آرایشگاه؟</em>')&&salon.includes('همکارانتان را با تصویر مشتری هماهنگ کنید.'));
+ assert.doesNotMatch(salon,/class="pbar"|class="pcompare" id="compare"/,'the single-service bar and table are not on the salon page');
+ const demo=servicePages.sample;
+ for(const step of ['خدمت را انتخاب کنید.','عکس روبه‌رو و روشن بگذارید.','مدل و نتیجه را ببینید.'])assert.ok(demo.includes(step),'step '+step);
+ assert.equal((demo.match(/data-line="/g)||[]).length,4,'the demo page offers all four services');
+ assert.ok(demo.includes('عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود.'),'the short privacy line near the upload');
+ assert.doesNotMatch(demo,/فقط برای ساخت همین نمونه/);
+});
+test('copy plan: hard claims that are not built never appear on any page',()=>{
+ for(const html of [landingHTML,...Object.values(servicePages)]){
+  const text=html.replace(/<script>[\s\S]*?<\/script>|<style>[\s\S]*?<\/style>/g,'');
+  assert.doesNotMatch(text,/جابه‌جایی|جابجایی|استوری|کمتر از یک دقیقه|پنل جدا برای هر همکار|پنل اختصاصی هر همکار|گزارش روزانه/,'no transfer, story template, one-minute or per-colleague panel claim');
+  assert.doesNotMatch(text,/پلن بالاتر|پلن‌های بالاتر|مخصوص پلن/,'the bot is not presented as a higher-plan feature');
+  assert.doesNotMatch(text,/عکس[^.<]*فقط در مرورگر|بدون ارسال به سرور/,'the customer photo is not said to stay in the browser');
+  assert.doesNotMatch(text,/نظر مشتریان|⭐|[0-9۰-۹]+\s*(?:هزار\s*)?مشتری راضی/,'no testimonial or satisfaction counter');
+ }
+ assert.ok(landingHTML.includes('عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود.'),'the true privacy sentence');
+ assert.ok(landingHTML.includes('عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.'),'the image service is named honestly, in the one long sentence');
+ assert.ok(landingHTML.includes('چند لحظه طول می‌کشد؛ بدون نصب.'));
 });
 test('honesty: no fake proof, no promises the product does not keep, plan is never called panel',()=>{
  // The owner's standing rule: no invented clients, quotes, ratings or totals. Placeholder
@@ -1077,32 +1190,23 @@ test('honesty: no fake proof, no promises the product does not keep, plan is nev
   assert.doesNotMatch(html,/خرید پنل|پنل‌ها و خرید|دیدن پنل‌ها|پنل خودتان را بخرید|مشاوره تخصصی <br>و رایگان/,'what you buy is a plan (پلن), the panel is where you log in');
  }
 });
-test('step 24 reference: FAQ answers the five sheet questions and quotes the owner\'s price sheet',()=>{
- for(const html of [landingHTML,servicePages.hair]){
-  const faq=(html.match(/<section id="faq"[\s\S]*?<\/section>/)||[])[0]||'';
-  for(const q of ['آینه دقیقاً چه کاری برای من می‌کند؟','راه‌اندازی و آموزش چقدر زمان می‌برد؟',
-   'آیا امکان استفاده روی موبایل وجود دارد؟','هزینهٔ استفاده از آینه چگونه است؟',
-   '«اعتبار عکس» یعنی چه و چطور مصرف می‌شود؟','درخواست مشتری را کجا می‌بینم؟','وقتی پلن تمام شود چه می‌شود؟'])
-   assert.ok(faq.includes(q),'faq '+q);
-  assert.match(faq,/در پلن ESSENTIAL درخواست‌ها در پنل شما می‌نشیند/,'where requests land depends on the plan');
-  assert.match(faq,/ESSENTIAL یک‌ماهه ۲٫۹ میلیون تومان، PRO سه‌ماهه ۶ میلیون تومان و SIGNATURE شش‌ماهه ۱۰ میلیون تومان/,'the cost answer quotes the sheet');
-  assert.match(faq,/هر ۱۰ عکس ۲۰۰ هزار تومان/,'and the top-up price');
- }
- assert.equal((landingHTML.match(/<section id="faq"[\s\S]*?<\/section>/)[0].match(/<details class="faq-item/g)||[]).length,10,'ten questions on home');
- for(const k of ['hair','nails','lashes'])assert.match(servicePages[k],/<summary>مشتری چه عکسی باید بگذارد؟<\/summary>/,k+' FAQ opens with its own photo question');
- assert.match(servicePages.nails,/پشت دست با انگشت‌های باز/,'the nails photo answer is about hands');
- assert.match(landingHTML,/href="\/hair#services">بخش تعرفه‌ها/,'on home the cost answer opens the plans on a service page');
-});
-test('step 24 reference: footer keeps the four columns, contacts and the copyright line',()=>{
+test('copy plan: the FAQ is six short answers in the order they block a purchase, and the footer is plain',()=>{
+ const faq=(landingHTML.match(/<section id="faq"[\s\S]*?<\/section>/)||[])[0]||'';
+ const qs=[...faq.matchAll(/<summary>([^<]*)<\/summary>\s*<div class="faq-item__body">([\s\S]*?)<\/div>/g)];
+ assert.equal(qs.length,6,'six questions');
+ assert.deepEqual(qs.map(m=>m[1]),['عکس مشتری کجا می‌رود؟','نتیجه دقیق است؟','مشتری‌ها چیزی نصب کنند؟','آرایشگاه چند نفره‌ام. چه کنم؟','پرداخت و تمدید چطور است؟','اگر عکس‌ها تمام شد؟']);
+ for(const [,q,a] of qs)assert.ok((a.replace(/<[^>]*>/g,'').match(/[.؛]/g)||[]).length<=3,'short answer: '+q);
+ assert.match(faq,/بستهٔ ۱۰ تایی جدا می‌خرید\. قیمت فعلی هر بسته ۲۰۰ هزار تومان است\./,'the top-up price comes from the price table');
+ assert.match(faq,/href="\/salon-panel">پنل آرایشگاه/,'the salon answer links to the salon page');
  const foot=(landingHTML.match(/<footer class="site-footer">[\s\S]*?<\/footer>/)||[])[0]||'';
  assert.ok(foot,'footer exists');
- for(const col of ['دسترسی سریع','لینک‌های مفید','ارتباط با ما'])assert.ok(foot.includes(col),'column '+col);
- assert.match(foot,/پیش‌نمایش روی عکس خودِ مشتری،<br>برای سالن‌ها و متخصصان زیبایی/);
- assert.match(foot,/0910 564 7497/);
- assert.doesNotMatch(foot,/mailto:|@gmail\.com/,'no personal mailbox on the public page');
- assert.doesNotMatch(foot,/نمونهٔ موقت‌اند/,'the footer no longer calls the whole page a sample');
+ for(const link of ['href="/hair">مدل مو','href="/color">رنگ مو','href="/nails">ناخن','href="/lashes">مژه','href="/salon-panel">پنل آرایشگاه','href="#services">تعرفه‌ها','href="/sample">ساخت نمونه'])assert.ok(foot.includes(link),'footer link '+link);
+ assert.match(foot,/مو، رنگ، ناخن و مژه،<br>روی عکس خودِ مشتری\./,'one line of introduction');
+ assert.match(foot,/0993 377 3515/,'the one public support number');
+ assert.doesNotMatch(foot,/mailto:|@gmail\.com|ble\.ir/,'no email or Bale contact');
+ assert.match(foot,/t\.me\/\+989933773515/,'Telegram contact');assert.match(foot,/wa\.me\/989933773515/,'WhatsApp contact');
+ assert.match(foot,/<p>نتیجه تقریبی است\.<\/p>/);
  assert.match(foot,/© ۱۴۰۵ آینه/);
- assert.equal((foot.match(/class="foot-social"/g)||[]).length,1);
  assert.equal((foot.match(/class="brand__mark"/g)||[]).length,1,'the teal mark returns in the footer');
 });
 test('step 24 brand: the owner\'s mirror logo is the one mark everywhere',()=>{
@@ -1157,9 +1261,9 @@ test('step 24 layout: the grids collapse cleanly at 1120 / 900 / 600',()=>{
  assert.match(landingHTML,/\[hidden\]\{display:none!important\}/,'hidden always wins over a display rule');
 });
 
-test('step 24 pricing: the three plans of the owner\'s price sheet, on every service page',()=>{
- for(const k of ['hair','nails','lashes']){
-  const html=servicePages[k];
+test('step 24 pricing: the three plans of the owner\'s price sheet, on the home page and every service page',()=>{
+ for(const k of ['home','hair','color','nails','lashes']){
+  const html=k==='home'?landingHTML:servicePages[k];
   for(const [name,months,price,was] of [['ESSENTIAL','۱','۲٫۹',''],['PRO','۳','۶','۸٫۷'],['SIGNATURE','۶','۱۰','۱۷٫۴']]){
    const card=html.match(new RegExp('<article class="plan[^"]*" data-plan="'+name.toLowerCase()+'">[\\s\\S]*?</article>'))[0];
    assert.ok(card.includes('>'+name+'</h3>'),k+' '+name);
@@ -1174,46 +1278,24 @@ test('step 24 pricing: the three plans of the owner\'s price sheet, on every ser
   assert.match(html,/data-plan="signature">[\s\S]*?class="plan__badge">[\s\S]*?پیشنهاد آینه/,'SIGNATURE carries the badge');
   assert.ok(html.includes('پس از اتمام اعتبار هدیه، هر ۱۰ عکس ۲۰۰ هزار تومان'),'the top-up note');
  }
- assert.doesNotMatch(landingHTML,/<article class="plan/,'the home page sells no plan; it sends you to your service');
+ // five visible tabs (four services and the salon); the home page opens «مدل مو»
+ assert.match(landingHTML,/<div class="ptabs" data-ptabs>/,'the tab row is on');
+ assert.match(landingHTML,/id="ptab-hair" aria-controls="plans-single" data-tab="hair" aria-selected="true"/);
+ for(const t of ['hair','color','nails','lashes','salon'])assert.match(landingHTML,new RegExp('data-tab="'+t+'"'),t+' tab');
  // the server charges from the same table
  assert.deepEqual(Object.fromEntries(Object.entries(PLANS).map(([k,v])=>[k,[v.months,v.amount,v.credits]])),
-  {essential:[1,2900000,20],pro:[3,6000000,75],signature:[6,10000000,180]});
+  {essential:[1,2900000,20],pro:[3,6000000,75],signature:[6,10000000,180],
+   salon1:[1,5000000,40],salon3:[3,10000000,150],salon6:[6,15000000,360]});
+ // «پنل آرایشگاه»: 3 users included; each user beyond is priced for the whole period
+ assert.deepEqual(['salon1','salon3','salon6'].map(k=>[PLANS[k].seats,PLANS[k].seat_amount,PLANS[k].tier]),
+  [[3,2000000,'essential'],[3,1500000,'pro'],[3,1000000,'signature']]);
+ for(const k of ['essential','pro','signature'])assert.equal(PLANS[k].seats,0,k+' has no user count');
  assert.deepEqual(TOPUP,{images:10,amount:200000});
 });
 
-test('step 27 films: the three service clips ship in one player, with a poster each',()=>{
- // The owner's three films (hair, lashes, nails) had been orphaned when the reference rebuild
- // dropped the old film strip. They live in one tabbed player now, and each tab has to be
- // usable: a real source, a poster so the box is never empty, and a poster file on disk.
- const section=servicePages.hair.match(/<section id="films"[\s\S]*?<\/section>/)[0]||'';
- assert.ok(section,'the films section ships');
- assert.equal((servicePages.hair.match(/id="films"/g)||[]).length,1,'one player, not three');
- for(const key of ['hair','lashes','nails']){
-  const own=servicePages[key].match(/<section id="films"[\s\S]*?<\/section>/)[0];
-  assert.match(own,new RegExp('data-film="'+key+'"'),key+' page has its own film');
-  assert.equal((own.match(/data-film="/g)||[]).length,1,key+' page shows only its own film');
-  const poster=readFileSync(new URL('../public/landing/'+key+'-poster.webp',import.meta.url));
-  assert.ok(poster.length>2000,key+' poster is a real image');
- }
- // One <video>, and it starts on the hair clip without downloading the other two.
- const video=section.match(/<video[^>]*>/)[0];
- assert.match(video,/preload="none"/,'nothing downloads until the tab is asked for');
- assert.match(video,/muted/,'autoplay is always muted');
- assert.match(video,/playsinline/,'a phone must not open a full-screen player');
- assert.ok(section.includes('video/hair.mp4'),'the first clip is the hair film');
- const js=servicePages.hair.match(/<script>([\s\S]*?)<\/script>/g).map(x=>x.slice(8,-9)).join('\n');
- for(const key of ['hair','lashes','nails'])assert.ok(new RegExp("/' \\+ key \\+ '\\.mp4").test(js),'one swap serves all three');
- // Each tab points the one <video> at its own clip AND its own poster, so switching tabs
- // never shows the previous service's still.
- assert.ok(js.includes("poster = '/landing/' + key + '-poster.webp'")||js.includes("poster = 'assets/' + key + '-poster.webp'"),'the poster follows the tab');
- assert.match(js,/IntersectionObserver/,'scrolling away pauses the film');
- assert.match(js,/prefers-reduced-motion/,'motion-sensitive visitors get a poster and a play button');
- // The three clips are on disk and small enough for a phone to consider them.
- for(const key of ['hair','lashes','nails']){
-  const clip=readFileSync(new URL('../public/landing/video/'+key+'.mp4',import.meta.url));
-  assert.ok(clip.length>50_000&&clip.length<3_500_000,key+' clip is present and under 3.5 MB ('+clip.length+')');
-  assert.equal(clip.subarray(4,8).toString(),'ftyp','a real mp4 container');
- }
+test('step 27 films: the clips are no longer a section of any page, their assets stay for reuse',()=>{
+ for(const html of [landingHTML,...Object.values(servicePages)])assert.doesNotMatch(html,/id="films"|id="filmVideo"/,'the film player is not on the page');
+ for(const key of ['hair','lashes','nails'])assert.ok(readFileSync(new URL('../public/landing/'+key+'-poster.webp',import.meta.url)).length>2000,key+' poster stays on disk');
 });
 
 test('step 24 studio: the live salon preview survives the rebuild',()=>{
@@ -1274,7 +1356,7 @@ import {panelHTML} from '../worker/panel.js';
 const payJS = readFileSync(new URL('../design/landing/src/pay.js', import.meta.url), 'utf8');
 
 const CARD = '6037-9911-2233-4455';      // passes the Luhn check, expires nowhere
-const orderBody = (plan = 'pro', extra = {}) => ({plan, salon: 'سالن نمونه', name: 'سارا محمدی', phone: '۰۹۱۲۱۲۳۴۵۶۷', city: 'تهران', consent: true, ...extra});
+const orderBody = (plan = 'pro', extra = {}) => ({plan, service: PLANS[plan]?.seats ? 'all' : 'hair', salon: 'سالن نمونه', name: 'سارا محمدی', phone: '۰۹۱۲۱۲۳۴۵۶۷', city: 'تهران', consent: true, ...extra});
 /* A priced plan is needed to test a checkout; the shipped page stays unpriced until the
    owner approves numbers. This only mutates the in-memory import for these tests. */
 function priced(plan, amount, quota = 30) {
@@ -1371,7 +1453,7 @@ test('step 25 expiry: the window is enforced by the server, and a closed order c
     const confirm = await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER);
     assert.equal(confirm.status, 409);
     const receipt = await call(e, '/api/order/' + r.data.id + '/receipt', {note: '123456'});
-    assert.equal(receipt.status, 410);
+    assert.equal(receipt.status, 404, 'there is no receipt step any more');
     const panel = await call(e, '/api/panel/me');
     assert.equal(panel.data.salon, null, 'no panel before payment');
   } finally { restore() }
@@ -1400,8 +1482,10 @@ test('step 25 coupons: one code per order lowers the toman amount; a bad code is
     assert.equal(c.data.amount, 1600000);
     const bad = await call(e, '/api/order/' + r.data.id + '/coupon', {coupon: 'NOPE'});
     assert.equal(bad.status, 422);
-    // The code is spent when the customer commits (sends a receipt), not when a window opens.
-    assert.equal((await call(e, '/api/order/' + r.data.id + '/receipt', {note: '۱۲۳۴'})).data.status, 'reviewing');
+    // The code is spent when the payment is confirmed, not when a window opens.
+    const other0 = await call(e, '/api/order', orderBody('pro', {phone: '۰۹۱۲۰۰۰۰۰۰۱'}));
+    assert.equal((await call(e, '/api/order/' + other0.data.id + '/coupon', {coupon: 'AYNEH20'})).status, 200, 'an unpaid order has not spent it');
+    assert.equal((await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER)).data.order.status, 'paid');
     const other = await call(e, '/api/order', orderBody('pro', {phone: '۰۹۱۲۰۰۰۰۰۰۰'}));
     const used = await call(e, '/api/order/' + other.data.id + '/coupon', {coupon: 'AYNEH20'});
     assert.equal(used.status, 422, 'max:1 is used up');
@@ -1525,22 +1609,21 @@ test('step 25 last step: the paid page opens the customer\'s own panel with one 
   } finally { restore() }
 });
 
-test('step 25 receipt: sending one moves the order to reviewing and the panel stays shut until confirmation', async () => {
+test('step 25 no receipt: the customer never sends one; an old reviewing order still confirms and never expires', async () => {
   const e = fixture();
   const restore = priced('essential', 900000);
   try {
     const r = await call(e, '/api/order', orderBody('essential'));
-    const v = await call(e, '/api/order/' + r.data.id + '/receipt', {note: '۴ رقم آخر ۴۵۵'});
-    assert.equal(v.data.status, 'reviewing');
-    assert.equal((await call(e, '/api/panel/me')).data.salon, null);
+    assert.equal((await call(e, '/api/order/' + r.data.id + '/receipt', {note: '۴ رقم آخر ۴۵۵'})).status, 404, 'the receipt route is gone');
+    assert.equal((await call(e, '/api/order/' + r.data.id)).data.status, 'open');
     const list = (await call(e, '/api/owner/orders', undefined, OWNER)).data.orders[0];
-    assert.equal(list.receipt_note, '۴ رقم آخر ۴۵۵');
     assert.equal(list.plan, 'ESSENTIAL', 'the console shows the plan name from the sheet');
     assert.equal(list.contact_phone, '09121234567', 'and a local mobile, not +98');
     assert.equal(list.amount, 900000, 'amount in toman');
-    // A sent receipt is never closed by the 10-minute clock: the owner can still confirm it.
-    e.DB.sql.prepare('UPDATE orders SET expires_at=? WHERE id=?').run(Date.now() - 1, r.data.id);
+    // An order left in 'reviewing' by the retired receipt step is never closed by the clock.
+    e.DB.sql.prepare("UPDATE orders SET status='reviewing',expires_at=? WHERE id=?").run(Date.now() - 1, r.data.id);
     assert.equal((await call(e, '/api/order/' + r.data.id)).data.status, 'reviewing');
+    assert.equal((await call(e, '/api/panel/me')).data.salon, null);
     assert.equal((await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER)).data.order.status, 'paid');
   } finally { restore() }
 });
@@ -1573,10 +1656,10 @@ test('step 25 key: the panel key is handed out when the order opens (once), neve
 
 test('step 25 pages: /panel and /pay are real routes, the panel page parses, and only service pages sell',async()=>{
   new Function(panelHTML.split('<script>')[1].split('</script>')[0]);
-  assert.doesNotMatch(landingHTML,/id="pay"/,'the home page has no checkout');
-  for(const k of ['hair','nails','lashes']){
-   const html=servicePages[k];
-   assert.equal((html.match(/data-state="open"/g)||[]).length,3,k+': all three plans sell');
+  assert.match(landingHTML,/id="pay"/,'the home page carries the checkout its price cards open');
+  for(const k of ['home','hair','color','nails','lashes','salon']){
+   const html=k==='home'?landingHTML:servicePages[k];
+   assert.equal((html.match(/data-state="open"/g)||[]).length,k==='salon'?3:6,k+': every plan on the page sells (three single-service, three «پنل آرایشگاه»)');
    assert.match(html,/پرداخت موقتاً بسته است: شمارهٔ کارت آینه هنوز ثبت نشده/);
    assert.match(html,/هر سفارش ۱۰ دقیقه اعتبار دارد/);
    assert.doesNotMatch(html,/[0-9۰-۹]{16}/,'no card number is ever baked into the page');
@@ -1608,7 +1691,7 @@ test('step 25 checkout never leaves a "buy a panel" bar over a payment, and an u
   assert.match(js, /order\//, 'status, receipt and coupon all go through the order endpoints');
   assert.match(js, /expires_at/, 'the countdown mirrors the server deadline');
   assert.doesNotMatch(js, /تومان\/\s*\d/, 'the page does not compute its own prices');
-  assert.equal((landingHTML.match(/data-state="open"/g) || []).length, 0);
+  assert.equal((landingHTML.match(/data-state="open"/g) || []).length, 6, 'the home page sells the three plans and the three salon plans');
 });
 
 test('step 25 brand: the favicon is the owner\'s mirror logo, never the retired brass mark', () => {
@@ -1617,24 +1700,24 @@ test('step 25 brand: the favicon is the owner\'s mirror logo, never the retired 
   assert.match(generatedMark, /data:image\/webp;base64,/, 'the same logo everywhere');
 });
 
-test('step 28 try-on: the demo salon is on the page, with the phone step still in front',()=>{
- // The owner's sample-salon journey — photo, then the number, then the texted code, then the
- // model — has to be visible on the new page, not only behind a link. It is the real demo
- // page embedded, so the gate itself cannot be bypassed by the landing page.
- const section=servicePages.hair.match(/<section id="try-on"[\s\S]*?<\/section>/)[0]||'';
- assert.ok(section,'the try-on section ships');
- assert.equal((servicePages.hair.match(/id="try-on"/g)||[]).length,1,'one try-on section');
- for(const [page,lines] of [['hair',['hair','color']],['nails',['nails']],['lashes',['lashes']]]){
-  const own=servicePages[page].match(/<section id="try-on"[\s\S]*?<\/section>/)[0];
+test('step 28 demo: the demo salon is on the page as «خودتان امتحان کنید.», opened only on a click',()=>{
+ // The visitor's journey — service, photo, model, result — is the real demo page embedded, so
+ // the gate itself (whatever the demo salon asks for) cannot be bypassed by the landing page.
+ const section=landingHTML.match(/<section id="demo"[\s\S]*?<\/section>/)[0]||'';
+ assert.ok(section,'the demo section ships');
+ for(const [page,lines] of [['hair',['hair']],['color',['color']],['nails',['nails']],['lashes',['lashes']],['salon',['hair','color','nails','lashes']],['sample',['hair','color','nails','lashes']]]){
+  const own=servicePages[page].match(/<section id="demo"[\s\S]*?<\/section>/)[0];
+  assert.equal((servicePages[page].match(/id="demo"/g)||[]).length,1,page+': one demo');
   for(const line of ['hair','color','nails','lashes'])
    assert.equal(own.includes('data-line="'+line+'"'),lines.includes(line),page+' page offers '+line+': '+lines.includes(line));
  }
- // Four steps are named in order: photo, phone, code, model.
- assert.ok(section.includes('عکس'),'the photo step is named');
- assert.ok(section.includes('تأیید شماره'),'the phone step is named');
+ assert.equal((section.match(/data-line="/g)||[]).length,4,'home: four service chips');
+ assert.ok(section.includes('عکس خودم را انتخاب کنم')&&section.includes('عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود.')&&section.includes('نتیجه تقریبی است.'));
+ assert.ok(section.includes('id="demoCompare"'),'the interactive mirror lives here, not in the hero');
+ assert.ok(section.includes('صفحهٔ سالن من همین را داشته باشد')&&section.includes('این را برای مشتریان خودم می‌خواهم'),'what to do after a result');
  // The frame is not fetched until the visitor asks for it.
  assert.ok(!/<iframe id="tryonFrame"[^>]*src="/.test(section),'the demo is not embedded until asked');
- const js=servicePages.hair.match(/<script>([\s\S]*?)<\/script>/g).map(x=>x.slice(8,-9)).join('\n');
+ const js=landingHTML.match(/<script>([\s\S]*?)<\/script>/g).map(x=>x.slice(8,-9)).join('\n');
  assert.ok(js.includes("'/s/demo?'"),'it opens the real demo');
  assert.ok(js.includes('__AYN_DRAFT.put'),'a photo from here reaches the demo through the same handoff');
  // The demo reports its height and the frame follows, so there is no scroll inside a scroll.
@@ -1743,9 +1826,9 @@ test('storybook: six illustrated chapters turn like pages behind the sections, o
 test('before/after follows the finger in RTL, plays itself first, and step labels clear their numbers',()=>{
  // --split is measured from the RIGHT edge, so pointer maths and the range direction must be too
  assert.ok(servicePages.hair.includes('set((r.right-e.clientX)/r.width*100)'),'the divider follows the pointer');
- assert.equal((servicePages.hair.match(/class="compare__range"[^>]*dir="rtl"/g)||[]).length,2,'both sliders run right-to-left');
+ assert.equal((servicePages.hair.match(/class="compare__range"[^>]*dir="rtl"/g)||[]).length,2,'the demo and sample sliders run right-to-left');
  assert.match(servicePages.hair,/\.compare__img--after\{clip-path:inset\(0 var\(--split,50%\) 0 0\)\}/,'«بعد» is the left side, under its tag');
- assert.ok(servicePages.hair.includes('engines.set(box,play)')&&servicePages.hair.includes('engines.get(heroBox)'),'each item plays its own before → after');
+ assert.ok(servicePages.hair.includes('engines.set(box,play)')&&servicePages.hair.includes('engines.get(demoBox)'),'each item plays its own before → after');
  // RTL: the step number sits at the inline start, so the padding that clears it must too
  assert.match(servicePages.hair,/\.sb-steps li\{[^}]*padding-inline:46px 14px/,'studio step titles are not under their numbers');
  assert.doesNotMatch(servicePages.hair,/\.nav\{[^}]*margin-inline-start:auto/,'the header menu sits beside the logo, not pushed to the left');
@@ -1830,7 +1913,7 @@ test('credits: a plan salon stops making images at zero or after its end; failed
 
 import {bookingTick, whenText} from '../worker/panelapi.js';
 import {weeklyText} from '../worker/reports.js';
-import {can, FEATURES} from '../worker/plans.js';
+import {can, FEATURES, OPENED_BY, panelInbox} from '../worker/plans.js';
 
 /* A salon bought through the checkout, logged in to its panel. */
 async function planSalon(e,plan,phone='09125550000'){
@@ -1844,8 +1927,11 @@ const panel=(e,ctx,path,body)=>call(e,'/api/panel/'+path,body,{cookie:ctx.cookie
 
 test('plans: features open per plan; a salon without a plan keeps everything',()=>{
  const withPlan=key=>({settings:JSON.stringify({plan:{key,start:1,until:Date.now()+86400000}})});
- for(const f of ['page','gallery','reference','inbox'])assert.ok(can(withPlan('essential'),f),'ESSENTIAL '+f);
- for(const f of ['bot','booking','report_simple','report_full','archive','priority_support'])assert.equal(can(withPlan('essential'),f),false,'ESSENTIAL has no '+f);
+ for(const f of ['page','gallery','reference','inbox','bot'])assert.ok(can(withPlan('essential'),f),'ESSENTIAL '+f+' (every paid plan has the bot)');
+ for(const f of ['booking','report_simple','report_full','archive','priority_support'])assert.equal(can(withPlan('essential'),f),false,'ESSENTIAL has no '+f);
+ assert.equal(OPENED_BY.bot,'ESSENTIAL');
+ // «پنل آرایشگاه» opens the features of its tier
+ assert.deepEqual(['salon1','salon3','salon6'].map(k=>FEATURES.signature.filter(f=>can(withPlan(k),f)).length),[FEATURES.essential.length,FEATURES.pro.length,FEATURES.signature.length]);
  for(const f of ['bot','booking','report_simple'])assert.ok(can(withPlan('pro'),f),'PRO '+f);
  for(const f of ['report_full','archive','priority_support'])assert.equal(can(withPlan('pro'),f),false,'PRO has no '+f);
  for(const f of FEATURES.signature)assert.ok(can(withPlan('signature'),f),'SIGNATURE '+f);
@@ -1868,11 +1954,12 @@ test('panel inbox: an ESSENTIAL salon receives requests in /panel with photos an
  assert.equal((await app.fetch(new Request(origin+'/api/panel/media/'+r.original_id),e)).status,401,'not without the session');
  const st=await panel(e,ctx,'requests/'+r.id+'/status',{status:'called'});assert.equal(st.status,200);
  assert.equal(e.DB.sql.prepare('SELECT salon_status s FROM leads').get().s,'called');
- for(const [path,body] of [['bookings',undefined],['report',undefined],['customers',undefined],['support',{message:'سلام سلام'}],['bot-link',{}]]){
+ for(const [path,body] of [['bookings',undefined],['report',undefined],['customers',undefined],['support',{message:'سلام سلام'}]]){
   const x=await panel(e,ctx,path,body);assert.equal(x.status,403,path+' is locked on ESSENTIAL');assert.match(x.data.error,/در پلن (PRO|SIGNATURE) و بالاتر باز است/);
  }
  const me=await app.fetch(new Request(origin+'/api/panel/me',{headers:{cookie:ctx.cookie}}),e);const d=await me.json();
- assert.deepEqual(d.features,['page','gallery','reference','inbox']);assert.equal(d.opened_by.archive,'SIGNATURE');
+ assert.deepEqual(d.features,['page','gallery','reference','inbox','bot']);assert.equal(d.opened_by.archive,'SIGNATURE');
+ assert.equal((await panel(e,ctx,'bot-link',{})).status,200,'every paid plan links the bot');
  }finally{tg.restore()}
 });
 
@@ -1956,13 +2043,13 @@ test('panel own page (ESSENTIAL): setup asks for nothing the plan lacks; portfol
  const ctx=await planSalon(e,'essential');
  const me=async()=>(await app.fetch(new Request(origin+'/api/panel/me',{headers:{cookie:ctx.cookie}}),e)).json();
  let d=await me();
- assert.deepEqual(d.setup.steps.map(x=>x.key),['profile','phone','portfolio','share'],'no bot or team step on ESSENTIAL');
+ assert.deepEqual(d.setup.steps.map(x=>x.key),['profile','phone','portfolio','share','telegram','team'],'ESSENTIAL has the bot, so it is asked to link it');
  // Privacy: the buyer's own name and mobile never land on the public page.
  const first=await call(e,'/api/s/'+ctx.slug+'/public');
  assert.equal(first.data.salon.profile.phone,undefined,'no phone until the salon writes one');
  assert.equal(first.data.salon.profile.manager,undefined,'no buyer name on the page');
  assert.doesNotMatch(JSON.stringify(first.data),/09125550000|9125550000/,'the buyer mobile is not in the public payload');
- assert.equal(d.plans.length,3,'renew/upgrade options are listed');
+ assert.deepEqual(d.plans.map(p=>p.key),['essential','pro','signature','salon1','salon3','salon6'],'renew/upgrade options are listed, «پنل آرایشگاه» included');
  // Page details
  const bad=await panel(e,ctx,'profile',{phone:'abc'});assert.equal(bad.status,400);
  const ok=await panel(e,ctx,'profile',{name:'سالن آینه‌ای',bio:'رنگ و لایت',hours:'شنبه تا پنجشنبه',phone:'۰۹۱۲۰۰۰۰۰۰۰',instagram:'@my.salon'});
@@ -1986,7 +2073,7 @@ test('panel own page (ESSENTIAL): setup asks for nothing the plan lacks; portfol
  const conf=await call(e,'/api/owner/orders/'+r2.data.id+'/confirm',{},OWNER);assert.equal(conf.status,200,JSON.stringify(conf));
  assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM salons').get().n,salons,'no second salon');
  d=await me();assert.equal(d.plan,'PRO','the same panel session now shows PRO');assert.ok(d.features.includes('booking'));
- assert.ok(d.setup.steps.some(x=>x.key==='telegram'),'and now asks for the bot');
+ assert.ok(d.setup.steps.some(x=>x.key==='telegram'),'and still asks for the bot');
 });
 
 test('customer page offers only the service the salon bought (hair = hairstyle + colour)',async()=>{
@@ -1996,7 +2083,7 @@ test('customer page offers only the service the salon bought (hair = hairstyle +
  const slug=e.DB.sql.prepare('SELECT s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.id=?').get(o.data.id).slug;
  const pub=await call(e,'/api/s/'+slug+'/public');assert.deepEqual(pub.data.lines,['nails']);
  const hair=await planSalon(e,'pro','09125550010');
- e.DB.sql.prepare("UPDATE salons SET settings=json_set(settings,'$.service','hair') WHERE slug=?").run(hair.slug);
+ e.DB.sql.prepare("UPDATE salons SET settings=json_remove(json_set(settings,'$.service','hair'),'$.lines') WHERE slug=?").run(hair.slug);
  assert.deepEqual((await call(e,'/api/s/'+hair.slug+'/public')).data.lines,['hair','color']);
  // the server refuses a line the salon does not offer
  const s={slug},g=await guest(e,s);
@@ -2008,9 +2095,9 @@ test('customer page offers only the service the salon bought (hair = hairstyle +
 
 test('/hair: the mirror and the photo try-on are one block with two tabs; one support number everywhere',async()=>{
  const hair=servicePages.hair;
- assert.match(hair,/id="trySwitch" role="tablist"[\s\S]{0,400}data-try="play"[\s\S]{0,200}data-try="try-on"/,'two tabs, the mirror first');
+ assert.match(hair,/id="trySwitch" role="tablist"[\s\S]{0,400}data-try="play"[\s\S]{0,200}data-try="demo"/,'two tabs, the mirror first');
  assert.ok(hair.indexOf('id="trySwitch"')<hair.indexOf('<section id="play"'),'the tab bar sits above both');
- for(const k of ['nails','lashes'])assert.doesNotMatch(servicePages[k],/id="trySwitch"/,k+' has one try section, no tabs');
+ for(const k of ['color','nails','lashes'])assert.doesNotMatch(servicePages[k],/id="trySwitch"/,k+' has one try section, no tabs');
  const {SUPPORT_TEL}=await import('../worker/support.js');
  for(const html of [landingHTML,...Object.values(servicePages)])assert.deepEqual([...new Set([...html.matchAll(/tel:(\d+)/g)].map(m=>m[1]))],[SUPPORT_TEL]);
  assert.ok(panelHTML.includes(JSON.stringify(SUPPORT_TEL)),'the panel gate offers the same number for a lost key');
@@ -2060,4 +2147,514 @@ test('a build whose photo is gone from storage stops with a plain message before
   assert.equal(r.status,410,JSON.stringify(r));assert.match(r.data.error,/در دسترس نیست/);
   assert.equal(calls,0,'no provider call');assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM generations').get().n,0,'nothing counted');
  }finally{globalThis.fetch=previous}
+});
+
+/* =====================================================================
+   Plans per service, «پنل آرایشگاه» with users, the bot on every paid plan.
+   ========================================================================== */
+import {orderTotal, orderUsers} from '../worker/orders.js';
+import {createStaff, seatRoom} from '../worker/referral.js';
+import {linesOf, seatsOf} from '../worker/plans.js';
+const salonRow=(e,slug)=>e.DB.sql.prepare('SELECT * FROM salons WHERE slug=?').get(slug);
+const settingsOfSlug=(e,slug)=>JSON.parse(salonRow(e,slug).settings);
+
+test('«پنل آرایشگاه» pricing: base + users beyond 3 × the per-user rate for the whole period, computed on the server only',async()=>{
+ // the sheet: 5M / 10M / 15M for 3 users; extra users 2M / 1.5M / 1M each for the whole period
+ for(const [k,base,rate] of [['salon1',5000000,2000000],['salon3',10000000,1500000],['salon6',15000000,1000000]]){
+  assert.equal(orderTotal(k,3),base,k+' with 3 users');
+  assert.equal(orderTotal(k,4),base+rate,k+' with 4 users');
+  assert.equal(orderTotal(k,10),base+7*rate,k+' with 10 users');
+ }
+ for(const [k,amount] of [['essential',2900000],['pro',6000000],['signature',10000000]])assert.equal(orderTotal(k,orderUsers(k,9)),amount,k+' is not priced per user');
+ assert.equal(orderUsers('salon1'),3,'3 users when none is sent');assert.equal(orderUsers('salon1',1),3,'never below the included 3');
+ assert.equal(orderUsers('salon1','۵'),5,'Persian digits');assert.throws(()=>orderUsers('salon1','abc'));assert.throws(()=>orderUsers('salon1',51));
+ const e=fixture();
+ const o=await call(e,'/api/order',orderBody('salon3',{users:5,amount:1}));
+ assert.equal(o.status,200,JSON.stringify(o));
+ assert.equal(o.data.amount,13000000,'10M + 2 × 1.5M, the sent amount is ignored');
+ assert.equal(o.data.users,5);assert.equal(o.data.extra_users,2);assert.equal(o.data.seat_amount,1500000);
+ assert.equal(o.data.service,'all','the salon plan is every service, whatever page it came from');
+ const row=e.DB.sql.prepare('SELECT users,credits,amount FROM orders WHERE id=?').get(o.data.id);
+ assert.deepEqual([row.users,row.credits,row.amount],[5,150,130000000],'users, gift images and rials ride on the order');
+ assert.equal((await call(e,'/api/order',orderBody('salon1',{users:'x',phone:'09125550300'}))).status,400,'a bad user count is refused');
+ // a coupon discounts the whole total, users included
+ e.DB.sql.prepare("INSERT INTO app_settings(key,value,updated_at) VALUES('pay_coupons','{\"HALF\":{\"percent\":50}}',?)").run(Date.now());
+ const c=await call(e,'/api/order/'+o.data.id+'/coupon',{coupon:'HALF'});
+ assert.equal(c.status,200,JSON.stringify(c));assert.equal(c.data.amount,6500000);assert.equal(c.data.discount,6500000);
+});
+
+test('«پنل آرایشگاه» confirmed: every service, the tier\'s features, the paid users on the plan; the team cap holds in the console and the bot',async()=>{
+ const e=tgEnv(fixture());const tg=mockTelegram();try{
+ const o=await call(e,'/api/order',orderBody('salon1',{users:4,phone:'09125550400',salon:'Big Salon'}));
+ assert.equal(o.data.amount,7000000);
+ await call(e,'/api/owner/orders/'+o.data.id+'/confirm',{},OWNER);
+ const slug=e.DB.sql.prepare('SELECT s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.id=?').get(o.data.id).slug;
+ const st=settingsOfSlug(e,slug);
+ assert.equal(st.plan.key,'salon1');assert.equal(st.plan.seats,4,'3 included + 1 paid');assert.equal(st.service,'all');
+ assert.equal((await call(e,'/api/s/'+slug+'/public')).data.lines,null,'all four lines on the customer page');
+ const s=salonRow(e,slug);assert.equal(seatsOf(s),4);
+ assert.ok(can(s,'bot'));assert.equal(can(s,'booking'),false,'1-month salon plan opens the ESSENTIAL features');
+ assert.equal(e.DB.sql.prepare("SELECT SUM(delta) n FROM credit_ledger").get().n,40,'gift images: 2 × ESSENTIAL');
+ // the panel shows the users and offers only salon plans
+ const login=await call(e,'/api/panel/login',{key:o.data.access_key});
+ const d=await (await app.fetch(new Request(origin+'/api/panel/me',{headers:{cookie:login.cookie}}),e)).json();
+ assert.deepEqual(d.seats,{cap:4,used:1});assert.deepEqual(d.plans.map(p=>p.key),['salon1','salon3','salon6']);
+ // 4 users = the manager + 3 members; the 4th member is refused in plain Persian
+ for(const n of ['مریم','سارا','نگار'])assert.equal((await call(e,'/api/s/'+slug+'/owner/team',{name:n,specialty:'کوتاهی'},OWNER)).status,200,n);
+ const full=await call(e,'/api/s/'+slug+'/owner/team',{name:'لیلا',specialty:'ناخن'},OWNER);
+ assert.equal(full.status,409);assert.match(full.data.error,/پلن شما برای ۴ کاربر است \(با خود مدیر\)/);
+ assert.deepEqual(await seatRoom(e.DB,salonRow(e,slug)),{cap:4,used:4,left:0});
+ // the manager's own member row is the manager's seat: never refused
+ const me=await createStaff(e.DB,salonRow(e,slug),'مدیر','مدیر سالن',{manager:true});assert.ok(me.id);
+ // the bot says the same when the manager taps «افزودن نیرو»
+ await linkSalon(e,{slug},777);
+ const before=tg.calls.length;
+ await hook(e,{callback_query:{id:'a',data:'tm:add',message:{chat:{id:777},message_id:3}}});
+ assert.ok(tg.calls.slice(before).some(c=>/پلن شما برای ۴ کاربر است/.test(c.body.text||'')),'the manager is told why');
+ assert.equal(JSON.parse(e.DB.sql.prepare('SELECT bot_state FROM salons WHERE slug=?').get(slug).bot_state||'{}').team,undefined,'no name question is asked');
+ // a removed member frees a seat
+ const maryam=e.DB.sql.prepare("SELECT id FROM team WHERE name='مریم'").get().id;
+ await call(e,'/api/s/'+slug+'/owner/team/remove',{id:maryam},OWNER);
+ assert.equal((await call(e,'/api/s/'+slug+'/owner/team',{name:'لیلا',specialty:'ناخن'},OWNER)).status,200,'room again after a removal');
+ // single-service plans have no user cap
+ const solo=await planSalon(e,'essential','09125550401');
+ for(let i=0;i<5;i++)await createStaff(e.DB,salonRow(e,solo.slug),'نیرو '+i,'');
+ assert.equal(await seatRoom(e.DB,salonRow(e,solo.slug)),null);
+ }finally{tg.restore()}
+});
+
+test('renewal: a single-service salon upgrades to «پنل آرایشگاه» with users; a salon on it cannot drop to one service from the panel',async()=>{
+ const e=fixture();
+ const o=await call(e,'/api/order',orderBody('essential',{phone:'09125550500',service:'nails',salon:'Nail Bar'}));
+ await call(e,'/api/owner/orders/'+o.data.id+'/confirm',{},OWNER);
+ const login=await call(e,'/api/panel/login',{key:o.data.access_key}),ctx={cookie:login.cookie};
+ const slug=e.DB.sql.prepare('SELECT s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.id=?').get(o.data.id).slug;
+ assert.deepEqual((await call(e,'/api/s/'+slug+'/public')).data.lines,['nails']);
+ const up=await call(e,'/api/panel/renew',{plan:'salon6',users:6},ctx);
+ assert.equal(up.status,200,JSON.stringify(up));assert.equal(up.data.amount,18000000,'15M + 3 × 1M');assert.equal(up.data.service,'all');
+ await call(e,'/api/owner/orders/'+up.data.id+'/confirm',{},OWNER);
+ const st=settingsOfSlug(e,slug);assert.equal(st.plan.key,'salon6');assert.equal(st.plan.seats,6);
+ assert.equal((await call(e,'/api/s/'+slug+'/public')).data.lines,null,'now every service');
+ const down=await call(e,'/api/panel/renew',{plan:'pro'},ctx);
+ assert.equal(down.status,409);assert.match(down.data.error,/پشتیبانی آینه/);
+ const again=await call(e,'/api/panel/renew',{plan:'salon3'},ctx);
+ assert.equal(again.status,200);assert.equal(again.data.users,6,'renewing keeps the paid users by default');assert.equal(again.data.amount,10000000+3*1500000);
+});
+
+test('four services: hairstyle and hair colour are sold apart; a salon that bought «مدل و رنگ مو» before the split keeps both',async()=>{
+ const e=fixture();
+ const bought=async(service,phone)=>{const o=await call(e,'/api/order',orderBody('pro',{phone,service,salon:'S '+service}));assert.equal(o.data.service,service);await call(e,'/api/owner/orders/'+o.data.id+'/confirm',{},OWNER);return e.DB.sql.prepare('SELECT s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.id=?').get(o.data.id).slug};
+ for(const [service,phone] of [['hair','09125550601'],['color','09125550602'],['nails','09125550603'],['lashes','09125550604']]){
+  const slug=await bought(service,phone);
+  assert.deepEqual((await call(e,'/api/s/'+slug+'/public')).data.lines,[service],service+' only');
+  assert.deepEqual(settingsOfSlug(e,slug).lines,[service]);
+ }
+ // a request names one of the salon's lines; a single-service salon's own line when none is sent
+ const colorSlug=e.DB.sql.prepare("SELECT slug FROM salons WHERE name='S color'").get().slug;
+ const s={slug:colorSlug},g=await guest(e,s);const original=await upload(e,s,g);
+ assert.equal((await call(e,'/api/s/'+colorSlug+'/leads',lead(original,{line:'nails'}),g)).status,403,'not a service this salon offers');
+ const ok=await call(e,'/api/s/'+colorSlug+'/leads',lead(original,{line:undefined}),g);assert.equal(ok.status,200,JSON.stringify(ok));
+ assert.equal(e.DB.sql.prepare('SELECT line FROM leads WHERE id=?').get(ok.data.id).line,'color');
+ // legacy: settings.service 'hair' without settings.lines = hairstyle + colour, before and after migration 0018
+ const old=salonRow(e,e.DB.sql.prepare("SELECT slug FROM salons WHERE name='S hair'").get().slug);
+ const legacy=JSON.parse(old.settings);delete legacy.lines;legacy.service='hair';
+ e.DB.sql.prepare('UPDATE salons SET settings=? WHERE id=?').run(JSON.stringify(legacy),old.id);
+ assert.deepEqual(linesOf(salonRow(e,old.slug)),['hair','color'],'the code fallback');
+ e.DB.sql.exec(readFileSync(new URL('../drizzle/0018_services_seats.sql',import.meta.url),'utf8').split('--> statement-breakpoint')[1]);
+ assert.deepEqual(settingsOfSlug(e,old.slug).lines,['hair','color'],'the migration writes it out');
+ assert.deepEqual(settingsOfSlug(e,colorSlug).lines,['color'],'and leaves a new salon alone');
+ // renewing the legacy salon keeps both
+ const {applyPlan}=await import('../worker/credits.js');
+ const renewal=e.DB.sql.prepare("SELECT id FROM orders WHERE salon_id=?").get(old.id).id;
+ e.DB.sql.prepare("UPDATE salons SET settings=json_remove(settings,'$.lines') WHERE id=?").run(old.id);
+ await applyPlan(e.DB,old.id,{key:'pro',months:3,credits:0},renewal);
+ assert.deepEqual(linesOf(salonRow(e,old.slug)),['hair','color'],'a renewal does not narrow an old salon');
+ assert.equal(e.DB.sql.prepare("SELECT COUNT(*) n FROM pragma_table_info('orders') WHERE name='users'").get().n,1,'orders carry a user count');
+});
+
+test('every paid plan has the bot: an ESSENTIAL salon that links it gets requests there, nails and lashes like hairstyle; until then /panel',async()=>{
+ const e=tgEnv(fixture());const tg=mockTelegram();try{
+ const ctx=await planSalon(e,'essential');const s={slug:ctx.slug};
+ assert.equal(panelInbox(salonRow(e,ctx.slug)),true,'not linked yet: requests wait in /panel');
+ const link=await panel(e,ctx,'bot-link',{});assert.equal(link.status,200,JSON.stringify(link));
+ const code=link.data.links.telegram.split('start=')[1];
+ await hook(e,{message:{chat:{id:888,type:'private'},text:'/start '+code}});
+ await hook(e,{message:{chat:{id:888,type:'private'},text:'/stop'}});
+ assert.equal(salonRow(e,ctx.slug).telegram_chat_id,'888');assert.equal(panelInbox(salonRow(e,ctx.slug)),false);
+ const g=await guest(e,s);const original=await upload(e,s,g);
+ const sent=await call(e,'/api/s/'+ctx.slug+'/leads',lead(original),g);assert.equal(sent.status,200,JSON.stringify(sent));
+ assert.equal(e.DB.sql.prepare('SELECT status FROM leads WHERE id=?').get(sent.data.id).status,'sent','delivered by the bot, not parked in /panel');
+ assert.ok(sentTo(tg,888).some(c=>/درخواست تازه/.test(c.body.text||'')&&/سارا محمدی/.test(c.body.text||'')));
+ }finally{tg.restore()}
+});
+
+test('nails and lashes requests are recorded and delivered like hairstyle ones: the line, the bot message, the member who owns her',async()=>{
+ const e=tgEnv(fixture()),s=await salon(e);const tg=mockTelegram();try{
+ await linkSalon(e,s,777);const maryam=await addMember(e,s,'مریم',4001);
+ const cases=[['hair','مدل مو',{color:''}],['color','رنگ مو',{color:'بالیاژ عسلی'}],['nails','ناخن',{look:'فرنچ',color:'نود'}],['lashes','مژه',{look:'کلاسیک',color:''}]];
+ for(const [i,[line,label,extra]] of cases.entries()){
+  const g=await guest(e,s);const before=sentTo(tg,777).length;
+  const d=await sendLead(e,s,g,{line,v:V(i+1),phone:'0912000010'+i,name:'مشتری '+label,...extra});
+  assert.equal(d.delivered,true,line+' delivered');
+  assert.equal(e.DB.sql.prepare('SELECT line FROM leads WHERE id=?').get(d.id).line,line,line+' recorded');
+  const msg=sentTo(tg,777).slice(before).find(c=>c.method==='sendMessage'&&/درخواست تازه/.test(c.body.text||''));
+  assert.ok(msg,line+' reaches the manager');assert.match(msg.body.text,new RegExp('خدمت:</b> '+label));
+  assert.ok(msg.body.reply_markup.inline_keyboard.flat().some(b=>/^ls:called:/.test(b.callback_data)),line+' carries the status buttons');
+  if(line==='lashes')assert.doesNotMatch(msg.body.text,/همان رنگ فعلی/,'no hair-colour default on a lashes request');
+  if(line==='hair')assert.match(msg.body.text,/همان رنگ فعلی/);
+ }
+ // a member's nails and lashes customers go only to her
+ for(const [n,line] of [[7,'nails'],[8,'lashes']]){
+  await visit(e,s,V(n),maryam.ref.split('r=')[1]);
+  const g=await guest(e,s),mgr=sentTo(tg,777).length;
+  const d=await sendLead(e,s,g,{line,v:V(n),phone:'0912000020'+n,name:'مشتری مریم '+n});
+  assert.equal(e.DB.sql.prepare('SELECT staff_id,line FROM leads WHERE id=?').get(d.id).staff_id,maryam.id);
+  assert.ok(sentTo(tg,4001).some(c=>(c.body.text||'').includes('مشتری مریم '+n)),line+' reaches Maryam');
+  assert.ok(!sentTo(tg,777).slice(mgr).some(c=>(c.body.text||'').includes('مشتری مریم '+n)),line+' never reaches the manager');
+ }
+ }finally{tg.restore()}
+});
+
+/* ---------- automatic payment: the webhook alone confirms (no receipt, no manager approval) ---------- */
+async function hookKey(e){return (await call(e,'/api/owner/payment',undefined,OWNER)).data.webhook.key}
+const payHook=(e,key,body)=>app.fetch(new Request(origin+'/api/pay/confirm',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+key},body:JSON.stringify(body)}),e);
+const warnings=e=>e.DB.sql.prepare("SELECT text FROM activity WHERE level='warn' AND kind='order'").all().map(x=>x.text);
+
+test('pay webhook happy path: the payment site\'s call alone opens the salon, its credits and the panel the customer\'s key logs into',async()=>{
+ const e=fixture();const key=await hookKey(e);
+ const o=await call(e,'/api/order',orderBody('pro',{service:'hair'}));
+ assert.equal(o.data.summary.title,'مدل مو');assert.equal(o.data.summary.months,3,'the order line reads «پلن مدل مو · ۳ ماهه»');
+ const res=await payHook(e,key,{ref:o.data.ref.toLowerCase(),status:'paid',amount:o.data.amount});
+ const body=await res.json();
+ assert.equal(res.status,200,JSON.stringify(body));assert.equal(body.status,'paid');assert.match(body.page,/\/s\//);
+ const row=e.DB.sql.prepare('SELECT status,confirmed_by,salon_id FROM orders WHERE id=?').get(o.data.id);
+ assert.equal(row.status,'paid');assert.equal(row.confirmed_by,'webhook','no owner click involved');
+ // the page polling the order sees it paid, with the panel address, and never the key again
+ const seen=(await call(e,'/api/order/'+o.data.id)).data;
+ assert.equal(seen.status,'paid');assert.match(seen.panel_url,/\/panel$/);assert.equal(seen.access_key,'');
+ // the key handed out when the order opened now logs in, and the plan clock started at confirmation
+ const login=await call(e,'/api/panel/login',{key:o.data.access_key});assert.equal(login.status,200);
+ const d=await (await app.fetch(new Request(origin+'/api/panel/me',{headers:{cookie:login.cookie}}),e)).json();
+ assert.equal(d.credits.granted,75);assert.equal(d.credits.days_left,90);
+ assert.equal(d.checklist.total,4);assert.deepEqual(d.checklist.items.map(i=>i.key),['portfolio','bot','try','share']);
+ assert.ok(d.checklist.started_at>=row.confirmed_at||d.checklist.started_at>0,'the start date comes from the server');
+ assert.equal(d.checklist.until,d.credits.until,'the end date is the plan\'s');
+});
+
+test('pay webhook is idempotent: a repeated or simultaneous call makes one salon and grants once (plan, renewal and top-up)',async()=>{
+ const e=fixture();const key=await hookKey(e);
+ const o=await call(e,'/api/order',orderBody('signature'));
+ const [a,b]=await Promise.all([payHook(e,key,{ref:o.data.ref,status:'paid',amount:o.data.amount}),payHook(e,key,{ref:o.data.ref,status:'paid',amount:o.data.amount})]);
+ assert.equal(a.status,200);assert.equal(b.status,200);
+ assert.equal((await payHook(e,key,{ref:o.data.ref,status:'paid'})).status,200,'a late retry is still a 200');
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM salons').get().n,1,'one salon');
+ assert.equal(e.DB.sql.prepare('SELECT COALESCE(SUM(delta),0) n FROM credit_ledger').get().n,180,'granted once');
+ // a renewal from the panel, paid twice by the payment site, extends once
+ const login=await call(e,'/api/panel/login',{key:o.data.access_key});
+ const until0=JSON.parse(e.DB.sql.prepare('SELECT settings FROM salons').get().settings).plan.until;
+ const ren=await call(e,'/api/panel/renew',{plan:'essential'},{cookie:login.cookie});assert.equal(ren.status,200,JSON.stringify(ren));
+ for(let i=0;i<3;i++)assert.equal((await payHook(e,key,{ref:ren.data.ref,status:'paid',amount:ren.data.amount})).status,200);
+ const until1=JSON.parse(e.DB.sql.prepare('SELECT settings FROM salons').get().settings).plan.until;
+ assert.equal(until1-until0,30*86400000,'one month added once');
+ assert.equal(e.DB.sql.prepare('SELECT COALESCE(SUM(delta),0) n FROM credit_ledger').get().n,200,'180 + 20, not + 60');
+ // a top-up, paid twice
+ const top=await call(e,'/api/panel/topup',{packs:1},{cookie:login.cookie});
+ await payHook(e,key,{ref:top.data.ref,status:'paid',amount:200000});await payHook(e,key,{ref:top.data.ref,status:'paid',amount:200000});
+ assert.equal(e.DB.sql.prepare('SELECT COALESCE(SUM(delta),0) n FROM credit_ledger').get().n,210);
+});
+
+test('pay webhook: a wrong amount or an unknown order opens nothing and tells the owner',async()=>{
+ const e=fixture();const key=await hookKey(e);
+ const o=await call(e,'/api/order',orderBody('essential'));
+ const short=await payHook(e,key,{ref:o.data.ref,status:'paid',amount:o.data.amount-1000});
+ assert.equal(short.status,409);
+ assert.equal((await call(e,'/api/order/'+o.data.id)).data.status,'open','still waiting for the right amount');
+ assert.ok(warnings(e).some(t=>t.includes(o.data.ref)),'the owner hears the code that did not match');
+ assert.equal((await payHook(e,key,{ref:'AYZZZZZZ',status:'paid',amount:1})).status,404);
+ assert.equal((await payHook(e,key,{order:'00000000-0000-4000-8000-000000000000',status:'paid'})).status,404);
+ assert.equal((await payHook(e,key,{status:'paid'})).status,404,'no code at all');
+ assert.ok(warnings(e).some(t=>t.includes('ناشناس')),'an unknown payment is reported');
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM salons').get().n,0);
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM credit_ledger').get().n,0);
+ // a coupon is spent only when the money is in
+ e.DB.sql.prepare("INSERT INTO app_settings(key,value,updated_at) VALUES('pay_coupons','{\"ONE\":{\"percent\":10,\"max\":1}}',?)").run(Date.now());
+ const c=await call(e,'/api/order/'+o.data.id+'/coupon',{coupon:'ONE'});assert.equal(c.data.amount,2610000);
+ assert.equal((await payHook(e,key,{ref:o.data.ref,status:'paid',amount:2610000})).status,200);
+ assert.equal(JSON.parse(e.DB.sql.prepare("SELECT value FROM app_settings WHERE key='pay_coupons'").get().value).ONE.used,1);
+});
+
+test('pay webhook after the 10 minutes: confirmed when the reported amount proves the payment; never without it, never for a cancelled order',async()=>{
+ const e=fixture();const key=await hookKey(e);
+ const late=await call(e,'/api/order',orderBody('essential',{phone:'09120000011'}));
+ e.DB.sql.prepare('UPDATE orders SET expires_at=? WHERE id=?').run(Date.now()-60000,late.data.id);
+ assert.equal((await call(e,'/api/order/'+late.data.id)).data.status,'expired');
+ const bare=await payHook(e,key,{ref:late.data.ref,status:'paid'});
+ assert.equal(bare.status,409,'no amount, no proof: the clock wins');
+ assert.ok(warnings(e).some(t=>t.includes(late.data.ref)),'and the owner is told to look');
+ const proven=await payHook(e,key,{ref:late.data.ref,status:'paid',amount:late.data.amount});
+ assert.equal(proven.status,200);assert.equal((await proven.json()).status,'paid');
+ assert.equal((await call(e,'/api/panel/login',{key:late.data.access_key})).status,200,'the late payer gets the panel too');
+ // the owner's console still cannot confirm an expired order without reopening it
+ const x=await call(e,'/api/order',orderBody('essential',{phone:'09120000012'}));
+ e.DB.sql.prepare('UPDATE orders SET expires_at=? WHERE id=?').run(Date.now()-1,x.data.id);
+ assert.equal((await call(e,'/api/owner/orders/'+x.data.id+'/confirm',{},OWNER)).status,409);
+ // an order replaced by a newer one from the same buyer: a transfer already made to it is not lost.
+ // With the exact amount it is confirmed (and the owner is told); without the amount it is not.
+ const first=await call(e,'/api/order',orderBody('essential',{phone:'09120000013'}));
+ const second=await call(e,'/api/order',orderBody('pro',{phone:'09120000013'}));
+ assert.equal((await call(e,'/api/order/'+first.data.id)).data.status,'cancelled');
+ assert.equal(e.DB.sql.prepare('SELECT replaced_by FROM orders WHERE id=?').get(first.data.id).replaced_by,second.data.id);
+ assert.equal((await payHook(e,key,{ref:first.data.ref,status:'paid'})).status,409,'no amount, no proof');
+ const wrong=await payHook(e,key,{ref:first.data.ref,status:'paid',amount:first.data.amount+1});assert.equal(wrong.status,409,'a wrong amount opens nothing');
+ const ok=await payHook(e,key,{ref:first.data.ref,status:'paid',amount:first.data.amount});assert.equal(ok.status,200,'the money in flight is honoured');
+ assert.equal((await call(e,'/api/panel/login',{key:first.data.access_key})).status,200);
+ assert.ok(e.DB.sql.prepare("SELECT text FROM activity WHERE kind='order'").all().some(x=>x.text.includes(first.data.ref)&&x.text.includes('دیر رسید')),'the owner hears about it');
+ // ...but not when the order that replaced it was paid already: a second payment, the owner handles it
+ const a=await call(e,'/api/order',orderBody('essential',{phone:'09120000014'}));
+ const b=await call(e,'/api/order',orderBody('essential',{phone:'09120000014'}));
+ assert.equal((await payHook(e,key,{ref:b.data.ref,status:'paid',amount:b.data.amount})).status,200);
+ assert.equal((await payHook(e,key,{ref:a.data.ref,status:'paid',amount:a.data.amount})).status,409);
+ assert.ok(warnings(e).some(t=>t.includes(a.data.ref)),'the double payment is flagged');
+ assert.equal(e.DB.sql.prepare("SELECT COUNT(*) n FROM credit_ledger WHERE order_id=?").get(a.data.id).n,0,'nothing granted twice');
+ // an order the owner cancelled never opens by itself
+ const c=await call(e,'/api/order',orderBody('essential',{phone:'09120000015'}));
+ await call(e,'/api/owner/orders/'+c.data.id+'/cancel',{},OWNER);
+ assert.equal((await call(e,'/api/order/'+c.data.id)).data.status,'cancelled');
+ assert.equal((await payHook(e,key,{ref:c.data.ref,status:'paid',amount:c.data.amount})).status,409);
+ assert.ok(warnings(e).some(t=>t.includes(c.data.ref)));
+});
+
+test('end of credit: the panel stays open with its data, generation stops, and the panel says renew; a soft warning comes 7 days before',async()=>{
+ const e=fixture();
+ const ctx=await planSalon(e,'essential');
+ const me=async()=>(await app.fetch(new Request(origin+'/api/panel/me',{headers:{cookie:ctx.cookie}}),e)).json();
+ await call(e,'/api/panel/portfolio?title='+encodeURIComponent('بالیاژ')+'&line=color',png(),{cookie:ctx.cookie});
+ const set=until=>{const r=e.DB.sql.prepare('SELECT id,settings FROM salons WHERE slug=?').get(ctx.slug);const st=JSON.parse(r.settings);st.plan.until=until;e.DB.sql.prepare('UPDATE salons SET settings=? WHERE id=?').run(JSON.stringify(st),r.id)};
+ set(Date.now()+5*86400000);
+ let d=await me();assert.equal(d.credits.expired,false);assert.ok(d.credits.days_left<=7,'inside the warning window');
+ set(Date.now()-1000);
+ d=await me();
+ assert.ok(d.salon,'the panel still opens');assert.equal(d.credits.expired,true);
+ assert.equal(d.portfolio.length,1,'portfolio kept');
+ assert.equal((await panel(e,ctx,'requests')).status,200,'requests (customers) still readable');
+ assert.equal((await call(e,'/api/s/'+ctx.slug+'/public')).status,200,'the public page stays up');
+ // the copy the owner approved, and the renew button, ship in the panel
+ assert.match(panelHTML,/اعتبار پنل تمام شد\. نمونه‌سازی متوقف شده\. برای ادامه تمدید کنید\./);
+ assert.match(panelHTML,/اعتبار پنل نزدیک به پایان است\./);
+ assert.match(panelHTML,/'تمدید پنل'/);
+ assert.match(panelHTML,/days_left<=7/,'the existing 7-day rule drives the warning');
+ // renewing from the panel after the end still works
+ const r=await call(e,'/api/panel/renew',{plan:'essential'},{cookie:ctx.cookie});assert.equal(r.status,200);
+});
+
+test('renewal extends from the later of now and the previous end',async()=>{
+ const e=fixture(),s=await salon(e);
+ const {applyPlan,MONTH}=await import('../worker/credits.js');
+ const id=e.DB.sql.prepare("SELECT id FROM salons WHERE slug='salon-a'").get().id;
+ const plan=()=>JSON.parse(e.DB.sql.prepare('SELECT settings FROM salons WHERE id=?').get(id).settings).plan;
+ const t0=Date.now();await applyPlan(e.DB,id,{key:'essential',months:1,credits:20},null);
+ const first=plan();assert.ok(first.until>=t0+MONTH&&first.until<=Date.now()+MONTH);
+ // still running: the new months stack on the current end
+ await applyPlan(e.DB,id,{key:'pro',months:3,credits:75},null);
+ assert.equal(plan().until,first.until+3*MONTH,'from the previous end, not from now');assert.equal(plan().start,first.start,'the start stays');
+ // already over: the new months start now
+ const st=JSON.parse(e.DB.sql.prepare('SELECT settings FROM salons WHERE id=?').get(id).settings);st.plan.until=Date.now()-10*86400000;
+ e.DB.sql.prepare('UPDATE salons SET settings=? WHERE id=?').run(JSON.stringify(st),id);
+ const t1=Date.now();await applyPlan(e.DB,id,{key:'essential',months:1,credits:20},null);
+ assert.ok(plan().until>=t1+MONTH&&plan().until<=Date.now()+MONTH,'from now, the lost days are not back-dated');
+});
+
+test('«پنل شما باز شد» checklist: four steps tick themselves or by hand; only known steps; dates from the server',async()=>{
+ const e=fixture();
+ const ctx=await planSalon(e,'pro');
+ const me=async()=>(await app.fetch(new Request(origin+'/api/panel/me',{headers:{cookie:ctx.cookie}}),e)).json();
+ let d=await me();
+ assert.deepEqual(d.checklist.items.map(i=>i.label),['نمونه‌های کارتان را اضافه کنید','ربات تلگرام یا بله را وصل کنید','نمونه‌ای بسازید و نتیجه را ببینید','لینک خودتان را به مشتریان بدهید']);
+ assert.equal(d.checklist.done,0);assert.ok(d.checklist.started_at>0&&d.checklist.until>d.checklist.started_at);
+ await call(e,'/api/panel/portfolio?title=x&line=hair',png(),{cookie:ctx.cookie});
+ d=await me();assert.ok(d.checklist.items[0].done&&d.checklist.items[0].auto,'adding a portfolio photo ticks step 1');
+ const tick=(key,done)=>app.fetch(new Request(origin+'/api/panel/checklist',{method:'POST',headers:{'content-type':'application/json',origin,cookie:ctx.cookie},body:JSON.stringify({key,done})}),e);
+ assert.equal((await tick('share',true)).status,200);
+ d=await me();assert.ok(d.checklist.items[3].done,'ticked by hand');assert.equal(d.checklist.done,2);
+ assert.equal((await tick('share',false)).status,200);
+ d=await me();assert.equal(d.checklist.items[3].done,false,'and unticked');
+ assert.equal((await tick('nonsense',true)).status,400);
+ assert.equal((await call(e,'/api/panel/checklist',{key:'share'})).status,401,'only the salon itself');
+ // the page copy
+ for(const t of ['پنل شما باز شد.','چهار کار تا اولین مشتری','اعتبار پنل از امروز شروع شد.'])assert.ok(panelHTML.includes(t),t);
+ assert.doesNotMatch(panelHTML,/استوری/,'no story template is promised');
+});
+
+test('pay page: the owner\'s final copy, no receipt or manager step anywhere, the one support number, a late payment still watched',()=>{
+ for(const k of ['hair','nails','lashes']){
+  const html=servicePages[k];
+  for(const t of ['مبلغ را به کارت زیر واریز کنید.','۱۰ دقیقه مهلت دارید.','پرداخت شما خودکار تأیید می‌شود.','پرداخت تأیید شد. پنل شما باز شد.','اعتبار از لحظهٔ باز شدن پنل شروع می‌شود. تمدید خودکار ندارد.','اگر بعد از واریز تأیید نشد، به ما پیام بدهید'])
+   assert.ok(html.includes(t),k+': '+t);
+  assert.doesNotMatch(html,/id="payReceipt"|رسید را|پرداخت کردم|شمارهٔ پیگیری بانک|در انتظار تأیید|بررسی واریز/,k+': no receipt and no manual review');
+  assert.match(html,/id="paySummary"/,k+': the order line');
+ }
+ assert.doesNotMatch(payJS,/\/receipt|payReceipt|payWait/,'the checkout never posts a receipt');
+ assert.match(payJS,/'پلن ' \+ title \+ '\\u200f · ' \+ fa\(s\.months\) \+ ' ماهه'/,'«پلن … · ۳ ماهه», bidi-safe');
+ assert.match(payJS,/s\.users > 1/,'a multi-user plan shows its user count');
+ assert.match(payJS,/Date\.now\(\) - Number\(order\.expires_at \|\| 0\) < LATE/,'an expired order keeps being polled for a late webhook');
+});
+
+/* ---------- integration gaps: pricing tabs, checkout per service, honest copy, sample links ---------- */
+import {SERVICE_TITLES} from '../worker/prices.js';
+const mil=t=>String(t/1e6).replace(/[0-9]/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]).replace('.','٫');
+const panelOf=(html,key)=>(html.match(new RegExp('<div class="plans-panel"[^>]*data-plans-panel="'+key+'"[^>]*>[\\s\\S]*?</article></div></div>'))||[])[0]||'';
+test('pricing tabs: five visible tabs, each service page opens its own, /salon-panel sells only the salon plans',()=>{
+ for(const [k,own] of [['home','hair'],['hair','hair'],['color','color'],['nails','nails'],['lashes','lashes']]){
+  const html=k==='home'?landingHTML:servicePages[k];
+  assert.match(html,/<div class="ptabs" data-ptabs>/,k+': the tab row is visible');
+  assert.match(html,new RegExp('id="ptab-'+own+'"[^>]*aria-selected="true"'),k+' opens the '+own+' tab');
+  assert.equal((html.match(/aria-selected="true" tabindex="0"/g)||[]).length,1,k+': one selected tab');
+  const single=panelOf(html,'hair color nails lashes');assert.ok(single,k+': the single-service panel');
+  assert.doesNotMatch(single.slice(0,200),/ hidden>/,k+': the own panel is visible without a script');
+  const buys=[...single.matchAll(/data-buy="(\w+)" data-service="(\w+)" data-title="([^"]+)" data-months="(\d)"/g)];
+  assert.deepEqual(buys.map(m=>m[1]),['essential','pro','signature']);
+  for(const m of buys){assert.equal(m[2],own,k+' sells '+own);assert.equal(m[3],SERVICE_TITLES[own]);assert.equal(Number(m[4]),PLANS[m[1]].months)}
+  const salon=panelOf(html,'salon');assert.match(salon,/data-plans-panel="salon" hidden>/,k+': the salon tab waits behind its tab');
+ }
+ const s=servicePages.salon;
+ assert.match(s,/<div class="ptabs" data-ptabs hidden>/,'one tab: no tab row');
+ assert.doesNotMatch(s,/data-plans-panel="hair/,'no single-service cards on the salon page');
+ const sp=panelOf(s,'salon');assert.ok(sp&&!/data-plans-panel="salon" hidden/.test(sp),'the salon cards are visible');
+ assert.ok(sp.includes('به‌صرفه‌ترین برای ۲ نفر به بعد'),'the value badge');
+ for(const k of ['salon1','salon3','salon6']){
+  const p=PLANS[k],card=sp.match(new RegExp('<article class="plan[^"]*" data-plan="'+k+'">[\\s\\S]*?</article>'))[0];
+  assert.ok(card.includes('<b>'+mil(p.amount)+'</b> میلیون تومان'),k+' price from the table');
+  const each=Math.round(p.amount/p.seats/1e5)/10;
+  assert.ok(card.includes('برای ۳ نفر: نفری '+(each*1e6*p.seats===p.amount?'':'حدود ')+mil(each*1e6)+' میلیون تومان'),k+' per-person share computed');
+  assert.ok(card.includes('نفر چهارم به بعد: هر نفر '+mil(p.seat_amount)+' میلیون تومان برای کل دوره'),k+' extra-user line');
+  assert.ok(card.includes('اعتبار هدیه '+String(p.credits).replace(/[0-9]/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d])+' عکس'),k+' gift images');
+  assert.match(card,new RegExp('data-buy="'+k+'" data-service="all" data-title="آرایشگاه" data-months="'+p.months+'" data-state="open" data-amount="'+p.amount+'" data-seats="3" data-seat-amount="'+p.seat_amount+'"'));
+  assert.equal(/class="plan__badge"[\s\S]*?بهترین/.test(card),k==='salon6',k+' «بهترین» only on 6 months');
+ }
+ for(const k of ['salon1','salon3','salon6'])assert.ok(panelOf(landingHTML,'salon').includes('data-buy="'+k+'"'),'the home salon tab sells '+k);
+ // amounts enter only through build.py: no partial carries a price
+ for(const f of readdirSync(new URL('../design/landing/src/',import.meta.url)).filter(f=>f.endsWith('.html')))
+  assert.doesNotMatch(readFileSync(new URL('../design/landing/src/'+f,import.meta.url),'utf8'),/[0-9۰-۹][0-9۰-۹٫.]*\s*میلیون/,f+' types no price');
+});
+test('pricing tabs: copy.js switches panels and moves the shared buy buttons to the chosen service',()=>{
+ const js=readFileSync(new URL('../design/landing/src/copy.js',import.meta.url),'utf8');
+ const ev=()=>({l:{},addEventListener(t,f){(this.l[t]||=[]).push(f)},fire(t,e={}){(this.l[t]||[]).forEach(f=>f({preventDefault(){},...e}))}});
+ const el=(o={})=>Object.assign(ev(),{hidden:false,attrs:{},dataset:{},setAttribute(k,v){this.attrs[k]=v},getAttribute(k){return this.attrs[k]},focus(){},scrollIntoView(){},querySelectorAll:()=>[]},o);
+ const tabs=['hair','color','nails','lashes','salon'].map(k=>el({id:'ptab-'+k,dataset:{tab:k},textContent:SERVICE_TITLES[k==='salon'?'all':k],attrs:{'aria-selected':String(k==='nails')}}));
+ const buys=['essential','pro','signature'].map(k=>el({dataset:{buy:k,service:'nails',title:'ناخن'}}));
+ const single=el({dataset:{plansPanel:'hair color nails lashes'},querySelectorAll:()=>buys}),salon=el({hidden:true,dataset:{plansPanel:'salon'}});
+ const bar=el({hidden:true,querySelectorAll:()=>tabs}),pbar=el({dataset:{for:'single'}}),open=el({dataset:{openTab:'salon'}});
+ const sec=el({dataset:{defaultTab:'nails'},querySelector:()=>bar,querySelectorAll:q=>q==='[data-plans-panel]'?[single,salon]:q==='[data-for="single"]'?[pbar]:q==='[data-open-tab]'?[open]:[]});
+ new Function('document',js)({getElementById:()=>sec,activeElement:null});
+ assert.equal(bar.hidden,false,'the row is on');assert.equal(single.hidden,false);assert.equal(salon.hidden,true);
+ assert.deepEqual(buys.map(b=>b.dataset.service),['nails','nails','nails'],'the page\'s own service first');
+ tabs[1].fire('click');
+ assert.deepEqual(buys.map(b=>[b.dataset.service,b.dataset.title]),[['color','رنگ مو'],['color','رنگ مو'],['color','رنگ مو']],'«رنگ مو» buys colour');
+ assert.equal(tabs[1].attrs['aria-selected'],'true');assert.equal(tabs[2].attrs['aria-selected'],'false');
+ open.fire('click');
+ assert.equal(single.hidden,true);assert.equal(salon.hidden,false);assert.equal(pbar.hidden,true,'the «دو نفرید؟» bar is not on the salon tab');
+ assert.deepEqual(buys.map(b=>b.dataset.service),['color','color','color'],'the salon tab leaves the single cards alone');
+});
+test('checkout: the clicked card names the service, salon plans send users, the line reads «پلن مدل مو · ۳ ماهه»',async()=>{
+ assert.match(payJS,/state\.service = btn\.dataset\.service/,'the service comes from the clicked card');
+ assert.doesNotMatch(payJS,/const service = document\.body\.dataset\.service/,'not from the page');
+ assert.match(payJS,/body\.users = usersWanted\(\)/,'salon plans send the user count');
+ assert.match(payJS,/base \+ extra \* rate/,'the preview total: base + extra users × rate, from the card data');
+ for(const k of ['home','hair','salon']){const html=k==='home'?landingHTML:servicePages[k];
+  assert.match(html,/id="payUsers" name="users" type="number"[^>]*min="1"[^>]*value="3"/,k+': the user count input');}
+ const e=fixture();
+ const a=await call(e,'/api/order',orderBody('pro',{service:'color',phone:'09125550701'}));
+ assert.deepEqual([a.data.summary.title,a.data.summary.months],['رنگ مو',3]);
+ const b=await call(e,'/api/order',orderBody('salon6',{service:'all',users:4,phone:'09125550702'}));
+ assert.deepEqual([b.data.summary.title,b.data.summary.months,b.data.summary.users,b.data.amount],['آرایشگاه',6,4,PLANS.salon6.amount+PLANS.salon6.seat_amount]);
+});
+test('honest copy: no stale plan claims, no SMS step for the visitor demo, no unmeasured durations, one privacy sentence',()=>{
+ const pages=[landingHTML,...Object.values(servicePages)];
+ for(const html of pages){
+  assert.doesNotMatch(html,/در پلن ESSENTIAL درخواست|در PRO در تلگرام|تأیید شماره|کد پیامک/,'no stale plan or SMS claim');
+  assert.doesNotMatch(html.replace(/<script>[\s\S]*?<\/script>/g,''),/[0-9۰-۹]+\s*(?:تا\s*[0-9۰-۹]+\s*)?(?:ثانیه|دقیقه) طول|یک دقیقه طول|حدود یک دقیقه/,'no generation time in public copy');
+  assert.doesNotMatch(html,/فقط برای ساخت همین نمونه/,'the old privacy line is gone');
+ }
+ for(const t of [/معمولاً حدود یک دقیقه/,/۲ تا ۳ دقیقه/,/در یک دقیقه نشانت/])assert.doesNotMatch(customerJS,t,'customer page: '+t);
+ assert.match(customerJS,/چند لحظه طول می‌کشد/);
+ assert.doesNotMatch(customerJS,/state\.pub\.demo\?'شمارهٔ موبایلت را وارد کن/,'the demo never asks for a mobile, and its host text does not say so');
+ const faq=landingHTML.match(/<section id="faq"[\s\S]*?<\/section>/)[0];
+ assert.ok(faq.includes('عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.'));
+ for(const html of pages)if(html.includes('id="tryonStart"'))assert.ok(html.includes('<small>عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود.</small>'),'the short line near the upload');
+});
+test('sample links: every public page sends the sample builder to /sample; /try is only the regular-customer page',()=>{
+ for(const [k,html] of [['home',landingHTML],...Object.entries(servicePages)]){
+  assert.ok(html.includes('href="/sample">ساخت نمونه'),k+' footer links /sample');
+  assert.doesNotMatch(html,/href="(?:__ORIGIN__)?\/try[/"?#]/,k+' never links the builder to /try');
+  for(const m of html.matchAll(/<a\b[^>]*>(?:[^<]|<(?!\/a>))*?نمونه بساز/g))assert.match(m[0],/href="(?:#demo|\/sample)"/,k+': «نمونه بساز» goes to the builder');
+ }
+ assert.deepEqual(Object.keys(servicePages).sort(),['color','hair','lashes','nails','salon','sample']);
+});
+
+/* ---------- review fixes: the service on an order, lines on a second plan, seats on renewal ---------- */
+const salonSettings=(e,slug)=>JSON.parse(e.DB.sql.prepare('SELECT settings FROM salons WHERE slug=?').get(slug).settings);
+const confirmOwner=(e,id)=>call(e,'/api/owner/orders/'+id+'/confirm',{},OWNER);
+test('createOrder: a single-service plan needs a real service, «پنل آرایشگاه» is «all», users only on the salon plan',async()=>{
+ const e=fixture();
+ for(const [plan,extra,why] of [['pro',{service:''},'empty service'],['pro',{service:'salon'},'the old /salon-panel value'],['essential',{service:undefined},'no service'],
+  ['signature',{service:'all'},'«all» on a single plan'],['pro',{service:'hair',users:5},'users on a single plan'],['salon3',{service:'nails'},'one service on the salon plan']]){
+  const r=await call(e,'/api/order',{...orderBody(plan,{phone:'09125551000'}),...extra});
+  assert.equal(r.status,400,why+': '+JSON.stringify(r.data));assert.match(r.data.error,/[آ-ی]/,why+' answers in Persian');
+ }
+ assert.equal(e.DB.sql.prepare('SELECT COUNT(*) n FROM orders').get().n,0,'nothing was stored');
+ const ok=await call(e,'/api/order',orderBody('salon1',{service:'all',users:3,phone:'09125551001'}));assert.equal(ok.status,200);assert.equal(ok.data.service,'all');
+ const none=await call(e,'/api/order',{...orderBody('salon1',{phone:'09125551002'}),service:undefined});assert.equal(none.status,200,'the salon plan may omit the service');assert.equal(none.data.service,'all');
+});
+test('a second single-service plan adds its service; a salon on «پنل آرایشگاه» cannot be moved down by a purchase',async()=>{
+ const e=fixture();
+ const a=await call(e,'/api/order',orderBody('essential',{service:'nails',phone:'09125552000',salon:'Nails First'}));await confirmOwner(e,a.data.id);
+ const slug=e.DB.sql.prepare('SELECT s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.id=?').get(a.data.id).slug;
+ assert.deepEqual(salonSettings(e,slug).lines,['nails']);
+ const until1=salonSettings(e,slug).plan.until;
+ const b=await call(e,'/api/order',orderBody('essential',{service:'lashes',phone:'09125552000',salon:'Nails First'}));await confirmOwner(e,b.data.id);
+ assert.deepEqual(salonSettings(e,slug).lines,['nails','lashes'],'lashes paid for, nails kept');
+ assert.ok(salonSettings(e,slug).plan.until>until1,'the plan is extended');
+ assert.deepEqual((await call(e,'/api/s/'+slug+'/public')).data.lines,['nails','lashes']);
+ // the same service again changes nothing
+ const c=await call(e,'/api/order',orderBody('essential',{service:'nails',phone:'09125552000',salon:'Nails First'}));await confirmOwner(e,c.data.id);
+ assert.deepEqual(salonSettings(e,slug).lines,['nails','lashes']);
+ // a salon plan buyer: a single-service order from the same mobile is refused
+ const s=await call(e,'/api/order',orderBody('salon1',{users:4,phone:'09125552001',salon:'Big One'}));await confirmOwner(e,s.data.id);
+ const down=await call(e,'/api/order',orderBody('pro',{service:'hair',phone:'09125552001',salon:'Big One'}));
+ assert.equal(down.status,409);assert.match(down.data.error,/پشتیبانی/);
+ const big=e.DB.sql.prepare('SELECT s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.id=?').get(s.data.id).slug;
+ assert.equal(salonSettings(e,big).service,'all');
+});
+test('salon plan renewal: a new user count starts with the period it pays for; paid users are never cut mid-period',async()=>{
+ const {seatsAt}=await import('../worker/credits.js');const {seatsOf}=await import('../worker/plans.js');
+ const e=fixture();
+ const o=await call(e,'/api/order',orderBody('salon1',{users:6,phone:'09125553000',salon:'Seat Salon'}));await confirmOwner(e,o.data.id);
+ const login=await call(e,'/api/panel/login',{key:o.data.access_key});const ctx={cookie:login.cookie};
+ const slug=e.DB.sql.prepare('SELECT s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.id=?').get(o.data.id).slug;
+ const row=()=>e.DB.sql.prepare('SELECT * FROM salons WHERE slug=?').get(slug);
+ assert.equal(seatsOf(row()),6);
+ // fewer users next period: the 6 paid now stay until this period ends
+ const less=await call(e,'/api/panel/renew',{plan:'salon1',users:3},ctx);await confirmOwner(e,less.data.id);
+ const p1=salonSettings(e,slug).plan;
+ assert.equal(seatsOf(row()),6,'paid users are kept for the rest of the period');
+ assert.equal(seatsAt(p1,p1.until-1),3,'the cheaper count starts with the new period');assert.equal(seatsAt(p1,Date.now()),6);
+ // more users: not free before the period they were paid for
+ const more=await call(e,'/api/panel/renew',{plan:'salon1',users:9},ctx);await confirmOwner(e,more.data.id);
+ const p2=salonSettings(e,slug).plan;
+ assert.equal(seatsOf(row()),6,'still 6 today');
+ assert.deepEqual(p2.seat_steps.map(s=>s.seats),[3,9],'each renewal starts when its own period starts');
+ assert.equal(seatsAt(p2,p2.until-1),9);
+});
+test('panel checklist: «دعوت همکار» shows for «پنل آرایشگاه» (its paid users), never on a single-service plan',async()=>{
+ const e=fixture();
+ const big=await call(e,'/api/order',orderBody('salon3',{users:5,phone:'09125554000',salon:'Team Salon'}));await confirmOwner(e,big.data.id);
+ const bl=await call(e,'/api/panel/login',{key:big.data.access_key});
+ assert.equal((await call(e,'/api/panel/me',undefined,{cookie:bl.cookie})).data.checklist.users,5);
+ const solo=await call(e,'/api/order',orderBody('pro',{service:'nails',phone:'09125554001',salon:'Solo'}));await confirmOwner(e,solo.data.id);
+ const sl=await call(e,'/api/panel/login',{key:solo.data.access_key});
+ assert.equal((await call(e,'/api/panel/me',undefined,{cookie:sl.cookie})).data.checklist.users,0);
+ assert.match(panelHTML,/if\(c\.users>1\)acts\.append/,'the panel shows the invite for more than one user');
+ const server=readFileSync(new URL('../worker/server.js',import.meta.url),'utf8');
+ assert.doesNotMatch(server,/UPDATE generations SET paid_by/,'paid_by is written with the generation row, never after it');
+ assert.equal((server.match(/visitor,paid_by\) VALUES/g)||[]).length,2,'both the image and the 360 view write paid_by in their INSERT');
 });

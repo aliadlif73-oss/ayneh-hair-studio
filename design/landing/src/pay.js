@@ -1,8 +1,11 @@
-/* Checkout: plan panel → bank transfer → a 10-minute countdown → confirmation.
+/* Checkout: plan panel → bank transfer → a 10-minute countdown → automatic confirmation.
  *
  * Everything that matters (amount, card, deadline, access key) comes from the server. The
  * page only draws what it is told: POST /api/order opens an order, GET /api/order/<id>
  * reports its state, and the timer is a local echo of expires_at, never the authority.
+ * There is no receipt and no manager step: the payment site's webhook confirms the order
+ * and this page, polling, opens the panel door. A transfer that lands after the clock can
+ * still be confirmed, so an expired order keeps being watched for a while.
  * If a plan has no approved amount, or the server is not reachable, the button stays a
  * demo request — the page never invents a price or a card number.
  */
@@ -32,32 +35,67 @@
   };
   const track = (kind, meta) => window.__AYN_TRACK?.(kind, meta);
 
-  const state = {order: null, plan: null, poll: null, tick: null, done: false, key: '', entered: false};
+  const state = {order: null, plan: null, buy: null, service: '', poll: null, tick: null, done: false, key: '', entered: false};
   /* The order and its panel key are kept in this browser until the panel opens. A customer who
      switches to the bank app, or reloads, comes back to the same order with the same key;
      another browser (or another person with the same mobile) gets nothing from it. */
   const STORE = 'ayneh-order';
   const remember = (id, key) => { try { localStorage.setItem(STORE, JSON.stringify({id, key, at: Date.now()})); } catch {} };
   const recall = () => { try { const v = JSON.parse(localStorage.getItem(STORE) || 'null'); return v && /^[a-f0-9-]{36}$/.test(v.id) ? v : null; } catch { return null; } };
-  const service = document.body.dataset.service || '';
   const view = {
-    form: $('payForm'), live: $('payLive'), wait: $('payWait'), done: $('payDone'), expired: $('payExpired'),
+    form: $('payForm'), live: $('payLive'), done: $('payDone'), expired: $('payExpired'),
+  };
+  /* A late webhook is still welcome: an expired order is watched for this long after its clock. */
+  const LATE = 60 * 60000;
+  const LATE_LEAD = $('payLateLead').textContent;
+  /* «پلن مدل مو · ۳ ماهه» (+ «· ۵ کاربر» on a multi-user plan); a top-up is just its name. */
+  const summaryOf = order => {
+    const s = order.summary || {};
+    const title = s.title || order.plan_name || '';
+    if (order.kind === 'topup' || !s.months) return title;
+    /* The mark after a Latin name (PRO) keeps «· ۳ ماهه» from jumping to its other side in RTL. */
+    return 'پلن ' + title + '\u200f · ' + fa(s.months) + ' ماهه' + (s.users > 1 ? ' · ' + fa(s.users) + ' کاربر' : '');
   };
 
+  /* The heading before the server answers: the same «پلن مدل مو · ۳ ماهه» from the card's own
+     data (build.py writes it from the plan table). */
+  const headOf = (title, months) => title ? 'پلن ' + title + (months ? '\u200f · ' + fa(months) + ' ماهه' : '') : '';
+
+  /* ---------- «پنل آرایشگاه»: the user count ----------
+     A preview only: total = base + max(0, users − seats) × seat_amount, all three numbers from the
+     card (the plan table). The server computes the amount again and its answer is what is paid. */
+  const usersBox = $('payUsersBox'), usersIn = $('payUsers');
+  const seatsOf = btn => Number(btn?.dataset.seats || 0);
+  const usersWanted = () => {
+    const n = Number(String(usersIn.value).replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
+    return Number.isInteger(n) && n >= 1 ? n : 0;
+  };
+  function drawUsers() {
+    const btn = state.buy, seats = seatsOf(btn);
+    usersBox.hidden = !seats;
+    if (!seats) return;
+    const base = Number(btn.dataset.amount), rate = Number(btn.dataset.seatAmount), n = usersWanted();
+    if (!n) { $('payUsersTotal').textContent = 'تعداد کاربر را با عدد بنویسید.'; return; }
+    const extra = Math.max(0, n - seats);
+    $('payUsersTotal').textContent = extra
+      ? 'جمع: ' + money(base + extra * rate) + ' (' + money(base) + ' برای ' + fa(seats) + ' نفر + ' + fa(extra) + ' × ' + money(rate) + ')'
+      : 'جمع: ' + money(base) + ' برای تا ' + fa(seats) + ' کاربر';
+  }
+  usersIn.addEventListener('input', drawUsers);
+
   /* ---------- what each plan may do right now ---------- */
-  const planOf = key => document.querySelector('.plan[data-plan="' + key + '"]');
   const buyButtons = [...document.querySelectorAll('[data-buy]')];
   function syncPlans() {
     for (const btn of buyButtons) {
       const key = btn.dataset.buy;
       const open = btn.dataset.state === 'open' && Number(btn.dataset.amount) > 0;
-      const card = planOf(key);
+      const card = btn.closest('.plan');
       if (card) card.dataset.open = String(open);
       /* Not aria-disabled: an unpriced button still works, it opens the demo form. */
       btn.setAttribute('aria-disabled', 'false');
       /* The panel already says the amount is being finalized (build.py fills it), so the
          note stays empty here and only speaks up if the visitor clicks the buy button. */
-      const note = document.querySelector('.plan__state[data-for="' + key + '"]');
+      const note = card?.querySelector('.plan__state');
       if (note && !open) note.hidden = true;
     }
   }
@@ -68,7 +106,8 @@
     err($('payErr'), '');
     const body = {
       plan,
-      service,
+      /* the service of the card that was clicked (hair, color, nails, lashes; 'all' on the salon tab) */
+      service: state.service,
       salon: $('paySalon').value.trim(),
       name: $('payName').value.trim(),
       phone: $('payPhone').value.trim(),
@@ -77,6 +116,10 @@
     };
     if (body.salon.length < 2) return err($('payErr'), 'نام سالن را بنویسید.');
     if (body.name.length < 2) return err($('payErr'), 'نام و نام خانوادگی را بنویسید.');
+    if (seatsOf(state.buy)) {
+      body.users = usersWanted();
+      if (!body.users) return err($('payErr'), 'تعداد کاربر را با عدد بنویسید.');
+    }
     if (!body.consent) return err($('payErr'), 'برای هماهنگی راه‌اندازی، تأیید تماس لازم است.');
     $('payStart').disabled = true;
     try {
@@ -114,34 +157,30 @@
   function draw(order) {
     state.done = false;
     section.hidden = false;
-    $('payPlan').textContent = order.plan_name || '';
+    const sum = order.summary || {};
+    $('payPlan').textContent = (order.kind !== 'topup' && sum.months ? headOf(sum.title, sum.months) : '') || order.plan_name || '';
+    $('paySummary').textContent = summaryOf(order);
     $('payAmount').textContent = fa(order.amount);
     $('payDiscount').hidden = !order.discount;
     if (order.discount) $('payDiscount').textContent = 'با تخفیف ' + money(order.discount);
     $('payRef').textContent = order.ref;
-    $('payWaitRef').textContent = order.ref;
     $('payCard').textContent = order.card ? group(order.card) : '•••• •••• •••• ••••';
     $('payCardOwner').textContent = order.card_owner || 'صاحب حساب: —';
     $('payCardWarn').hidden = !!order.card;
     $('payCopy').disabled = !order.card;
-    /* No card saved yet: nothing can be paid, so no clock and no "I paid" button either. */
-    $('payReceipt').hidden = !order.card;
+    /* No card saved yet: nothing can be paid, so no clock and no "confirmed automatically" line. */
+    $('payAuto').hidden = !order.card;
     view.live.querySelector('.pay-figure--timer').hidden = !order.card;
     view.live.querySelector('.pay-timer').hidden = !order.card;
-    /* The key is drawn on the waiting screen and again on the done screen, nowhere else. */
-    $('payKeyBox').hidden = !state.key;
-    $('payKey').textContent = state.key || '—';
-    $('payKeyLost').hidden = !!state.key || !!order.same_key;
     /* The countdown is driven by expires_at, so a reload or a slow phone cannot extend it. */
     clearInterval(state.tick);
     const end = Number(order.expires_at);
-    $('payWaitPct').textContent = '';
     const total = Math.max(1, end - Number(order.created_at));
     const tick = () => {
       const left = end - Date.now();
       if (left <= 0) {
         clearInterval(state.tick);
-        if (!state.done) drawState({status: 'expired'});
+        if (!state.done) drawState({...state.order, status: 'expired'});
         return;
       }
       const s = Math.ceil(left / 1000);
@@ -175,7 +214,7 @@
       if (!shown && order.same_key) {
         $('payDoneNote').textContent = 'با همان کلید قبلی‌تان وارد پنل شوید؛ پلن و اعتبار جدید همان‌جاست.';
         $('payAccessKey').closest('.pay-done__key').hidden = true;
-        $('payDoneLead').textContent = order.kind === 'topup' ? 'اعتبار عکس به پنل شما اضافه شد.' : 'پلن شما تمدید شد و اعتبار عکس تازه به پنل اضافه شد.';
+        $('payDoneTitle').textContent = order.kind === 'topup' ? 'پرداخت تأیید شد. اعتبار عکس به پنل شما اضافه شد.' : 'پرداخت تأیید شد. پنل شما تمدید شد.';
       }
       const panel = $('payPanelLink'), page = $('payPageLink');
       panel.href = order.panel_url || '/panel';
@@ -189,34 +228,30 @@
       if (shown && !state.entered) {
         state.entered = true;
         panel.href = '/panel?key=' + encodeURIComponent(shown);
-        panel.textContent = 'باز کردن پنل من';
       }
       show('done');
       track('order_paid', order.ref);
       return;
     }
-    if (order.status === 'expired' || order.status === 'cancelled') {
+    /* A replaced or cancelled order is over. An expired one is still watched for a late
+       webhook (see LATE): the transfer may have been made in time and reported after. */
+    if (order.status === 'expired' || order.status === 'cancelled' || order.status === 'reviewing') {
       clearInterval(state.tick);
-      clearInterval(state.poll);
+      const watching = order.status === 'reviewing' || (order.status === 'expired' && Date.now() - Number(order.expires_at || 0) < LATE);
+      if (!watching) clearInterval(state.poll);
+      /* An order left from the retired receipt step: no clock, it only waits for confirmation. */
+      $('payLateTitle').textContent = order.status === 'reviewing' ? 'پرداخت شما خودکار تأیید می‌شود.' : order.status === 'cancelled' ? 'این سفارش بسته شد' : 'مهلت پرداخت تمام شد';
+      $('payLateLead').textContent = order.status === 'cancelled' ? 'سفارش تازه‌تری جای این سفارش را گرفته یا لغو شده است. به این سفارش واریز نکنید.' : order.status === 'reviewing' ? 'به‌محض تأیید، همین صفحه پنل شما را باز می‌کند.' : LATE_LEAD;
+      $('payAgain').hidden = order.status === 'reviewing';
       show('expired');
       return;
     }
-    /* Still open (no receipt yet): stay on the live screen. Redraw only when the owner has
-       just saved the card, so the warning gives way to the real number. */
-    if (order.status === 'open') {
-      if (view.live.hidden || ($('payCardWarn').hidden !== !!order.card)) draw(order);
-      return;
-    }
-    if (order.status === 'reviewing') {
-      $('payWaitText').textContent = 'رسید شما ثبت شد و در حال بررسی است. به‌محض تأیید، همین صفحه پنل و لینک اختصاصی را نشان می‌دهد.';
-      $('payWait').querySelector('h3').textContent = 'در انتظار تأیید';
-    }
-    show('wait');
-    /* A spinner, not a percentage: the wait has no meaningful progress to report. */
-    $('payWaitPct').textContent = '';
+    /* Still open: stay on the live screen. Redraw only when the owner has just saved the
+       card, so the warning gives way to the real number. */
+    if (view.live.hidden || ($('payCardWarn').hidden !== !!order.card)) draw(order);
   }
 
-  /* ---------- polling: the owner console or the payment site flips the status ---------- */
+  /* ---------- polling: the payment site's webhook flips the status ---------- */
   function poll() {
     clearInterval(state.poll);
     state.poll = setInterval(async () => {
@@ -240,7 +275,7 @@
          broken and must not open a checkout that cannot take money. It follows the anchor
          to the note under the panels and says the same thing in the panel itself. */
       if (!open) {
-        const note = document.querySelector('.plan__state[data-for="' + key + '"]');
+        const note = btn.closest('.plan')?.querySelector('.plan__state');
         if (note) {
           note.textContent = 'مبلغ این پلن هنوز نهایی نشده است؛ به‌محض نهایی‌شدن، همین‌جا نوشته می‌شود. تا آن روز چیزی پرداخت نمی‌کنید.';
           note.hidden = false;
@@ -252,12 +287,16 @@
       /* The chosen plan is remembered here, so the details form below knows what it is for
          even when the customer fills it by hand. */
       state.plan = key;
+      state.buy = btn;
+      state.service = btn.dataset.service || document.body.dataset.service || '';
       section.hidden = false;
-      $('payPlan').textContent = (planOf(key)?.querySelector('h3')?.textContent || '').trim();
-      $('paySub').textContent = 'مبلغ را کارت‌به‌کارت واریز کنید و رسید را همین‌جا بفرستید.';
+      $('payPlan').textContent = headOf(btn.dataset.title, Number(btn.dataset.months)) || (btn.closest('.plan')?.querySelector('h3')?.textContent || '').trim();
+      drawUsers();
+      $('paySub').textContent = 'کارت‌به‌کارت واریز کنید؛ پرداخت شما خودکار تأیید می‌شود.';
       show('form');
       section.scrollIntoView({behavior: 'smooth', block: 'start'});
-      if ($('paySalon').value.trim() && $('payName').value.trim() && $('payPhone').value.trim()) open(key);
+      /* Details already typed: go straight on, except on «پنل آرایشگاه», whose user count is chosen here. */
+      if (!seatsOf(btn) && $('paySalon').value.trim() && $('payName').value.trim() && $('payPhone').value.trim()) open(key);
       else setTimeout(() => $('paySalon').focus(), 350);
       track('order_intent', key);
     });
@@ -277,37 +316,12 @@
       err($('payErr'), 'کپی نشد؛ شماره را دستی بردارید.');
     }
   });
-  const copyKey = async (btn, label) => {
-    try {
-      await navigator.clipboard.writeText(state.key || $('payAccessKey').textContent);
-      btn.textContent = 'کپی شد';
-      setTimeout(() => (btn.textContent = label), 1800);
-    } catch {}
-  };
-  $('payKeyKeep').addEventListener('click', () => copyKey($('payKeyKeep'), 'کپی کلید'));
   $('payKeyCopy').addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText($('payAccessKey').textContent);
       $('payKeyCopy').textContent = 'کپی شد';
       setTimeout(() => ($('payKeyCopy').textContent = 'کپی کلید'), 1800);
     } catch {}
-  });
-
-  $('payReceipt').addEventListener('submit', async e => {
-    e.preventDefault();
-    if (!state.order) return;
-    err($('payReceiptErr'), '');
-    $('paySent').disabled = true;
-    try {
-      const fresh = await call('/api/order/' + state.order.id + '/receipt', {note: $('payReceiptNote').value.trim()});
-      state.order = fresh;
-      track('order_receipt', state.order.ref);
-      drawState(fresh);
-    } catch (e2) {
-      err($('payReceiptErr'), e2.message);
-    } finally {
-      $('paySent').disabled = false;
-    }
   });
 
   $('payCoupon').addEventListener('submit', async e => {
@@ -325,20 +339,9 @@
     }
   });
 
-  $('payCheck').addEventListener('click', async () => {
-    if (!state.order) return;
-    try {
-      const fresh = await call('/api/order/' + state.order.id);
-      state.order = fresh;
-      drawState(fresh);
-    } catch (e) {
-      err($('payWaitText'), e.message);
-    }
-  });
   $('payAgain').addEventListener('click', () => {
     state.order = null;
-    $('payReceiptNote').value = '';
-    $('payReceiptErr').hidden = true;
+    clearInterval(state.poll);
     show('form');
     section.scrollIntoView({behavior: 'smooth', block: 'start'});
   });
@@ -350,11 +353,14 @@
   if (wanted) {
     call('/api/order/' + encodeURIComponent(wanted))
       .then(order => {
-        if (order.status === 'cancelled' || (order.status === 'expired' && !new URLSearchParams(location.search).get('order'))) return;
+        /* An expired order this browser opened is shown again only while a late payment can
+           still arrive (LATE); after that the visitor simply starts over. */
+        const asked = !!new URLSearchParams(location.search).get('order');
+        if (order.status === 'cancelled' || (order.status === 'expired' && !asked && Date.now() - Number(order.expires_at) > LATE)) return;
         state.order = order;
         if (kept && kept.id === order.id && kept.key) state.key = kept.key;
         draw(order);
-        if (order.status === 'reviewing' || order.status === 'paid' || order.status === 'expired') drawState(order);
+        if (order.status !== 'open') drawState(order);
         /* Arriving with ?order= (a top-up from the panel, a shared link) means the checkout is
            the point of the visit: take the reader straight to it. */
         if (new URLSearchParams(location.search).get('order')) requestAnimationFrame(() => section.scrollIntoView({block: 'start'}));

@@ -620,7 +620,7 @@ function track(kind,meta,once){if(STUDIO_PREVIEW)return;if(once){if(tracked[kind
  // Open on the salon's own work for this line when it has some, otherwise on the ready-made looks.
  state.tab=hasLineWork(state.line)?'salon':'catalog';
  renderAll();
- if(SLUG==='demo'&&/[?&]draft=1/.test(location.search)){try{var draft=await window.__AYN_DRAFT.take();if(draft&&draft.file){state.style=draft.selection&&draft.selection.styleIdx!=null?draft.selection.styleIdx:state.style;state.color=draft.selection&&draft.selection.color||state.color;if(EMBED){state.preview=URL.createObjectURL(draft.file);renderFlow();var continuePhoto=async function(){await handleFile(draft.file,'original');if(state.original){clearTimeout(state.advT);state.justUploaded=false;go(3);generate()}};await ensureSession();if(state.verified)continuePhoto();else openOtp(continuePhoto)}else handleFile(draft.file,'original')}}catch(e){toast('عکس را دوباره از گالری انتخاب کن','error')}}
+ if(SLUG==='demo'&&/[?&]draft=1/.test(location.search)){try{var draft=await window.__AYN_DRAFT.take();if(draft&&draft.file){state.style=draft.selection&&draft.selection.styleIdx!=null?draft.selection.styleIdx:state.style;state.color=draft.selection&&draft.selection.color||state.color;if(EMBED){state.preview=URL.createObjectURL(draft.file);renderFlow();var continuePhoto=async function(){await handleFile(draft.file,'original');if(state.original){clearTimeout(state.advT);state.justUploaded=false;go(3);generate()}};await ensureSession();if(state.verified||!state.pub.otp)continuePhoto();else openOtp(continuePhoto)}else handleFile(draft.file,'original')}}catch(e){toast('عکس را دوباره از گالری انتخاب کن','error')}}
  if(pending){state.gen=pending;state.step=3;state.busy=true;state.genT0=Date.now()-8000;renderFlow();renderDock();poll(pending,true)}
  track('view',refIn?'share':'',true);
  renderInvite();
@@ -657,7 +657,7 @@ function trialBar(t){
 
 function ownerReturnBar(){
  var bar=el('div',{class:'trialbar owner-return',role:'status'},[
-  el('span',{class:'owner-return__note',text:'بازگشت به صفحهٔ آرایشگرها · اینجا نمونه‌ای از صفحه‌ای است که مشتری شما می‌بیند.'+(state.pub.demo?' نسخهٔ نمونه، روزی ۳ تصویر.':'')}),
+  el('span',{class:'owner-return__note',text:'بازگشت به صفحهٔ آرایشگرها · اینجا نمونه‌ای از صفحه‌ای است که مشتری شما می‌بیند.'+(state.pub.demo?' نسخهٔ نمونه، ۲ تصویر رایگان.':'')}),
   el('a',{class:'owner-return__cta',href:'/?utm_source=ayneh_demo&utm_medium=demo_return&utm_campaign=owner_preview#salon-example',text:'ساخت صفحهٔ من'})
  ]);document.body.prepend(bar);return bar;
 }
@@ -852,7 +852,7 @@ function stepPhoto(){
    ]),
    el('details',{class:'collapse'},[
     el('summary',{html:ICO.lock+'<span>عکسم کجا نگه‌داری می‌شود؟</span>'}),
-    h('p','عکس فقط برای همین سالن استفاده می‌شود و دسترسی عمومی ندارد؛ در سابقهٔ سالن نگه داشته می‌شود تا آرایشگرت بعداً هم آن را ببیند. برای شبیه‌سازی، نسخهٔ فشردهٔ عکس به سرویس تصویر ارسال می‌شود.')
+    h('p','عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود. عکس دسترسی عمومی ندارد و در سابقهٔ سالن نگه داشته می‌شود تا آرایشگرت بعداً هم آن را ببیند. نتیجه را فقط وقتی خودت دکمهٔ «از دوستم نظر بپرسم» را بزنی برای کسی می‌فرستی.')
    ])
   ]);
   box.append(input,el('div',{class:'demo-row'},[demoCompare('demo--small'),el('div',{class:'demo-row__text'},[h('b','این‌طوری می‌شود'),h('span',LP().demo)])]),el('div',{class:'shoot'},[drop,side]));
@@ -907,7 +907,7 @@ function stepModel(){
   box.append(el('div',{class:'selfie'+(fresh?' selfie--fresh':'')},[el('img',{src:state.preview||media(state.original),alt:''}),el('div',{},[el('b',{html:ICO.check+'<span>'+(fresh?'عکست ثبت شد':'عکست آماده است')+'</span>'}),el('span',{text:(L==='nails'?'طرح':L==='color'?'رنگ':'مدل')+' انتخابی روی همین عکس امتحان می‌شود.'})]),el('button',{class:'btn btn--ghost btn--sm',type:'button',onclick:function(){changePhoto();go(1)},text:'تغییر'})]));
  }
  box.append(flowHead(MODEL_HEAD[L][0],L==='hair'&&state.pub.demo?'مدل مو و رنگ دلخواهت را انتخاب کن؛ هر دو روی همین عکس خودت ساخته می‌شوند.':MODEL_HEAD[L][1]));
- if(quotaLeft()===0&&!state.tourDemo)box.append(notice('warn',quotaOut()));
+ if(quotaLeft()===0&&!state.tourDemo){box.append(notice('warn',quotaOut()));if(window.AynehPacks)box.append(window.AynehPacks.button())}
  if(L==='color'){var bc=baseChooser();if(bc)box.append(bc)}
  var seg=el('div',{class:'seg',role:'tablist'});
  [['salon',0],['catalog',1],['upload',2]].forEach(function(x){
@@ -1004,7 +1004,7 @@ function buildLabel(can){return can?ICO.spark+'<span>بساز</span>':(quotaLeft
 function buildHint(ready,can,left){
  if(!ready)return missingReason()+'؛ بعد «بساز» فعال می‌شود.';
  if(!can)return left===0&&state.pub.generation?'سهم ساخت «'+LINES.label[state.line]+'» برای تو تمام شده؛ همین انتخاب را بدون شبیه‌سازی برای '+artist()+' بفرست.':'';
- return 'با زدن «بساز» عکست برای ساخت فرستاده می‌شود و فقط برای همین سالن می‌ماند.'+(left!=null?' '+fa(left)+' ساخت دیگر در این بخش داری.':'');
+ return 'با زدن «بساز» نسخهٔ فشردهٔ عکست برای ساخت تصویر به سرویس تصویر فرستاده می‌شود؛ خود عکس فقط برای ساخت نمونه و دیدن سالن می‌ماند.'+(left!=null?' '+fa(left)+' ساخت دیگر در این بخش داری.':'');
 }
 // Step 2 → 3 in one tap: «بساز» goes straight to building, no page in between.
 function build(){
@@ -1162,7 +1162,7 @@ function lookName(){
 // The colour sent with a request: hair colour line = the chosen colour; nails and lashes = the colour box.
 function colorLabel(){if(state.line==='hair')return '';if(state.line==='color')return state.reference?'':(state.style!==null?LINES.color.styles[state.style][0]:String(state.color||'').trim());return state.color||''}
 function artist(){return {nails:'ناخن‌کار',lashes:'مژه‌کار',color:'رنگ‌کار'}[state.line]||'آرایشگر'}
-function sendButton(){return el('button',{class:'btn btn--primary',type:'button',onclick:openRequest,html:ICO.send+'<span>فرستادن برای '+artist()+'</span>'})}
+function sendButton(){return el('button',{class:'btn btn--primary',type:'button',onclick:openRequest,html:ICO.send+'<span>'+(state.result?'درخواست نوبت می‌دهم':'فرستادن برای '+artist())+'</span>'})}
 // Building: a playful scene for each service in the mirror, the stage it is at and a live percentage.
 var BUILD={
  hair:{title:'در حال کوتاهی و حالت‌دهی…',steps:['آماده‌سازی عکس','پیدا کردن صورت و خط مو','کوتاهی و فرم','جزئیات تار به تار','براشینگ آخر']},
@@ -1184,7 +1184,7 @@ function washColor(){
 }
 // Real builds take about 50–80 seconds: the curve reaches ~80% at a minute and keeps moving after.
 function buildPct(){var t=Date.now()-(state.genT0||Date.now());return state.result?100:Math.min(97,Math.round(3+94*(1-Math.exp(-t/38000))))}
-function buildNote(){var t=Date.now()-(state.genT0||Date.now());return t>85000?'کمی بیشتر از همیشه طول کشید؛ هنوز در حال ساخت است. صفحه را نبند.':t>45000?'دارد تمام می‌شود… معمولاً حدود یک دقیقه طول می‌کشد.':'این صفحه را نبند؛ معمولاً حدود یک دقیقه طول می‌کشد.'}
+function buildNote(){var t=Date.now()-(state.genT0||Date.now());return t>85000?'هنوز در حال ساخت است؛ صفحه را نبند.':t>45000?'هنوز در حال ساخت است… چند لحظهٔ دیگر صبر کن.':'این صفحه را نبند؛ چند لحظه طول می‌کشد.'}
 function buildStage(){
  var L=state.line,B=BUILD[L]||BUILD.hair,pct=buildPct(),src=state.genBase?media(state.genBase):(state.original?media(state.original):'');
  var stage=el('div',{class:'stage mirror build build--'+L,style:'--wash:'+washColor()},[el('div',{class:'mirror__glass'},[
@@ -1216,6 +1216,11 @@ function brandedBlob(id){
   g.save();g.shadowColor='rgba(0,0,0,.3)';g.shadowBlur=Math.round(u*.015);g.fillStyle='#fff';g.beginPath();g.arc(cx,cy,d/2+ring,0,Math.PI*2);g.fill();g.restore();
   if(logo){g.save();g.beginPath();g.arc(cx,cy,d/2,0,Math.PI*2);g.clip();var lw=logo.naturalWidth,lh=logo.naturalHeight,k=Math.max(d/lw,d/lh);g.drawImage(logo,cx-lw*k/2,cy-lh*k/2,lw*k,lh*k);g.restore()}
   else{g.fillStyle='#0c6b6b';g.beginPath();g.arc(cx,cy,d/2,0,Math.PI*2);g.fill();g.fillStyle='#fff';g.font='800 '+Math.round(d*.46)+'px Estedad, Vazirmatn, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText((s.name||'آ').trim().charAt(0),cx,cy+d*.03)}
+  // A small «آینه» mark, bottom left, so a saved or shared result says where it came from.
+  var fs=Math.round(u*.034),tw;g.save();g.font='800 '+fs+'px Estedad, Vazirmatn, sans-serif';tw=g.measureText('آینه').width;
+  var bx=pad,bh=Math.round(fs*1.7),bw=Math.round(tw+fs*1.4),by=H-pad-bh;
+  g.fillStyle='rgba(12,107,107,.82)';g.beginPath();if(g.roundRect)g.roundRect(bx,by,bw,bh,bh/2);else g.rect(bx,by,bw,bh);g.fill();
+  g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.fillText('آینه',bx+bw/2,by+bh/2+fs*.04);g.restore();
   return new Promise(function(res){c.toBlob(function(b){res(b)},'image/jpeg',.92)});
  });
 }
@@ -1258,14 +1263,22 @@ function stepResult(){
  if(state.busy&&!state.result){box.append(buildStage());startBuildClock()}
  if(state.result){
   box.append(compareBlock());
+  box.append(h('p','نتیجه تقریبی است.','fine-print result-approx'));
+  // The visitor demo (/sample): another sample (2 in all, worker/demo.js) or this service's plans.
+  if(state.pub.demo){box.append(el('div',{class:'result-actions'},[
+   el('button',{class:'btn btn--soft btn--sm',type:'button',onclick:function(){state.result=null;state.gen=null;state.idem=null;state.error='';state.busy=false;state.resultBase=null;go(2)},text:'نمونهٔ دیگر بساز'}),
+   el('a',{class:'btn btn--primary btn--sm',href:'/'+L,target:'_top',text:'این را برای مشتریان خودم می‌خواهم'}),
+   downloadLink('btn btn--ghost btn--sm','ذخیره تصویر')
+  ]))}else
   box.append(el('div',{class:'result-actions'},[
    L==='hair'?el('button',{class:'btn btn--soft btn--sm',type:'button',onclick:openViews,html:ICO.orbit+'<span>نمای ۳۶۰ درجه</span>'}):null,
-   downloadLink('btn btn--ghost btn--sm','دانلود'),
+   el('button',{class:'btn btn--soft btn--sm',type:'button',onclick:openAsk,html:SHARE_IC.chat+'<span>از دوستم نظر بپرسم</span>'}),
+   downloadLink('btn btn--ghost btn--sm','ذخیره تصویر'),
    el('button',{class:'btn btn--ghost btn--sm',type:'button',onclick:function(){state.result=null;state.gen=null;state.idem=null;state.error='';state.busy=false;state.resultBase=null;go(2)},text:'یک مدل دیگر'})
   ]));
   // After a new hairstyle, the natural next step is its colour.
   if(L==='hair')box.append(el('button',{class:'next-line',type:'button',onclick:function(){track('color_on_hair');switchLine('color',{step:2,onHair:true,scroll:true})}},[el('span',{class:'next-line__ico',html:ICO.drop}),el('span',{},[el('b',{text:'رنگ مو را هم روی همین مدل امتحان کن'}),el('small',{text:'مدل همین می‌ماند و فقط رنگ عوض می‌شود.'})]),el('span',{class:'next-line__go',html:ICO.arrow})]));
-  box.append(h('p','عکسی که دانلود می‌کنی، گوشهٔ پایینش لوگوی «'+state.pub.salon.name+'» را دارد.','fine-print'));
+  box.append(h('p','عکسی که ذخیره می‌کنی، گوشهٔ پایینش لوگوی «'+state.pub.salon.name+'» و نشان کوچک «آینه» را دارد.','fine-print'));
   box.append(ratingBlock());
   box.append(el('div',{class:'flow__nav'},[sendButton()]));
   box.append(sendNote());
@@ -1273,7 +1286,7 @@ function stepResult(){
   if(!canGenerate()){
    /* Out of images for this service: say exactly that (once), never «not active yet». */
    if(state.paused){}
-   else if(quotaLeft()===0&&state.pub.generation){if(!/سهم امتحان/.test(state.error||''))box.append(notice('info',quotaOut()))}
+   else if(quotaLeft()===0&&state.pub.generation){if(!/سهم امتحان/.test(state.error||''))box.append(notice('info',quotaOut()));if(window.AynehPacks)box.append(window.AynehPacks.button())}
    else box.append(notice('info',!state.pub.generation?'این سالن پیش‌نمایش تصویری را فعال نکرده. عکس و انتخابت را برای '+artist()+' بفرست تا بررسی کند.':(!hasChoice()?missingReason()+'.':state.reference&&!state.pub.reference?'ساخت تصویر از عکس مدل خودت در این سالن فعال نیست. عکس و انتخابت را مستقیم برای '+artist()+' بفرست.':'ساخت تصویر از این انتخاب هنوز فعال نیست. عکس و انتخابت را مستقیم برای '+artist()+' بفرست.')));
    box.append(el('div',{class:'flow__nav'},[!hasChoice()&&state.original?el('button',{class:'btn btn--ghost',type:'button',onclick:function(){go(2)},text:'انتخاب'}):null,sendButton()]));
    box.append(sendNote());
@@ -1283,7 +1296,7 @@ function stepResult(){
     el('button',{class:'btn btn--primary',type:'button',onclick:generate,html:ICO.spark+'<span>بساز</span>'}),
     el('button',{class:'btn btn--ghost',type:'button',onclick:openRequest,html:ICO.send+'<span>بدون شبیه‌سازی بفرست</span>'})
    ]));
-   box.append(h('p','با زدن «بساز» عکست برای ساخت شبیه‌سازی فرستاده می‌شود و فقط برای همین سالن می‌ماند.','fine-print'));
+   box.append(h('p','با زدن «بساز» نسخهٔ فشردهٔ عکست برای ساخت تصویر به سرویس تصویر فرستاده می‌شود؛ خود عکس فقط برای ساخت نمونه و دیدن سالن می‌ماند.','fine-print'));
   }
  }
  return box;
@@ -1319,7 +1332,7 @@ function renderDock(){
   primary=el('button',{class:'btn btn--primary',type:'button',disabled:!ready,onclick:build,html:can?ICO.spark+'<span>بساز</span>':out?ICO.send+'<span>فرستادن</span>':ICO.arrow+'<span>ادامه</span>'});
  }else{
   if(state.busy){hint='در حال ساخت…';primary=el('button',{class:'btn btn--primary',type:'button',disabled:true,text:'در حال ساخت…'})}
-  else if(state.result||!canGenerate()){hint='فرستادن برای سالن';primary=el('button',{class:'btn btn--primary',type:'button',onclick:openRequest,html:ICO.send+'<span>فرستادن برای '+artist()+'</span>'})}
+  else if(state.result||!canGenerate()){hint='فرستادن برای سالن';primary=el('button',{class:'btn btn--primary',type:'button',onclick:openRequest,html:ICO.send+'<span>'+(state.result?'درخواست نوبت می‌دهم':'فرستادن برای '+artist())+'</span>'})}
   else{hint='آمادهٔ ساخت';primary=el('button',{class:'btn btn--primary',type:'button',onclick:generate,html:ICO.spark+'<span>بساز</span>'})}
  }
  inner.append(el('div',{class:'dock__hint',text:hint}),el('button',{class:'btn btn--ghost',type:'button',onclick:openAbout,'aria-label':'دربارهٔ سالن',html:ICO.info}),primary);
@@ -1400,6 +1413,8 @@ function generate(){
   state.busy=false;
   if(needsVerify(e.message)){state.verified=false;state.error='';renderFlow();renderDock();openOtp(generate);return}
   if(/سهم امتحان/.test(e.message)&&state.quota&&state.quota.left)state.quota.left[state.line]=0;
+  /* Out of free images: offer the customer her own image packs (worker/regularpage.js). */
+  if(/سهم امتحان|نمونهٔ رایگانتان تمام شد/.test(e.message)&&!state.pub.demo&&window.AynehPacks)window.AynehPacks.out();
   /* The salon's images are paused (credits or plan): stop offering «بساز», offer sending. */
   if(/ساخت تصویر در این سالن فعلاً متوقف است/.test(e.message))state.paused=true;
   state.error=friendly(e.message);
@@ -1466,7 +1481,7 @@ function openViews(){
  panel.append(el('div',{class:'sheet__head'},[h('h2','از همهٔ زاویه‌ها'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:closeSheet})]));
  var a=el('div',{class:'spin__layer'}),b=el('div',{class:'spin__layer'});
  var stage=el('div',{class:'spin',tabindex:'0',role:'img','aria-label':'نمای چرخشی مدل مو؛ برای چرخاندن بکش یا از کلیدهای جهت استفاده کن'},[a,b]);
- var tip=el('p',{class:'spin__tip',text:'دارم زاویه‌های دیگر را می‌سازم… معمولاً ۲ تا ۳ دقیقه طول می‌کشد.'}),bar=el('span',{class:'spin__bar'});
+ var tip=el('p',{class:'spin__tip',text:'دارم زاویه‌های دیگر را می‌سازم… چند لحظه طول می‌کشد.'}),bar=el('span',{class:'spin__bar'});
  var loading=el('div',{class:'spin__loading'},[el('div',{class:'spin__orbit'},[el('img',{src:media(state.result),alt:''})]),el('span',{class:'spin__ring'}),tip,el('span',{class:'spin__track'},[bar])]);
  stage.append(loading);
  var angle=el('span',{class:'spin__angle',text:''});
@@ -1502,7 +1517,7 @@ function openViews(){
   setTimeout(function(){loading.remove()},reduce?0:350);
   show(0,true);auto(true);
  }
- var tips=['دارم پشت سرت را می‌سازم…','نیم‌رخ چپ…','نیم‌رخ راست…','هماهنگ‌کردن نور و رنگ مو…','نیم‌رخ‌ها و پشت سر با هم ساخته می‌شوند؛ ۲ تا ۳ دقیقه صبر کن…'],ti=0,started=Date.now();
+ var tips=['دارم پشت سرت را می‌سازم…','نیم‌رخ چپ…','نیم‌رخ راست…','هماهنگ‌کردن نور و رنگ مو…','نیم‌رخ‌ها و پشت سر با هم ساخته می‌شوند؛ چند لحظه صبر کن…'],ti=0,started=Date.now();
  tipTimer=setInterval(function(){if(!panel.isConnected){cleanup();return}tip.textContent=tips[ti++%tips.length]},2400);
  progTimer=setInterval(function(){bar.style.width=Math.round(3+92*(1-Math.exp(-(Date.now()-started)/70000)))+'%'},400);
  if(state.views&&state.views.gen===state.gen){ready(state.views.id);return}
@@ -1607,7 +1622,7 @@ function startTour(){
   card.replaceChildren(
    demoCompare('tour__demo')||null,
    el('h2',{id:'tour-title',class:'tour__title',text:'به آینه خوش آمدی'}),
-   el('p',{class:'tour__text',text:'قبل از اینکه روی صندلی «'+state.pub.salon.name+'» بنشینی، '+offerText(1)+' بعدی‌ات را روی عکس خودت ببین. در یک دقیقه نشانت می‌دهم چطور.'}),
+   el('p',{class:'tour__text',text:'قبل از اینکه روی صندلی «'+state.pub.salon.name+'» بنشینی، '+offerText(1)+' بعدی‌ات را روی عکس خودت ببین. همین حالا نشانت می‌دهم چطور.'}),
    el('ol',{class:'tour__path'},[
     el('li',{},[el('span',{html:ICO.camera}),el('b',{text:'عکس تو'})]),
     el('li',{},[el('span',{html:ICO.scissors}),el('b',{text:'انتخاب'})]),
@@ -1665,7 +1680,10 @@ function ensureSession(){
 function loadSession(){return api('session?v='+VISITOR).then(function(d){state.session=true;applyVerified(d);if(d.quota){state.quota=d.quota;renderDockSoon();var f=$('#flow');if(f&&state.step===2&&!state.busy)renderFlow()}})}
 function quotaLeft(line){return state.quota&&state.quota.left?state.quota.left[line||state.line]:null}
 function spentQuota(line){if(state.quota&&state.quota.left&&state.quota.left[line]>0)state.quota.left[line]--}
+window.addEventListener('ayneh:credited',function(){state.paused=false;loadSession().catch(function(){})});
 function quotaOut(){
+ /* The direct page (/try) has 3 free images in all, not per service, and no salon to send to. */
+ if(state.quota&&state.quota.free!==undefined)return '۳ نمونهٔ رایگانتان تمام شد. نمونهٔ بیشتر می‌خواهید؟ یک بسته انتخاب کنید.';
  var others=LINE_LIST.filter(function(x){return x[0]!==state.line&&quotaLeft(x[0])!==0}).map(function(x){return '«'+x[1]+'»'});
  return 'سهم امتحان «'+LINES.label[state.line]+'» برای تو تمام شد ('+fa(state.quota.per)+' تصویر). '+(others.length?'هنوز می‌توانی '+others.join('، ')+' را امتحان کنی، یا همین نتیجه‌ها را برای سالن بفرستی.':'سهم امتحان همهٔ بخش‌ها تمام شده؛ می‌توانی همین نتیجه‌ها را برای سالن بفرستی تا با تو تماس بگیرند.');
 }
@@ -1689,7 +1707,7 @@ function openOtp(next){
  var sendBtn=el('button',{class:'btn btn--primary btn--block',type:'submit',text:'ارسال کد تأیید'});
  var form=el('form',{novalidate:'true'},state.pub.demo?[phoneWrap,sendBtn]:[firstWrap,lastWrap,phoneWrap,sendBtn]);
  var last=null;
- panel.append(head,h('p',state.pub.demo?'شمارهٔ موبایلت را وارد کن و کد پیامک‌شده را بزن. بعد از تأیید، همین تصویر با مدل و رنگ انتخابی‌ات ساخته می‌شود.':'برای ساخت شبیه‌سازی، اول شمارهٔ موبایلت را تأیید می‌کنیم. یک کد پیامکی برایت می‌فرستیم. نام و شماره‌ات فقط برای همین سالن و پیگیری درخواستت استفاده می‌شود و در سابقهٔ سالن می‌ماند.','muted'),form);
+ panel.append(head,h('p','برای ساخت شبیه‌سازی، اول شمارهٔ موبایلت را تأیید می‌کنیم. یک کد پیامکی برایت می‌فرستیم. نام و شماره‌ات فقط برای همین سالن و پیگیری درخواستت استفاده می‌شود و در سابقهٔ سالن می‌ماند.','muted'),form);
  function codeStep(){
   var codeWrap=wrapField('otpCode','کد پیامک‌شده','text','','',{autocomplete:'one-time-code',inputmode:'numeric'});
   codeWrap.querySelector('input').setAttribute('dir','ltr');
@@ -1749,7 +1767,7 @@ function openRequest(){
  var panel=el('div',{class:'sheet__panel'});
  panel.append(el('div',{class:'sheet__head'},[h('h2','فرستادن برای '+artist()),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:closeSheet})]));
  if(!state.pub.telegram){
-  panel.append(notice('info',state.pub.demo?'این نسخهٔ نمونهٔ آینه است و سالنی برای دریافت ندارد. نتیجه را دانلود کن. برای اینکه مشتری‌های خودت به سالن خودت درخواست بفرستند، پیش‌نمایش سالن خودت را بساز.':'«'+s.name+'» هنوز دریافت آنلاین را فعال نکرده. عکس نتیجه را دانلود کن و از یکی از این راه‌ها برای سالن بفرست.'));
+  panel.append(notice('info',state.pub.direct?'این صفحه به سالن خاصی وصل نیست. نتیجه را دانلود کن و به آرایشگر خودت نشان بده.':state.pub.demo?'این نسخهٔ نمونهٔ آینه است و سالنی برای دریافت ندارد. نتیجه را دانلود کن. برای اینکه مشتری‌های خودت به سالن خودت درخواست بفرستند، پیش‌نمایش سالن خودت را بساز.':'«'+s.name+'» هنوز دریافت آنلاین را فعال نکرده. عکس نتیجه را دانلود کن و از یکی از این راه‌ها برای سالن بفرست.'));
   if(state.pub.demo)panel.append(el('a',{class:'btn btn--primary',href:'/?utm_source=ayneh_demo&utm_medium=demo_return&utm_campaign=owner_preview#salon-example',style:'margin-top:12px',text:'ساخت صفحهٔ من'}));
   var ways=el('div',{class:'about__quick',style:'margin-top:14px'});
   if(p.phone)ways.append(el('a',{class:'btn btn--primary',href:'tel:'+p.phone,html:ICO.phone+'<span>تماس با سالن</span>'}));
@@ -1886,7 +1904,40 @@ function openShare(){
   opt('copy','کپی لینک',SHARE_IC.link,'var(--accent)',null,function(){copyText(both).then(function(){done('copy','متن و لینک کپی شد')},function(){toast(url)})}),
   navigator.share?opt('native','بله، ایتا و…',SHARE_IC.more,'#2f3b38',null,function(){navigator.share({title:s.name,text:text,url:url}).then(function(){done('native')},function(){})}):null
  ]);
- panel.append(grid,h('p','دوستت لینک را باز می‌کند و '+offerText()+' را روی عکس خودش امتحان می‌کند. عکس‌ها خصوصی‌اند و برای کسی نمایش داده نمی‌شوند.','share__note'));
+ panel.append(grid,h('p','دوستت لینک را باز می‌کند و '+offerText()+' را روی عکس خودش امتحان می‌کند. فقط لینک صفحه فرستاده می‌شود، نه عکس تو.','share__note'));
+ openSheet(panel);
+}
+
+// «از دوستم نظر بپرسم»: the result image, a ready question and the link of this same salon/member
+// (the visitor's own tag keeps whoever opens it with the same member). Nothing leaves the phone until
+// the customer taps one of the options; the image goes only through the phone's own share sheet.
+var ASK_TEXT='کدوم مدل بیشتر بهم میاد؟';
+function openAsk(){
+ if(!state.result)return;
+ track('share_open','ask');
+ var url=shareUrl(),both=ASK_TEXT+'\n'+url,s=state.pub.salon,id=state.result,panel=el('div',{class:'sheet__panel'});
+ panel.append(el('div',{class:'sheet__head'},[h('h2','از دوستت نظر بپرس'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:closeSheet})]));
+ panel.append(el('div',{class:'share__prev'},[el('img',{src:media(id),alt:''}),el('div',{},[h('b',ASK_TEXT),h('span',url.replace(/^https?:\/\//,''))])]));
+ function done(kind,msg){track('share','ask_'+kind);if(msg)toast(msg)}
+ function opt(kind,label,ic,bg,href,onclick){
+  var a=href?el('a',{class:'share__opt',href:href,target:'_blank',rel:'noopener',onclick:function(){done(kind)}}):el('button',{class:'share__opt',type:'button',onclick:onclick});
+  a.append(el('span',{class:'share__ic',style:'background:'+bg,html:ic}),el('span',{text:label}));return a;
+ }
+ function shareImage(){
+  prepareBranded(id).then(function(rec){
+   var file=rec&&rec.file;
+   if(file&&navigator.canShare&&navigator.canShare({files:[file]}))return navigator.share({files:[file],text:both}).then(function(){done('image')},function(){});
+   return copyText(both).then(function(){done('copy','متن و لینک کپی شد؛ عکس را با «ذخیره تصویر» جدا بفرست')},function(){toast(url)});
+  });
+ }
+ var grid=el('div',{class:'share__grid'},[
+  navigator.share?opt('image','عکس و پیام',SHARE_IC.more,'#2f3b38',null,shareImage):null,
+  opt('telegram','تلگرام',SHARE_IC.plane,'#2a9fd8','https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(ASK_TEXT)),
+  opt('whatsapp','واتساپ',SHARE_IC.chat,'#25a85a','https://wa.me/?text='+encodeURIComponent(both)),
+  opt('instagram','اینستاگرام',SHARE_IC.cam,'linear-gradient(45deg,#f2a93b,#d6286f 55%,#7b3bc4)',null,function(){copyText(both).then(function(){done('instagram','پیام و لینک کپی شد؛ در دایرکت اینستاگرام بگذار')},function(){toast(url)})}),
+  opt('copy','کپی لینک',SHARE_IC.link,'var(--accent)',null,function(){copyText(both).then(function(){done('copy','پیام و لینک کپی شد')},function(){toast(url)})})
+ ].filter(Boolean));
+ panel.append(grid,h('p','«عکس و پیام» عکس نتیجه را با شیت اشتراک گوشی‌ات می‌فرستد. با بقیهٔ دکمه‌ها فقط پیام و لینک می‌رود؛ عکس را با «ذخیره تصویر» جدا ضمیمه کن. هیچ چیز خودکار فرستاده نمی‌شود و عکس اصلی‌ات هیچ‌جا منتشر نمی‌شود.','share__note'));
  openSheet(panel);
 }
 
@@ -1930,7 +1981,7 @@ export const customerHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><h
   <aside class="side" id="side" hidden></aside>
  </div>
  <section id="invite" aria-label="معرفی به دوستان" hidden></section>
- <footer class="foot" id="foot" style="padding-bottom:130px">شبیه‌سازی پیشنهادی است و اجرای دقیق را تضمین نمی‌کند. عکس‌ها فقط برای همین سالن استفاده می‌شوند و نمایش عمومی ندارند.</footer>
+ <footer class="foot" id="foot" style="padding-bottom:130px">شبیه‌سازی پیشنهادی است و اجرای دقیق را تضمین نمی‌کند. عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود. نمایش عمومی ندارد.</footer>
 </main>
 <div class="dock" id="dock" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

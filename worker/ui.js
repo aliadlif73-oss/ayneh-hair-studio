@@ -241,6 +241,16 @@ function columns(daily,key,label,tone){
 }
 function pday(iso){try{return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(iso+'T12:00:00Z'))}catch(e){return iso}}
 function mins(m){if(m==null)return '—';if(m<60)return fa(Math.round(m))+' دقیقه';if(m<1440)return fa(Math.round(m/60))+' ساعت';return fa(Math.round(m/1440))+' روز'}
+/* Measured generation time (worker/timing.js): what a real image took, never a promise. */
+function timingCard(days){
+ var sec=function(ms){return ms==null?'—':fa(Math.round(ms/1000))+' ثانیه'};
+ var box=el('div',{class:'kpis kpis--small'},[el('div',{class:'loading',text:'در حال آوردن زمان ساخت…'})]);
+ api('/api/owner/timing?days='+days).then(function(t){
+  if(!t.measured){box.replaceChildren(el('p',{class:'notice notice--info',text:t.note}));return}
+  box.replaceChildren(tile('میانهٔ زمان ساخت',sec(t.wall.median),null,'از '+fa(t.wall.count)+' تصویر موفق'),tile('۹۰٪ زیر',sec(t.wall.p90)),tile('کندترین',sec(t.wall.max)),tile('زیر یک دقیقه',pct(t.wall.under_60s)),tile('زمان سرویس تصویر',sec(t.provider.median),null,t.provider.count?'میانه از '+fa(t.provider.count)+' گزارش سرویس':'سرویس هنوز زمانی گزارش نکرده'));
+ },function(e){box.replaceChildren(el('p',{class:'notice notice--warn',text:e.message}))});
+ return card('زمان ساخت تصویر','از ثبت درخواست تا ذخیرهٔ نتیجه؛ تا ۴ ثانیه بیشتر از واقع، چون صفحه با فاصله سر می‌زند.',box);
+}
 function card(title,sub,body,table){return el('section',{class:'card dcard'},[h('h2',title),sub?h('p',sub,'lead'):null,body,table||null])}
 function dashboard(salons){
  var root=el('section',{class:'dash','aria-label':'آمار'});
@@ -252,7 +262,7 @@ function dashboard(salons){
  function draw(){
   Array.prototype.forEach.call(range.children,function(b,i){b.setAttribute('aria-pressed',[7,30,90][i]===dashState.days?'true':'false')});
   body.classList.add('is-refreshing');
-  api('/api/owner/stats?days='+dashState.days+(dashState.salon?'&salon='+encodeURIComponent(dashState.salon):'')).then(function(d){body.classList.remove('is-refreshing');body.replaceChildren.apply(body,render(d));var slot=el('div',{class:'dgrid dgrid--1'},[el('div',{class:'loading',text:'در حال آوردن رفرال‌ها…'})]);body.append(slot);return api('/api/owner/referrals'+(dashState.salon?'?salon='+encodeURIComponent(dashState.salon):'')).then(function(r){slot.replaceChildren.apply(slot,referrals(r))},function(e){slot.replaceChildren(el('p',{class:'notice notice--warn',text:e.message}))})}).catch(function(e){body.classList.remove('is-refreshing');body.replaceChildren(el('p',{class:'notice notice--warn',text:e.message}))});
+  api('/api/owner/stats?days='+dashState.days+(dashState.salon?'&salon='+encodeURIComponent(dashState.salon):'')).then(function(d){body.classList.remove('is-refreshing');body.replaceChildren.apply(body,render(d));var slot=el('div',{class:'dgrid dgrid--1'},[el('div',{class:'loading',text:'در حال آوردن رفرال‌ها…'})]);body.append(slot);if(!dashState.salon)body.append(timingCard(dashState.days));return api('/api/owner/referrals'+(dashState.salon?'?salon='+encodeURIComponent(dashState.salon):'')).then(function(r){slot.replaceChildren.apply(slot,referrals(r))},function(e){slot.replaceChildren(el('p',{class:'notice notice--warn',text:e.message}))})}).catch(function(e){body.classList.remove('is-refreshing');body.replaceChildren(el('p',{class:'notice notice--warn',text:e.message}))});
  }
  function render(d){
   var k=d.kpi,p=d.prev,out=[];
@@ -378,7 +388,7 @@ function payCard(){
   var label={open:'منتظر واریز',reviewing:'رسید فرستاده',paid:'تأیید‌شده',expired:'مهلت تمام',cancelled:'لغو‌شده'}[o.status]||o.status;
   var left=o.status==='open'?Math.max(0,Math.round((o.expires_at-Date.now())/60000)):0;
   var acts=[];
-  if(o.status==='open'||o.status==='reviewing')acts.push(el('button',{class:'btn btn--primary btn--sm',type:'button',text:'تأیید پرداخت',onclick:act(function(){return api('/api/owner/orders/'+o.id+'/confirm',{}).then(function(){toast('پرداخت تأیید شد؛ سالن ساخته می‌شود.');load()})})}));
+  if(o.status==='open'||o.status==='reviewing')acts.push(el('button',{class:'btn btn--primary btn--sm',type:'button',text:'تأیید دستی (اضطراری)',onclick:act(function(){if(!confirm('تأیید خودکار با وب‌هوک است. فقط وقتی واریز را خودتان دیده‌اید و وب‌هوک نرسیده، دستی تأیید کنید. ادامه؟'))return Promise.resolve();return api('/api/owner/orders/'+o.id+'/confirm',{}).then(function(){toast('پرداخت تأیید شد؛ سالن ساخته می‌شود.');load()})})}));
   if(o.status==='open'||o.status==='reviewing')acts.push(el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'لغو',onclick:act(function(){return api('/api/owner/orders/'+o.id+'/cancel',{}).then(function(){toast('سفارش لغو شد.');load()})})}));
   if(o.status==='expired')acts.push(el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'بازگشایی ۱۰ دقیقه',onclick:act(function(){return api('/api/owner/orders/'+o.id+'/reopen',{}).then(function(){toast('سفارش دوباره باز شد.');load()})})}));
   if(o.status==='paid'&&o.kind!=='topup')acts.push(el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'ساخت کلید تازه',onclick:act(function(){
@@ -480,9 +490,9 @@ function salonPage(){return api('/api/s/'+slug+'/owner').then(function(d){
    el('div',{},[h('b',t.name),el('br'),h('small',(t.specialty?t.specialty+' · ':'')+(links.length?'وصل در '+links.join(' و '):'هنوز ربات را وصل نکرده'))]),
    el('div',{class:'team__acts'},[
     el('button',{class:'btn btn--soft btn--sm',type:'button',text:'لینک‌ها',onclick:act(function(){return api('/api/s/'+slug+'/owner/team/link',{id:t.id}).then(function(r){var L=r.links||{};out.replaceChildren.apply(out,[copyRow('لینک اختصاصی (برای مشتری‌ها)',r.ref),L.telegram?copyRow('دعوت در تلگرام',L.telegram):null,L.bale?copyRow('دعوت در بله',L.bale):null,el('p',{class:'tiny muted',text:'لینک دعوت را برای خود '+t.name+' بفرستید (یک‌بار مصرف، ۷ روز). لینک اختصاصی همیشگی است و هر کس با آن بیاید، و هر کس که او برایش بفرستد، مشتری '+t.name+' می‌شود.'})].filter(Boolean))})})}),
-    el('button',{class:'btn btn--danger btn--sm',type:'button',text:'حذف',onclick:function(){
+    t.transfer?el('button',{class:'btn btn--soft btn--sm',type:'button',text:'منتظر تأیید '+t.name+' (لغو)',onclick:act(function(){return api('/api/s/'+slug+'/owner/team/remove/cancel',{id:t.id}).then(function(){toast('درخواست لغو شد.');return salonPage()})})}):el('button',{class:'btn btn--danger btn--sm',type:'button',text:'حذف',onclick:function(){
      var sel=el('select',{},[el('option',{value:'',text:'خود سالن (مدیر)'})].concat(others.map(function(x){return el('option',{value:x.id,text:x.name})})));
-     out.replaceChildren(el('div',{class:'field'},[el('span',{class:'lbl',text:'مشتری‌ها و لینک‌های '+t.name+' به چه کسی برسند؟'}),sel,el('span',{class:'hint',text:'نمونه‌کارهای '+t.name+' از صفحه برداشته می‌شود.'})]),el('button',{class:'btn btn--danger btn--sm',type:'button',text:'حذف '+t.name,onclick:act(function(){return api('/api/s/'+slug+'/owner/team/remove',{id:t.id,to:sel.value||null}).then(function(){toast(t.name+' حذف شد.');return salonPage()})})}));
+     out.replaceChildren(el('div',{class:'field'},[el('span',{class:'lbl',text:'مشتری‌ها و لینک‌های '+t.name+' به چه کسی برسند؟'}),sel,el('span',{class:'hint',text:'نمونه‌کارهای '+t.name+' از صفحه برداشته می‌شود.'})]),el('button',{class:'btn btn--danger btn--sm',type:'button',text:'حذف '+t.name,onclick:act(function(){return api('/api/s/'+slug+'/owner/team/remove',{id:t.id,to:sel.value||null}).then(function(r){toast(r.pending?'برای '+t.name+' درخواست تأیید رفت؛ تا خودش موافقت نکند چیزی جابه‌جا نمی‌شود.':t.name+' حذف شد.');return salonPage()})})}));
     }})
    ]),out
   ]));

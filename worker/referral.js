@@ -6,6 +6,7 @@
 // The first link wins for good; only the manager moves a customer. Once a mobile is known it is
 // locked to the same member (keyed hash only), so another phone or browser keeps the owner.
 import {must,hash} from './domain.js';
+import {seatsOf,seatsFull} from './plans.js';
 
 const one=(db,sql,...a)=>db.prepare(sql).bind(...a).first();
 const run=(db,sql,...a)=>db.prepare(sql).bind(...a).run();
@@ -22,14 +23,27 @@ export async function liveStaff(db,salonId,id){
  for(let i=0;i<8&&id;i++){const t=await one(db,'SELECT id,active,replaced_by FROM team WHERE id=? AND salon_id=?',id,salonId);if(!t)return null;if(t.active)return t.id;id=t.replaced_by}
  return null;
 }
-export async function createStaff(db,salon,name,specialty){
+// A plan with a user cap («پنل آرایشگاه», worker/plans.js seatsOf) takes the manager plus
+// cap−1 active members. The count and the insert are one statement, so two adds at once cannot
+// pass the cap. The manager's own member row ({manager:true}) is the manager's seat, never capped.
+export async function createStaff(db,salon,name,specialty,{manager=false}={}){
  const n=String(name||'').trim().slice(0,60),sp=String(specialty||'').trim().slice(0,40);
  must(n.length>=2,'اسم نیرو کوتاه است');
+ const cap=manager?0:seatsOf(salon);
  for(let i=0;i<5;i++){
   const row={id:code('t',8),ref_code:code('s',7)};
-  try{await run(db,'INSERT INTO team(id,salon_id,name,specialty,ref_code,created_at) VALUES(?,?,?,?,?,?)',row.id,salon.id,n,sp,row.ref_code,Date.now());return {...row,salon_id:salon.id,name:n,specialty:sp,active:1}}
-  catch(e){if(i===4)throw e}
+  let added;
+  try{added=await run(db,'INSERT INTO team(id,salon_id,name,specialty,ref_code,created_at,is_manager) SELECT ?,?,?,?,?,?,? WHERE ?=0 OR (SELECT COUNT(*) FROM team WHERE salon_id=? AND active=1 AND is_manager=0)<?',row.id,salon.id,n,sp,row.ref_code,Date.now(),manager?1:0,cap,salon.id,cap-1)}
+  catch(e){if(i===4)throw e;continue}
+  must(added.meta.changes,seatsFull(cap),409);
+  return {...row,salon_id:salon.id,name:n,specialty:sp,active:1,is_manager:manager?1:0};
  }
+}
+// Room for one more member? null = no cap; otherwise {cap, used, left} (the manager is one user).
+export async function seatRoom(db,salon){
+ const cap=seatsOf(salon);if(!cap)return null;
+ const used=1+Number((await one(db,'SELECT COUNT(*) n FROM team WHERE salon_id=? AND active=1 AND is_manager=0',salon.id))?.n||0);
+ return {cap,used,left:Math.max(0,cap-used)};
 }
 export const team=(db,salonId,activeOnly=true)=>all(db,'SELECT * FROM team WHERE salon_id=?'+(activeOnly?' AND active=1':'')+' ORDER BY created_at',salonId);
 
@@ -103,6 +117,43 @@ export async function transfer(db,salonId,from,to){
  await run(db,"UPDATE leads SET staff_id=?,waiting=0,messages='{}',status='retry',attempts=0,reminders=0 WHERE staff_id=? AND salon_id=? AND salon_status='new'",to,from,salonId);
  await run(db,'UPDATE leads SET staff_id=? WHERE staff_id=? AND salon_id=?',to,from,salonId);
  return open.map(x=>x.id);
+}
+
+// ---------- consent: the manager asks, the member decides ----------
+export const TRANSFER_TTL=7*86400000;
+export const customerCount=async(db,salonId,id)=>(await one(db,"SELECT (SELECT count(*) FROM ref_visitors WHERE salon_id=?1 AND staff_id=?2)+(SELECT count(*) FROM ref_phones WHERE salon_id=?1 AND staff_id=?2)+(SELECT count(*) FROM leads WHERE salon_id=?1 AND staff_id=?2) AS n",salonId,id)).n;
+export const pendingTransfer=(db,salonId,from)=>one(db,"SELECT * FROM staff_transfer_requests WHERE salon_id=? AND from_staff=? AND status='pending' AND expires_at>?",salonId,from,Date.now());
+// Without customers there is nothing to ask about, so the member leaves at once. Otherwise a request
+// is stored and nothing moves until decideTransfer(approve) runs. A new ask replaces an older one.
+export async function requestTransfer(db,salonId,from,to,now=Date.now()){
+ must(await one(db,'SELECT 1 FROM team WHERE id=? AND salon_id=? AND active=1',from,salonId),'این نیرو دیگر در تیم نیست',404);
+ must(from!==to,'نیروی جایگزین باید فرد دیگری باشد');
+ if(to)must(await one(db,'SELECT 1 FROM team WHERE id=? AND salon_id=? AND active=1',to,salonId),'نیروی جایگزین پیدا نشد',404);
+ if(!await customerCount(db,salonId,from))return {done:true,ids:await transfer(db,salonId,from,to)};
+ await run(db,"UPDATE staff_transfer_requests SET status='cancelled',decided_at=? WHERE salon_id=? AND from_staff=? AND status='pending'",now,salonId,from);
+ const id=crypto.randomUUID();
+ await run(db,'INSERT INTO staff_transfer_requests(id,salon_id,from_staff,to_staff,created_at,expires_at) VALUES(?,?,?,?,?,?)',id,salonId,from,to||null,now,now+TRANSFER_TTL);
+ return {done:false,request:await one(db,'SELECT * FROM staff_transfer_requests WHERE id=?',id)};
+}
+// Only the member themself may decide (the callers check who is asking). Approving moves everything.
+export async function decideTransfer(db,id,approve,now=Date.now()){
+ const r=await one(db,'SELECT * FROM staff_transfer_requests WHERE id=?',id);
+ must(r,'این درخواست دیگر وجود ندارد',404);
+ must(r.status==='pending','این درخواست قبلاً بسته شده است');
+ must(r.expires_at>now,'مهلت این درخواست تمام شده است');
+ if(!approve){await run(db,"UPDATE staff_transfer_requests SET status='declined',decided_at=? WHERE id=?",now,id);return {request:r,ids:[]}}
+ const ids=await transfer(db,r.salon_id,r.from_staff,r.to_staff);
+ await run(db,"UPDATE staff_transfer_requests SET status='approved',decided_at=? WHERE id=?",now,id);
+ return {request:r,ids};
+}
+export async function cancelTransfer(db,salonId,from,now=Date.now()){
+ const r=await run(db,"UPDATE staff_transfer_requests SET status='cancelled',decided_at=? WHERE salon_id=? AND from_staff=? AND status='pending'",now,salonId,from);
+ return r.meta.changes>0;
+}
+export async function expireTransfers(db,now=Date.now()){
+ const rows=await all(db,"SELECT * FROM staff_transfer_requests WHERE status='pending' AND expires_at<=?",now);
+ for(const r of rows)await run(db,"UPDATE staff_transfer_requests SET status='expired',decided_at=? WHERE id=? AND status='pending'",now,r.id);
+ return rows;
 }
 
 // Owner report: per member totals and generations, top referrers and the who-brought-whom tree.

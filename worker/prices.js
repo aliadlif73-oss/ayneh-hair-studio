@@ -2,11 +2,18 @@
 // the price cards on every service page. Never edit by hand: change build.py and rebuild.
 //
 // amount / was: TOMAN. months: plan length. credits: gift images granted on confirmation.
+// tier: the features it opens (worker/plans.js). seats: users included (0 = no cap); each user
+// beyond seats costs seat_amount toman for the whole period (the «پنل آرایشگاه» plans).
 export const PRICE_MINUTES = 10;
 export const PLANS = {
-  essential: {name: 'ESSENTIAL', months: 1, amount: 2900000, was: 0, credits: 20},
-  pro: {name: 'PRO', months: 3, amount: 6000000, was: 8700000, credits: 75},
-  signature: {name: 'SIGNATURE', months: 6, amount: 10000000, was: 17400000, credits: 180},
+  essential: {name: 'ESSENTIAL', title: '', months: 1, amount: 2900000, was: 0, credits: 20, tier: 'essential', seats: 0, seat_amount: 0},
+  pro: {name: 'PRO', title: '', months: 3, amount: 6000000, was: 8700000, credits: 75, tier: 'pro', seats: 0, seat_amount: 0},
+  signature: {name: 'SIGNATURE', title: '', months: 6, amount: 10000000, was: 17400000, credits: 180, tier: 'signature', seats: 0, seat_amount: 0},
+  salon1: {name: 'پنل آرایشگاه ۱ ماهه', title: 'آرایشگاه', months: 1, amount: 5000000, was: 0, credits: 40, tier: 'essential', seats: 3, seat_amount: 2000000},
+  salon3: {name: 'پنل آرایشگاه ۳ ماهه', title: 'آرایشگاه', months: 3, amount: 10000000, was: 0, credits: 150, tier: 'pro', seats: 3, seat_amount: 1500000},
+  salon6: {name: 'پنل آرایشگاه ۶ ماهه', title: 'آرایشگاه', months: 6, amount: 15000000, was: 0, credits: 360, tier: 'signature', seats: 3, seat_amount: 1000000},
 };
+// title: the checkout line «پلن <title> · ۳ ماهه»; empty = the service's own title below.
+export const SERVICE_TITLES = {'hair': 'مدل مو', 'color': 'رنگ مو', 'nails': 'ناخن', 'lashes': 'مژه', 'all': 'آرایشگاه'};
 // After the gift credit runs out: every TOPUP.images images cost TOPUP.amount toman.
 export const TOPUP = {images: 10, amount: 200000};
