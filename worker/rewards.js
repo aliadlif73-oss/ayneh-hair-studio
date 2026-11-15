@@ -11,27 +11,16 @@
 //  * Idempotent per order: referral_rewards.order_id is the primary key and the grants are
 //    written in the same batch, guarded by that row. A salon is gifted for being referred once.
 //  * No self-referral: the referrer's own salon, or a referrer whose mobile is the buyer's.
-//  * Cap: REFERRAL_CAP rewarded referrals per referrer (app_settings 'referral_cap' overrides it
-//    without a deploy). Past the cap the buyer still gets the images the link promised; the
-//    referrer gets nothing more. The owner has not decided the cap yet: 5 is a placeholder.
+//  * No cap (owner's decision): every rewarded referral gives the referrer its images.
 import {uid} from './domain.js';
 import {REFERRAL_IMAGES} from './customerprices.js';
 
-export const REFERRAL_CAP = 5;
 export const REF_COOKIE = 'ayneh_ref';
 const ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 export const CODE_RE = /^R[2-9A-HJ-NP-Z]{7}$/;
 const newCode = () => 'R' + Array.from(crypto.getRandomValues(new Uint8Array(7)), x => ALPHABET[x % ALPHABET.length]).join('');
 const one = (db, sql, ...a) => db.prepare(sql).bind(...a).first();
 const run = (db, sql, ...a) => db.prepare(sql).bind(...a).run();
-
-export async function referralCap(db) {
-  try {
-    const v = Number((await one(db, 'SELECT value FROM app_settings WHERE key=?', 'referral_cap'))?.value);
-    if (Number.isInteger(v) && v >= 0 && v <= 1000) return v;
-  } catch {}
-  return REFERRAL_CAP;
-}
 
 /* One code per salon or customer account, made on first ask. */
 export async function codeFor(db, kind, ownerId) {
@@ -47,7 +36,7 @@ export async function codeFor(db, kind, ownerId) {
 
 export async function referralStats(db, kind, ownerId) {
   const r = await one(db, "SELECT COUNT(*) n FROM referral_rewards WHERE referrer_kind=? AND referrer_id=? AND outcome='rewarded'", kind, ownerId);
-  return {rewarded: Number(r?.n || 0), cap: await referralCap(db), images: REFERRAL_IMAGES};
+  return {rewarded: Number(r?.n || 0), images: REFERRAL_IMAGES};
 }
 
 /* ?ref=CODE on a public page → the cookie; an earlier valid code is kept (first link wins). */
@@ -98,12 +87,11 @@ export async function rewardReferral(db, env, row, salon) {
     await run(db, 'INSERT OR IGNORE INTO referral_rewards(order_id,code,referrer_kind,referrer_id,buyer_salon_id,outcome,created_at) VALUES(?,?,?,?,?,?,?)', row.id, ref.code, ref.kind, ref.owner_id, salon.id, outcome, now);
     return outcome;
   }
-  const cap = await referralCap(db);
   const guard = "WHERE EXISTS(SELECT 1 FROM referral_rewards WHERE order_id=? AND outcome='rewarded')";
   try {
     await db.batch([
-      db.prepare(record + "SELECT ?,?,?,?,?,CASE WHEN (SELECT COUNT(*) FROM referral_rewards WHERE referrer_kind=? AND referrer_id=? AND outcome='rewarded')<? THEN 'rewarded' ELSE 'buyer_only' END,?")
-        .bind(row.id, ref.code, ref.kind, ref.owner_id, salon.id, ref.kind, ref.owner_id, cap, now),
+      db.prepare(record + "SELECT ?,?,?,?,?,'rewarded',?")
+        .bind(row.id, ref.code, ref.kind, ref.owner_id, salon.id, now),
       db.prepare("INSERT INTO credit_ledger(id,salon_id,delta,reason,order_id,created_at) SELECT ?,?,?,'referral-gift',?,? WHERE EXISTS(SELECT 1 FROM referral_rewards WHERE order_id=?)")
         .bind(uid(), salon.id, REFERRAL_IMAGES, row.id, now, row.id),
       ref.kind === 'salon'

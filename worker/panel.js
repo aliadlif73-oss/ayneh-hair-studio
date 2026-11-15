@@ -2,7 +2,7 @@
 // project team; this is the salon's own door: enter the access key once, then see the page
 // link, what is still missing, the last requests and the first portfolio items.
 import {baseCSS, markSVG} from './design.js';
-import {SUPPORT_TEL, SUPPORT_FA} from './support.js';
+import {SUPPORT_TEL, SUPPORT_FA, SUPPORT_TELEGRAM, SUPPORT_WHATSAPP} from './support.js';
 
 const css = String.raw`
 .pn{max-width:1080px;margin:0 auto;padding:16px 16px 56px}
@@ -132,7 +132,7 @@ function gate(msg){
  var err=el('p',{class:'notice notice--warn',hidden:true});
  $('#app').replaceChildren(el('section',{class:'pn'},[
   el('div',{class:'pn-bar'},[el('a',{class:'pn-brand',href:'/'},[el('span',{html:MARK}),'آینه'])]),
-  el('div',{class:'pn-card'},[h('h1','پنل سالن'),h('p','کلیدی را که بعد از تأیید پرداخت گرفتید اینجا وارد کنید (شبیه AY-XXXXXXXXX).'),input,go,err,el('p',{class:'pn-note'},['کلید را گم کرده‌اید؟ با پشتیبانی آینه تماس بگیرید تا کلید تازه بسازند: ',el('a',{href:'tel:'+SUPPORT_TEL,dir:'ltr',text:SUPPORT_FA})])]),
+  el('div',{class:'pn-card'},[h('h1','پنل سالن'),h('p','کلیدی را که بعد از تأیید پرداخت گرفتید اینجا وارد کنید (شبیه AY-XXXXXXXXX).'),input,go,err,el('p',{class:'pn-note'},['کلید را گم کرده‌اید؟ با پشتیبانی آینه تماس بگیرید تا کلید تازه بسازند: ',el('a',{href:'tel:'+SUPPORT_TEL,dir:'ltr',text:SUPPORT_FA}),' · ',el('a',{href:SUPPORT_TELEGRAM,target:'_blank',rel:'noopener',text:'تلگرام'}),' · ',el('a',{href:SUPPORT_WHATSAPP,target:'_blank',rel:'noopener',text:'واتس‌اپ'})])]),
   msg?el('p',{class:'pn-who',text:msg}):null
  ]));
 }
@@ -213,7 +213,7 @@ function creditCard(d){
 function referralCard(){
  var link=el('code',{dir:'ltr',text:'…'}),note=h('p','','pn-note'),copy=el('button',{class:'btn btn--soft btn--sm',type:'button',text:'کپی لینک',onclick:function(){var t=link.textContent;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){copy.textContent='کپی شد'},function(){copy.textContent='لینک را نگه دارید و بفرستید'})}});
  var card=el('div',{class:'pn-card pn-ref'},[h('h2','معرفی'),h('p','آرایشگر دیگری را معرفی کنید. هر دو ۱۰ عکس هدیه می‌گیرید.'),el('div',{class:'pn-link'},[link,copy]),note]);
- api('/api/panel/referral').then(function(r){link.textContent=r.link;note.textContent=fa(r.rewarded)+' معرفی تا حالا هدیه گرفته؛ تا '+fa(r.cap)+' معرفی هدیه دارد.'}).catch(function(){card.hidden=true});
+ api('/api/panel/referral').then(function(r){link.textContent=r.link;note.textContent=fa(r.rewarded)+' معرفی تا حالا هدیه گرفته؛ هر معرفی که پلن بخرد، ۱۰ تصویر هدیه.'}).catch(function(){card.hidden=true});
  return card;
 }
 var LINE={hair:'مدل مو',color:'رنگ مو',nails:'ناخن',lashes:'مژه'};
@@ -525,4 +525,4 @@ const boot = String.raw`
 
 export const panelHTML = String.raw`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#fcf3eb"><meta name="robots" content="noindex"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><title>پنل سالن | آینه</title><style>__CSS__</style></head><body class="admin-body"><main id="app"><div class="pn" style="padding:40px 16px;color:#6B7A78">در حال باز کردن…</div></main><script>__JS__</script></body></html>`
   .replace('__CSS__', () => baseCSS + css)
-  .replace('__JS__', () => `var MARK=${JSON.stringify(markSVG)},SUPPORT_TEL=${JSON.stringify(SUPPORT_TEL)},SUPPORT_FA=${JSON.stringify(SUPPORT_FA)};` + lib + gate + dash + boot);
+  .replace('__JS__', () => `var MARK=${JSON.stringify(markSVG)},SUPPORT_TEL=${JSON.stringify(SUPPORT_TEL)},SUPPORT_FA=${JSON.stringify(SUPPORT_FA)},SUPPORT_TELEGRAM=${JSON.stringify(SUPPORT_TELEGRAM)},SUPPORT_WHATSAPP=${JSON.stringify(SUPPORT_WHATSAPP)};` + lib + gate + dash + boot);

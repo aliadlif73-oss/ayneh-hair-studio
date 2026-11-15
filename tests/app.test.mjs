@@ -1202,8 +1202,9 @@ test('copy plan: the FAQ is six short answers in the order they block a purchase
  assert.ok(foot,'footer exists');
  for(const link of ['href="/hair">مدل مو','href="/color">رنگ مو','href="/nails">ناخن','href="/lashes">مژه','href="/salon-panel">پنل آرایشگاه','href="#services">تعرفه‌ها','href="/sample">ساخت نمونه'])assert.ok(foot.includes(link),'footer link '+link);
  assert.match(foot,/مو، رنگ، ناخن و مژه،<br>روی عکس خودِ مشتری\./,'one line of introduction');
- assert.match(foot,/0910 564 7497/,'the one public support number');
- assert.doesNotMatch(foot,/mailto:|@gmail\.com|wa\.me|t\.me/,'no other contact way');
+ assert.match(foot,/0993 377 3515/,'the one public support number');
+ assert.doesNotMatch(foot,/mailto:|@gmail\.com|ble\.ir/,'no email or Bale contact');
+ assert.match(foot,/t\.me\/\+989933773515/,'Telegram contact');assert.match(foot,/wa\.me\/989933773515/,'WhatsApp contact');
  assert.match(foot,/<p>نتیجه تقریبی است\.<\/p>/);
  assert.match(foot,/© ۱۴۰۵ آینه/);
  assert.equal((foot.match(/class="brand__mark"/g)||[]).length,1,'the teal mark returns in the footer');

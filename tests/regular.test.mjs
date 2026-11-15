@@ -3,7 +3,7 @@ import test from 'node:test';import assert from 'node:assert/strict';import {rea
 import {database,memoryBucket} from '../scripts/local-adapter.mjs';import app from '../worker/index.js';
 import {panelHTML} from '../worker/panel.js';import {customerHTML} from '../worker/customer.js';
 import {CUSTOMER_IMAGE_PRICE,CUSTOMER_PACKS,REFERRAL_IMAGES} from '../worker/customerprices.js';
-import {REFERRAL_CAP} from '../worker/rewards.js';import {PLANS} from '../worker/prices.js';
+import {PLANS} from '../worker/prices.js';
 
 const origin='https://test.example';
 const migrations=readdirSync(new URL('../drizzle/',import.meta.url)).filter(f=>f.endsWith('.sql')).sort();
@@ -113,11 +113,11 @@ test('salon page: past the 3 images per service the customer buys her own pack; 
  }finally{p.restore()}
 });
 
-test('referral: both sides get 10 images once the plan is paid; never twice, never to yourself, and only up to the cap',async()=>{
+test('referral: both sides get 10 images once the plan is paid; never twice, never to yourself, with no cap',async()=>{
  const e=fixture();
  const a=await planSalon(e,'essential','09120000001','Referrer Salon');
  const card=await call(e,'/api/panel/referral',undefined,{cookie:a.cookie});assert.equal(card.status,200);
- assert.match(card.data.link,/\/\?ref=R[2-9A-HJ-NP-Z]{7}$/);assert.equal(card.data.rewarded,0);assert.equal(card.data.cap,REFERRAL_CAP);
+ assert.match(card.data.link,/\/\?ref=R[2-9A-HJ-NP-Z]{7}$/);assert.equal(card.data.rewarded,0);assert.equal(card.data.cap,undefined);
  assert.equal((await call(e,'/api/panel/referral')).status,401);
  assert.ok(panelHTML.includes('آرایشگر دیگری را معرفی کنید. هر دو ۱۰ عکس هدیه می‌گیرید.'));
  const code=card.data.link.split('ref=')[1];
@@ -144,12 +144,12 @@ test('referral: both sides get 10 images once the plan is paid; never twice, nev
  // The buyer renewing later through the same link is not a new referral.
  const again=await call(e,'/api/order',orderBody('essential',{phone:'09120000002',salon:'Second Salon'}),ref);await confirm(e,again.data.id);
  assert.match(e.DB.sql.prepare('SELECT outcome FROM referral_rewards WHERE order_id=?').get(again.data.id).outcome,/existing|repeat/);
- // The cap (an app setting overrides the constant): past it only the buyer gets the gift.
+ // No cap (owner's decision): a later referral still rewards both sides, even with an old cap setting left in the database.
  e.DB.sql.prepare("INSERT INTO app_settings(key,value,updated_at) VALUES('referral_cap','1',0)").run();
  const third=await call(e,'/api/order',orderBody('essential',{phone:'09120000003',salon:'Third Salon'}),ref);await confirm(e,third.data.id);
  const c=e.DB.sql.prepare('SELECT salon_id FROM orders WHERE id=?').get(third.data.id).salon_id;
- assert.equal(e.DB.sql.prepare('SELECT outcome FROM referral_rewards WHERE order_id=?').get(third.data.id).outcome,'buyer_only');
- assert.equal(credits(e,c),PLANS.essential.credits+REFERRAL_IMAGES);assert.equal(credits(e,a.id),before+REFERRAL_IMAGES+PLANS.essential.credits);
+ assert.equal(e.DB.sql.prepare('SELECT outcome FROM referral_rewards WHERE order_id=?').get(third.data.id).outcome,'rewarded');
+ assert.equal(credits(e,c),PLANS.essential.credits+REFERRAL_IMAGES);assert.equal(credits(e,a.id),before+2*REFERRAL_IMAGES+PLANS.essential.credits);
  // A code in the body works too; an unknown one is ignored.
  const junk=await call(e,'/api/order',orderBody('essential',{phone:'09120000004',salon:'Fourth Salon',ref:'R2222222'}));
  assert.equal(e.DB.sql.prepare('SELECT COUNT(*) n FROM order_referrals WHERE order_id=?').get(junk.data.id).n,0);
