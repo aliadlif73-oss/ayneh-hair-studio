@@ -10,6 +10,8 @@
 //  * The check happens before the image is ordered from the provider. Two images started at
 //    the same instant can overshoot the balance by one each; the daily limit caps bursts.
 import {Problem, uid, limited} from './domain.js';
+import {PLANS} from './prices.js';
+import {LINE_KEYS} from './lines.js';
 
 const DAY = 86400000;
 export const MONTH = 30 * DAY;
@@ -28,14 +30,30 @@ export async function grant(db, salonId, delta, reason, orderId = null) {
     uid(), salonId, Math.trunc(delta), String(reason), orderId, Date.now());
 }
 
-/* A confirmed plan: start (or extend) the plan and add its gift images. */
+/* A confirmed plan: start (or extend) the plan and add its gift images.
+   The order (when given) also decides what the salon offers and how many users it may have:
+     * a «پنل آرایشگاه» plan (sheet `seats` > 0) opens every line and records the paid users
+       (settings.plan.seats = max(seats, orders.users));
+     * a single-service plan on a new salon, or one coming down from the salon plan, offers only
+       the order's service (settings.lines). A renewal of the same service changes nothing, so a
+       salon that bought «مدل و رنگ مو» before the split keeps both (worker/plans.js linesOf). */
 export async function applyPlan(db, salonId, {key, months, credits}, orderId) {
   const salon = await one(db, 'SELECT id,settings FROM salons WHERE id=?', salonId);
   if (!salon) throw new Problem(404, 'سالن پیدا نشد.');
   const settings = settingsOf(salon), now = Date.now();
   const prev = settings.plan && typeof settings.plan === 'object' ? settings.plan : null;
+  const order = orderId ? await one(db, 'SELECT service,users FROM orders WHERE id=?', orderId) : null;
+  const sheet = PLANS[key] || {};
   const from = Math.max(now, Number(prev?.until) || 0);
   settings.plan = {key, start: Number(prev?.start) || now, until: from + months * MONTH};
+  if (sheet.seats > 0) {
+    settings.plan.seats = Math.max(sheet.seats, Math.trunc(Number(order?.users)) || 0);
+    settings.lines = [...LINE_KEYS];
+    settings.service = 'all';
+  } else if (order && LINE_KEYS.includes(order.service) && (!prev || PLANS[prev.key]?.seats > 0)) {
+    settings.lines = [order.service];
+    settings.service = order.service;
+  }
   await run(db, 'UPDATE salons SET settings=? WHERE id=?', JSON.stringify(settings), salonId);
   if (credits > 0) await grant(db, salonId, credits, 'plan:' + key, orderId);
   return settings.plan;

@@ -14,7 +14,7 @@ import {PLANS as PLANS_TABLE} from './prices.js';
 import {createOrder,createTopup,createRenewal,customerOrder,setCoupon,markReviewing,confirmOrder,reopenOrder,rekeyOrder,closeExpired,cardSetting,saveCard,
  webhookKey,rotateWebhookKey,panelLogin,panelSalon,panelLogout,panelDashboard,orderById,ORDER_MINUTES,SERVICE_LABEL} from './orders.js';
 import {spendCredit,planOf} from './credits.js';
-import {can,featuresOf,OPENED_BY} from './plans.js';
+import {can,featuresOf,OPENED_BY,linesOf} from './plans.js';
 import {panelApi,bookingTick} from './panelapi.js';
 import {weeklySummaries} from './reports.js';
 export {putImage};
@@ -79,10 +79,10 @@ async function teamView(db,env,salon,origin){return (await teamOf(db,salon.id)).
 export const TRACK_KINDS=['view','tour_start','tour_done','tour_skip','about','photo','look','color','generate','result','gen_fail','view360','send_open','sent','follow','rating','demo','share_open','share','line','color_on_hair','save'];
 export async function logEvent(db,salonId,kind,visitor='',meta=''){await run(db,'INSERT INTO events_log(id,salon_id,visitor,kind,meta,created_at) VALUES(?,?,?,?,?,?)',uid(),salonId,/^[a-f0-9]{16,32}$/.test(visitor)?visitor:'',kind,String(meta||'').slice(0,80),Date.now())}
 function publicSalon(s){return {id:s.id,slug:s.slug,name:s.name,profile:parse(s.profile)};}
-// A salon that bought a plan from one service page offers that service only (hair = hairstyle +
-// hair colour). Salons without a plan, or with no recorded service, keep all four lines.
-const SERVICE_LINES={hair:['hair','color'],nails:['nails'],lashes:['lashes']};
-export function salonLines(s){if(!planOf(s))return null;const svc=parse(s.settings).service;return SERVICE_LINES[svc]||null;}
+// A salon that bought a single-service plan offers that service only (hair = hairstyle, color =
+// hair colour; a salon that bought «مدل و رنگ مو» before the split keeps both). «پنل آرایشگاه»,
+// salons without a plan, or with no recorded service keep all four lines (worker/plans.js linesOf).
+export const salonLines=s=>linesOf(s);
 
 // The salon panel is gone; only the project owner manages salons.
 export async function owner(req,env){const who=await identity(req,env);must(who,'برای ورود، رمز مدیر را وارد کنید',401);must(who.via==='password'||(env.OWNER_EMAIL&&who.email===env.OWNER_EMAIL),'فقط مدیر آینه به این بخش دسترسی دارد',403);return who;}
@@ -224,7 +224,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(path==='/api/panel/renew'&&req.method==='POST'){
   await limited(db,'renew:'+clientIp(req),20,'درخواست‌های زیادی فرستاده‌اید؛ کمی بعد دوباره امتحان کنید');
   const ctx=await panelSalon(req,db);const b=await req.json().catch(()=>({}));
-  return J(await createRenewal(db,env,ctx,String(b.plan||''),u.origin));
+  return J(await createRenewal(db,env,ctx,String(b.plan||''),u.origin,b.users));
  }
  if(path==='/api/panel/me'&&req.method==='GET'){
   try{const ctx=await panelSalon(req,db);return J(await panelDashboard(db,env,ctx))}
@@ -273,11 +273,11 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   return J({ok:true,card:await saveCard(db,b.card,b.owner)});}
  if(path==='/api/owner/orders'&&req.method==='GET'){await owner(req,env);
   await closeExpired(db);
-  const rows=await all(db,'SELECT id,ref,plan,kind,service,credits,amount,salon_name,contact_name,phone,city,status,receipt_note,confirmed_by,created_at,expires_at FROM orders ORDER BY created_at DESC LIMIT 100');
+  const rows=await all(db,'SELECT id,ref,plan,kind,service,users,credits,amount,salon_name,contact_name,phone,city,status,receipt_note,confirmed_by,created_at,expires_at FROM orders ORDER BY created_at DESC LIMIT 100');
   // The console speaks Persian: plan name and a local-looking mobile, never a raw slug or +98.
   return J({orders:rows.map(r=>({...r,amount:Math.round(r.amount/10),
    plan:r.kind==='topup'?'اعتبار '+Number(r.credits).toLocaleString('fa-IR')+' عکس':(PLANS_TABLE[r.plan]?.name||r.plan),
-   service_label:SERVICE_LABEL[r.service]||'',
+   service_label:(SERVICE_LABEL[r.service]||'')+(r.users?' · '+Number(r.users).toLocaleString('fa-IR')+' کاربر':''),
    contact_phone:String(r.phone||'').replace(/^\+98/,'0')}))});}
  const adminOrder=path.match(/^\/api\/owner\/orders\/([a-f0-9-]{36})\/(confirm|cancel|rekey|reopen)$/);
  if(adminOrder&&req.method==='POST'){await owner(req,env);
@@ -382,11 +382,14 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   if(b.preview_id){const p=await ownMedia(db,s,b.preview_id);must(p.kind==='simulation','نتیجهٔ معتبر انتخاب کنید');must(await one(db,"SELECT 1 FROM generations WHERE result_id=? AND original_id=? AND COALESCE(reference_id,'')=? AND salon_id=?",b.preview_id,b.original_id,b.reference_id||'',salon.id),'نتیجه باید با عکس و مدل انتخابی مطابقت داشته باشد');}
   await limited(db,'lead:'+s.id,10);await limited(db,'lead-ip:'+salon.id+':'+clientIp(req),20);
   const id=uid(),visitor=visitorIn;
+  // The request's service: one the salon offers (a single-service salon's own line when none is sent).
+  const offered=salonLines(salon),line=LINE_KEYS.includes(b.line)?b.line:(offered?offered[0]:'hair');
+  if(offered)must(offered.includes(line),'این سالن فقط «'+offered.map(k=>LINE_LABEL[k]).join('» و «')+'» را ارائه می‌دهد.',403);
   // The server decides who owns the request (referral tree and mobile lock); the client cannot.
   const own=await ownerFor(db,env,salon,visitor,number);
   // The follow token lets this customer (and only her) link a bot chat for status updates.
   const follow=Array.from(crypto.getRandomValues(new Uint8Array(12)),x=>x.toString(16).padStart(2,'0')).join('');
-  await run(db,'INSERT INTO leads(id,salon_id,session_id,name,phone,telegram,original_id,reference_id,preview_id,look,color,note,idem,created_at,follow_hash,visitor,staff_id,line) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',id,salon.id,s.id,name,number,handle,b.original_id,b.reference_id||null,b.preview_id||null,text(cut(b.look,150),150),text(cut(b.color,120),120),text(cut(b.note,1000),1000),b.idem,Date.now(),await hash(follow),visitor,own.staff,LINE_KEYS.includes(b.line)?b.line:'hair');
+  await run(db,'INSERT INTO leads(id,salon_id,session_id,name,phone,telegram,original_id,reference_id,preview_id,look,color,note,idem,created_at,follow_hash,visitor,staff_id,line) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',id,salon.id,s.id,name,number,handle,b.original_id,b.reference_id||null,b.preview_id||null,text(cut(b.look,150),150),text(cut(b.color,120),120),text(cut(b.note,1000),1000),b.idem,Date.now(),await hash(follow),visitor,own.staff,line);
   if(visitor)await run(db,'UPDATE ref_visitors SET name=? WHERE salon_id=? AND visitor=?',name,salon.id,visitor);
   await logEvent(db,salon.id,'sent',visitor,b.preview_id?'sim':'plain');
   const delivered=await deliverLead(env,await one(db,'SELECT * FROM leads WHERE id=?',id));

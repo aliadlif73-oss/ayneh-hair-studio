@@ -14,11 +14,11 @@
 //          BALE_BOT_TOKEN, BALE_BOT_USERNAME (BALE_WEBHOOK_SECRET defaults to the Telegram one).
 import {Problem,must,uid,hash,text,phone,safeLink,digits,limited} from './domain.js';
 import {planOf} from './credits.js';
-import {can} from './plans.js';
+import {can,seatsFull} from './plans.js';
 import {inviteReady,sendInvite} from './sms.js';
 import {shareLinks,shareKeyboard} from './share.js';
 import {bucketFor,putImage} from './storage.js';
-import {createStaff,transfer,assign,team as teamOf,SPECIALTIES} from './referral.js';
+import {createStaff,seatRoom,transfer,assign,team as teamOf,SPECIALTIES} from './referral.js';
 import {guessLine,lineFromSpecialty,LINE_LABEL} from './lines.js';
 import {notifyOwner,linkOwner,isOwnerChat,sendDigest,setupStatus} from './alerts.js';
 const STALE=20*60000; // an unfinished wizard or team question is dropped after 20 idle minutes
@@ -329,8 +329,16 @@ async function teamAnswer(ctx,state,t){
  }
  if(state.team==='spec'){const sp=text(t,40);if(bad(sp)){await ctx.say('تخصص را با چند کلمه بنویسید یا یکی از دکمه‌ها را بزنید.',{reply_markup:cancelKey});return}await finishStaff(ctx,state.name,sp);return}
 }
+// The plan's user cap («پنل آرایشگاه»): said to the manager in plain words, and the owner hears it.
+async function seatsFullReply(ctx){
+ const room=await seatRoom(ctx.db,ctx.salon);if(!room||room.left>0)return false;
+ await ctx.say('⚠️ '+seatsFull(room.cap));
+ await notifyOwner(ctx.env,{salon:ctx.salon,kind:'team',level:'warn',text:'سقف کاربران پلن پر است ('+room.cap.toLocaleString('fa-IR')+' کاربر)؛ افزودن نیرو انجام نشد.'});
+ return true;
+}
 async function finishStaff(ctx,name,specialty){
  await run(ctx.db,"UPDATE salons SET bot_state='' WHERE id=?",ctx.salon.id);
+ if(await seatsFullReply(ctx))return;
  const t=await createStaff(ctx.db,ctx.salon,name,specialty);
  await showStaffLinks(ctx,t,true);
  await notifyOwner(ctx.env,{salon:ctx.salon,kind:'team',level:'info',text:'آرایشگر «'+t.name+'» ('+(t.specialty||'بدون تخصص')+') را اضافه کرد.'});
@@ -339,7 +347,7 @@ async function finishStaff(ctx,name,specialty){
 async function managerLink(ctx){
  const {db,p,salon}=ctx,P=PLATFORMS[p];
  let t=await one(db,'SELECT * FROM team WHERE salon_id=? AND is_manager=1 AND active=1',salon.id);
- if(!t){const prof=parse(salon.profile);t=await createStaff(db,salon,prof.manager||('مدیر '+salon.name),'مدیر سالن');await run(db,'UPDATE team SET is_manager=1 WHERE id=?',t.id);await notifyOwner(ctx.env,{salon,kind:'team',level:'info',text:'مدیر سالن لینک اختصاصی خودش را ساخت.'})}
+ if(!t){const prof=parse(salon.profile);t=await createStaff(db,salon,prof.manager||('مدیر '+salon.name),'مدیر سالن',{manager:true});await run(db,'UPDATE team SET is_manager=1 WHERE id=?',t.id);await notifyOwner(ctx.env,{salon,kind:'team',level:'info',text:'مدیر سالن لینک اختصاصی خودش را ساخت.'})}
  await run(db,'UPDATE team SET '+P.col+'=? WHERE id=?',ctx.chat,t.id);
  t=await one(db,'SELECT * FROM team WHERE id=?',t.id);
  await ctx.say('<b>🔗 لینک اختصاصی خودتان</b>\n'+refUrl(ctx.origin,salon,t)+'\n\nهر کس با این لینک بیاید، و هر کس که او برایش بفرستد، مشتری خودتان («'+esc(t.name)+'») حساب می‌شود و درخواستش همین‌جا می‌آید. برای مشتری‌های عمومی سالن، لینک بدون کد را بدهید:\n'+ctx.origin+'/s/'+salon.slug,{parse_mode:'HTML'});
@@ -348,7 +356,7 @@ async function teamCallback(ctx,data,q){
  const {db}=ctx,salon=ctx.salon;
  if(data==='tm:n'){await run(db,"UPDATE salons SET bot_state='' WHERE id=? AND bot_state LIKE '%\"team\"%'",salon.id);return 'لغو شد'}
  if(data==='tm:me'){await managerLink(ctx);return 'لینک ساخته شد'}
- if(data==='tm:add'){await run(db,'UPDATE salons SET bot_state=? WHERE id=?',JSON.stringify({p:ctx.p,team:'name',ts:Date.now()}),salon.id);await ctx.say('اسم و فامیل نیروی تازه را بنویسید، مثلاً «مریم محمدی».\n(اگر ۲۰ دقیقه چیزی ننویسید، خودش لغو می‌شود.)',{reply_markup:cancelKey});return 'اسم را بنویسید'}
+ if(data==='tm:add'){if(await seatsFullReply(ctx))return 'ظرفیت کاربران پر است';await run(db,'UPDATE salons SET bot_state=? WHERE id=?',JSON.stringify({p:ctx.p,team:'name',ts:Date.now()}),salon.id);await ctx.say('اسم و فامیل نیروی تازه را بنویسید، مثلاً «مریم محمدی».\n(اگر ۲۰ دقیقه چیزی ننویسید، خودش لغو می‌شود.)',{reply_markup:cancelKey});return 'اسم را بنویسید'}
  if(data.startsWith('tm:s:')){const st=parse((await one(db,'SELECT bot_state FROM salons WHERE id=?',salon.id))?.bot_state);if(st.team!=='spec')return 'از /team شروع کنید';await finishStaff(ctx,st.name,SPECIALTIES[Number(data.slice(5))]||'');return 'اضافه شد'}
  const [,op,id,to]=data.split(':');
  const t=await one(db,'SELECT * FROM team WHERE id=? AND salon_id=? AND active=1',id,salon.id);if(!t)return 'این نیرو دیگر در تیم نیست';
@@ -604,7 +612,8 @@ export function leadText(lead,salon,photos,member=null){
   '✈️ <b>تلگرام:</b> '+(lead.telegram?'@'+esc(lead.telegram):'ثبت نکرده'),'',
   '🧩 <b>خدمت:</b> '+LINE_LABEL[lead.line||'hair'],
   '✂️ <b>مدل انتخابی:</b> '+(lead.look?esc(lead.look):'مشخص نکرده'),
-  '🎨 <b>رنگ:</b> '+(lead.color?esc(lead.color):'همان رنگ فعلی'),
+  // «همان رنگ فعلی» is about hair; a nails or lashes request shows a colour only when she chose one.
+  ...(lead.color||['hair','color'].includes(lead.line||'hair')?['🎨 <b>رنگ:</b> '+(lead.color?esc(lead.color):'همان رنگ فعلی')]:[]),
   '📝 <b>توضیح مشتری:</b> '+(lead.note?esc(lead.note):'ندارد'),''];
  if(photos.length)lines.push('🖼 <b>عکس‌های بالا به ترتیب:</b>',...photos.map((p,i)=>'  '+fa(i+1)+'. '+names[p]));
  if(!photos.includes('preview'))lines.push('  (شبیه‌سازی تصویری برای این درخواست ساخته نشده)');

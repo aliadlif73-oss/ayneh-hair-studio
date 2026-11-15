@@ -16,7 +16,7 @@
 import {must, phone, text, uid, digits, hash} from './domain.js';
 import {PLANS, PRICE_MINUTES, TOPUP} from './prices.js';
 import {applyPlan, grant, balance, MONTH} from './credits.js';
-import {featuresOf, OPENED_BY, can} from './plans.js';
+import {featuresOf, OPENED_BY, can, seatsOf} from './plans.js';
 
 const run = (db, sql, ...a) => db.prepare(sql).bind(...a).run();
 const one = (db, sql, ...a) => db.prepare(sql).bind(...a).first();
@@ -25,8 +25,11 @@ const all = async (db, sql, ...a) => (await db.prepare(sql).bind(...a).all()).re
 export const PAY_CARD = 'pay_card';
 export const WEBHOOK_KEY = 'pay_webhook_key';
 export const COUPONS = 'pay_coupons';
-export const SERVICES = ['hair', 'nails', 'lashes'];
-export const SERVICE_LABEL = {hair: 'مدل و رنگ مو', nails: 'ناخن', lashes: 'مژه'};
+/* Plans are sold per service (owner's decision): hair = hairstyle, color = hair colour, nails,
+   lashes. 'all' is the «پنل آرایشگاه» plan. A salon that bought 'hair' before the split keeps
+   hairstyle + colour (worker/plans.js linesOf). */
+export const SERVICES = ['hair', 'color', 'nails', 'lashes'];
+export const SERVICE_LABEL = {hair: 'مدل مو', color: 'رنگ مو', nails: 'ناخن', lashes: 'مژه', all: 'همهٔ خدمت‌ها'};
 
 /* One order lives this long while waiting for money. The page counts down; the server enforces. */
 export const ORDER_MINUTES = PRICE_MINUTES;
@@ -60,6 +63,23 @@ export const hashKey = async s => {
 };
 
 export const planAmount = key => Number(PLANS[key]?.amount || 0);
+/* Users on an order: the «پنل آرایشگاه» plans (sheet seats > 0) take 3 users or more (at most 50);
+   every other plan is 0 (no user count). */
+export const MAX_USERS = 50;
+export function orderUsers(plan, users) {
+  const seats = Number(PLANS[plan]?.seats || 0);
+  if (!seats) return 0;
+  if (users === undefined || users === null || users === '') return seats;
+  const n = Number(digits(String(users)));
+  must(Number.isInteger(n) && n >= 1 && n <= MAX_USERS, 'تعداد کاربر باید عددی از ۱ تا ' + MAX_USERS.toLocaleString('fa-IR') + ' باشد.');
+  return Math.max(seats, n);
+}
+/* The plan's price for these users, in toman: base + max(0, users − seats) × seat_amount. */
+export function orderTotal(plan, users = 0) {
+  const p = PLANS[plan];
+  if (!p) return 0;
+  return planAmount(plan) + Math.max(0, Number(users || 0) - Number(p.seats || 0)) * Number(p.seat_amount || 0);
+}
 const planName = row => row.kind === 'topup' ? 'اعتبار ' + Number(row.credits || 0).toLocaleString('fa-IR') + ' عکس' : (PLANS[row.plan]?.name || row.plan);
 
 /* Coupons: {CODE:{percent|amount, max, used}} in app_settings, editable without a deploy. */
@@ -95,6 +115,9 @@ export async function publicOrder(db, env, row, {key = '', origin = ''} = {}) {
   return {
     id: row.id, ref: row.ref, plan: row.plan, kind: row.kind || 'plan', plan_name: planName(row),
     service: row.service || '', credits: Number(row.credits || 0),
+    users: Number(row.users || 0), seats: Number(PLANS[row.plan]?.seats || 0),
+    extra_users: Math.max(0, Number(row.users || 0) - Number(PLANS[row.plan]?.seats || 0)),
+    seat_amount: Number(PLANS[row.plan]?.seat_amount || 0),
     amount: toman(row.amount), discount: toman(row.discount),
     status: row.status, created_at: row.created_at, expires_at: row.expires_at,
     card: cardDigits(card) || '', card_owner: card ? cardOwner(card) : '',
@@ -152,27 +175,28 @@ export async function closeExpired(db) {
 export async function createOrder(db, env, b, origin = '') {
   const plan = String(b.plan || '');
   must(PLANS[plan], 'این پلن وجود ندارد.', 404);
-  const amount = planAmount(plan);
+  const users = orderUsers(plan, b.users);
+  const amount = orderTotal(plan, users);
   must(amount > 0, 'مبلغ این پلن تعیین نشده است.', 409);
   const salon = text(String(b.salon || ''), 80), name = text(String(b.name || ''), 60);
   must(salon.length >= 2, 'نام سالن را بنویسید.');
   must(name.length >= 2, 'نام و نام خانوادگی را بنویسید.');
   must(b.consent === true, 'برای هماهنگی راه‌اندازی، تأیید تماس لازم است.');
-  const service = SERVICES.includes(b.service) ? b.service : '';
+  const service = users ? 'all' : SERVICES.includes(b.service) ? b.service : '';
   const tel = phone(b.phone), now = Date.now();
   await closeExpired(db);
   await run(db, "UPDATE orders SET status='cancelled',updated_at=? WHERE phone=? AND kind='plan' AND status='open'", now, tel);
   const coupon = discountFor(String(b.coupon || ''), amount, await couponTable(db));
   const key = newAccessKey();
   const row = {
-    id: uid(), ref: ref(), plan, kind: 'plan', service, credits: Number(PLANS[plan].credits || 0),
+    id: uid(), ref: ref(), plan, kind: 'plan', service, users, credits: Number(PLANS[plan].credits || 0),
     amount: (amount - coupon.toman) * 10, salon_name: salon, contact_name: name, phone: tel,
     city: text(String(b.city || ''), 40), note: text(String(b.note || ''), 300), status: 'open',
     expires_at: now + ORDER_MINUTES * 60000, access_key_hash: await hashKey(key),
     coupon: coupon.code, discount: coupon.toman * 10, created_at: now, updated_at: now,
   };
   await insert(db, row);
-  await tell(env, 'سفارش ' + PLANS[plan].name + (service ? ' (' + SERVICE_LABEL[service] + ')' : '') + ' برای «' + salon + '» باز شد', row);
+  await tell(env, 'سفارش ' + PLANS[plan].name + (service ? ' (' + SERVICE_LABEL[service] + ')' : '') + (users ? ' برای ' + users.toLocaleString('fa-IR') + ' کاربر' : '') + ' برای «' + salon + '» باز شد', row);
   return publicOrder(db, env, row, {key, origin});
 }
 
@@ -199,29 +223,33 @@ export async function createTopup(db, env, {order: panelOrder, salon}, packs, or
 /* A renewal or an upgrade from the salon's own panel: the salon, contact and mobile come from
    the panel session, the panel key stays the same (no new key is minted), and confirmation
    applies the new plan to this same salon (provisionSalon honours salon_id). */
-export async function createRenewal(db, env, {order: panelOrder, salon}, plan, origin = '') {
+export async function createRenewal(db, env, {order: panelOrder, salon}, plan, origin = '', usersIn) {
   must(PLANS[plan], 'این پلن وجود ندارد.', 404);
-  const amount = planAmount(plan);
+  /* A salon on «پنل آرایشگاه» renews or changes length within it; going back to one service
+     means choosing which one, so the panel sends that to Ayneh support instead. */
+  must(!seatsOf(salon) || PLANS[plan].seats > 0, 'برای برگشت از «پنل آرایشگاه» به پلن یک‌خدمتی با پشتیبانی آینه تماس بگیرید.', 409);
+  const users = orderUsers(plan, usersIn ?? (seatsOf(salon) || undefined));
+  const amount = orderTotal(plan, users);
   must(amount > 0, 'مبلغ این پلن تعیین نشده است.', 409);
   const now = Date.now();
   await closeExpired(db);
   await run(db, "UPDATE orders SET status='cancelled',updated_at=? WHERE salon_id=? AND kind='plan' AND status='open'", now, salon.id);
   const row = {
-    id: uid(), ref: ref(), plan, kind: 'plan', service: panelOrder.service || '', credits: Number(PLANS[plan].credits || 0),
-    amount: amount * 10, salon_name: salon.name, contact_name: panelOrder.contact_name, phone: panelOrder.phone,
+    id: uid(), ref: ref(), plan, kind: 'plan', service: users ? 'all' : panelOrder.service === 'all' ? '' : panelOrder.service || '', users,
+    credits: Number(PLANS[plan].credits || 0), amount: amount * 10, salon_name: salon.name, contact_name: panelOrder.contact_name, phone: panelOrder.phone,
     city: '', note: 'renewal', status: 'open', expires_at: now + ORDER_MINUTES * 60000,
     access_key_hash: panelOrder.access_key_hash, coupon: '', discount: 0, created_at: now, updated_at: now,
     salon_id: salon.id,
   };
   await insert(db, row);
-  await tell(env, 'تمدید/ارتقا به ' + PLANS[plan].name + ' برای «' + salon.name + '» باز شد', row);
+  await tell(env, 'تمدید/ارتقا به ' + PLANS[plan].name + (users ? ' برای ' + users.toLocaleString('fa-IR') + ' کاربر' : '') + ' برای «' + salon.name + '» باز شد', row);
   return publicOrder(db, env, row, {origin});
 }
 
 async function insert(db, row) {
   await run(db,
-    'INSERT INTO orders(id,ref,plan,kind,service,credits,amount,salon_name,contact_name,phone,city,note,status,expires_at,access_key_hash,coupon,discount,salon_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-    row.id, row.ref, row.plan, row.kind, row.service, row.credits, row.amount, row.salon_name, row.contact_name, row.phone, row.city, row.note,
+    'INSERT INTO orders(id,ref,plan,kind,service,users,credits,amount,salon_name,contact_name,phone,city,note,status,expires_at,access_key_hash,coupon,discount,salon_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+    row.id, row.ref, row.plan, row.kind, row.service, Number(row.users || 0), row.credits, row.amount, row.salon_name, row.contact_name, row.phone, row.city, row.note,
     row.status, row.expires_at, row.access_key_hash, row.coupon, row.discount, row.salon_id || null, row.created_at, row.updated_at);
 }
 
@@ -261,7 +289,7 @@ export async function setCoupon(db, env, id, code, origin = '') {
   const row = await orderById(db, id);
   must(row, 'سفارش پیدا نشد.', 404);
   must(row.status === 'open' && row.kind !== 'topup', 'این سفارش دیگر قابل تغییر نیست.', 409);
-  const base = planAmount(row.plan);
+  const base = orderTotal(row.plan, row.users);
   const coupon = discountFor(code, base, await couponTable(db));
   must(coupon.code, 'این کد تخفیف معتبر نیست یا ظرفیتش پر شده.', 422);
   await run(db, 'UPDATE orders SET coupon=?,discount=?,amount=?,updated_at=? WHERE id=? AND status=?',
@@ -400,14 +428,17 @@ export async function panelDashboard(db, env, {order, salon}) {
   const [leads, portfolio, team, credit, topups] = await Promise.all([
     all(db, 'SELECT id,status,created_at FROM leads WHERE salon_id=? ORDER BY created_at DESC LIMIT 5', salon.id),
     all(db, 'SELECT id,title,line,images FROM portfolio WHERE salon_id=? AND published=1 ORDER BY created_at DESC LIMIT 60', salon.id),
-    all(db, 'SELECT id,name,specialty FROM team WHERE salon_id=? AND active=1', salon.id),
+    all(db, 'SELECT id,name,specialty,is_manager FROM team WHERE salon_id=? AND active=1', salon.id),
     balance(db, salon),
     all(db, "SELECT id,ref,credits,amount,status,created_at FROM orders WHERE salon_id=? AND kind='topup' ORDER BY created_at DESC LIMIT 5", salon.id),
   ]);
   const origin = env.APP_ORIGIN || '';
   const p = (() => { try { return JSON.parse(salon.profile || '{}'); } catch { return {}; } })();
-  /* The setup steps follow the plan: an ESSENTIAL salon is never asked for a bot it does not have. */
+  /* The setup steps follow the plan (every paid plan has the bot today; the check stays so a
+     plan without it would never be asked for one). */
   const hasBot = can(salon, 'bot');
+  const cap = seatsOf(salon);
+  const onSalonPlan = cap > 0;
   const steps = [
     {key: 'profile', label: 'نشانی، ساعت کار و یک توضیح کوتاه برای صفحه بنویسید', done: !!(p.bio || p.hours)},
     {key: 'phone', label: 'شمارهٔ تماسی را که مشتری‌ها ببینند بنویسید', done: !!p.phone},
@@ -425,13 +456,17 @@ export async function panelDashboard(db, env, {order, salon}) {
     credits: credit, topup: {images: TOPUP.images, amount: TOPUP.amount},
     /* What this plan opens; a locked card names the plan that opens it and links to the plans. */
     features: featuresOf(salon), opened_by: OPENED_BY, service: (() => { try { return JSON.parse(salon.settings || '{}').service || order.service || 'hair'; } catch { return 'hair'; } })(),
+    /* «پنل آرایشگاه»: users paid for (the manager is one) and how many are in use. */
+    seats: onSalonPlan ? {cap, used: 1 + team.filter(t => !t.is_manager).length} : null,
     bot_linked: !!(salon.telegram_chat_id || salon.bale_chat_id),
     topups: topups.map(t => ({ref: t.ref, credits: t.credits, amount: toman(t.amount), status: t.status, created_at: t.created_at})),
     leads: leads.map(l => ({id: l.id, status: l.status, created_at: l.created_at})),
     portfolio: portfolio.map(x => ({id: x.id, title: x.title, line: x.line, image: (JSON.parse(x.images || '[]')[0]) || ''})),
     profile: {bio: p.bio || '', address: p.address || '', hours: p.hours || '', phone: p.phone || '', instagram: String(p.instagram || '').replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')},
     /* Plans the salon can renew to or upgrade to, straight from the panel. */
-    plans: Object.entries(PLANS).map(([key, v]) => ({key, name: v.name, months: v.months, amount: planAmount(key), credits: v.credits})),
+    /* A salon on «پنل آرایشگاه» is offered only those (going back to one service is a support call). */
+    plans: Object.entries(PLANS).filter(([, v]) => !onSalonPlan || v.seats > 0)
+      .map(([key, v]) => ({key, name: v.name, months: v.months, amount: planAmount(key), credits: v.credits, seats: v.seats, seat_amount: v.seat_amount})),
     setup: {steps, done: steps.filter(s => s.done).length, total: steps.length},
     bot: {telegram: !!(env.TELEGRAM_BOT_TOKEN), bale: !!(env.BALE_BOT_TOKEN)},
   };
