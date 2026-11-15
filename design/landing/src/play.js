@@ -46,7 +46,7 @@
   const sws = COLORS.map((c, i) => make('play-sw',
     '<span class="play-sw__dot" aria-hidden="true"><i style="background:' + c.css + '"></i></span><span class="play-sw__nm">' + c.name + '</span>',
     () => pickColor(i), $('playSwatches')));
-  $('playCount').textContent = '· ' + fa(STYLES.length) + ' مدل';
+  $('playCount').textContent = '';
 
   const mark = (list, idx) => list.forEach((b, i) => {
     b.setAttribute('aria-checked', String(i === idx));

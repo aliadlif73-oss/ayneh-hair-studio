@@ -3,7 +3,7 @@
    The frame is created on a real click, so nothing is fetched for a visitor who never gets
    here, and no cookie or form field exists on this page before that click. */
 (()=>{
-  const root = document.getElementById('try-on'); if (!root) return;
+  const root = document.getElementById('demo'); if (!root) return;
   const obj = document.getElementById('tryonFrame'), curtain = document.getElementById('tryonCurtain');
   const start = document.getElementById('tryonStart'), stage = document.getElementById('tryonStage');
   const name = document.getElementById('tryonLineName'), hint = document.getElementById('tryonLineHint');
@@ -14,6 +14,10 @@
     nails:  ['ناخن',     'پشت دست، انگشت‌ها کنار هم و همهٔ ناخن‌ها در قاب، در نور روز.'],
     lashes: ['مژه',      'از نزدیک و روبه‌رو، هر دو چشم باز و کامل در قاب، بدون عینک.'],
   };
+  const PAIR = { hair: 'style', color: 'color', nails: 'nails', lashes: 'lashes' };
+  /* where «این را برای مشتریان خودم می‌خواهم» goes: the plans of the service being tried */
+  const PAGE = { hair: '/hair', color: '/color', nails: '/nails', lashes: '/lashes' };
+  const buy = [...root.querySelectorAll('.js-svc-link')];
   let line = 'hair', loaded = false, photo = null;
 
   function select(key) {
@@ -22,6 +26,9 @@
     name.textContent = LINES[line][0];
     hint.textContent = LINES[line][1];
     tabs.forEach(t => t.setAttribute('aria-pressed', String(t.dataset.line === line)));
+    /* the mirror shows the sample pair of the chosen service; the buy link follows it */
+    if (window.__AYN_PAIR && !loaded) window.__AYN_PAIR(PAIR[line], LINES[line][0]);
+    buy.forEach(a => { a.setAttribute('href', document.getElementById('services') ? '#services' : PAGE[line] + '#services'); });
     /* Switching the service after the demo is open reloads it on the other line, so the
        choice made here is never only cosmetic. */
     if(loaded && photo)openPhoto(photo);
@@ -92,11 +99,13 @@
   obj.addEventListener('error', () => {
     stage.classList.add('is-broken');
     if (curtain.hidden) curtain.hidden = false;
-    curtain.querySelector('strong').textContent = 'باز کردن دموی نمونه ممکن نشد';
-    curtain.querySelector('p').textContent = 'اتصال را بررسی کنید، یا دموی نمونه را در همین مرورگر باز کنید.';
-    start.textContent = 'باز کردن دموی نمونه';
+    curtain.querySelector('strong').textContent = 'باز کردن نمونه ممکن نشد';
+    curtain.querySelector('p').textContent = 'اتصال را بررسی کنید و دوباره امتحان کنید.';
+    start.textContent = 'باز کردن نمونه';
     start.onclick = () => location.assign('/s/demo?l=' + line + '&from=landing');
   });
 
-  select(tabs[0] ? tabs[0].dataset.line : 'hair');
+  /* /try?l=nails opens on that service; a service page opens on its own */
+  const want = new URLSearchParams(location.search).get('l');
+  select(LINES[want] ? want : (tabs[0] ? tabs[0].dataset.line : 'hair'));
 })();

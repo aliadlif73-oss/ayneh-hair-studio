@@ -1,97 +1,39 @@
-  <!-- 1. Hero: copy + the mirror studio. The photo, hair canvas and podium dock live on one plate so they never drift apart. -->
-  <section id="intro" class="film" aria-labelledby="h1" tabindex="-1">
-    <div class="stage" id="stage" data-demo="loading">
-      <div class="copy" id="copy">
-        <h1 id="h1">انتخاب مشتری را با عکس ببینید</h1>
-        <p class="hero-sub">صفحه‌ای به نام شما یا آرایشگاه‌تان، انتخاب مشتری را همراه عکس خودش، پیش از مراجعه نشان می‌دهد.</p>
-        <div class="cta-row"><a class="btn btn--lg" href="#salon-example"><span>ساخت صفحهٔ من</span><span class="arrow" aria-hidden="true">←</span></a><a class="btn btn--ghost btn--quiet" data-try="hair" href="/s/demo?l=hair&amp;from=landing" id="openHeroDemo"><span>ببینید مشتری چه می‌بیند</span></a></div>
-        <p class="lead">صفحه‌ای با نام و رنگ خودتان.</p>
-
-      </div>
-
-      <div class="hero-proof" id="heroProof" data-live="customer-simulation" aria-label="نمونهٔ تعاملی مقایسهٔ قبل و شبیه‌سازی">
-        <div class="proof-services" role="group" aria-label="خدمت قابل امتحان">
-          <button type="button" class="proof-service is-active" data-pair="style" data-before="assets/demo-style-before.webp" data-after="assets/demo-style-after.webp" aria-pressed="true">مدل مو</button>
-          <button type="button" class="proof-service" data-pair="color" data-before="assets/demo-color-before.webp" data-after="assets/demo-color-after.webp" aria-pressed="false">رنگ مو</button>
-          <button type="button" class="proof-service" data-pair="lashes" data-before="assets/demo-lashes-before.webp" data-after="assets/demo-lashes-after.webp" aria-pressed="false">مژه</button>
-          <button type="button" class="proof-service" data-pair="nails" data-before="assets/demo-nails-before.webp" data-after="assets/demo-nails-after.webp" aria-pressed="false">ناخن</button>
-        </div>
-        <div class="live-compare" id="liveCompare" aria-label="مقایسهٔ قبل و شبیه‌سازی مدل مو">
-          <img class="live-img live-before" id="compareBefore" src="assets/demo-style-before.webp" width="450" height="600" fetchpriority="high" decoding="async" alt="نمونهٔ موقت از عکس مشتری">
-          <img class="live-img live-after" id="compareAfter" src="assets/demo-style-after.webp" width="450" height="600" decoding="async" alt="نمونهٔ موقت از شبیه‌سازی">
-          <span class="live-tag live-tag--before">قبل</span>
-          <span class="live-tag live-tag--after">شبیه‌سازی</span>
-          <span class="live-divider" aria-hidden="true"><span class="live-handle"><svg viewBox="0 0 24 24"><path d="M8 8 4 12l4 4m8-8 4 4-4 4M4 12h16"/></svg></span></span>
-          <input class="live-range" id="compareRange" type="range" min="0" max="100" value="50" dir="ltr" aria-label="جابجا کردن خط مقایسهٔ قبل و شبیه‌سازی">
-        </div>
-        <div class="proof-caption"><span class="hero-proof-badge">نمونهٔ موقت</span></div>
-      </div>
-      <div class="hero-scroll-cue" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></div>
-      <div class="studio" id="studio" tabindex="-1" aria-label="دموی تعاملی آینه روی چهرهٔ نمونه">
-        <div class="mirror" id="mirror">
-          <div class="plate" id="plate">
-            <img class="room-backdrop" src="assets/hero.webp" width="1376" height="768" alt="" aria-hidden="true">
-            <svg class="empty-glass" viewBox="0 0 1376 768" aria-hidden="true"><defs><linearGradient id="mirrorGlass" x2=".7" y2="1"><stop stop-color="#91969b"/><stop offset=".5" stop-color="#b0b4b9"/><stop offset="1" stop-color="#93979c"/></linearGradient></defs><path fill="url(#mirrorGlass)" d="M605 471V240C605 137 761 137 761 240V471Z M506 455V272C506 193 585 193 585 272V455Z M782 455V272C782 193 863 193 863 272V455Z"/></svg>
-            <div class="mirror-front" id="mirrorFront">
-            <img id="roomImg" fetchpriority="high" decoding="async" src="assets/hero.webp" width="1376" height="768" alt="آینهٔ سه‌تکهٔ برنجی با تصویر یک مدل در آن، روی پایه‌ای از سنگ">
-            <img id="roomImg2" class="alt" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" alt="" aria-hidden="true" width="1376" height="768">
-            <canvas id="hairCanvas" width="1376" height="768" aria-hidden="true"></canvas>
-            </div>
-            <div class="mirror-invite" id="mirrorInvite" inert>
-              <span class="invite-mark" aria-hidden="true">✦</span><p>این بار،<br>تصویر خودتان.</p>
-              <a class="btn" data-try="hair" href="/s/demo?l=hair&amp;from=landing"><span class="inv-long">با عکس خودم</span><span class="inv-short">امتحان کنید</span> <span aria-hidden="true">←</span></a>
-              <button type="button" id="backToMirror"><span class="inv-long">بازگشت به آینه</span><span class="inv-short">بازگشت</span></button>
-            </div>
-            <div class="dock glass" id="dock">
-              <h2 id="dock-h">مدل مو · روی این چهره امتحان کنید</h2>
-              <div class="dock-view">
-                <div class="dock-track hscroll" id="dockTrack" role="radiogroup" aria-labelledby="dock-h"></div>
-                <button type="button" class="nav-btn nav-r" id="dkPrev" aria-label="مدل‌های قبلی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
-                <button type="button" class="nav-btn nav-l" id="dkNext" aria-label="مدل‌های بعدی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
-              </div>
-              <button type="button" class="more" id="more" aria-expanded="false" aria-controls="styles"><span>دیدن همهٔ مدل‌ها</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 7.5 10 12.5 15 7.5"/></svg></button>
-            </div>
+  <!-- ============ Hero (home, the four service pages, the salon-panel page) ============ -->
+  <!-- One template; build.py fills the {{…}} slots. The visual is an 8-second loop of three
+       frames with no scroll and no sound (src/copy.css). -->
+  <section id="intro" class="hero{{HERO_CLASS}}" aria-labelledby="h1">
+    <span class="ornament ornament--tr" aria-hidden="true"></span>
+    <div class="band">
+      <div class="hero-grid">
+        <div class="hero-copy">
+{{EYEBROW}}          <h1 id="h1" class="h1">{{H1}}<span class="h1__accent">{{ACCENT}}</span></h1>
+          <p class="hero-lead">{{LEAD}}</p>
+          <div class="hero-actions">
+            <a class="btn btn--lg" href="#demo">{{MAIN_BTN}}</a>
+            <a class="hero-link" href="#services">قیمت پلن‌ها <span aria-hidden="true">←</span></a>
           </div>
-          <div class="palette glass" id="colors">
-            <h2 id="colors-h">رنگ مو</h2>
-            <div class="col-list" id="colList" role="radiogroup" aria-labelledby="colors-h"></div>
-          </div>
-          <aside class="reference glass" id="ref" inert aria-live="polite">
-            <span class="ph"><img id="refImg" alt="" width="240" height="300"></span>
-            <div class="ref-body">
-              <strong id="refName"></strong>
-              <small id="refNote"></small>
-              <a class="ref-try" data-try="hair" href="/s/demo?l=hair&amp;from=landing">امتحان روی عکس خودم ←</a>
+        </div>
+
+        <div class="hero-visual">
+          <div class="hero-stage loop" role="group" aria-label="نمونهٔ نمایشی: سه قاب پشت‌سرهم">
+            <div class="loop__screen">
+              <figure class="loop__f loop__f--1">
+                <img src="assets/demo-{{PAIR}}-before.webp" width="450" height="600" fetchpriority="high" decoding="async" alt="نمونهٔ نمایشی از عکس مشتری">
+                <figcaption><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M4 8.5h3l1.4-2h7.2l1.4 2h3V18a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 18Z" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2"/></svg>مشتری عکس می‌گذارد</figcaption>
+              </figure>
+              <figure class="loop__f loop__f--2">
+                <img src="assets/demo-{{PAIR}}-after.webp" width="450" height="600" decoding="async" alt="نمونهٔ نمایشی از شبیه‌سازی روی عکس مشتری">
+                <figcaption><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 3 2.4 5.4L20 10.5l-5.6 2.1L12 18l-2.4-5.4L4 10.5l5.6-2.1Z"/></svg>{{F2}}</figcaption>{{PICKS}}
+              </figure>
+              <figure class="loop__f loop__f--3">
+{{CHAT}}
+                <figcaption><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><path d="M20.5 4 3.5 10.8l5.6 2.1L11 19l3-4.2 4.6 3.3Z" stroke-linejoin="round"/></svg>درخواست به شما می‌رسد</figcaption>
+              </figure>
             </div>
-          </aside>
-          <div class="result glass" id="result" role="status" aria-live="polite">
-            <span id="resultText"></span>
-            <a class="btn" data-try="hair" href="/s/demo?l=hair&amp;from=landing"><span>همین الان با عکس خودم بساز</span><span class="arrow" aria-hidden="true">←</span></a>
+            <ol class="loop__dots" aria-hidden="true"><li></li><li></li><li></li></ol>
+            <p class="stage-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M12 11v5" stroke-linecap="round"/></svg><span>{{NOTE}}</span></p>
           </div>
         </div>
       </div>
-
-      <div class="styles" id="styles" aria-hidden="true">
-        <div class="styles-head">
-          <h2 id="styles-h">مدل مو <span id="styCount"></span></h2>
-          <button type="button" class="close" id="closeRail"><span>بستن</span><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 12.5 10 7.5 15 12.5"/></svg></button>
-        </div>
-        <div class="rail-wrap">
-          <div class="track hscroll" id="track" role="radiogroup" aria-labelledby="styles-h"></div>
-          <button type="button" class="nav-btn nav-r" id="stPrev" aria-label="مدل‌های قبلی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7"/></svg></button>
-          <button type="button" class="nav-btn nav-l" id="stNext" aria-label="مدل‌های بعدی"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7"/></svg></button>
-        </div>
-      </div>
-      <div class="demo-file" id="demoFile" aria-hidden="true"><img src="assets/hero.webp" alt=""><span>تصویر من.jpg</span></div>
-      <svg class="demo-hand" id="demoHand" viewBox="0 0 48 56" aria-hidden="true"><path d="M14 29V9a5 5 0 0 1 10 0v15-5a4 4 0 0 1 8 0v7-4a4 4 0 0 1 8 0v9-3a4 4 0 0 1 8 0v12c0 10-6 17-17 17h-2c-6 0-10-3-14-8L5 35c-4-5 2-11 6-7l7 7" transform="translate(-3,-2)"/></svg>
-      <div class="demo-caption" id="demoCaption" role="status" aria-live="polite">نمایش نحوهٔ کار آینه</div>
-      <div class="demo-controls"><button type="button" id="skipDemo">رد کردن نمایش</button><button type="button" id="replayDemo" hidden>پخش دوبارهٔ نمایش</button></div>
-      <noscript><style>.mirror-front{opacity:1!important}.demo-controls,.demo-caption,.dock,.palette,#openHeroDemo{display:none}</style></noscript>
-      <div class="fade" id="fade" aria-hidden="true"></div>
     </div>
-      <div class="hero-details" aria-label="توضیحات پیش‌نمایش">
-        <p class="service-note">خدمات قابل امتحان: مدل و رنگ مو، طرح ناخن یا مدل مژه، روی عکس خود مشتری.</p>
-        <p class="fineprint"><span>منظور از رایگان: ساخت پیش‌نمایش، ثبت درخواست و امتحان خدمات روی عکس خودتان، بدون پرداخت و بدون ثبت‌نام است. تنها تأیید شمارهٔ موبایل لازم دارد.</span></p>
-        <p class="hero-honesty">شبیه‌سازی تقریبی است و نتیجهٔ نهایی را تضمین نمی‌کند. آینهٔ تعاملی این صفحه مخصوص مو است.</p>
-      </div>
   </section>
