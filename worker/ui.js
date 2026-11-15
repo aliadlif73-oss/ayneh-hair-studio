@@ -241,6 +241,16 @@ function columns(daily,key,label,tone){
 }
 function pday(iso){try{return new Intl.DateTimeFormat('fa-IR-u-ca-persian',{day:'numeric',month:'short',timeZone:'UTC'}).format(new Date(iso+'T12:00:00Z'))}catch(e){return iso}}
 function mins(m){if(m==null)return '—';if(m<60)return fa(Math.round(m))+' دقیقه';if(m<1440)return fa(Math.round(m/60))+' ساعت';return fa(Math.round(m/1440))+' روز'}
+/* Measured generation time (worker/timing.js): what a real image took, never a promise. */
+function timingCard(days){
+ var sec=function(ms){return ms==null?'—':fa(Math.round(ms/1000))+' ثانیه'};
+ var box=el('div',{class:'kpis kpis--small'},[el('div',{class:'loading',text:'در حال آوردن زمان ساخت…'})]);
+ api('/api/owner/timing?days='+days).then(function(t){
+  if(!t.measured){box.replaceChildren(el('p',{class:'notice notice--info',text:t.note}));return}
+  box.replaceChildren(tile('میانهٔ زمان ساخت',sec(t.wall.median),null,'از '+fa(t.wall.count)+' تصویر موفق'),tile('۹۰٪ زیر',sec(t.wall.p90)),tile('کندترین',sec(t.wall.max)),tile('زیر یک دقیقه',pct(t.wall.under_60s)),tile('زمان سرویس تصویر',sec(t.provider.median),null,t.provider.count?'میانه از '+fa(t.provider.count)+' گزارش سرویس':'سرویس هنوز زمانی گزارش نکرده'));
+ },function(e){box.replaceChildren(el('p',{class:'notice notice--warn',text:e.message}))});
+ return card('زمان ساخت تصویر','از ثبت درخواست تا ذخیرهٔ نتیجه؛ تا ۴ ثانیه بیشتر از واقع، چون صفحه با فاصله سر می‌زند.',box);
+}
 function card(title,sub,body,table){return el('section',{class:'card dcard'},[h('h2',title),sub?h('p',sub,'lead'):null,body,table||null])}
 function dashboard(salons){
  var root=el('section',{class:'dash','aria-label':'آمار'});
@@ -252,7 +262,7 @@ function dashboard(salons){
  function draw(){
   Array.prototype.forEach.call(range.children,function(b,i){b.setAttribute('aria-pressed',[7,30,90][i]===dashState.days?'true':'false')});
   body.classList.add('is-refreshing');
-  api('/api/owner/stats?days='+dashState.days+(dashState.salon?'&salon='+encodeURIComponent(dashState.salon):'')).then(function(d){body.classList.remove('is-refreshing');body.replaceChildren.apply(body,render(d));var slot=el('div',{class:'dgrid dgrid--1'},[el('div',{class:'loading',text:'در حال آوردن رفرال‌ها…'})]);body.append(slot);return api('/api/owner/referrals'+(dashState.salon?'?salon='+encodeURIComponent(dashState.salon):'')).then(function(r){slot.replaceChildren.apply(slot,referrals(r))},function(e){slot.replaceChildren(el('p',{class:'notice notice--warn',text:e.message}))})}).catch(function(e){body.classList.remove('is-refreshing');body.replaceChildren(el('p',{class:'notice notice--warn',text:e.message}))});
+  api('/api/owner/stats?days='+dashState.days+(dashState.salon?'&salon='+encodeURIComponent(dashState.salon):'')).then(function(d){body.classList.remove('is-refreshing');body.replaceChildren.apply(body,render(d));var slot=el('div',{class:'dgrid dgrid--1'},[el('div',{class:'loading',text:'در حال آوردن رفرال‌ها…'})]);body.append(slot);if(!dashState.salon)body.append(timingCard(dashState.days));return api('/api/owner/referrals'+(dashState.salon?'?salon='+encodeURIComponent(dashState.salon):'')).then(function(r){slot.replaceChildren.apply(slot,referrals(r))},function(e){slot.replaceChildren(el('p',{class:'notice notice--warn',text:e.message}))})}).catch(function(e){body.classList.remove('is-refreshing');body.replaceChildren(el('p',{class:'notice notice--warn',text:e.message}))});
  }
  function render(d){
   var k=d.kpi,p=d.prev,out=[];

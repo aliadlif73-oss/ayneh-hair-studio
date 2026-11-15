@@ -21,6 +21,8 @@ import {must, phone, text, uid, digits, hash} from './domain.js';
 import {PLANS, PRICE_MINUTES, TOPUP} from './prices.js';
 import {applyPlan, grant, balance, MONTH} from './credits.js';
 import {featuresOf, OPENED_BY, can, seatsOf} from './plans.js';
+import {confirmCustomerPack} from './customers.js';
+import {rewardReferral} from './rewards.js';
 
 const run = (db, sql, ...a) => db.prepare(sql).bind(...a).run();
 const one = (db, sql, ...a) => db.prepare(sql).bind(...a).first();
@@ -355,6 +357,8 @@ export async function confirmOrder(db, env, id, {by = 'owner', origin = '', amou
     if (applied || row.kind === 'topup' || (row.salon_id && row.note !== 'renewal'))
       return {order: await publicOrder(db, env, row, {origin}), claimed: false};
   }
+  /* A regular customer's image pack: her own account, never a salon (worker/customers.js). */
+  if (row.kind === 'customer_pack') return {claimed: await confirmCustomerPack(db, env, row), order: await publicOrder(db, env, await orderById(db, id), {origin})};
   let salon;
   if (row.kind === 'topup') {
     salon = await one(db, 'SELECT id,name,slug FROM salons WHERE id=?', row.salon_id);
@@ -365,6 +369,8 @@ export async function confirmOrder(db, env, id, {by = 'owner', origin = '', amou
     await run(db, 'UPDATE orders SET salon_id=?,updated_at=? WHERE id=?', salon.id, Date.now(), id);
     const p = PLANS[row.plan] || {months: 1, credits: 0};
     await applyPlan(db, salon.id, {key: row.plan, months: p.months, credits: Number(row.credits || p.credits || 0)}, row.id);
+    /* Bought through a referral link: both sides get their gift images, once (worker/rewards.js). */
+    await rewardReferral(db, env, row, salon).catch(e => console.error('referral reward', e?.message));
   }
   const updated = await orderById(db, id);
   try {
