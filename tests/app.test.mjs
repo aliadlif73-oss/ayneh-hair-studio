@@ -740,7 +740,7 @@ test('without SMS invites the bot offers messenger buttons and /i/ is a send pag
 // ---------- landing page and salon inquiries ----------
 test('landing page is public at / and the owner console stays at /admin',async()=>{const e=tgEnv(fixture());
  const r=await app.fetch(new Request(origin+'/'),e);assert.equal(r.status,200);const html=await r.text();
- assert.match(html,/id="choose"/);assert.match(html,/دستیار هوشمند رشد سالن زیبایی شما/);assert.doesNotMatch(html,/noindex/);
+ assert.match(html,/id="choose"/);assert.match(html,/<title>آینه \| مشتری نتیجه را قبل از آمدن روی عکس خودش ببیند<\/title>/);assert.doesNotMatch(html,/noindex/);
  new Function(html.match(/<script>([\s\S]*?)<\/script>/g).map(s=>s.replace(/<\/?script>/g,'')).join('\n'));
  // one page per service, each with its own studio, plans and checkout, and scripts that parse
  for(const key of ['hair','nails','lashes']){
