@@ -63,12 +63,8 @@ export const packsJS = String.raw`
    if(o.status==='paid'){done();return}
    if(o.status==='expired'||o.status==='cancelled'){try{localStorage.removeItem(KEY)}catch(e){}start();return}
    var left=el('span',{}),msg=el('p',{class:'ap-note'});
-   var sent=el('button',{class:'btn btn--primary',type:'button',text:'واریز کردم',onclick:function(){sent.disabled=true;api('/api/order/'+o.id+'/receipt',{note:''}).then(function(r){o.status=r.status;show()}).catch(function(x){fail(x.message);sent.disabled=false})}});
    var back=el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'انتخاب بستهٔ دیگر',onclick:function(){try{localStorage.removeItem(KEY)}catch(e){}stop();start()}});
-   function show(){
-    var review=o.status==='reviewing';sent.hidden=review;back.hidden=review;
-    msg.textContent=review?'رسید ثبت شد. بعد از تأیید پرداخت، تصاویر خودکار به حساب شما اضافه می‌شود؛ همین صفحه را باز نگه دارید یا بعداً برگردید.':'مبلغ را دقیقاً به این کارت بزنید و بعد «واریز کردم» را بزنید.';
-   }
+   function show(){msg.textContent='مبلغ را دقیقاً به این کارت واریز کنید. پرداخت شما خودکار تأیید می‌شود و تصاویر به حساب شما اضافه می‌شود؛ همین صفحه را باز نگه دارید.'}
    var t=setInterval(function(){var s=Math.max(0,Math.round((o.expires_at-Date.now())/1000));left.textContent=o.status==='open'?(Math.floor(s/60)+':'+String(s%60).padStart(2,'0')):'';},1000);
    var p=setInterval(function(){api('/api/c/order/'+o.id).then(function(r){o=Object.assign(o,r);if(r.status==='paid'){stop();done()}else if(r.status==='expired'||r.status==='cancelled'){stop();try{localStorage.removeItem(KEY)}catch(e){}fail('مهلت این سفارش تمام شد؛ اگر واریز کرده‌اید با کد پیگیری به پشتیبانی خبر بدهید.');start(true)}else show()}).catch(function(){})},5000);
    function stop(){clearInterval(t);clearInterval(p)}
@@ -78,7 +74,7 @@ export const packsJS = String.raw`
     el('div',{class:'ap-row'},[el('span',{text:'کد پیگیری'}),el('b',{dir:'ltr',text:o.ref})]),
     o.card?el('div',{},[el('div',{class:'ap-card',text:o.card.replace(/(\d{4})(?=\d)/g,'$1 ')}),o.card_owner?el('div',{class:'ap-note',text:'به نام '+o.card_owner}):null]):el('p',{class:'notice notice--warn',text:'پرداخت هنوز آماده نیست؛ کمی بعد دوباره سر بزنید.'}),
     el('div',{class:'ap-row'},[el('span',{text:'مهلت واریز'}),left]),
-    msg,sent,back,err
+    msg,back,err
    ]));show();
   }
   function done(){try{localStorage.removeItem(KEY)}catch(e){}box.replaceChildren(el('p',{class:'notice notice--ok',text:'تصاویر به حساب شما اضافه شد.'}));if(opts.onCredited)opts.onCredited()}

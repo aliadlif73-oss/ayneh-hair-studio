@@ -1199,7 +1199,7 @@ test('copy plan: the FAQ is six short answers in the order they block a purchase
  assert.match(faq,/href="\/salon-panel">پنل آرایشگاه/,'the salon answer links to the salon page');
  const foot=(landingHTML.match(/<footer class="site-footer">[\s\S]*?<\/footer>/)||[])[0]||'';
  assert.ok(foot,'footer exists');
- for(const link of ['href="/hair">مدل مو','href="/color">رنگ مو','href="/nails">ناخن','href="/lashes">مژه','href="/salon-panel">پنل آرایشگاه','href="#services">تعرفه‌ها','href="/try">ساخت نمونه'])assert.ok(foot.includes(link),'footer link '+link);
+ for(const link of ['href="/hair">مدل مو','href="/color">رنگ مو','href="/nails">ناخن','href="/lashes">مژه','href="/salon-panel">پنل آرایشگاه','href="#services">تعرفه‌ها','href="/sample">ساخت نمونه'])assert.ok(foot.includes(link),'footer link '+link);
  assert.match(foot,/مو، رنگ، ناخن و مژه،<br>روی عکس خودِ مشتری\./,'one line of introduction');
  assert.match(foot,/0910 564 7497/,'the one public support number');
  assert.doesNotMatch(foot,/mailto:|@gmail\.com|wa\.me|t\.me/,'no other contact way');

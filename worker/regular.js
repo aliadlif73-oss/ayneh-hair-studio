@@ -8,8 +8,8 @@
 //  GET  /api/panel/referral      the salon's referral link and how many rewards it has had
 //  GET  /api/owner/timing        measured generation durations (owner only)
 //
-// The receipt («واریز کردم») uses the shared /api/order/:id/receipt, and confirmation the shared
-// confirmOrder (owner console or /api/pay/confirm), which hands 'customer_pack' to customers.js.
+// There is no receipt step: confirmation is the shared webhook /api/pay/confirm (confirmOrder;
+// the owner console's emergency confirm also works), which hands 'customer_pack' to customers.js.
 import {must, uid, limited} from './domain.js';
 import {smsReady} from './sms.js';
 import {publicOrder, closeExpired, orderById, panelSalon, hashKey, ORDER_MINUTES} from './orders.js';
