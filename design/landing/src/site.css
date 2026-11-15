@@ -540,10 +540,10 @@ ul,ol{padding:0;list-style:none}
 .pay-form{display:grid;gap:14px}
 .pay-form__grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .pay-form .field{display:grid;gap:6px;font-size:13.5px;font-weight:600;color:var(--ink-2)}
-.pay-form .field small,.pay-receipt .field small,.pay-coupon .field small{font-weight:400;color:var(--muted);font-size:11.5px}
-.pay-form input,.pay-receipt input,.pay-coupon input{min-height:48px;padding:0 14px;border:1px solid var(--line-2);
+.pay-form .field small,.pay-coupon .field small{font-weight:400;color:var(--muted);font-size:11.5px}
+.pay-form input,.pay-coupon input{min-height:48px;padding:0 14px;border:1px solid var(--line-2);
   border-radius:var(--r-sm);background:var(--cream-2);font:inherit;font-size:14px;color:var(--ink);width:100%}
-.pay-form input:focus-visible,.pay-receipt input:focus-visible,.pay-coupon input:focus-visible{
+.pay-form input:focus-visible,.pay-coupon input:focus-visible{
   outline:2px solid var(--emerald);outline-offset:1px;background:var(--paper)}
 .pay-consent{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--ink-soft);line-height:1.8}
 .pay-consent input{width:20px;height:20px;margin-top:3px;accent-color:var(--emerald);flex:none}
@@ -584,26 +584,19 @@ ul,ol{padding:0;list-style:none}
 .pay-steps{margin:0;padding-inline-start:20px;display:grid;gap:4px;font-size:13.5px;color:var(--ink-soft);line-height:1.9}
 .pay-steps li::marker{color:var(--emerald);font-weight:800}
 
-.pay-receipt{display:grid;gap:10px;grid-template-columns:1fr auto;align-items:end}
-.pay-receipt .field{display:grid;gap:6px;font-size:13.5px;font-weight:600;color:var(--ink-2)}
-.pay-receipt .btn{min-width:170px}
 .pay-coupon{display:grid;gap:10px;grid-template-columns:1fr auto;align-items:end;padding-top:4px;border-top:1px dashed var(--line-2)}
 .pay-coupon .field{display:grid;gap:6px;font-size:13.5px;font-weight:600;color:var(--ink-2)}
 
-/* step 3 — waiting */
-.pay-wait{display:grid;gap:10px;justify-items:center;text-align:center;padding:8px 0}
-.pay-wait h3,.pay-done h3,.pay-expired h3{margin:0;font-size:20px;font-weight:800;color:var(--ink)}
-.pay-wait p,.pay-done p,.pay-expired p{margin:0;font-size:13.5px;color:var(--ink-soft);line-height:1.95;max-width:52ch}
-.pay-wait__ring{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;
-  background:conic-gradient(var(--emerald) calc(var(--p,0)*1%),var(--cream-3) 0);position:relative}
-.pay-wait__ring::before{content:"";position:absolute;inset:8px;border-radius:50%;background:var(--paper)}
-.pay-wait__ring{--p:28;animation:paySpin 1.1s linear infinite}
-@keyframes paySpin{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.pay-wait__ring{animation:none}}
-.pay-wait__ring span{position:relative;font-size:13px;font-weight:800;color:var(--emerald-deep)}
-.pay-wait__ref{font-size:13px;color:var(--muted)}
-.pay-wait__ref b{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink)}
-.pay-wait__call{font-size:13px;color:var(--ink-soft);text-decoration:underline;text-underline-offset:3px}
+/* automatic confirmation, the terms and the one support line */
+.pay-auto{margin:0;display:flex;gap:10px;align-items:center;font-size:14.5px;font-weight:800;color:var(--emerald-deep);
+  background:var(--emerald-wash);border-radius:var(--r-sm);padding:10px 12px}
+.pay-auto__dot{width:10px;height:10px;border-radius:50%;background:var(--emerald);flex:none;animation:payPulse 1.6s ease-in-out infinite}
+@keyframes payPulse{50%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.pay-auto__dot{animation:none}}
+.pay-terms,.pay-help{margin:0;font-size:13px;line-height:1.9;color:var(--ink-soft)}
+.pay-help a{color:var(--ink);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.pay-done h3,.pay-expired h3{margin:0;font-size:20px;font-weight:800;color:var(--ink)}
+.pay-done p,.pay-expired p{margin:0;font-size:13.5px;color:var(--ink-soft);line-height:1.95;max-width:52ch}
 
 /* step 4 — done */
 .pay-done{display:grid;gap:12px;justify-items:center;text-align:center;padding:8px 0}
@@ -627,8 +620,7 @@ ul,ol{padding:0;list-style:none}
 
 @media(max-width:640px){
   .pay-form__grid,.pay-figures{grid-template-columns:1fr}
-  .pay-receipt,.pay-coupon{grid-template-columns:1fr}
-  .pay-receipt .btn{min-width:0;width:100%}
+  .pay-coupon{grid-template-columns:1fr}
   .pay-card-box__row b{font-size:16px;letter-spacing:.02em}
 }
 
@@ -643,17 +635,7 @@ ul,ol{padding:0;list-style:none}
 .plan-how b{display:block;font-size:15px;color:var(--ink)}
 .plan-how p{margin:2px 0 0;font-size:13.5px;line-height:1.9;color:var(--ink-soft)}
 .wiz-ready__plans{display:inline-block;margin-top:6px;font-weight:800;color:var(--emerald-deep);text-decoration:underline;text-underline-offset:3px}
-.pay-key{display:grid;gap:6px;background:var(--emerald-wash);border:1px dashed var(--emerald-soft);border-radius:var(--r-lg);padding:12px 14px}
-.pay-key span{font-size:12.5px;font-weight:800;color:var(--emerald-deep)}
-.pay-key b{font-family:ui-monospace,Menlo,monospace;font-size:clamp(15px,2.2vw,19px);letter-spacing:.08em;color:var(--ink);word-break:break-all}
-.pay-key em{font-style:normal;font-size:12px;line-height:1.9;color:var(--ink-soft)}
-.pay-key .btn{justify-self:start}
-.pay-live [hidden],.pay-wait [hidden],.pay-done [hidden]{display:none!important}
-.pay-receipt .field__hint{display:block;margin-top:2px}
-.pay-wait .pay-key{text-align:start;margin:14px auto;max-width:440px}
-.pay-wait .pay-key-lost{margin:12px auto;max-width:440px}
-.pay-key-lost{margin:0;font-size:12.5px;line-height:1.9;color:var(--muted)}
-.pay-key-lost[hidden]{display:none!important}
+.pay-live [hidden],.pay-done [hidden],.pay-expired [hidden]{display:none!important}
 body.is-paying .sticky-cta{display:none!important}
 
 /* An unpriced panel still sells — it asks for the demo — so the price block explains itself

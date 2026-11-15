@@ -2214,3 +2214,17 @@ test('«پنل شما باز شد» checklist: four steps tick themselves or by 
  for(const t of ['پنل شما باز شد.','چهار کار تا اولین مشتری','اعتبار پنل از امروز شروع شد.'])assert.ok(panelHTML.includes(t),t);
  assert.doesNotMatch(panelHTML,/استوری/,'no story template is promised');
 });
+
+test('pay page: the owner\'s final copy, no receipt or manager step anywhere, the one support number, a late payment still watched',()=>{
+ for(const k of ['hair','nails','lashes']){
+  const html=servicePages[k];
+  for(const t of ['مبلغ را به کارت زیر واریز کنید.','۱۰ دقیقه مهلت دارید.','پرداخت شما خودکار تأیید می‌شود.','پرداخت تأیید شد. پنل شما باز شد.','اعتبار از لحظهٔ باز شدن پنل شروع می‌شود. تمدید خودکار ندارد.','اگر بعد از واریز تأیید نشد، به ما پیام بدهید'])
+   assert.ok(html.includes(t),k+': '+t);
+  assert.doesNotMatch(html,/id="payReceipt"|رسید را|پرداخت کردم|شمارهٔ پیگیری بانک|در انتظار تأیید|بررسی واریز/,k+': no receipt and no manual review');
+  assert.match(html,/id="paySummary"/,k+': the order line');
+ }
+ assert.doesNotMatch(payJS,/\/receipt|payReceipt|payWait/,'the checkout never posts a receipt');
+ assert.match(payJS,/'پلن ' \+ title \+ '\\u200f · ' \+ fa\(s\.months\) \+ ' ماهه'/,'«پلن … · ۳ ماهه», bidi-safe');
+ assert.match(payJS,/s\.users > 1/,'a multi-user plan shows its user count');
+ assert.match(payJS,/Date\.now\(\) - Number\(order\.expires_at \|\| 0\) < LATE/,'an expired order keeps being polled for a late webhook');
+});
