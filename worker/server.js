@@ -17,6 +17,7 @@ import {spendCredit,planOf} from './credits.js';
 import {can,featuresOf,OPENED_BY} from './plans.js';
 import {panelApi,bookingTick} from './panelapi.js';
 import {weeklySummaries} from './reports.js';
+import {spendDemoImage} from './demo.js';
 export {putImage};
 
 const J=(v,s=200,h={})=>new Response(JSON.stringify(v),{status:s,headers:{'Content-Type':'application/json;charset=utf-8','Cache-Control':'no-store',...h}});
@@ -302,7 +303,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(trial&&!trialLive(trial)&&route!=='public'&&!route.startsWith('owner'))throw new Problem(410,'مهلت ۱۰ ساعتهٔ صفحهٔ آزمایشی تمام شده است؛ برای ادامه با ما تماس بگیرید');
  const readOnly=route==='public'||route==='owner'||route==='requests'||route.startsWith('media/')||route.startsWith('generation/');
  must(route==='session'?['GET','POST'].includes(req.method):req.method===(readOnly?'GET':'POST'),'متد مجاز نیست',405);
- if(route==='public')return J({salon:publicSalon(salon),portfolio:await all(db,'SELECT id,title,category,description,stylist,staff_id AS maker,line,images,try_on,1 AS published FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 ORDER BY created_at DESC',salon.id),generation:!!env.KIE_API_KEY&&!!cfg.generation_enabled&&(!demo||smsReady(env)),reference:refOn(cfg),telegram:inboxes(env,salon).length>0||!!planOf(salon)||!!await one(db,'SELECT 1 FROM team WHERE salon_id=? AND active=1',salon.id),follow:Object.keys(followLinks(env,'x')),otp:smsReady(env),notice:'خروجی شبیه‌سازی پیشنهادی است و تضمین اجرا نیست.',trial:trialPublic(trial),demo,lines:salonLines(salon)});
+ if(route==='public')return J({salon:publicSalon(salon),portfolio:await all(db,'SELECT id,title,category,description,stylist,staff_id AS maker,line,images,try_on,1 AS published FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 ORDER BY created_at DESC',salon.id),generation:!!env.KIE_API_KEY&&!!cfg.generation_enabled,reference:refOn(cfg),telegram:inboxes(env,salon).length>0||!!planOf(salon)||!!await one(db,'SELECT 1 FROM team WHERE salon_id=? AND active=1',salon.id),follow:Object.keys(followLinks(env,'x')),otp:smsReady(env)&&!demo,notice:'خروجی شبیه‌سازی پیشنهادی است و تضمین اجرا نیست.',trial:trialPublic(trial),demo,lines:salonLines(salon)});
  if(route==='session'&&req.method==='POST'){await limited(db,'session:'+salon.id+':'+clientIp(req),30);const {raw}=await newSession(db,salon);return J({ok:true},200,{'Set-Cookie':cookie(raw)});}
  if(route.startsWith('owner')){
   await owner(req,env);const r=route.slice(6),b=req.method==='GET'?{}:await req.json();
@@ -401,7 +402,8 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(route==='generate'&&req.method==='POST'){
   const b=await req.json();const line=LINE_KEYS.includes(b.line)?b.line:'hair';
   {const allowed=salonLines(salon);if(allowed)must(allowed.includes(line),'این سالن فقط «'+allowed.map(k=>LINE_LABEL[k]).join('» و «')+'» را ارائه می‌دهد.',403);}
-  must(!smsReady(env)||s.verified_phone,'اول شمارهٔ موبایلت را تأیید کن',403);must(!demo||smsReady(env),'ساخت تصویر در نسخهٔ نمونه هنوز فعال نشده است',503);
+  // The visitor demo asks for no mobile (owner's decision): worker/demo.js caps it instead.
+  must(demo||!smsReady(env)||s.verified_phone,'اول شمارهٔ موبایلت را تأیید کن',403);
   must(b.image_consent===true,'رضایت ارسال عکس برای پردازش لازم است');
   must(cfg.generation_enabled&&env.KIE_API_KEY,'تولید واقعی این سالن هنوز فعال نشده است',503);
   must(/^[a-f0-9-]{36}$/.test(b.idem));
@@ -428,7 +430,8 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   const visitor=visitorOf(b),free=await unlimited(db,s);if(!trial&&!demo&&!free)await spendQuota(db,salon,s,visitor,line);
   // A salon on a paid plan spends one image credit per image; none left, or the plan ended, stops it here.
   if(!trial&&!demo&&!free)await spendCredit(db,env,salon);
-  if(dailyLimit(cfg)>0&&!free)await limited(db,'generation:'+salon.id+':'+new Date().toISOString().slice(0,10),dailyLimit(cfg));if(demo&&!free)await limited(db,'demo:'+s.verified_phone,3,'امروز ۳ تصویر نمونه ساخته‌اید؛ فردا دوباره امتحان کنید یا صفحهٔ آزمایشی سالن خودتان را بسازید');if(!free)await spendTrialImage(db,trial);
+  if(demo&&!free)await spendDemoImage(db,{salon,s,visitor,ip:clientIp(req)});
+  if(dailyLimit(cfg)>0&&!free)await limited(db,'generation:'+salon.id+':'+new Date().toISOString().slice(0,10),dailyLimit(cfg));if(!free)await spendTrialImage(db,trial);
   const id=uid(),now=Date.now();
   // Hairstyle copies only the cut from a reference photo; colour only the colour.
   const mode=look?'salon':line==='hair'?(reference?'style':'catalog'):(reference?'reference':(line==='color'&&!Number.isInteger(b.style)?'text':'catalog'));

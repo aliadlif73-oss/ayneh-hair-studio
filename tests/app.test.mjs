@@ -784,23 +784,35 @@ test('landing carries an absolute share image and revalidates instead of going s
  assert.match(html,/<meta name="ayneh-build" content="[a-f0-9]{12}">/,'the page names its build');
  assert.match(html,new RegExp('og:image" content="'+origin+'/landing/og.jpg"'));assert.doesNotMatch(html,/__ORIGIN__/);assert.ok(readFileSync(new URL('../public/landing/og.jpg',import.meta.url)).length>10000)});
 
-test('demo salon behind the landing: mobile confirmation first, 3 images a day per mobile, no 360 view, look handed over by the landing',async()=>{
+test('demo salon behind the landing: no sign-up, 2 images per visitor, a coarse network cap, no 360 view, look handed over by the landing',async()=>{
  const e=tgEnv(fixture());e.KIE_API_KEY='mock';const s={slug:'demo'};
- const pub=await call(e,'/api/s/demo/public');assert.equal(pub.status,200);assert.equal(pub.data.demo,true);assert.equal(pub.data.generation,false,'no SMS configured: demo generation stays off');
+ // Even with SMS configured, the visitor demo asks for no mobile (owner's decision).
+ smsEnv(e);
+ const pub=await call(e,'/api/s/demo/public');assert.equal(pub.status,200);assert.equal(pub.data.demo,true);
+ assert.equal(pub.data.generation,true,'the demo makes images without a sign-up');assert.equal(pub.data.otp,false,'no code in front of the demo');
+ const ip={'cf-connecting-ip':'198.51.100.7'},v='ab'.repeat(16);
  let g=await guest(e,s);const original=await upload(e,s,g);
- const gen=(extra={})=>call(e,'/api/s/demo/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:original,style:1,...extra},g);
- assert.equal((await gen()).status,503,'without SMS nobody can spend paid images');
- smsEnv(e);assert.equal((await call(e,'/api/s/demo/public')).data.generation,true);
- const need=await gen();assert.equal(need.status,403);assert.match(need.data.error,/را تأیید کن/,'the page opens its mobile dialog on this message');
- const sms=mockSms(),net=globalThis.fetch,prompts=[];
+ const gen=(extra={},who=g,img=original)=>call(e,'/api/s/demo/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:img,style:1,v,...extra},{...who,headers:ip});
+ const net=globalThis.fetch,prompts=[];
  globalThis.fetch=async(url,opts)=>{const u=String(url);if(u.includes('createTask'))prompts.push(JSON.parse(opts.body).input.prompt);if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(u.includes('createTask'))return Response.json({code:200,data:{taskId:'t'+crypto.randomUUID()}});return net(url,opts)};
- try{assert.equal((await call(e,'/api/s/demo/otp/send',otpBody(),g)).status,200);assert.equal((await call(e,'/api/s/demo/otp/verify',{code:'48213'},g)).status,200);
-  assert.equal((await gen({apply_color:true,color:'شرابی'})).status,200);assert.match(prompts[0],/burgundy/i);
+ try{
+  const first=await gen({apply_color:true,color:'شرابی'});assert.equal(first.status,200,JSON.stringify(first));assert.match(prompts[0],/burgundy/i);
   assert.equal((await gen()).status,200);assert.match(prompts[1],/original.*colou?r|colou?r.*original/i);
-  assert.equal((await gen()).status,200);
-  const fourth=await gen();assert.equal(fourth.status,429);
-  const v=await call(e,'/api/s/demo/views',{idem:crypto.randomUUID(),parent:'x'},g);assert.equal(v.status,400,'no 360 view in the demo');
- }finally{globalThis.fetch=net;sms.restore()}
+  const third=await gen();assert.equal(third.status,429);assert.match(third.data.error,/دو نمونهٔ رایگان/);
+  // A new session in the same browser is the same visitor.
+  const g2=await guest(e,s),img2=await upload(e,s,g2);
+  assert.equal((await gen({},g2,img2)).status,429,'same browser id, same 2 images');
+  // A failed image does not count.
+  e.DB.sql.prepare("UPDATE generations SET state='fail' WHERE id=?").run(first.data.id);
+  assert.equal((await gen()).status,200,'the failed image gave its turn back');
+  const views=await call(e,'/api/s/demo/views',{idem:crypto.randomUUID(),parent:'x'},g);assert.equal(views.status,400,'no 360 view in the demo');
+  // Fresh browsers on one network: the hashed-IP counter stops them after DEMO_IP_DAILY images.
+  const {DEMO_IP_DAILY}=await import('../worker/demo.js');let stopped=null;
+  for(let i=0;i<DEMO_IP_DAILY+2&&!stopped;i++){const gi=await guest(e,s),im=await upload(e,s,gi);const r=await call(e,'/api/s/demo/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:im,style:1,v:crypto.randomUUID().replace(/-/g,'')},{...gi,headers:ip});if(r.status===429)stopped=r}
+  assert.ok(stopped,'the network counter stops a run of fresh visitors');assert.match(stopped.data.error,/از این شبکه/);
+  assert.equal(e.DB.sql.prepare("SELECT COUNT(*) n FROM limits").get().n>0,true);
+  assert.equal(e.DB.sql.prepare("SELECT COUNT(*) n FROM limits WHERE key LIKE '%198.51%'").get().n,0,'the address is stored only as a hash');
+ }finally{globalThis.fetch=net}
  assert.match(customerHTML,/location\.search\.match\(\/\[\?&\]s=/,'customer page reads the landing look');
 });
 test('customer page: four services, «بساز» starts building with no consent checkbox, one name per saved photo',()=>{

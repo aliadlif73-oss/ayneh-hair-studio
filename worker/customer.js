@@ -620,7 +620,7 @@ function track(kind,meta,once){if(STUDIO_PREVIEW)return;if(once){if(tracked[kind
  // Open on the salon's own work for this line when it has some, otherwise on the ready-made looks.
  state.tab=hasLineWork(state.line)?'salon':'catalog';
  renderAll();
- if(SLUG==='demo'&&/[?&]draft=1/.test(location.search)){try{var draft=await window.__AYN_DRAFT.take();if(draft&&draft.file){state.style=draft.selection&&draft.selection.styleIdx!=null?draft.selection.styleIdx:state.style;state.color=draft.selection&&draft.selection.color||state.color;if(EMBED){state.preview=URL.createObjectURL(draft.file);renderFlow();var continuePhoto=async function(){await handleFile(draft.file,'original');if(state.original){clearTimeout(state.advT);state.justUploaded=false;go(3);generate()}};await ensureSession();if(state.verified)continuePhoto();else openOtp(continuePhoto)}else handleFile(draft.file,'original')}}catch(e){toast('عکس را دوباره از گالری انتخاب کن','error')}}
+ if(SLUG==='demo'&&/[?&]draft=1/.test(location.search)){try{var draft=await window.__AYN_DRAFT.take();if(draft&&draft.file){state.style=draft.selection&&draft.selection.styleIdx!=null?draft.selection.styleIdx:state.style;state.color=draft.selection&&draft.selection.color||state.color;if(EMBED){state.preview=URL.createObjectURL(draft.file);renderFlow();var continuePhoto=async function(){await handleFile(draft.file,'original');if(state.original){clearTimeout(state.advT);state.justUploaded=false;go(3);generate()}};await ensureSession();if(state.verified||!state.pub.otp)continuePhoto();else openOtp(continuePhoto)}else handleFile(draft.file,'original')}}catch(e){toast('عکس را دوباره از گالری انتخاب کن','error')}}
  if(pending){state.gen=pending;state.step=3;state.busy=true;state.genT0=Date.now()-8000;renderFlow();renderDock();poll(pending,true)}
  track('view',refIn?'share':'',true);
  renderInvite();
@@ -657,7 +657,7 @@ function trialBar(t){
 
 function ownerReturnBar(){
  var bar=el('div',{class:'trialbar owner-return',role:'status'},[
-  el('span',{class:'owner-return__note',text:'بازگشت به صفحهٔ آرایشگرها · اینجا نمونه‌ای از صفحه‌ای است که مشتری شما می‌بیند.'+(state.pub.demo?' نسخهٔ نمونه، روزی ۳ تصویر.':'')}),
+  el('span',{class:'owner-return__note',text:'بازگشت به صفحهٔ آرایشگرها · اینجا نمونه‌ای از صفحه‌ای است که مشتری شما می‌بیند.'+(state.pub.demo?' نسخهٔ نمونه، ۲ تصویر رایگان.':'')}),
   el('a',{class:'owner-return__cta',href:'/?utm_source=ayneh_demo&utm_medium=demo_return&utm_campaign=owner_preview#salon-example',text:'ساخت صفحهٔ من'})
  ]);document.body.prepend(bar);return bar;
 }
