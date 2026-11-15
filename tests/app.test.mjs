@@ -856,7 +856,7 @@ test('demo salon behind the landing: no sign-up, 2 images per visitor, a coarse 
  try{
   const first=await gen({apply_color:true,color:'شرابی'});assert.equal(first.status,200,JSON.stringify(first));assert.match(prompts[0],/burgundy/i);
   assert.equal((await gen()).status,200);assert.match(prompts[1],/original.*colou?r|colou?r.*original/i);
-  const third=await gen();assert.equal(third.status,429);assert.match(third.data.error,/دو نمونهٔ رایگان/);
+  const third=await gen();assert.equal(third.status,429);assert.match(third.data.error,/پنل آینه را بگیرید/);
   // A new session in the same browser is the same visitor.
   const g2=await guest(e,s),img2=await upload(e,s,g2);
   assert.equal((await gen({},g2,img2)).status,429,'same browser id, same 2 images');

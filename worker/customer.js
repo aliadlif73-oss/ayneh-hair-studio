@@ -1264,6 +1264,12 @@ function stepResult(){
  if(state.result){
   box.append(compareBlock());
   box.append(h('p','نتیجه تقریبی است.','fine-print result-approx'));
+  // The visitor demo (/sample): another sample (2 in all, worker/demo.js) or this service's plans.
+  if(state.pub.demo){box.append(el('div',{class:'result-actions'},[
+   el('button',{class:'btn btn--soft btn--sm',type:'button',onclick:function(){state.result=null;state.gen=null;state.idem=null;state.error='';state.busy=false;state.resultBase=null;go(2)},text:'نمونهٔ دیگر بساز'}),
+   el('a',{class:'btn btn--primary btn--sm',href:'/'+L,target:'_top',text:'این را برای مشتریان خودم می‌خواهم'}),
+   downloadLink('btn btn--ghost btn--sm','ذخیره تصویر')
+  ]))}else
   box.append(el('div',{class:'result-actions'},[
    L==='hair'?el('button',{class:'btn btn--soft btn--sm',type:'button',onclick:openViews,html:ICO.orbit+'<span>نمای ۳۶۰ درجه</span>'}):null,
    el('button',{class:'btn btn--soft btn--sm',type:'button',onclick:openAsk,html:SHARE_IC.chat+'<span>از دوستم نظر بپرسم</span>'}),

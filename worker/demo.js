@@ -24,7 +24,7 @@ export async function demoUsed(db, salon, s, visitor) {
 /* Called before a demo image is ordered. Failed images do not count (the same rule as salons). */
 export async function spendDemoImage(db, {salon, s, visitor, ip}) {
   must(await demoUsed(db, salon, s, visitor) < DEMO_IMAGES,
-    'دو نمونهٔ رایگان این صفحه را ساخته‌اید. برای ادامه، صفحهٔ آزمایشی سالن خودتان را بسازید.', 429);
+    'برای نمونهٔ بیشتر، پنل آینه را بگیرید.', 429);
   await limited(db, 'demo-ip:' + (ip || 'unknown'), DEMO_IP_DAILY,
     'از این شبکه امروز نمونه‌های زیادی ساخته شده؛ فردا دوباره امتحان کنید یا صفحهٔ آزمایشی سالن خودتان را بسازید.');
 }
