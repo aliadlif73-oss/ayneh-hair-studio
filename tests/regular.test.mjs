@@ -38,9 +38,11 @@ async function webhookPay(e,ref,amount){const key=(await call(e,'/api/owner/paym
 test('/try: the regular customer page carries the owner\'s copy and embeds the real try-on of the direct salon',async()=>{
  const e=fixture();
  const res=await app.fetch(new Request(origin+'/try'),e);assert.equal(res.status,200);const html=await res.text();
- for(const t of ['مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید.','۳ نمونهٔ رایگان. بدون نصب.','۳ نمونهٔ رایگانتان تمام شد.','نمونهٔ بیشتر می‌خواهید؟ یک بسته انتخاب کنید.','آرایشگر یا آرایشگاه‌دار می‌شناسید؟ لینک شما را به او بدهید؛ اگر پنل آینه بگیرد، ۱۰ تصویر هدیه می‌گیرید.','نتیجه تقریبی است. عکس شما فقط برای ساخت همین نمونه استفاده می‌شود.','تعداد بیشتر می‌خواهم','تصاویر به حساب شما اضافه شد.'])
+ for(const t of ['مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید.','۳ نمونهٔ رایگان. بدون نصب.','۳ نمونهٔ رایگانتان تمام شد.','نمونهٔ بیشتر می‌خواهید؟ یک بسته انتخاب کنید.','آرایشگر یا آرایشگاه‌دار می‌شناسید؟ لینک شما را به او بدهید؛ اگر پلن آینه بگیرد، ۱۰ تصویر هدیه می‌گیرید.','نتیجه تقریبی است. عکس شما فقط برای ساخت نمونه استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.','تعداد بیشتر می‌خواهم','تصاویر به حساب شما اضافه شد.'])
   assert.ok(html.includes(t),'copy: '+t);
  assert.match(html,/<iframe id="trFrame" src="\/s\/try\?embed=1"/);
+ // what a salon buys is a «پلن» (AGENTS.md); the photo line says where the photo goes, honestly
+ assert.doesNotMatch(html,/پنل آینه بگیرد|فقط برای ساخت همین نمونه/);
  const row=e.DB.sql.prepare("SELECT id,slug,owner_id FROM salons WHERE id='ayneh-direct'").get();assert.equal(row.slug,'try');assert.equal(row.owner_id,'direct');
  assert.equal((await app.fetch(new Request(origin+'/try'),e)).status,200);assert.equal(e.DB.sql.prepare("SELECT COUNT(*) n FROM salons WHERE owner_id='direct'").get().n,1,'made once');
  const pub=await call(e,'/api/s/try/public');assert.equal(pub.data.demo,false);assert.equal(pub.data.generation,true);

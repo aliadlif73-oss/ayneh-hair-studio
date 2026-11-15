@@ -9,6 +9,7 @@
 // (no referral card there); «درخواست نوبت» / sending to the salon stays where it was.
 // Copy is the owner's plan wording; amounts are only displayed here, the server computes them.
 import {baseCSS, markSVG} from './design.js';
+import {REFERRAL_IMAGES} from './customerprices.js';
 
 const packsCSS = String.raw`
 .ap{display:grid;gap:12px}
@@ -161,8 +162,8 @@ export function tryHTML(slug) {
     + '<div class="tr-frame"><iframe id="trFrame" src="/s/' + attr(slug) + '?embed=1" title="امتحان روی عکس خودتان" allow="camera"></iframe></div>'
     + '<button id="trMore" class="btn btn--ghost btn--sm tr-more" type="button" hidden>نمونهٔ بیشتر می‌خواهید؟</button>'
     + '<section id="trPacks" class="tr-card" hidden><h2 id="trOutTitle">۳ نمونهٔ رایگانتان تمام شد.</h2><p>نمونهٔ بیشتر می‌خواهید؟ یک بسته انتخاب کنید.</p><div id="trPackBox"></div></section>'
-    + '<section id="trRef" class="tr-card tr-ref" hidden><p>آرایشگر یا آرایشگاه‌دار می‌شناسید؟ لینک شما را به او بدهید؛ اگر پنل آینه بگیرد، ۱۰ تصویر هدیه می‌گیرید.</p><div class="tr-link"><code id="trRefLink"></code><button id="trCopy" class="btn btn--soft btn--sm" type="button">کپی لینک</button></div></section>'
+    + '<section id="trRef" class="tr-card tr-ref" hidden><p>آرایشگر یا آرایشگاه‌دار می‌شناسید؟ لینک شما را به او بدهید؛ اگر پلن آینه بگیرد، ' + REFERRAL_IMAGES.toLocaleString('fa-IR') + ' تصویر هدیه می‌گیرید.</p><div class="tr-link"><code id="trRefLink"></code><button id="trCopy" class="btn btn--soft btn--sm" type="button">کپی لینک</button></div></section>'
     + '</main>'
-    + '<footer class="tr-foot">نتیجه تقریبی است. عکس شما فقط برای ساخت همین نمونه استفاده می‌شود.</footer>'
+    + '<footer class="tr-foot">نتیجه تقریبی است. عکس شما فقط برای ساخت نمونه استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.</footer>'
     + '<script>' + packsJS + tryJS + '</script></body></html>';
 }
