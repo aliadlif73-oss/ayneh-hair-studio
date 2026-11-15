@@ -59,8 +59,10 @@ export async function regularApi(req, env, u, path, {owner, clientIp}) {
     must(acc, 'صفحه را تازه کنید و دوباره امتحان کنید.', 400);
     const now = Date.now();
     await closeExpired(db);
-    await run(db, "UPDATE orders SET status='cancelled',updated_at=? WHERE customer_id=? AND kind='customer_pack' AND status='open'", now, acc.id);
-    const row = {id: uid(), ref: 'AY' + Array.from(crypto.getRandomValues(new Uint8Array(6)), x => '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'[x % 32]).join(''),
+    /* replaced_by lets a transfer already made to the replaced pack still be confirmed (orders.js confirmOrder). */
+    const id = uid();
+    await run(db, "UPDATE orders SET status='cancelled',replaced_by=?,updated_at=? WHERE customer_id=? AND kind='customer_pack' AND status='open'", id, now, acc.id);
+    const row = {id, ref: 'AY' + Array.from(crypto.getRandomValues(new Uint8Array(6)), x => '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'[x % 32]).join(''),
       plan: 'بستهٔ ' + fa(count) + ' تصویر مشتری', amount: customerAmount(count) * 10, credits: count, created_at: now, expires_at: now + ORDER_MINUTES * 60000};
     /* No panel opens from this order: its key hash is of a random value nobody holds, and
        panel login only ever accepts kind 'plan'. */

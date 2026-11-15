@@ -216,11 +216,12 @@ export async function createOrder(db, env, b, origin = '') {
     must(!prior || !seatsOf(prior), 'برای برگشت از «پنل آرایشگاه» به پلن یک‌خدمتی با پشتیبانی آینه تماس بگیرید.', 409);
   }
   await closeExpired(db);
-  await run(db, "UPDATE orders SET status='cancelled',updated_at=? WHERE phone=? AND kind='plan' AND status='open'", now, tel);
+  const id = uid();
+  await run(db, "UPDATE orders SET status='cancelled',replaced_by=?,updated_at=? WHERE phone=? AND kind='plan' AND status='open'", id, now, tel);
   const coupon = discountFor(String(b.coupon || ''), amount, await couponTable(db));
   const key = newAccessKey();
   const row = {
-    id: uid(), ref: ref(), plan, kind: 'plan', service, users, credits: Number(PLANS[plan].credits || 0),
+    id, ref: ref(), plan, kind: 'plan', service, users, credits: Number(PLANS[plan].credits || 0),
     amount: (amount - coupon.toman) * 10, salon_name: salon, contact_name: name, phone: tel,
     city: text(String(b.city || ''), 40), note: text(String(b.note || ''), 300), status: 'open',
     expires_at: now + ORDER_MINUTES * 60000, access_key_hash: await hashKey(key),
@@ -238,9 +239,10 @@ export async function createTopup(db, env, {order: panelOrder, salon}, packs, or
   must(Number.isInteger(n) && n >= 1 && n <= 20, 'تعداد بستهٔ عکس معتبر نیست.');
   const now = Date.now();
   await closeExpired(db);
-  await run(db, "UPDATE orders SET status='cancelled',updated_at=? WHERE salon_id=? AND kind='topup' AND status='open'", now, salon.id);
+  const id = uid();
+  await run(db, "UPDATE orders SET status='cancelled',replaced_by=?,updated_at=? WHERE salon_id=? AND kind='topup' AND status='open'", id, now, salon.id);
   const row = {
-    id: uid(), ref: ref(), plan: 'topup', kind: 'topup', service: panelOrder.service || '', credits: n * TOPUP.images,
+    id, ref: ref(), plan: 'topup', kind: 'topup', service: panelOrder.service || '', credits: n * TOPUP.images,
     amount: n * TOPUP.amount * 10, salon_name: salon.name, contact_name: panelOrder.contact_name, phone: panelOrder.phone,
     city: '', note: '', status: 'open', expires_at: now + ORDER_MINUTES * 60000,
     access_key_hash: panelOrder.access_key_hash, coupon: '', discount: 0, created_at: now, updated_at: now,
@@ -264,9 +266,10 @@ export async function createRenewal(db, env, {order: panelOrder, salon}, plan, o
   must(amount > 0, 'مبلغ این پلن تعیین نشده است.', 409);
   const now = Date.now();
   await closeExpired(db);
-  await run(db, "UPDATE orders SET status='cancelled',updated_at=? WHERE salon_id=? AND kind='plan' AND status='open'", now, salon.id);
+  const id = uid();
+  await run(db, "UPDATE orders SET status='cancelled',replaced_by=?,updated_at=? WHERE salon_id=? AND kind='plan' AND status='open'", id, now, salon.id);
   const row = {
-    id: uid(), ref: ref(), plan, kind: 'plan', service: users ? 'all' : panelOrder.service === 'all' ? '' : panelOrder.service || '', users,
+    id, ref: ref(), plan, kind: 'plan', service: users ? 'all' : panelOrder.service === 'all' ? '' : panelOrder.service || '', users,
     credits: Number(PLANS[plan].credits || 0), amount: amount * 10, salon_name: salon.name, contact_name: panelOrder.contact_name, phone: panelOrder.phone,
     city: '', note: 'renewal', status: 'open', expires_at: now + ORDER_MINUTES * 60000,
     access_key_hash: panelOrder.access_key_hash, coupon: '', discount: 0, created_at: now, updated_at: now,
@@ -354,16 +357,27 @@ export async function confirmOrder(db, env, id, {by = 'owner', origin = '', amou
     if (row.status !== 'paid') await missed(env, row, 'مبلغ گزارش‌شده ' + (Number.isFinite(reported) ? reported.toLocaleString('fa-IR') : '؟') + ' تومان است، نه ' + toman(row.amount).toLocaleString('fa-IR'));
     must(false, 'مبلغ گزارش‌شده با مبلغ سفارش یکی نیست', 409);
   }
+  let replacedPaid = null;
   if (row.status !== 'paid') {
     const late = by === 'webhook' && reported !== null;
     const allowed = late ? ['open', 'reviewing', 'expired'] : ['open', 'reviewing'];
+    /* A transfer to an order the same buyer replaced (a second click, a reload) may still be in
+       flight: with the exact amount it is confirmed, unless an order that replaced it was paid
+       already (then the money is a second payment for one purchase: the owner handles it). */
+    if (late && row.status === 'cancelled' && row.replaced_by) {
+      replacedPaid = await paidReplacement(db, row);
+      if (!replacedPaid) allowed.push('cancelled');
+    }
     if (!allowed.includes(row.status)) {
-      if (by === 'webhook') await missed(env, row, row.status === 'expired' ? 'بعد از ۱۰ دقیقه رسید و مبلغ را گزارش نکرد' : 'این سفارش لغو شده بود');
+      if (by === 'webhook') await missed(env, row, replacedPaid ? 'سفارش جایگزین آن (' + replacedPaid.ref + ') قبلاً پرداخت شده؛ احتمالاً دو بار واریز شده و باید برگردانده شود'
+        : row.status === 'expired' ? 'بعد از ۱۰ دقیقه رسید و مبلغ را گزارش نکرد' : row.replaced_by ? 'سفارش جایگزین شده بود و مبلغ گزارش نشد' : 'این سفارش لغو شده بود');
       must(false, 'این سفارش بسته شده و قابل تأیید نیست.', 409);
     }
     const claim = await run(db, "UPDATE orders SET status='paid',confirmed_by=?,confirmed_at=?,updated_at=? WHERE id=? AND status IN (" + allowed.map(() => '?').join(',') + ')', by, now, now, id, ...allowed);
     /* A coupon is spent once the money is in. Legacy 'reviewing' orders spent it on the receipt. */
     if (claim.meta.changes && row.coupon && row.status !== 'reviewing') await bumpCoupon(db, row.coupon);
+    if (claim.meta.changes && row.status === 'cancelled')
+      await missed(env, row, 'این سفارش با سفارش تازه‌تری جایگزین شده بود، ولی واریزش با مبلغ درست رسید و تأیید شد. اگر سفارش تازه هم پرداخت شود، دو بار واریز شده است.', 'good');
     row = await orderById(db, id);
     if (!claim.meta.changes) return {order: await publicOrder(db, env, row, {origin}), claimed: false};
   } else {
@@ -400,14 +414,27 @@ export async function confirmOrder(db, env, id, {by = 'owner', origin = '', amou
   return {order: await publicOrder(db, env, updated, {origin}), claimed: true};
 }
 
+/* The first paid order in the chain of orders that replaced this one (replaced_by), or null. */
+async function paidReplacement(db, row) {
+  let next = row.replaced_by;
+  for (let i = 0; next && i < 30; i++) {
+    const r = await one(db, 'SELECT id,ref,status,replaced_by FROM orders WHERE id=?', next);
+    if (!r) return null;
+    if (r.status === 'paid') return r;
+    next = r.replaced_by;
+  }
+  return null;
+}
+
 /* A payment the webhook reported but that opened nothing: the owner hears it at once, with the
-   order code and the reason, so the customer who writes to support gets an answer. */
-async function missed(env, row, reason) {
+   order code and the reason, so the customer who writes to support gets an answer. With level
+   'good' it is a notice about a payment that DID open (a replaced order confirmed late). */
+async function missed(env, row, reason, level = 'warn') {
   try {
     const {notifyOwner} = await import('./alerts.js');
     await notifyOwner(env, {
-      kind: 'order', level: 'warn',
-      text: 'واریز سفارش ' + (row?.ref || 'ناشناس') + ' خودکار تأیید نشد',
+      kind: 'order', level,
+      text: 'واریز سفارش ' + (row?.ref || 'ناشناس') + (level === 'good' ? ' دیر رسید و تأیید شد' : ' خودکار تأیید نشد'),
       detail: '⚠️ ' + reason + (row ? '\n💳 ' + row.ref + ' · ' + toman(row.amount).toLocaleString('fa-IR') + ' تومان\n👤 ' + row.contact_name : '') + '\nدر /admin بررسی کنید.',
     });
   } catch {}
@@ -516,8 +543,9 @@ function checklistOf(salon, seen, credit) {
   return {
     items, done: items.filter(i => i.done).length, total: items.length,
     started_at: credit?.start || null, until: credit?.until || null,
-    /* A multi-user plan also invites colleagues (the plan table says how many users it has). */
-    users: Number(plan.users || 0),
+    /* «پنل آرایشگاه» also invites colleagues: the users it is paid for now (the plan table's
+       `seats`, or more bought on the order), 0 on a single-service plan. */
+    users: seatsOf(salon),
   };
 }
 export async function tickChecklist(db, {salon}, key, done) {

@@ -2397,12 +2397,30 @@ test('pay webhook after the 10 minutes: confirmed when the reported amount prove
  const x=await call(e,'/api/order',orderBody('essential',{phone:'09120000012'}));
  e.DB.sql.prepare('UPDATE orders SET expires_at=? WHERE id=?').run(Date.now()-1,x.data.id);
  assert.equal((await call(e,'/api/owner/orders/'+x.data.id+'/confirm',{},OWNER)).status,409);
- // a cancelled order (replaced by a newer one, or cancelled by the owner) never opens by itself
+ // an order replaced by a newer one from the same buyer: a transfer already made to it is not lost.
+ // With the exact amount it is confirmed (and the owner is told); without the amount it is not.
  const first=await call(e,'/api/order',orderBody('essential',{phone:'09120000013'}));
- await call(e,'/api/order',orderBody('pro',{phone:'09120000013'}));
+ const second=await call(e,'/api/order',orderBody('pro',{phone:'09120000013'}));
  assert.equal((await call(e,'/api/order/'+first.data.id)).data.status,'cancelled');
- assert.equal((await payHook(e,key,{ref:first.data.ref,status:'paid',amount:first.data.amount})).status,409);
- assert.ok(warnings(e).some(t=>t.includes(first.data.ref)));
+ assert.equal(e.DB.sql.prepare('SELECT replaced_by FROM orders WHERE id=?').get(first.data.id).replaced_by,second.data.id);
+ assert.equal((await payHook(e,key,{ref:first.data.ref,status:'paid'})).status,409,'no amount, no proof');
+ const wrong=await payHook(e,key,{ref:first.data.ref,status:'paid',amount:first.data.amount+1});assert.equal(wrong.status,409,'a wrong amount opens nothing');
+ const ok=await payHook(e,key,{ref:first.data.ref,status:'paid',amount:first.data.amount});assert.equal(ok.status,200,'the money in flight is honoured');
+ assert.equal((await call(e,'/api/panel/login',{key:first.data.access_key})).status,200);
+ assert.ok(e.DB.sql.prepare("SELECT text FROM activity WHERE kind='order'").all().some(x=>x.text.includes(first.data.ref)&&x.text.includes('دیر رسید')),'the owner hears about it');
+ // ...but not when the order that replaced it was paid already: a second payment, the owner handles it
+ const a=await call(e,'/api/order',orderBody('essential',{phone:'09120000014'}));
+ const b=await call(e,'/api/order',orderBody('essential',{phone:'09120000014'}));
+ assert.equal((await payHook(e,key,{ref:b.data.ref,status:'paid',amount:b.data.amount})).status,200);
+ assert.equal((await payHook(e,key,{ref:a.data.ref,status:'paid',amount:a.data.amount})).status,409);
+ assert.ok(warnings(e).some(t=>t.includes(a.data.ref)),'the double payment is flagged');
+ assert.equal(e.DB.sql.prepare("SELECT COUNT(*) n FROM credit_ledger WHERE order_id=?").get(a.data.id).n,0,'nothing granted twice');
+ // an order the owner cancelled never opens by itself
+ const c=await call(e,'/api/order',orderBody('essential',{phone:'09120000015'}));
+ await call(e,'/api/owner/orders/'+c.data.id+'/cancel',{},OWNER);
+ assert.equal((await call(e,'/api/order/'+c.data.id)).data.status,'cancelled');
+ assert.equal((await payHook(e,key,{ref:c.data.ref,status:'paid',amount:c.data.amount})).status,409);
+ assert.ok(warnings(e).some(t=>t.includes(c.data.ref)));
 });
 
 test('end of credit: the panel stays open with its data, generation stops, and the panel says renew; a soft warning comes 7 days before',async()=>{
@@ -2625,4 +2643,17 @@ test('salon plan renewal: a new user count starts with the period it pays for; p
  assert.equal(seatsOf(row()),6,'still 6 today');
  assert.deepEqual(p2.seat_steps.map(s=>s.seats),[3,9],'each renewal starts when its own period starts');
  assert.equal(seatsAt(p2,p2.until-1),9);
+});
+test('panel checklist: «دعوت همکار» shows for «پنل آرایشگاه» (its paid users), never on a single-service plan',async()=>{
+ const e=fixture();
+ const big=await call(e,'/api/order',orderBody('salon3',{users:5,phone:'09125554000',salon:'Team Salon'}));await confirmOwner(e,big.data.id);
+ const bl=await call(e,'/api/panel/login',{key:big.data.access_key});
+ assert.equal((await call(e,'/api/panel/me',undefined,{cookie:bl.cookie})).data.checklist.users,5);
+ const solo=await call(e,'/api/order',orderBody('pro',{service:'nails',phone:'09125554001',salon:'Solo'}));await confirmOwner(e,solo.data.id);
+ const sl=await call(e,'/api/panel/login',{key:solo.data.access_key});
+ assert.equal((await call(e,'/api/panel/me',undefined,{cookie:sl.cookie})).data.checklist.users,0);
+ assert.match(panelHTML,/if\(c\.users>1\)acts\.append/,'the panel shows the invite for more than one user');
+ const server=readFileSync(new URL('../worker/server.js',import.meta.url),'utf8');
+ assert.doesNotMatch(server,/UPDATE generations SET paid_by/,'paid_by is written with the generation row, never after it');
+ assert.equal((server.match(/visitor,paid_by\) VALUES/g)||[]).length,2,'both the image and the 360 view write paid_by in their INSERT');
 });

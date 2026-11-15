@@ -184,3 +184,26 @@ test('timing: a successful image stores how long it took; the owner sees it, nob
   assert.equal(e.DB.sql.prepare('SELECT model FROM generation_timings').get().model,'nano-banana-pro');
  }finally{p.restore()}
 });
+
+test('/try: a pack replaced by a newer one is still honoured when its exact amount arrives; paid images are not stopped by the shared daily cap',async()=>{
+ const e=fixture(),p=mockProvider();
+ try{
+  await app.fetch(new Request(origin+'/try'),e);
+  // the direct salon is shared by every visitor: give it a tiny daily cap so other people's free images fill it
+  e.DB.sql.prepare("UPDATE salons SET settings=json_set(settings,'$.daily_limit',1) WHERE id='ayneh-direct'").run();
+  const g=await guest(e,'try'),original=await upload(e,'try',g),v='ab'.repeat(16);
+  assert.equal((await gen(e,'try',g,original,v,'hair')).status,200);
+  const capped=await gen(e,'try',g,original,v,'nails');assert.equal(capped.status,429,'the free images hit the cap');
+  // two packs: the first is replaced, but its transfer was already made
+  const six=await call(e,'/api/c/order',{count:6,v},g),nine=await call(e,'/api/c/order',{count:9,v},g);
+  assert.equal((await call(e,'/api/c/order/'+six.data.id)).data.status,'cancelled');
+  assert.equal((await webhookPay(e,six.data.ref,180000)).status,200,'the exact amount of the replaced pack confirms it');
+  assert.equal((await call(e,'/api/c/me?v='+v,undefined,g)).data.own.left,6);
+  // her own images ignore the salon's daily cap (they are hers, not the salon's free images)
+  const own=await gen(e,'try',g,original,v,'lashes');assert.equal(own.status,200,JSON.stringify(own.data));
+  const acc=e.DB.sql.prepare('SELECT id FROM customer_accounts WHERE visitor=?').get(v).id;
+  assert.equal(e.DB.sql.prepare('SELECT paid_by FROM generations WHERE id=?').get(own.data.id).paid_by,acc,'paid_by is on the row from the start');
+  assert.equal((await call(e,'/api/c/me?v='+v,undefined,g)).data.own.left,5,'one of her six');
+  assert.equal(nine.data.status,'open');
+ }finally{p.restore()}
+});

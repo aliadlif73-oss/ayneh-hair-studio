@@ -18,7 +18,7 @@ import {can,featuresOf,OPENED_BY,linesOf} from './plans.js';
 import {panelApi,bookingTick} from './panelapi.js';
 import {weeklySummaries} from './reports.js';
 import {regularApi} from './regular.js';
-import {payForImage,quotaView,isDirect} from './customers.js';
+import {payForImage,quotaView,isDirect,ownImage} from './customers.js';
 import {spendDemoImage} from './demo.js';
 import {recordTiming} from './timing.js';
 import {attachReferral,refOf} from './rewards.js';
@@ -414,7 +414,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   return J({id,delivered,waiting,follow:followLinks(env,follow)});
  }
  if(route==='views'&&req.method==='POST'){
-  const b=await req.json();must(!demo,'نمای ۳۶۰ در نسخهٔ نمونه نیست');must(env.KIE_API_KEY&&cfg.generation_enabled,'تولید فعال نیست',503);must(/^[a-f0-9-]{36}$/.test(b.idem));const existing=await one(db,'SELECT id,state FROM generations WHERE session_id=? AND idem=?',s.id,b.idem);if(existing)return J(existing);const base=await one(db,"SELECT * FROM generations WHERE id=? AND session_id=? AND salon_id=? AND state='success'",b.parent,s.id,salon.id);must(base?.result_id,'عکس پایه معتبر نیست');must((base.line||'hair')==='hair','نمای ۳۶۰ فقط برای مو است');const m=await ownMedia(db,s,base.result_id),id=uid(),now=Date.now();const visitor=visitorOf(b),free=await unlimited(db,s);const paidBy=!trial&&!free?await payForImage(db,env,{salon,s,visitor,quota:()=>spendQuota(db,salon,s,visitor,'hair')}):null;if(!trial&&!free&&!paidBy)await spendCredit(db,env,salon);if(dailyLimit(cfg)>0&&!free)await limited(db,'views:'+salon.id,Math.min(20,dailyLimit(cfg)));await spendTrialImage(db,trial);await run(db,"INSERT INTO generations(id,salon_id,session_id,idem,kind,state,original_id,created_at,updated_at,visitor) VALUES(?,?,?,?,'views','creating',?,?,?,?)",id,salon.id,s.id,b.idem,base.original_id,now,now,visitor);if(paidBy)await run(db,'UPDATE generations SET paid_by=? WHERE id=?',paidBy,id);
+  const b=await req.json();must(!demo,'نمای ۳۶۰ در نسخهٔ نمونه نیست');must(env.KIE_API_KEY&&cfg.generation_enabled,'تولید فعال نیست',503);must(/^[a-f0-9-]{36}$/.test(b.idem));const existing=await one(db,'SELECT id,state FROM generations WHERE session_id=? AND idem=?',s.id,b.idem);if(existing)return J(existing);const base=await one(db,"SELECT * FROM generations WHERE id=? AND session_id=? AND salon_id=? AND state='success'",b.parent,s.id,salon.id);must(base?.result_id,'عکس پایه معتبر نیست');must((base.line||'hair')==='hair','نمای ۳۶۰ فقط برای مو است');const m=await ownMedia(db,s,base.result_id),id=uid(),now=Date.now();const visitor=visitorOf(b),free=await unlimited(db,s);const paidBy=!trial&&!free?await payForImage(db,env,{salon,s,visitor,quota:()=>spendQuota(db,salon,s,visitor,'hair')}):null;if(!trial&&!free&&!paidBy)await spendCredit(db,env,salon);if(dailyLimit(cfg)>0&&!free&&!paidBy)await limited(db,'views:'+salon.id,Math.min(20,dailyLimit(cfg)));await spendTrialImage(db,trial);await run(db,"INSERT INTO generations(id,salon_id,session_id,idem,kind,state,original_id,created_at,updated_at,visitor,paid_by) VALUES(?,?,?,?,'views','creating',?,?,?,?,?)",id,salon.id,s.id,b.idem,base.original_id,now,now,visitor,paidBy||null);
   try{const img=await uploadProvider(env,m);const task=await createImageTask(env,cfg,{prompt:VIEWS_PROMPT,image_input:[img],aspect_ratio:'16:9',resolution:'2K',output_format:'jpg'});await run(db,"UPDATE generations SET state='waiting',task_id=? WHERE id=?",task.taskId,id);return J({id,state:'waiting'});}catch{await run(db,"UPDATE generations SET state='unknown' WHERE id=?",id);throw new Problem(502,'ارسال نامشخص؛ بدون بازتولید خودکار');}
  }
  if(route==='generate'&&req.method==='POST'){
@@ -446,17 +446,21 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   // Every photo this build sends must still be in storage, checked before any quota, credit or provider call.
   for(const [m,msg] of [[base,'عکست دیگر در دسترس نیست؛ دوباره عکس بگذار.'],[reference,'عکس این مدل در دسترس نیست؛ یک مدل دیگر انتخاب کن.']]){if(m&&typeof bucketFor(env).head==='function')must(await bucketFor(env).head(m.object_key),msg,410);else if(m)must(await bucketFor(env).get(m.object_key),msg,410);}
   // The per-person quota first; past it, images the customer bought herself (worker/customers.js).
-  const visitor=visitorOf(b),free=await unlimited(db,s);const paidBy=!trial&&!demo&&!free?await payForImage(db,env,{salon,s,visitor,quota:()=>spendQuota(db,salon,s,visitor,line)}):null;
+  const visitor=visitorOf(b),free=await unlimited(db,s);let paidBy=!trial&&!demo&&!free?await payForImage(db,env,{salon,s,visitor,quota:()=>spendQuota(db,salon,s,visitor,line)}):null;
   // A salon on a paid plan spends one image credit per image; none left, or the plan ended, stops it here.
   // An image the customer paid for is never taken from the salon's credit.
   if(!trial&&!demo&&!free&&!paidBy)await spendCredit(db,env,salon);
   if(demo&&!free)await spendDemoImage(db,{salon,s,visitor,ip:clientIp(req)});
-  if(dailyLimit(cfg)>0&&!free)await limited(db,'generation:'+salon.id+':'+new Date().toISOString().slice(0,10),dailyLimit(cfg));if(!free)await spendTrialImage(db,trial);
+  // The salon's daily cap guards its own free images; an image the customer paid for from her own pack
+  // (paidBy) is hers and is never blocked by other visitors' free images (e.g. on the shared /try salon).
+  // When the cap stops a free image and she has images of her own, one of hers is used instead.
+  if(dailyLimit(cfg)>0&&!free&&!paidBy){try{await limited(db,'generation:'+salon.id+':'+new Date().toISOString().slice(0,10),dailyLimit(cfg))}catch(e){if(!(e instanceof Problem)||e.status!==429||trial||demo)throw e;paidBy=await ownImage(db,env,s,visitor);if(!paidBy)throw e}}
+  if(!free)await spendTrialImage(db,trial);
   const id=uid(),now=Date.now();
   // Hairstyle copies only the cut from a reference photo; colour only the colour.
   const mode=look?'salon':line==='hair'?(reference?'style':'catalog'):(reference?'reference':(line==='color'&&!Number.isInteger(b.style)?'text':'catalog'));
-  await run(db,'INSERT INTO generations(id,salon_id,session_id,idem,state,original_id,reference_id,style,transfer,color,created_at,updated_at,line,opts,base_id,visitor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',id,salon.id,s.id,b.idem,'creating',b.original_id,b.reference_id||null,reference?null:(Number.isInteger(b.style)?b.style:null),mode,color,now,now,line,JSON.stringify(opts),baseId,visitor);
-  if(paidBy)await run(db,'UPDATE generations SET paid_by=? WHERE id=?',paidBy,id);
+  // paid_by is written with the row itself: a crash between two statements must never leave a customer-paid image charged to the salon credit.
+  await run(db,'INSERT INTO generations(id,salon_id,session_id,idem,state,original_id,reference_id,style,transfer,color,created_at,updated_at,line,opts,base_id,visitor,paid_by) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',id,salon.id,s.id,b.idem,'creating',b.original_id,b.reference_id||null,reference?null:(Number.isInteger(b.style)?b.style:null),mode,color,now,now,line,JSON.stringify(opts),baseId,visitor,paidBy||null);
   try{
    const images=[await uploadProvider(env,base)];if(reference)images.push(await uploadProvider(env,reference));
    const prompt=look?(line==='hair'?transferPrompt('catalog',look,''):line==='color'?linePrompt('color','catalog',look,{},''):linePrompt(line,line==='nails'?'salon':'catalog',look,opts,color))

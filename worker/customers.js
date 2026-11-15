@@ -104,6 +104,13 @@ export async function payForImage(db, env, {salon, s, visitor, quota}) {
   throw out;
 }
 
+/* Her own account when it still has images, else null: used when the salon's daily cap stops a
+   free image, so a customer who bought a pack is never blocked by other visitors' free images. */
+export async function ownImage(db, env, s, visitor) {
+  const acc = await accountFor(db, env, s, visitor);
+  return acc && (await customerBalance(db, acc.id)).left > 0 ? acc.id : null;
+}
+
 /* What the page shows as "left": the free images plus her own. */
 export async function quotaView(db, env, salon, s, visitor, quota) {
   const acc = await accountFor(db, env, s, visitor);
