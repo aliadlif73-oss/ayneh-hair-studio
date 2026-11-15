@@ -3,10 +3,10 @@ import {Problem,must,phone,text,safeLink,transferPrompt,uid,token,hash,digits,li
 import {styles} from './legacy.js';
 import {identity,issueCookie,clearCookie,same,passwordLoginEnabled} from './auth.js';
 import {bucketFor,putImage} from './storage.js';
-import {botReady,deliverLead,deliverPending,newLinkCode,setWebhook,inboxes,followLinks,PLATFORMS,platformReady,baleSecret,staffInvite,notifyConflict,expireStates} from './telegram.js';
+import {botReady,deliverLead,deliverPending,newLinkCode,setWebhook,inboxes,followLinks,PLATFORMS,platformReady,baleSecret,staffInvite,notifyConflict,expireStates,askTransfer,transferTick} from './telegram.js';
 import {LINE_KEYS,lineStyles,cleanOptions,linePrompt,optionText,LINE_LABEL} from './lines.js';
 import {ownerLink,alertUnanswered,maybeDigest,setupStatus,digest,notifyOwner,setting} from './alerts.js';
-import {attribute,ownerFor,createStaff,transfer,report,team as teamOf,liveStaff,SPECIALTIES} from './referral.js';
+import {attribute,ownerFor,createStaff,requestTransfer,cancelTransfer,pendingTransfer,report,team as teamOf,liveStaff,SPECIALTIES} from './referral.js';
 import {stats} from './stats.js';
 import {smsReady,inviteReady,sendOtp} from './sms.js';
 import {createTrial,trialOf,trialLive,trialPublic,spendTrialImage} from './trial.js';
@@ -79,7 +79,7 @@ async function spendQuota(db,salon,s,visitor,line){
 async function unlimited(db,s){if(!s?.verified_phone)return false;try{const list=JSON.parse(await setting(db,'unlimited_phones')||'[]');return Array.isArray(list)&&list.includes(s.verified_phone)}catch{return false}}
 const visitorOf=b=>/^[a-f0-9]{16,32}$/.test(String(b?.v||''))?String(b.v):'';
 const refLink=(env,origin,salon,t)=>(env.APP_ORIGIN||origin)+'/s/'+salon.slug+'?r='+t.ref_code;
-async function teamView(db,env,salon,origin){return (await teamOf(db,salon.id)).map(t=>({id:t.id,name:t.name,specialty:t.specialty,telegram:!!t.telegram_chat_id,bale:!!t.bale_chat_id,invite_pending:!!t.invite_hash&&t.invite_expires>Date.now(),ref:refLink(env,origin,salon,t)}))}
+async function teamView(db,env,salon,origin){return Promise.all((await teamOf(db,salon.id)).map(async t=>{const pt=await pendingTransfer(db,salon.id,t.id);return {id:t.id,name:t.name,specialty:t.specialty,telegram:!!t.telegram_chat_id,bale:!!t.bale_chat_id,invite_pending:!!t.invite_hash&&t.invite_expires>Date.now(),ref:refLink(env,origin,salon,t),transfer:pt?{id:pt.id,to:pt.to_staff,expires_at:pt.expires_at,asked:!!pt.notified}:null}}))}
 // Anonymous usage events for the dashboard. The visitor id is random and made by the browser.
 export const TRACK_KINDS=['view','tour_start','tour_done','tour_skip','about','photo','look','color','generate','result','gen_fail','view360','send_open','sent','follow','rating','demo','share_open','share','line','color_on_hair','save'];
 export async function logEvent(db,salonId,kind,visitor='',meta=''){await run(db,'INSERT INTO events_log(id,salon_id,visitor,kind,meta,created_at) VALUES(?,?,?,?,?,?)',uid(),salonId,/^[a-f0-9]{16,32}$/.test(visitor)?visitor:'',kind,String(meta||'').slice(0,80),Date.now())}
@@ -113,6 +113,7 @@ export async function tick(env,origin){if(!env.DB)return {ready:false};const del
  const bookings=await bookingTick(env,origin).catch(e=>{console.error('bookings tick',e?.message);return null});
  const weekly=await weeklySummaries(env).catch(e=>{console.error('weekly',e?.message);return 0});
  const expired=await expireStates(env).catch(e=>{console.error('expire',e?.message);return 0});
+ const transfers=await transferTick(env).catch(e=>{console.error('transfers',e?.message);return 0});
  const unanswered=await alertUnanswered(env).catch(e=>{console.error('unanswered',e?.message);return 0});
  const digestSent=await maybeDigest(env).catch(e=>{console.error('digest',e?.message);return false});
  const cleaned=await cleanup(env);return {ready:true,delivered,expired,unanswered,digest:digestSent,bookings,weekly,...cleaned};}
@@ -322,7 +323,13 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   if(r==='telegram-unlink'){const col=b.platform==='bale'?'bale_chat_id':b.platform==='telegram'?'telegram_chat_id':null;if(col)await run(db,'UPDATE salons SET '+col+'=NULL WHERE id=?',salon.id);else await run(db,'UPDATE salons SET telegram_chat_id=NULL,bale_chat_id=NULL,telegram_code_hash=NULL,telegram_code_expires=NULL WHERE id=?',salon.id);return J({ok:true});}
   if(r==='team'){const t=await createStaff(db,salon,b.name,b.specialty);return J({member:t,links:await staffInvite(db,env,t),ref:refLink(env,u.origin,salon,t)});}
   if(r==='team/link'){const t=await one(db,'SELECT * FROM team WHERE id=? AND salon_id=? AND active=1',String(b.id||''),salon.id);must(t,'نیرو پیدا نشد',404);return J({links:await staffInvite(db,env,t),ref:refLink(env,u.origin,salon,t)});}
-  if(r==='team/remove'){const ids=await transfer(db,salon.id,String(b.id||''),b.to?String(b.to):null);for(const id of ids){const l=await one(db,'SELECT * FROM leads WHERE id=?',id);if(l)await deliverLead(env,l)}return J({ok:true,moved:ids.length});}
+  if(r==='team/remove'){
+   const out=await requestTransfer(db,salon.id,String(b.id||''),b.to?String(b.to):null);
+   if(out.done){for(const id of out.ids){const l=await one(db,'SELECT * FROM leads WHERE id=?',id);if(l)await deliverLead(env,l)}return J({ok:true,moved:out.ids.length,pending:false});}
+   const sent=await askTransfer(env,salon,out.request).catch(e=>{console.error('transfer ask',e?.message);return false});
+   return J({ok:true,pending:true,request:out.request.id,sent,expires_at:out.request.expires_at});
+  }
+  if(r==='team/remove/cancel'){return J({ok:true,cancelled:await cancelTransfer(db,salon.id,String(b.id||''))});}
   // Portfolio added from the owner console (same row the bot makes): a photo uploaded with
   // upload?kind=portfolio, its title and its service line. Published and usable for try-on.
   if(r==='portfolio/add'){
