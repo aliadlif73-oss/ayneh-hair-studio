@@ -9,7 +9,7 @@
   <ol class="sb-steps" aria-label="مراحل ساخت پیش‌نمایش">
    <li><strong>نام و نشانی</strong><span>دو فیلد کوتاه؛ پرداختی لازم نیست.</span></li>
    <li><strong>پیش‌نمایش زنده</strong><span>صفحه‌ای را که مشتری می‌بیند، همان‌جا ببینید.</span></li>
-   <li><strong>خرید پنل</strong><span>پنل خودتان را انتخاب کنید و با پرداخت، صفحه‌تان باز می‌شود.</span></li>
+   <li><strong>انتخاب پلن و پرداخت</strong><span>پلن مناسب را انتخاب کنید؛ بعد از پرداخت، همین صفحه با نشانی خودتان باز می‌شود.</span></li>
   </ol>
 
   <div class="sb-grid">
@@ -37,12 +37,12 @@
      </div>
     </div>
     <div class="sb-loading" id="builderLoading" role="status" hidden><span class="sb-spinner" aria-hidden="true"></span><p>در حال آماده‌کردن پیش‌نمایش…</p></div>
-    <a class="btn sb-activate" id="builderActivate" href="#services" hidden>خرید پنل و باز کردن صفحه</a>
+    <a class="btn sb-activate" id="builderActivate" href="#services" hidden>انتخاب پلن و باز کردن صفحه</a>
     <p class="sb-note" id="builderHint" aria-live="polite"></p>
    </div>
 
    <form id="start" class="sb-form" method="post" aria-describedby="builderAvailability">
-    <p id="builderAvailability" class="sb-availability" role="status">پیش‌نمایش بلافاصله آماده می‌شود؛ برای باز کردن صفحهٔ واقعی، پنل خودتان را بخرید.</p>
+    <p id="builderAvailability" class="sb-availability" role="status">پیش‌نمایش بلافاصله آماده می‌شود؛ برای باز کردن صفحهٔ واقعی، یکی از پلن‌ها را بخرید.</p>
     <noscript><p>برای ساخت پیش‌نمایش، جاوااسکریپت مرورگر را فعال کنید.</p></noscript>
     <div class="wiz" id="builderWizard">
      <div class="wiz-top"><span class="wiz-track"><i class="wiz-bar" id="wizardBar"></i></span><span class="wiz-count" id="wizardCount">۱ از ۲</span></div>
@@ -60,7 +60,7 @@
      </div>
 
      <p class="wiz-ready" id="wizardReady" role="status" hidden>پیش‌نمایشتان آماده است. جزئیات را هر وقت خواستید اضافه کنید؛ هیچ‌کدام اجباری نیست.
-      <a href="#services" class="wiz-ready__plans">دیدن پنل‌ها و خرید ←</a></p>
+      <a href="#services" class="wiz-ready__plans">دیدن پلن‌ها و قیمت ←</a></p>
      <p class="wiz-err" id="wizardError" role="alert"></p>
      <div class="wiz-actions">
       <button type="button" class="btn btn--ghost wiz-prev" id="wizardPrev" hidden>قبلی</button>
@@ -68,7 +68,7 @@
       <button type="button" class="btn wiz-next" id="wizardNext">ادامه</button>
      </div>
     </div>
-    <p class="reassure-inline">پیش‌نمایش بلافاصله ساخته می‌شود و جایی فرستاده نمی‌شود؛ فقط برای باز کردن صفحهٔ واقعی، پنل خودتان را بخرید.</p>
+    <p class="reassure-inline">پیش‌نمایش بلافاصله ساخته می‌شود و جایی فرستاده نمی‌شود؛ فقط برای باز کردن صفحهٔ واقعی، یکی از پلن‌ها را بخرید.</p>
 
     <details class="sb-details" id="builderDetails">
      <summary>تکمیل جزئیات صفحه (اختیاری)</summary>

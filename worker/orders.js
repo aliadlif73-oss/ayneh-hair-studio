@@ -1,19 +1,22 @@
-// Paid plans: a plan panel → bank transfer to the owner's card → a 10-minute window →
-// confirmation (by the owner in /admin, or by the payment site's webhook) → the salon panel
-// and the public salon page open.
+// Paid plans: a plan card → bank transfer to the owner's card → a 10-minute window →
+// confirmation (by the owner in /admin, or by the payment site's webhook) → the salon page,
+// the salon panel and the plan's image credits open. A salon with a plan can also buy
+// image top-ups (10 images per pack) from its panel through the same checkout.
 //
 // Rules this file keeps:
-//  * An amount only exists when the owner approved one. The page's figures come from
-//    design/landing/build.py and are generated into worker/prices.js, and the server refuses any plan whose amount is unset.
+//  * Amounts come only from worker/prices.js, generated from the owner's price sheet in
+//    design/landing/build.py. The server never takes an amount from the browser.
 //  * The card number lives in app_settings ('pay_card'), set in /admin — never in the code.
-//    An order is still possible without it (the page says so), but no number is invented.
-//  * Expiry is decided by the server clock. A closed order cannot be paid; the page only
-//    mirrors `expires_at`.
-//  * Money is in TOMAN on the page; amounts are stored in RIANS (×10) to keep the integer
-//    arithmetic unambiguous.
-import {must, phone, text, uid, digits, token} from './domain.js';
-import {same} from './auth.js';
-import {PLANS, PRICE_MINUTES} from './prices.js';
+//  * The 10-minute window only applies while an order is waiting for money (open). Once the
+//    customer has sent a receipt (reviewing), the order waits for confirmation however long
+//    that takes; an expired order can be reopened by the owner.
+//  * Confirmation is atomic: one UPDATE claims the order, and only the call that claimed it
+//    provisions the salon and grants credits. Retries and double clicks are harmless.
+//  * Money is TOMAN on the page; amounts are stored in RIALS (×10).
+import {must, phone, text, uid, digits, hash} from './domain.js';
+import {PLANS, PRICE_MINUTES, TOPUP} from './prices.js';
+import {applyPlan, grant, balance, MONTH} from './credits.js';
+import {featuresOf, OPENED_BY, can} from './plans.js';
 
 const run = (db, sql, ...a) => db.prepare(sql).bind(...a).run();
 const one = (db, sql, ...a) => db.prepare(sql).bind(...a).first();
@@ -22,9 +25,12 @@ const all = async (db, sql, ...a) => (await db.prepare(sql).bind(...a).all()).re
 export const PAY_CARD = 'pay_card';
 export const WEBHOOK_KEY = 'pay_webhook_key';
 export const COUPONS = 'pay_coupons';
+export const SERVICES = ['hair', 'nails', 'lashes'];
+export const SERVICE_LABEL = {hair: 'مدل و رنگ مو', nails: 'ناخن', lashes: 'مژه'};
 
-/* One order lives this long. The page counts down; the server enforces. */
+/* One order lives this long while waiting for money. The page counts down; the server enforces. */
 export const ORDER_MINUTES = PRICE_MINUTES;
+const PANEL_DAYS = 30;
 
 /* Persian card numbers are grouped in fours; only digits survive storage. */
 export const cardDigits = v => digits(String(v ?? '')).replace(/\D/g, '');
@@ -44,26 +50,19 @@ function luhn(d) {
 
 /* A short, human-quotable code. No 0/O/1/I so a receipt note can be typed from a screenshot. */
 const ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-const ref = () => {
-  const a = crypto.getRandomValues(new Uint8Array(6));
-  return 'AY' + Array.from(a, x => ALPHABET[x % ALPHABET.length]).join('');
-};
+const ref = () => 'AY' + Array.from(crypto.getRandomValues(new Uint8Array(6)), x => ALPHABET[x % ALPHABET.length]).join('');
 
-/* The key that opens the salon panel. Shown once; only its hash rests in the database. */
-export const newAccessKey = () => {
-  const a = crypto.getRandomValues(new Uint8Array(9));
-  return 'AY-' + Array.from(a, x => ALPHABET[x % ALPHABET.length]).join('');
-};
-
+/* The key that opens the salon panel. Only its hash rests in the database. */
+export const newAccessKey = () => 'AY-' + Array.from(crypto.getRandomValues(new Uint8Array(9)), x => ALPHABET[x % ALPHABET.length]).join('');
 export const hashKey = async s => {
   const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('ayneh-panel:' + s));
   return Array.from(new Uint8Array(d), x => x.toString(16).padStart(2, '0')).join('');
 };
 
 export const planAmount = key => Number(PLANS[key]?.amount || 0);
+const planName = row => row.kind === 'topup' ? 'اعتبار ' + Number(row.credits || 0).toLocaleString('fa-IR') + ' عکس' : (PLANS[row.plan]?.name || row.plan);
 
-/* Coupons: {CODE:{percent|amount, max, used}}. `percent` is of the order amount, `amount` in
-   tomans. max 0 = unlimited. Kept in app_settings so the owner can edit them without a deploy. */
+/* Coupons: {CODE:{percent|amount, max, used}} in app_settings, editable without a deploy. */
 export async function couponTable(db) {
   try {
     const t = JSON.parse((await one(db, 'SELECT value FROM app_settings WHERE key=?', COUPONS))?.value || '{}');
@@ -79,31 +78,29 @@ export function discountFor(coupon, amountToman, table) {
   if (!rule || typeof rule !== 'object') return {code: '', toman: 0};
   if (Number(rule.max) > 0 && Number(rule.used || 0) >= Number(rule.max)) return {code: '', toman: 0};
   let off = 0;
-  if (Number.isFinite(Number(rule.percent))) off = Math.round(amountToman * Math.max(0, Math.min(100, Number(rule.percent))) / 100);
-  else if (Number.isFinite(Number(rule.amount))) off = Math.max(0, Number(rule.amount));
+  if (rule.percent != null && Number.isFinite(Number(rule.percent))) off = Math.round(amountToman * Math.max(0, Math.min(100, Number(rule.percent))) / 100);
+  else if (rule.amount != null && Number.isFinite(Number(rule.amount))) off = Math.max(0, Number(rule.amount));
   off = Math.min(off, amountToman);
   return off > 0 ? {code, toman: off} : {code: '', toman: 0};
 }
 
-/* Internally an amount is rials (10 × the toman the page shows); the API speaks toman. */
 const toman = rial => Math.round(Number(rial || 0) / 10);
 
 /* What the page needs to draw: the figures, never the internals. */
 export async function publicOrder(db, env, row, {key = '', origin = ''} = {}) {
   const card = (await one(db, 'SELECT value FROM app_settings WHERE key=?', PAY_CARD))?.value || '';
   const salon = row.salon_id ? await one(db, 'SELECT slug FROM salons WHERE id=?', row.salon_id) : null;
-  /* Absolute links whenever the request origin is known, so a link copied from the phone
-     still works on a laptop (and in a webhook payload). */
   const base = env.APP_ORIGIN || origin;
   const paid = row.status === 'paid';
   return {
-    id: row.id, ref: row.ref, plan: row.plan, plan_name: PLANS[row.plan]?.name || row.plan,
+    id: row.id, ref: row.ref, plan: row.plan, kind: row.kind || 'plan', plan_name: planName(row),
+    service: row.service || '', credits: Number(row.credits || 0),
     amount: toman(row.amount), discount: toman(row.discount),
     status: row.status, created_at: row.created_at, expires_at: row.expires_at,
     card: cardDigits(card) || '', card_owner: card ? cardOwner(card) : '',
-    /* The key is shown once, when the order opens (so the customer keeps it while paying)
-       and again only if the owner regenerates it. A plain GET never returns it. */
     access_key: key || '',
+    /* A top-up or a renewal from the panel keeps the salon's existing panel key. */
+    same_key: row.kind === 'topup' || row.note === 'renewal',
     panel_url: paid ? (base ? base + '/panel' : '/panel') : '',
     page_url: paid && salon ? (base ? base : '') + '/s/' + salon.slug : '',
     salon: row.salon_name, contact: row.contact_name,
@@ -130,87 +127,116 @@ export async function saveCard(db, number, owner) {
   return {number: d, owner: name};
 }
 
-/* Webhook token: generated once, shown in /admin, and compared in constant time. */
+/* Webhook token: generated once, shown in /admin, compared in constant time. */
+const newHookKey = () => 'whk_' + Array.from(crypto.getRandomValues(new Uint8Array(24)), x => x.toString(16).padStart(2, '0')).join('');
 export async function webhookKey(db) {
-  let k = (await one(db, 'SELECT value FROM app_settings WHERE key=?', WEBHOOK_KEY))?.value || '';
-  if (!k) {
-    k = 'whk_' + Array.from(crypto.getRandomValues(new Uint8Array(24)), x => x.toString(16).padStart(2, '0')).join('');
-    await run(db, 'INSERT OR IGNORE INTO app_settings(key,value,updated_at) VALUES(?,?,?)', WEBHOOK_KEY, k, Date.now());
-    return (await one(db,'SELECT value FROM app_settings WHERE key=?',WEBHOOK_KEY)).value;
-  }
-  return k;
+  const k = (await one(db, 'SELECT value FROM app_settings WHERE key=?', WEBHOOK_KEY))?.value || '';
+  if (k) return k;
+  /* Two first calls at once must not fail: the second keeps the first one's key. */
+  await run(db, 'INSERT INTO app_settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO NOTHING', WEBHOOK_KEY, newHookKey(), Date.now());
+  return (await one(db, 'SELECT value FROM app_settings WHERE key=?', WEBHOOK_KEY)).value;
 }
 export async function rotateWebhookKey(db) {
-  const k = 'whk_' + Array.from(crypto.getRandomValues(new Uint8Array(24)), x => x.toString(16).padStart(2, '0')).join('');
+  const k = newHookKey();
   await run(db, 'INSERT INTO app_settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at', WEBHOOK_KEY, k, Date.now());
   return k;
 }
 
-/* An expired order is closed on read as well, so a sleeping tab or a forgotten link never
-   leaves a payable order behind. Cheap: one UPDATE guarded by status + time. */
+/* Only an order still waiting for money expires. A sent receipt is never closed by the clock. */
 export async function closeExpired(db) {
   await run(db, "UPDATE orders SET status='expired',updated_at=? WHERE status='open' AND expires_at<=?", Date.now(), Date.now());
 }
 
-const ACTIVE = "status IN ('open','reviewing')";
-
-export async function createOrder(db, env, b, origin, checkout, readDraft) {
+/* A plan order from a service page. A second order from the same mobile replaces the first:
+   the earlier open order is cancelled, and nothing about it is returned to this caller. */
+export async function createOrder(db, env, b, origin = '') {
   const plan = String(b.plan || '');
-  must(PLANS[plan], 'این پنل وجود ندارد.', 404);
+  must(PLANS[plan], 'این پلن وجود ندارد.', 404);
   const amount = planAmount(plan);
-  must(amount > 0, 'مبلغ این پنل هنوز نهایی نشده؛ درخواست دمو بفرستید.', 409);
+  must(amount > 0, 'مبلغ این پلن تعیین نشده است.', 409);
   const salon = text(String(b.salon || ''), 80), name = text(String(b.name || ''), 60);
   must(salon.length >= 2, 'نام سالن را بنویسید.');
   must(name.length >= 2, 'نام و نام خانوادگی را بنویسید.');
   must(b.consent === true, 'برای هماهنگی راه‌اندازی، تأیید تماس لازم است.');
+  const service = SERVICES.includes(b.service) ? b.service : '';
   const tel = phone(b.phone), now = Date.now();
-  /* One open order per mobile: a second click resumes the first one instead of stacking
-     countdowns and two card pages. */
   await closeExpired(db);
-  const existing = await one(db, 'SELECT * FROM orders WHERE phone=? AND ' + ACTIVE + ' ORDER BY created_at DESC LIMIT 1', tel);
-  if (existing) {
-    must(await ownsOrder(existing, checkout), 'برای این شماره سفارش فعالی وجود دارد.', 409);
-    return publicOrder(db, env, existing, {origin});
-  }
-  const {draft, assets} = readDraft ? await readDraft() : {draft: null, assets: []};
+  await run(db, "UPDATE orders SET status='cancelled',updated_at=? WHERE phone=? AND kind='plan' AND status='open'", now, tel);
   const coupon = discountFor(String(b.coupon || ''), amount, await couponTable(db));
   const key = newAccessKey();
   const row = {
-    id: uid(), ref: ref(), plan, amount: (amount - coupon.toman) * 10,
-    salon_name: salon, contact_name: name, phone: tel,
+    id: uid(), ref: ref(), plan, kind: 'plan', service, credits: Number(PLANS[plan].credits || 0),
+    amount: (amount - coupon.toman) * 10, salon_name: salon, contact_name: name, phone: tel,
     city: text(String(b.city || ''), 40), note: text(String(b.note || ''), 300), status: 'open',
     expires_at: now + ORDER_MINUTES * 60000, access_key_hash: await hashKey(key),
     coupon: coupon.code, discount: coupon.toman * 10, created_at: now, updated_at: now,
   };
-  const checkoutHash = await hashKey(checkout);
-  const inserted = await db.batch([
-    db.prepare(`INSERT INTO orders(id,ref,plan,amount,salon_name,contact_name,phone,city,note,status,expires_at,access_key_hash,coupon,discount,created_at,updated_at,checkout_hash,draft)
-      SELECT ?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,? WHERE NOT EXISTS (SELECT 1 FROM orders WHERE phone=? AND ${ACTIVE})`)
-      .bind(row.id, row.ref, row.plan, row.amount, draft?.name || row.salon_name, row.contact_name, row.phone, row.city, row.note, row.status,
-        row.expires_at, row.access_key_hash, row.coupon, row.discount, row.created_at, row.updated_at, checkoutHash, draft ? JSON.stringify(draft) : null, tel),
-    ...assets.map(({slot,mime,bytes}) => db.prepare('INSERT INTO order_draft_assets SELECT ?,?,?,? WHERE EXISTS (SELECT 1 FROM orders WHERE id=?)')
-      .bind(row.id,slot,mime,bytes,row.id)),
-  ]);
-  if (!inserted[0].meta.changes) {
-    const active = await one(db, 'SELECT * FROM orders WHERE phone=? AND ' + ACTIVE, tel);
-    must(active && await ownsOrder(active, checkout), 'برای این شماره سفارش فعالی وجود دارد.', 409);
-    return publicOrder(db, env, active, {origin});
-  }
-  if (draft) row.salon_name = draft.name;
-  /* The owner hears about a new order on the same channel as inquiries. */
-  try {
-    const {notifyOwner} = await import('./alerts.js');
-    await notifyOwner(env, {
-      kind: 'order', level: 'good',
-      text: 'سفارش ' + PLANS[plan].name + ' برای «' + salon + '» باز شد',
-      detail: '💳 ' + row.ref + ' · ' + Math.round(row.amount / 10).toLocaleString('fa-IR') + ' تومان\n⏳ ' + ORDER_MINUTES + ' دقیقه',
-    });
-  } catch {}
+  await insert(db, row);
+  await tell(env, 'سفارش ' + PLANS[plan].name + (service ? ' (' + SERVICE_LABEL[service] + ')' : '') + ' برای «' + salon + '» باز شد', row);
   return publicOrder(db, env, row, {key, origin});
 }
 
-/* Coupon use is counted in the same JSON the owner edits; a read-modify-write is fine here
-   because a coupon is a courtesy, not money in flight. */
+/* A top-up from the salon's own panel: n packs of TOPUP.images images. The salon is known
+   from the panel session, so no key is minted and the panel stays the same. */
+export async function createTopup(db, env, {order: panelOrder, salon}, packs, origin = '') {
+  const n = Number(packs);
+  must(Number.isInteger(n) && n >= 1 && n <= 20, 'تعداد بستهٔ عکس معتبر نیست.');
+  const now = Date.now();
+  await closeExpired(db);
+  await run(db, "UPDATE orders SET status='cancelled',updated_at=? WHERE salon_id=? AND kind='topup' AND status='open'", now, salon.id);
+  const row = {
+    id: uid(), ref: ref(), plan: 'topup', kind: 'topup', service: panelOrder.service || '', credits: n * TOPUP.images,
+    amount: n * TOPUP.amount * 10, salon_name: salon.name, contact_name: panelOrder.contact_name, phone: panelOrder.phone,
+    city: '', note: '', status: 'open', expires_at: now + ORDER_MINUTES * 60000,
+    access_key_hash: panelOrder.access_key_hash, coupon: '', discount: 0, created_at: now, updated_at: now,
+    salon_id: salon.id,
+  };
+  await insert(db, row);
+  await tell(env, 'خرید ' + (n * TOPUP.images).toLocaleString('fa-IR') + ' عکس برای «' + salon.name + '» باز شد', row);
+  return publicOrder(db, env, row, {origin});
+}
+
+/* A renewal or an upgrade from the salon's own panel: the salon, contact and mobile come from
+   the panel session, the panel key stays the same (no new key is minted), and confirmation
+   applies the new plan to this same salon (provisionSalon honours salon_id). */
+export async function createRenewal(db, env, {order: panelOrder, salon}, plan, origin = '') {
+  must(PLANS[plan], 'این پلن وجود ندارد.', 404);
+  const amount = planAmount(plan);
+  must(amount > 0, 'مبلغ این پلن تعیین نشده است.', 409);
+  const now = Date.now();
+  await closeExpired(db);
+  await run(db, "UPDATE orders SET status='cancelled',updated_at=? WHERE salon_id=? AND kind='plan' AND status='open'", now, salon.id);
+  const row = {
+    id: uid(), ref: ref(), plan, kind: 'plan', service: panelOrder.service || '', credits: Number(PLANS[plan].credits || 0),
+    amount: amount * 10, salon_name: salon.name, contact_name: panelOrder.contact_name, phone: panelOrder.phone,
+    city: '', note: 'renewal', status: 'open', expires_at: now + ORDER_MINUTES * 60000,
+    access_key_hash: panelOrder.access_key_hash, coupon: '', discount: 0, created_at: now, updated_at: now,
+    salon_id: salon.id,
+  };
+  await insert(db, row);
+  await tell(env, 'تمدید/ارتقا به ' + PLANS[plan].name + ' برای «' + salon.name + '» باز شد', row);
+  return publicOrder(db, env, row, {origin});
+}
+
+async function insert(db, row) {
+  await run(db,
+    'INSERT INTO orders(id,ref,plan,kind,service,credits,amount,salon_name,contact_name,phone,city,note,status,expires_at,access_key_hash,coupon,discount,salon_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+    row.id, row.ref, row.plan, row.kind, row.service, row.credits, row.amount, row.salon_name, row.contact_name, row.phone, row.city, row.note,
+    row.status, row.expires_at, row.access_key_hash, row.coupon, row.discount, row.salon_id || null, row.created_at, row.updated_at);
+}
+
+/* The owner hears about new orders on the alert channel. The mobile is the buyer's (a salon
+   owner, Ayneh's own customer), never a salon customer's. */
+async function tell(env, line, row) {
+  try {
+    const {notifyOwner} = await import('./alerts.js');
+    await notifyOwner(env, {
+      kind: 'order', level: 'good', text: line,
+      detail: '👤 ' + row.contact_name + '\n📞 ' + row.phone + '\n💳 ' + row.ref + ' · ' + Math.round(row.amount / 10).toLocaleString('fa-IR') + ' تومان\n⏳ ' + ORDER_MINUTES + ' دقیقه',
+    });
+  } catch {}
+}
+
 export async function bumpCoupon(db, code) {
   const table = await couponTable(db);
   if (!table[code]) return;
@@ -223,176 +249,192 @@ export async function orderById(db, id) {
   return one(db, 'SELECT * FROM orders WHERE id=?', id);
 }
 
-export function checkoutToken(req) {
-  return (req.headers.get('cookie') || '').match(/(?:^|;\s*)ayneh_checkout=([a-f0-9]{64})(?:;|$)/)?.[1] || '';
-}
-
-export function newCheckoutToken() { return token(); }
-
-async function ownsOrder(row, checkout, legacyKey = '') {
-  if (row.checkout_hash) return !!checkout && same(row.checkout_hash, await hashKey(checkout));
-  return !!legacyKey && same(row.access_key_hash, await hashKey(legacyKey));
-}
-
-async function buyerOrder(db, id, req) {
+export async function customerOrder(db, env, id, origin = '') {
+  await closeExpired(db);
   const row = await orderById(db, id);
-  must(row && await ownsOrder(row, checkoutToken(req), req.headers.get('x-order-key')), 'سفارش پیدا نشد.', 404);
-  return row;
+  must(row, 'سفارش پیدا نشد.', 404);
+  return publicOrder(db, env, row, {origin});
 }
 
-export async function customerOrder(db, env, id, origin, req) {
+export async function setCoupon(db, env, id, code, origin = '') {
   await closeExpired(db);
-  return publicOrder(db, env, await buyerOrder(db, id, req), {origin});
-}
-
-export async function setCoupon(db, env, id, code, origin, req) {
-  await closeExpired(db);
-  const row = await buyerOrder(db, id, req);
-  must(row.status === 'open', 'این سفارش دیگر قابل تغییر نیست.', 409);
-  const base = toman(row.amount + row.discount);
+  const row = await orderById(db, id);
+  must(row, 'سفارش پیدا نشد.', 404);
+  must(row.status === 'open' && row.kind !== 'topup', 'این سفارش دیگر قابل تغییر نیست.', 409);
+  const base = planAmount(row.plan);
   const coupon = discountFor(code, base, await couponTable(db));
   must(coupon.code, 'این کد تخفیف معتبر نیست یا ظرفیتش پر شده.', 422);
-  const changed = await run(db, "UPDATE orders SET coupon=?,discount=?,amount=?,updated_at=? WHERE id=? AND status='open' AND expires_at>?",
-    coupon.code, coupon.toman * 10, (base - coupon.toman) * 10, Date.now(), id, Date.now());
-  must(changed.meta.changes, 'این سفارش دیگر قابل تغییر نیست.', 409);
+  await run(db, 'UPDATE orders SET coupon=?,discount=?,amount=?,updated_at=? WHERE id=? AND status=?',
+    coupon.code, coupon.toman * 10, (base - coupon.toman) * 10, Date.now(), id, 'open');
   return publicOrder(db, env, await orderById(db, id), {origin});
 }
 
-export async function markReviewing(db, env, id, note, origin, req) {
+export async function markReviewing(db, env, id, note, origin = '') {
   await closeExpired(db);
-  const row = await buyerOrder(db, id, req);
+  const row = await orderById(db, id);
+  must(row, 'سفارش پیدا نشد.', 404);
   must(row.status === 'open' || row.status === 'reviewing', 'مهلت این سفارش تمام شده؛ سفارش تازه بسازید.', 410);
   const changed = await run(db, "UPDATE orders SET status='reviewing',receipt_note=?,updated_at=? WHERE id=? AND status='open' AND expires_at>?",
     text(String(note || ''), 120), Date.now(), id, Date.now());
-  /* A coupon is spent when the customer actually commits (sends a receipt), not when a
-     window is opened and abandoned. */
   if (changed.meta.changes && row.coupon) await bumpCoupon(db, row.coupon);
   return publicOrder(db, env, await orderById(db, id), {origin});
 }
 
-/* Confirmation is idempotent: the owner clicking twice, or the payment site retrying the
-   webhook, must never create a second salon or a second key. */
-export async function confirmOrder(db, env, id, {by = 'owner', origin = '', transfer = null} = {}) {
-  await closeExpired(db);
+/* The owner gives an expired order another 10 minutes (the customer paid late, or asked). */
+export async function reopenOrder(db, id) {
   const row = await orderById(db, id);
   must(row, 'سفارش پیدا نشد.', 404);
-  if (transfer) {
-    must(row.amount === transfer.rial, 'مبلغ واریز با سفارش مطابقت ندارد.', 409);
-    must(!row.transfer_id || row.transfer_id === transfer.id, 'تراکنش با این سفارش مطابقت ندارد.', 409);
-  }
-  if (row.status === 'paid') {
-    if(transfer&&!row.transfer_id){
-      await run(db,"UPDATE orders SET transfer_id=? WHERE id=? AND transfer_id IS NULL",transfer.id,id);
-      const updated=await orderById(db,id);
-      must(updated.transfer_id===transfer.id,'تراکنش با این سفارش مطابقت ندارد.',409);
-    }
-    return {order: await publicOrder(db, env, row, {origin})};
-  }
-  must(row.status === 'open' || row.status === 'reviewing', 'این سفارش بسته شده و قابل تأیید نیست.', 409);
-
-  const draft = row.draft ? JSON.parse(row.draft) : null;
-  const base = String(row.contact_name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 28) || 'salon';
-  let slug = draft?.slug || base;
-  if (!draft) {
-    let n = 1;
-    while (slug === 'demo' || await one(db, 'SELECT 1 FROM salons WHERE slug=? UNION ALL SELECT 1 FROM orders WHERE json_extract(draft,\'$.slug\')=? AND ' + ACTIVE, slug, slug)) {
-      slug = base + '-' + ++n;
-    }
-  }
-  const profile = draft ? {...draft.profile, brand: draft.brand} : {manager: row.contact_name, ...(row.city ? {address: row.city} : {})};
-  const now = Date.now();
-  const settings = {generation_enabled: true, reference_verified: true, plan: row.plan};
-  const assets = draft ? await all(db, 'SELECT slot,mime FROM order_draft_assets WHERE order_id=?', id) : [];
-  const assetIds = Object.fromEntries(assets.map(({slot}) => [slot, uid()]));
-  for (const slot of ['logo','cover','portrait']) if (assetIds[slot]) profile[slot] = assetIds[slot];
-
-  // One D1 transaction claims the order and publishes its salon, assets and portfolio.
-  // Dependent inserts run only if the guarded UPDATE changed a row in this transaction.
-  const guard = 'EXISTS (SELECT 1 FROM orders WHERE id=? AND salon_id=?)';
-  const salonId = uid();
-  const statements = [
-    db.prepare("UPDATE orders SET status='paid',salon_id=?,confirmed_by=?,confirmed_at=?,updated_at=?,transfer_id=? WHERE id=? AND (status='reviewing' OR (status='open' AND expires_at>?)) AND (? IS NULL OR amount=?)")
-      .bind(salonId,by,now,now,transfer?.id ?? null,id,now,transfer?.rial ?? null,transfer?.rial ?? null),
-    db.prepare('INSERT INTO salons(id,slug,owner_id,name,profile,settings,created_at) SELECT ?,?,?,?,?,?,? WHERE ' + guard)
-      .bind(salonId,slug,'order:'+row.phone,draft?.name || row.salon_name,JSON.stringify(profile),JSON.stringify(settings),now,id,salonId),
-  ];
-  for (const {slot,mime} of assets) {
-    const mediaId = assetIds[slot], objectKey = 'order-draft/'+salonId+'/'+mediaId;
-    statements.push(
-      db.prepare('INSERT INTO blobs SELECT ?,mime,bytes,? FROM order_draft_assets WHERE order_id=? AND slot=? AND ' + guard)
-        .bind(objectKey,now,id,slot,id,salonId),
-      db.prepare('INSERT INTO media SELECT ?,?,?,?,?,?,? WHERE ' + guard)
-        .bind(mediaId,salonId,null,slot.startsWith('work-') ? 'portfolio' : 'brand',objectKey,mime,now,id,salonId),
-    );
-  }
-  for (const work of draft?.portfolio || []) {
-    statements.push(db.prepare('INSERT INTO portfolio(id,salon_id,title,category,description,images,published,try_on,permission,created_at,line) SELECT ?,?,?,?,?,?,1,1,1,?,? WHERE ' + guard)
-      .bind(uid(),salonId,work.title,'',work.description,JSON.stringify([assetIds[work.slot]]),now,work.line,id,salonId));
-  }
-  if (assets.length) statements.push(db.prepare('DELETE FROM order_draft_assets WHERE order_id=? AND ' + guard).bind(id,id,salonId));
-  const [claimed] = await db.batch(statements);
-  const updated = await orderById(db, id);
-  must(updated.status === 'paid', 'سفارش تغییر کرده یا مهلت آن تمام شده؛ دوباره بررسی کنید.', 409);
-  if (transfer && !claimed.meta.changes) return confirmOrder(db, env, id, {by, origin, transfer});
-  if (claimed.meta.changes) {
-    try {
-      const {notifyOwner} = await import('./alerts.js');
-      await notifyOwner(env, {
-        kind: 'order', level: 'good',
-        text: 'پرداخت «' + row.salon_name + '» تأیید شد',
-        detail: '🔗 صفحه: /s/' + slug + '\n💳 ' + row.ref,
-      });
-    } catch {}
-  }
-  return {order: await publicOrder(db, env, updated, {origin})};
+  must(row.status === 'expired', 'فقط سفارش منقضی‌شده دوباره باز می‌شود.', 409);
+  await run(db, "UPDATE orders SET status='open',expires_at=?,updated_at=? WHERE id=? AND status='expired'", Date.now() + ORDER_MINUTES * 60000, Date.now(), id);
+  return orderById(db, id);
 }
 
-/* Panel session: the key is exchanged for an HttpOnly cookie (same shape as the customer
-   session cookie, different name so the two can never be confused). */
+/* Confirmation. One UPDATE claims the order; only the call that claimed it does the work, so
+   the owner clicking twice and the payment site retrying can never make two salons or grant
+   credits twice. A paid plan whose salon was not provisioned (a crash mid-way) is repaired. */
+export async function confirmOrder(db, env, id, {by = 'owner', origin = ''} = {}) {
+  await closeExpired(db);
+  let row = await orderById(db, id);
+  must(row, 'سفارش پیدا نشد.', 404);
+  const now = Date.now();
+  if (row.status !== 'paid') {
+    must(row.status === 'open' || row.status === 'reviewing', 'این سفارش بسته شده و قابل تأیید نیست.', 409);
+    const claim = await run(db, "UPDATE orders SET status='paid',confirmed_by=?,confirmed_at=?,updated_at=? WHERE id=? AND status IN ('open','reviewing')", by, now, now, id);
+    row = await orderById(db, id);
+    if (!claim.meta.changes) return {order: await publicOrder(db, env, row, {origin}), claimed: false};
+  } else if ((row.salon_id && row.note !== 'renewal') || row.kind === 'topup') {
+    return {order: await publicOrder(db, env, row, {origin}), claimed: false};
+  }
+  let salon;
+  if (row.kind === 'topup') {
+    salon = await one(db, 'SELECT id,name,slug FROM salons WHERE id=?', row.salon_id);
+    must(salon, 'سالن این سفارش پیدا نشد.', 404);
+    await grant(db, salon.id, Number(row.credits || 0), 'topup', row.id);
+  } else {
+    salon = await provisionSalon(db, row);
+    await run(db, 'UPDATE orders SET salon_id=?,updated_at=? WHERE id=?', salon.id, Date.now(), id);
+    const p = PLANS[row.plan] || {months: 1, credits: 0};
+    await applyPlan(db, salon.id, {key: row.plan, months: p.months, credits: Number(row.credits || p.credits || 0)}, row.id);
+  }
+  const updated = await orderById(db, id);
+  try {
+    const {notifyOwner} = await import('./alerts.js');
+    await notifyOwner(env, {
+      kind: 'order', level: 'good',
+      text: 'پرداخت ' + planName(row) + ' برای «' + salon.name + '» تأیید شد',
+      detail: '🔗 صفحه: /s/' + salon.slug + '\n👤 ' + row.contact_name + '\n💳 ' + row.ref + '\n✅ تأیید با: ' + (by === 'webhook' ? 'سایت پرداخت' : 'پنل مدیر'),
+    });
+  } catch {}
+  return {order: await publicOrder(db, env, updated, {origin}), claimed: true};
+}
+
+/* The salon a plan unlocks. A returning buyer (same mobile, an earlier paid plan) renews the
+   same salon instead of getting a second one. The slug comes from the salon's name when it is
+   written in Latin letters, otherwise from the order code — never from a person's name. */
+async function provisionSalon(db, row) {
+  if (row.salon_id) {
+    const own = await one(db, 'SELECT id,name,slug FROM salons WHERE id=?', row.salon_id);
+    if (own) return own;
+  }
+  const prior = await one(db, "SELECT s.id,s.name,s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.phone=? AND o.kind='plan' AND o.status='paid' AND o.id<>? ORDER BY o.confirmed_at DESC LIMIT 1", row.phone, row.id);
+  if (prior) return prior;
+  const latin = String(row.salon_name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 28);
+  const base = latin.length >= 3 ? latin : 'salon-' + String(row.ref).slice(2).toLowerCase();
+  let slug = base, n = 1;
+  while (await one(db, 'SELECT 1 FROM salons WHERE slug=?', slug)) slug = base + '-' + ++n;
+  const id = uid(), now = Date.now();
+  /* The buyer's own name and mobile stay on the order (for the Ayneh team) and are never
+     copied onto the public page: the salon writes the page's phone itself in «صفحهٔ من». */
+  const profile = {...(row.city ? {address: row.city} : {})};
+  const settings = {generation_enabled: true, reference_verified: true, service: row.service || ''};
+  await run(db, 'INSERT INTO salons(id,slug,owner_id,name,profile,settings,created_at) VALUES(?,?,?,?,?,?,?)',
+    id, slug, 'order:' + row.id, text(row.salon_name, 100), JSON.stringify(profile), JSON.stringify(settings), now);
+  return {id, slug, name: row.salon_name};
+}
+
+/* ---------- panel sessions ---------- */
+/* The key is traded once for a random session token; the cookie carries the token and only
+   its hash rests in the database, so neither the key nor a database copy opens a panel. */
 export async function panelLogin(db, key) {
-  const k = String(key || '').trim();
+  const k = String(key || '').trim().toUpperCase().replace(/\s+/g, '');
   must(/^AY-[2-9A-HJ-NP-Z]{9}$/.test(k), 'کلید ورود معتبر نیست.', 401);
-  const row = await one(db, "SELECT * FROM orders WHERE access_key_hash=? AND status='paid'", await hashKey(k));
-  must(row, 'این کلید یا تأیید نشده یا منقضی شده است.', 401);
+  const row = await one(db, "SELECT * FROM orders WHERE access_key_hash=? AND kind='plan' AND status='paid' ORDER BY confirmed_at DESC LIMIT 1", await hashKey(k));
+  must(row && row.salon_id, 'این کلید یا تأیید نشده یا عوض شده است.', 401);
   const salon = await one(db, 'SELECT * FROM salons WHERE id=?', row.salon_id);
   must(salon, 'سالن پیدا نشد.', 404);
-  return {order: row, salon};
+  const token = Array.from(crypto.getRandomValues(new Uint8Array(32)), x => x.toString(16).padStart(2, '0')).join('');
+  const now = Date.now();
+  await run(db, 'INSERT INTO panel_sessions(id,order_id,salon_id,expires_at,created_at) VALUES(?,?,?,?,?)', await hash('panel:' + token), row.id, salon.id, now + PANEL_DAYS * 86400000, now);
+  return {order: row, salon, token, maxAge: PANEL_DAYS * 86400};
 }
 
 export async function panelSalon(req, db) {
   const raw = (req.headers.get('cookie') || '').match(/(?:^|; )ayneh_panel=([a-f0-9]{64})(?:;|$)/)?.[1];
   must(raw, 'برای دیدن پنل سالن وارد شوید.', 401);
-  const row = await one(db, "SELECT * FROM orders WHERE access_key_hash=? AND status='paid'", raw);
-  must(row, 'نشست پنل منقضی شده؛ با کلید خود دوباره وارد شوید.', 401);
-  const salon = await one(db, 'SELECT * FROM salons WHERE id=?', row.salon_id);
-  must(salon, 'سالن پیدا نشد.', 404);
-  return {order: row, salon};
+  const s = await one(db, 'SELECT * FROM panel_sessions WHERE id=? AND expires_at>?', await hash('panel:' + raw), Date.now());
+  must(s, 'نشست پنل منقضی شده؛ با کلید خود دوباره وارد شوید.', 401);
+  const order = await one(db, "SELECT * FROM orders WHERE id=? AND status='paid'", s.order_id);
+  const salon = await one(db, 'SELECT * FROM salons WHERE id=?', s.salon_id);
+  must(order && salon, 'نشست پنل منقضی شده؛ با کلید خود دوباره وارد شوید.', 401);
+  return {order, salon, session: s.id};
 }
 
-/* What the salon panel shows on day one: everything the customer can act on, and nothing
-   that pretends the salon has already done work it has not. */
+export async function panelLogout(req, db) {
+  const raw = (req.headers.get('cookie') || '').match(/(?:^|; )ayneh_panel=([a-f0-9]{64})(?:;|$)/)?.[1];
+  if (raw) await run(db, 'DELETE FROM panel_sessions WHERE id=?', await hash('panel:' + raw));
+}
+
+/* A lost key: a new one for the order; every open panel session for it ends at once. */
+export async function rekeyOrder(db, id) {
+  const row = await one(db, "SELECT id FROM orders WHERE id=? AND kind='plan' AND status='paid'", id);
+  must(row, 'این سفارش تأیید نشده است', 409);
+  const fresh = newAccessKey();
+  await run(db, 'UPDATE orders SET access_key_hash=?,updated_at=? WHERE id=?', await hashKey(fresh), Date.now(), row.id);
+  await run(db, 'DELETE FROM panel_sessions WHERE order_id=?', row.id);
+  return fresh;
+}
+
+/* What the salon panel shows: the page, the plan and its credits, the setup steps, the last
+   requests and the first portfolio items — nothing that pretends work was done that was not. */
 export async function panelDashboard(db, env, {order, salon}) {
-  const [, leads, portfolio, team] = await Promise.all([
-    Promise.resolve(),
+  const [leads, portfolio, team, credit, topups] = await Promise.all([
     all(db, 'SELECT id,status,created_at FROM leads WHERE salon_id=? ORDER BY created_at DESC LIMIT 5', salon.id),
-    all(db, 'SELECT id,title,line,images FROM portfolio WHERE salon_id=? AND published=1 ORDER BY created_at DESC LIMIT 6', salon.id),
+    all(db, 'SELECT id,title,line,images FROM portfolio WHERE salon_id=? AND published=1 ORDER BY created_at DESC LIMIT 60', salon.id),
     all(db, 'SELECT id,name,specialty FROM team WHERE salon_id=? AND active=1', salon.id),
+    balance(db, salon),
+    all(db, "SELECT id,ref,credits,amount,status,created_at FROM orders WHERE salon_id=? AND kind='topup' ORDER BY created_at DESC LIMIT 5", salon.id),
   ]);
   const origin = env.APP_ORIGIN || '';
   const p = (() => { try { return JSON.parse(salon.profile || '{}'); } catch { return {}; } })();
+  /* The setup steps follow the plan: an ESSENTIAL salon is never asked for a bot it does not have. */
+  const hasBot = can(salon, 'bot');
   const steps = [
-    {key: 'page', label: 'لینک صفحهٔ اختصاصی را برای مشتری‌ها بفرستید', done: Object.keys(p).length > 0},
-    {key: 'telegram', label: 'ربات تلگرام یا بله را وصل کنید', done: !!(salon.telegram_chat_id || salon.bale_chat_id)},
-    {key: 'portfolio', label: 'اولین نمونه‌کار را از ربات بفرستید', done: portfolio.length > 0},
-    {key: 'team', label: 'اگر تیم دارید، آرایشگرها را اضافه کنید', done: team.length > 0},
+    {key: 'profile', label: 'نشانی، ساعت کار و یک توضیح کوتاه برای صفحه بنویسید', done: !!(p.bio || p.hours)},
+    {key: 'phone', label: 'شمارهٔ تماسی را که مشتری‌ها ببینند بنویسید', done: !!p.phone},
+    {key: 'portfolio', label: 'اولین نمونه‌کارتان را اضافه کنید', done: portfolio.length > 0},
+    {key: 'share', label: 'لینک صفحه را در بیو اینستاگرام بگذارید تا اولین درخواست برسد', done: leads.length > 0},
+    ...(hasBot ? [
+      {key: 'telegram', label: 'ربات تلگرام یا بله را وصل کنید', done: !!(salon.telegram_chat_id || salon.bale_chat_id)},
+      {key: 'team', label: 'اگر همکار دارید، از ربات اضافه‌شان کنید (اختیاری)', done: team.length > 0},
+    ] : []),
   ];
   return {
     salon: {name: salon.name, slug: salon.slug, url: origin + '/s/' + salon.slug},
-    plan: PLANS[order.plan]?.name || order.plan,
+    plan: credit ? (PLANS[credit.plan]?.name || credit.plan) : (PLANS[order.plan]?.name || order.plan),
     paid_at: order.confirmed_at, ref: order.ref,
+    credits: credit, topup: {images: TOPUP.images, amount: TOPUP.amount},
+    /* What this plan opens; a locked card names the plan that opens it and links to the plans. */
+    features: featuresOf(salon), opened_by: OPENED_BY, service: (() => { try { return JSON.parse(salon.settings || '{}').service || order.service || 'hair'; } catch { return 'hair'; } })(),
+    bot_linked: !!(salon.telegram_chat_id || salon.bale_chat_id),
+    topups: topups.map(t => ({ref: t.ref, credits: t.credits, amount: toman(t.amount), status: t.status, created_at: t.created_at})),
     leads: leads.map(l => ({id: l.id, status: l.status, created_at: l.created_at})),
     portfolio: portfolio.map(x => ({id: x.id, title: x.title, line: x.line, image: (JSON.parse(x.images || '[]')[0]) || ''})),
+    profile: {bio: p.bio || '', address: p.address || '', hours: p.hours || '', phone: p.phone || '', instagram: String(p.instagram || '').replace(/^https?:\/\/(www\.)?instagram\.com\//i, '')},
+    /* Plans the salon can renew to or upgrade to, straight from the panel. */
+    plans: Object.entries(PLANS).map(([key, v]) => ({key, name: v.name, months: v.months, amount: planAmount(key), credits: v.credits})),
     setup: {steps, done: steps.filter(s => s.done).length, total: steps.length},
     bot: {telegram: !!(env.TELEGRAM_BOT_TOKEN), bale: !!(env.BALE_BOT_TOKEN)},
   };
 }
+
+export {MONTH};

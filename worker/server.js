@@ -1,8 +1,8 @@
-import {saveActivation,activationAsset,readDraftForm,readSalonDraft} from './activation.js';
+import {saveActivation,activationAsset} from './activation.js';
 import {Problem,must,phone,text,safeLink,transferPrompt,uid,token,hash,digits,limited} from './domain.js';
 import {styles} from './legacy.js';
 import {identity,issueCookie,clearCookie,same,passwordLoginEnabled} from './auth.js';
-import {bucketFor,getImage,putImage} from './storage.js';
+import {bucketFor,putImage} from './storage.js';
 import {botReady,deliverLead,deliverPending,newLinkCode,setWebhook,inboxes,followLinks,PLATFORMS,platformReady,baleSecret,staffInvite,notifyConflict,expireStates} from './telegram.js';
 import {LINE_KEYS,lineStyles,cleanOptions,linePrompt,optionText,LINE_LABEL} from './lines.js';
 import {ownerLink,alertUnanswered,maybeDigest,setupStatus,digest,notifyOwner,setting} from './alerts.js';
@@ -11,8 +11,12 @@ import {stats} from './stats.js';
 import {smsReady,inviteReady,sendOtp} from './sms.js';
 import {createTrial,trialOf,trialLive,trialPublic,spendTrialImage} from './trial.js';
 import {PLANS as PLANS_TABLE} from './prices.js';
-import {createOrder,customerOrder,newAccessKey,setCoupon,markReviewing,confirmOrder,closeExpired,cardSetting,saveCard,
- checkoutToken,newCheckoutToken,webhookKey,rotateWebhookKey,panelLogin,panelSalon,panelDashboard,hashKey,ORDER_MINUTES,PAY_CARD,WEBHOOK_KEY,COUPONS} from './orders.js';
+import {createOrder,createTopup,createRenewal,customerOrder,setCoupon,markReviewing,confirmOrder,reopenOrder,rekeyOrder,closeExpired,cardSetting,saveCard,
+ webhookKey,rotateWebhookKey,panelLogin,panelSalon,panelLogout,panelDashboard,orderById,ORDER_MINUTES,SERVICE_LABEL} from './orders.js';
+import {spendCredit,planOf} from './credits.js';
+import {can,featuresOf,OPENED_BY} from './plans.js';
+import {panelApi,bookingTick} from './panelapi.js';
+import {weeklySummaries} from './reports.js';
 export {putImage};
 
 const J=(v,s=200,h={})=>new Response(JSON.stringify(v),{status:s,headers:{'Content-Type':'application/json;charset=utf-8','Cache-Control':'no-store',...h}});
@@ -62,8 +66,8 @@ const quotaLeft=used=>Object.fromEntries(LINE_KEYS.map(k=>[k,Math.max(0,QUOTA_PE
 async function spendQuota(db,salon,s,visitor,line){
  const left=quotaLeft(await quotaUsed(db,salon,s,visitor));
  if(left[line]>0)return;
- const others=LINE_KEYS.filter(k=>k!==line&&left[k]>0).map(k=>'«'+LINE_LABEL[k]+'»');
- throw new Problem(429,'سهم امتحان «'+LINE_LABEL[line]+'» برای شما تمام شد ('+QUOTA_PER_LINE.toLocaleString('fa-IR')+' تصویر). '+(others.length?'هنوز می‌توانی '+others.join('، ')+' را امتحان کنی، یا همین نتیجه‌ها را برای سالن بفرستی.':'سهم امتحان همهٔ بخش‌ها تمام شده؛ می‌توانی همین نتیجه‌ها را برای سالن بفرستی تا با تو تماس بگیرند.'));
+ const offered=salonLines(salon)||LINE_KEYS;const others=offered.filter(k=>k!==line&&left[k]>0).map(k=>'«'+LINE_LABEL[k]+'»');
+ throw new Problem(429,'سهم امتحان «'+LINE_LABEL[line]+'» برای تو تمام شد ('+QUOTA_PER_LINE.toLocaleString('fa-IR')+' تصویر). '+(others.length?'هنوز می‌توانی '+others.join('، ')+' را امتحان کنی، یا همین نتیجه‌ها را برای سالن بفرستی.':'سهم امتحان همهٔ بخش‌ها تمام شده؛ می‌توانی همین نتیجه‌ها را برای سالن بفرستی تا با تو تماس بگیرند.'));
 }
 // The project's own team: verified mobiles listed in app_settings 'unlimited_phones' (a JSON list,
 // kept in the database, never in the code) have no image limits at all.
@@ -75,6 +79,10 @@ async function teamView(db,env,salon,origin){return (await teamOf(db,salon.id)).
 export const TRACK_KINDS=['view','tour_start','tour_done','tour_skip','about','photo','look','color','generate','result','gen_fail','view360','send_open','sent','follow','rating','demo','share_open','share','line','color_on_hair','save'];
 export async function logEvent(db,salonId,kind,visitor='',meta=''){await run(db,'INSERT INTO events_log(id,salon_id,visitor,kind,meta,created_at) VALUES(?,?,?,?,?,?)',uid(),salonId,/^[a-f0-9]{16,32}$/.test(visitor)?visitor:'',kind,String(meta||'').slice(0,80),Date.now())}
 function publicSalon(s){return {id:s.id,slug:s.slug,name:s.name,profile:parse(s.profile)};}
+// A salon that bought a plan from one service page offers that service only (hair = hairstyle +
+// hair colour). Salons without a plan, or with no recorded service, keep all four lines.
+const SERVICE_LINES={hair:['hair','color'],nails:['nails'],lashes:['lashes']};
+export function salonLines(s){if(!planOf(s))return null;const svc=parse(s.settings).service;return SERVICE_LINES[svc]||null;}
 
 // The salon panel is gone; only the project owner manages salons.
 export async function owner(req,env){const who=await identity(req,env);must(who,'برای ورود، رمز مدیر را وارد کنید',401);must(who.via==='password'||(env.OWNER_EMAIL&&who.email===env.OWNER_EMAIL),'فقط مدیر آینه به این بخش دسترسی دارد',403);return who;}
@@ -82,7 +90,7 @@ export async function session(req,db,salon){const t=(req.headers.get('cookie')||
 async function newSession(db,salon){const raw=token(),s={id:uid(),salon_id:salon.id,customer_id:null,token_hash:await hash(raw),expires_at:Date.now()+7*86400000,created_at:Date.now()};await run(db,'INSERT INTO sessions(id,salon_id,customer_id,token_hash,expires_at,created_at) VALUES(?,?,?,?,?,?)',...Object.values(s));return {s,raw};}
 const clientIp=req=>req.headers.get('cf-connecting-ip')||(req.headers.get('x-forwarded-for')||'').split(',')[0].trim()||req.headers.get('x-real-ip')||'unknown';
 // A customer may only use their own uploads, or published portfolio items the salon marked for try-on.
-async function ownMedia(db,s,id){const m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,s.salon_id);must(m,'عکس یافت نشد');if(m.session_id!==s.id)must(await one(db,"SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND try_on=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)",s.salon_id,id),'عکس متعلق به این جلسه نیست',403);return m;}
+async function ownMedia(db,s,id){must(/^[a-f0-9-]{36}$/.test(String(id||'')),'عکس معتبر نیست؛ دوباره عکس بگذارید',400);const m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,s.salon_id);must(m,'عکس یافت نشد');if(m.session_id!==s.id)must(await one(db,"SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND try_on=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)",s.salon_id,id),'عکس متعلق به این جلسه نیست',403);return m;}
 
 // Retention: customer photos, simulations and submissions are kept (the owner asked for permanent
 // records: referrals and customer ownership depend on them). Only expired technical rows go.
@@ -96,10 +104,13 @@ async function cleanup(env){const now=Date.now();
  return {media:0,leads:0};
 }
 export async function tick(env,origin){if(!env.DB)return {ready:false};const delivered=await deliverPending(env,origin);
+ // Booking reminders and follow-ups, and the Saturday summary for plan salons; neither may stop the rest.
+ const bookings=await bookingTick(env,origin).catch(e=>{console.error('bookings tick',e?.message);return null});
+ const weekly=await weeklySummaries(env).catch(e=>{console.error('weekly',e?.message);return 0});
  const expired=await expireStates(env).catch(e=>{console.error('expire',e?.message);return 0});
  const unanswered=await alertUnanswered(env).catch(e=>{console.error('unanswered',e?.message);return 0});
  const digestSent=await maybeDigest(env).catch(e=>{console.error('digest',e?.message);return false});
- const cleaned=await cleanup(env);return {ready:true,delivered,expired,unanswered,digest:digestSent,...cleaned};}
+ const cleaned=await cleanup(env);return {ready:true,delivered,expired,unanswered,digest:digestSent,bookings,weekly,...cleaned};}
 
 async function provider(env,path,body){must(env.KIE_API_KEY,'تولید واقعی هنوز متصل نشده است',503);const res=await fetch('https://api.kie.ai'+path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+env.KIE_API_KEY,'Content-Type':'application/json'},...(body?{body:JSON.stringify(body)}:{})});const d=await res.json();must(res.ok&&d.code===200,'سرویس تصویر درخواست را نپذیرفت',502);return d.data;}
 // Image model per salon: 'pro' (Nano Banana Pro, best quality, default) or 'fast' (Nano Banana 2.1).
@@ -108,7 +119,7 @@ async function provider(env,path,body){must(env.KIE_API_KEY,'تولید واقع
 export const IMAGE_MODELS={pro:'nano-banana-pro',fast:'nano-banana-2-1'};
 const FALLBACK_MODEL='nano-banana-2';
 async function createImageTask(env,cfg,input){const model=IMAGE_MODELS[cfg.image_model]||IMAGE_MODELS.pro;try{return {...await provider(env,'/api/v1/jobs/createTask',{model,input}),model}}catch(e){if(!(e instanceof Problem)||e.status!==502||model===FALLBACK_MODEL)throw e;return {...await provider(env,'/api/v1/jobs/createTask',{model:FALLBACK_MODEL,input}),model:FALLBACK_MODEL}}}
-async function uploadProvider(env,m){const object=await getImage(env,m.object_key);must(object,'عکس در دسترس نیست',410);const bytes=new Uint8Array(await object.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.slice(i,i+8192));const res=await fetch('https://kieai.redpandaai.co/api/file-base64-upload',{method:'POST',headers:{Authorization:'Bearer '+env.KIE_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({base64Data:'data:'+m.mime+';base64,'+btoa(binary),uploadPath:'ayneh',fileName:uid()+'.jpg'})});const d=await res.json();must(d.success&&d.data?.downloadUrl,'ارسال عکس انجام نشد',502);return d.data.downloadUrl;}
+async function uploadProvider(env,m){const object=await bucketFor(env).get(m.object_key);must(object,'عکس در دسترس نیست',410);const bytes=new Uint8Array(await object.arrayBuffer());let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.slice(i,i+8192));const res=await fetch('https://kieai.redpandaai.co/api/file-base64-upload',{method:'POST',headers:{Authorization:'Bearer '+env.KIE_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({base64Data:'data:'+m.mime+';base64,'+btoa(binary),uploadPath:'ayneh',fileName:uid()+'.jpg'})});const d=await res.json();must(d.success&&d.data?.downloadUrl,'ارسال عکس انجام نشد',502);return d.data.downloadUrl;}
 
 export async function api(req,env){const u=new URL(req.url),path=u.pathname;must(env.DB,'پایگاه داده هنوز آماده نیست',503);const db=env.DB;
  /* The origin check is what makes the cookie-authenticated routes safe: a browser always
@@ -161,50 +172,60 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  // POST /api/order: opens the 10-minute window and returns the amount, card and deadline.
  if(path==='/api/order'&&req.method==='POST'){
   await limited(db,'order:'+clientIp(req),12,'سفارش‌های زیادی از این شبکه باز شده؛ کمی بعد دوباره امتحان کنید');
-  const form=/^multipart\/form-data\s*;/i.test(req.headers.get('content-type')||'')?await readDraftForm(req):null;
-  const b=form?Object.fromEntries(form):await req.json().catch(()=>({}));
-  must(b&&typeof b==='object'&&!Array.isArray(b),'فرم سفارش معتبر نیست.');
-  if(form)b.consent=b.consent==='true';
+  const b=await req.json().catch(()=>({}));
   if(String(b.website||'').trim())return J({ok:true,id:'x'});// honeypot
-  const checkout=checkoutToken(req)||newCheckoutToken();
-  const order=await createOrder(db,env,b,u.origin,checkout,form?.has('draft')?()=>readSalonDraft(form,db):null);
-  return J(order,200,{'Set-Cookie':'ayneh_checkout='+checkout+'; HttpOnly'+(u.protocol==='https:'?'; Secure':'')+'; SameSite=Lax; Path=/api/order; Max-Age=2592000'});
+  return J(await createOrder(db,env,b,u.origin));
  }
  const orderGet=path.match(/^\/api\/order\/([a-f0-9-]{36})$/);
- if(orderGet&&req.method==='GET')return J(await customerOrder(db,env,orderGet[1],u.origin,req));
+ if(orderGet&&req.method==='GET')return J(await customerOrder(db,env,orderGet[1],u.origin));
  const orderAct=path.match(/^\/api\/order\/([a-f0-9-]{36})\/(receipt|coupon)$/);
  if(orderAct&&req.method==='POST'){
   await limited(db,'order-act:'+clientIp(req),40);
   const b=await req.json().catch(()=>({}));
-  return J(orderAct[2]==='receipt'?await markReviewing(db,env,orderAct[1],b.note,u.origin,req):await setCoupon(db,env,orderAct[1],b.coupon,u.origin,req));
+  return J(orderAct[2]==='receipt'?await markReviewing(db,env,orderAct[1],b.note,u.origin):await setCoupon(db,env,orderAct[1],b.coupon,u.origin));
  }
  // The payment site's door. A single token in Authorization (Bearer) or X-Webhook-Key;
- // Confirm a verified transfer with its exact rial amount and unique bank transaction ID.
+ // body {ref} or {order}, plus optional amount/status. Constant-time compare, never a cookie.
  if(path==='/api/pay/confirm'&&req.method==='POST'){
   const expected=await webhookKey(db);
   const given=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'')||req.headers.get('x-webhook-key')||'';
   must(expected&&same(String(given),expected),'توکن وب‌هوک معتبر نیست',401);
-  must(/^application\/json(?:\s*;|$)/i.test(req.headers.get('content-type')||''),'بدنهٔ JSON لازم است.');
-  const b=await req.json().catch(()=>null);
-  must(b&&typeof b==='object'&&!Array.isArray(b),'بدنهٔ درخواست معتبر نیست.');
-  if(!['paid','success','confirmed','ok'].includes(String(b.status).toLowerCase()))return J({ok:true,ignored:true});
-  must(Number.isSafeInteger(b.amount_rial)&&b.amount_rial>0,'مبلغ واریز را به ریال بفرستید.');
-  must(typeof b.transaction_id==='string'&&/^[a-zA-Z0-9._:-]{1,128}$/.test(b.transaction_id),'شناسهٔ تراکنش معتبر نیست.');
+  const b=await req.json().catch(()=>({}));
   const byRef=b.ref?await one(db,'SELECT id FROM orders WHERE ref=?',String(b.ref).toUpperCase().slice(0,12)):null;
   const id=byRef?.id||String(b.order||'');
   must(id,'سفارش پیدا نشد',404);
-  const r=await confirmOrder(db,env,id,{by:'webhook',origin:u.origin,transfer:{id:b.transaction_id,rial:b.amount_rial}});
+  if(b.status&&!['paid','success','confirmed','ok'].includes(String(b.status).toLowerCase()))return J({ok:true,ignored:true});
+  /* When the payment site reports an amount, it must be the order's amount (toman). */
+  if(b.amount!==undefined&&b.amount!==null&&b.amount!==''){
+   const row=await orderById(db,id);must(row,'سفارش پیدا نشد',404);
+   must(Number(b.amount)===Math.round(Number(row.amount)/10),'مبلغ گزارش‌شده با مبلغ سفارش یکی نیست',409);
+  }
+  const r=await confirmOrder(db,env,id,{by:'webhook',origin:u.origin});
   return J({ok:true,status:r.order.status,ref:r.order.ref,page:r.order.page_url});
  }
 
  /* ---------- salon panel (the door the plan opens) ---------- */
+ // Requests, bot link, bookings, report, archive and support (worker/panelapi.js).
+ {const pa=await panelApi(req,env,u,path);if(pa)return pa;}
  if(path==='/api/panel/login'&&req.method==='POST'){
   await limited(db,'panel-login:'+clientIp(req),20,'تلاش‌های زیاد؛ کمی بعد دوباره امتحان کنید');
   const b=await req.json().catch(()=>({}));
-  const {order}=await panelLogin(db,b.key);
-  return J({ok:true},200,{'Set-Cookie':'ayneh_panel='+order.access_key_hash+'; HttpOnly'+(u.protocol==='https:'?'; Secure':'')+'; SameSite=Lax; Path=/; Max-Age=2592000'});
+  const {token,maxAge}=await panelLogin(db,b.key);
+  return J({ok:true},200,{'Set-Cookie':'ayneh_panel='+token+'; HttpOnly'+(u.protocol==='https:'?'; Secure':'')+'; SameSite=Lax; Path=/; Max-Age='+maxAge});
  }
- if(path==='/api/panel/logout'&&req.method==='POST')return J({ok:true},200,{'Set-Cookie':'ayneh_panel=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0'});
+ if(path==='/api/panel/logout'&&req.method==='POST'){await panelLogout(req,db);return J({ok:true},200,{'Set-Cookie':'ayneh_panel=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0'});}
+ // A salon with a plan buys more images from its own panel, through the same checkout.
+ if(path==='/api/panel/topup'&&req.method==='POST'){
+  await limited(db,'topup:'+clientIp(req),20,'درخواست‌های زیادی فرستاده‌اید؛ کمی بعد دوباره امتحان کنید');
+  const ctx=await panelSalon(req,db);const b=await req.json().catch(()=>({}));
+  return J(await createTopup(db,env,ctx,b.packs,u.origin));
+ }
+ // Renew or upgrade the plan from the panel: same salon, same panel key, same checkout.
+ if(path==='/api/panel/renew'&&req.method==='POST'){
+  await limited(db,'renew:'+clientIp(req),20,'درخواست‌های زیادی فرستاده‌اید؛ کمی بعد دوباره امتحان کنید');
+  const ctx=await panelSalon(req,db);const b=await req.json().catch(()=>({}));
+  return J(await createRenewal(db,env,ctx,String(b.plan||''),u.origin));
+ }
  if(path==='/api/panel/me'&&req.method==='GET'){
   try{const ctx=await panelSalon(req,db);return J(await panelDashboard(db,env,ctx))}
   catch(e){if(e.status===401)return J({salon:null});throw e}
@@ -252,21 +273,19 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   return J({ok:true,card:await saveCard(db,b.card,b.owner)});}
  if(path==='/api/owner/orders'&&req.method==='GET'){await owner(req,env);
   await closeExpired(db);
-  const rows=await all(db,'SELECT id,ref,plan,amount,salon_name,contact_name,phone,city,status,receipt_note,confirmed_by,created_at,expires_at FROM orders ORDER BY created_at DESC LIMIT 100');
+  const rows=await all(db,'SELECT id,ref,plan,kind,service,credits,amount,salon_name,contact_name,phone,city,status,receipt_note,confirmed_by,created_at,expires_at FROM orders ORDER BY created_at DESC LIMIT 100');
   // The console speaks Persian: plan name and a local-looking mobile, never a raw slug or +98.
   return J({orders:rows.map(r=>({...r,amount:Math.round(r.amount/10),
-   plan:PLANS_TABLE[r.plan]?.name||r.plan,
+   plan:r.kind==='topup'?'اعتبار '+Number(r.credits).toLocaleString('fa-IR')+' عکس':(PLANS_TABLE[r.plan]?.name||r.plan),
+   service_label:SERVICE_LABEL[r.service]||'',
    contact_phone:String(r.phone||'').replace(/^\+98/,'0')}))});}
- const adminOrder=path.match(/^\/api\/owner\/orders\/([a-f0-9-]{36})\/(confirm|cancel|rekey)$/);
+ const adminOrder=path.match(/^\/api\/owner\/orders\/([a-f0-9-]{36})\/(confirm|cancel|rekey|reopen)$/);
  if(adminOrder&&req.method==='POST'){await owner(req,env);
   if(adminOrder[2]==='cancel'){await run(db,"UPDATE orders SET status='cancelled',updated_at=? WHERE id=? AND status<>'paid'",Date.now(),adminOrder[1]);return J({ok:true})}
-  if(adminOrder[2]==='rekey'){
-   // A lost key: mint a new one and hand it to the shop. The old one stops working at once.
-   const row=await one(db,"SELECT id FROM orders WHERE id=? AND status='paid'",adminOrder[1]);must(row,'این سفارش تأیید نشده است',409);
-   const fresh=newAccessKey();
-   await run(db,'UPDATE orders SET access_key_hash=?,updated_at=? WHERE id=?',await hashKey(fresh),Date.now(),row.id);
-   return J({ok:true,key:fresh});
-  }
+  // A lost key: a new one for the shop. The old one and every open panel session stop at once.
+  if(adminOrder[2]==='rekey')return J({ok:true,key:await rekeyOrder(db,adminOrder[1])});
+  // The customer paid after the 10 minutes ran out: another 10 minutes, same order.
+  if(adminOrder[2]==='reopen'){await reopenOrder(db,adminOrder[1]);return J({ok:true});}
   const r=await confirmOrder(db,env,adminOrder[1],{by:'owner',origin:u.origin});
   return J({ok:true,order:r.order});}
  if(path==='/api/owner/digest'&&req.method==='GET'){await owner(req,env);return J({text:await digest(env)});}
@@ -283,7 +302,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(trial&&!trialLive(trial)&&route!=='public'&&!route.startsWith('owner'))throw new Problem(410,'مهلت ۱۰ ساعتهٔ صفحهٔ آزمایشی تمام شده است؛ برای ادامه با ما تماس بگیرید');
  const readOnly=route==='public'||route==='owner'||route==='requests'||route.startsWith('media/')||route.startsWith('generation/');
  must(route==='session'?['GET','POST'].includes(req.method):req.method===(readOnly?'GET':'POST'),'متد مجاز نیست',405);
- if(route==='public')return J({salon:publicSalon(salon),portfolio:await all(db,'SELECT id,title,category,description,stylist,staff_id AS maker,line,images,try_on,1 AS published FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 ORDER BY created_at DESC',salon.id),generation:!!env.KIE_API_KEY&&!!cfg.generation_enabled&&(!demo||smsReady(env)),reference:refOn(cfg),telegram:inboxes(env,salon).length>0||!!await one(db,'SELECT 1 FROM team WHERE salon_id=? AND active=1',salon.id),follow:Object.keys(followLinks(env,'x')),otp:smsReady(env),notice:'خروجی شبیه‌سازی پیشنهادی است و تضمین اجرا نیست.',trial:trialPublic(trial),demo});
+ if(route==='public')return J({salon:publicSalon(salon),portfolio:await all(db,'SELECT id,title,category,description,stylist,staff_id AS maker,line,images,try_on,1 AS published FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 ORDER BY created_at DESC',salon.id),generation:!!env.KIE_API_KEY&&!!cfg.generation_enabled&&(!demo||smsReady(env)),reference:refOn(cfg),telegram:inboxes(env,salon).length>0||!!planOf(salon)||!!await one(db,'SELECT 1 FROM team WHERE salon_id=? AND active=1',salon.id),follow:Object.keys(followLinks(env,'x')),otp:smsReady(env),notice:'خروجی شبیه‌سازی پیشنهادی است و تضمین اجرا نیست.',trial:trialPublic(trial),demo,lines:salonLines(salon)});
  if(route==='session'&&req.method==='POST'){await limited(db,'session:'+salon.id+':'+clientIp(req),30);const {raw}=await newSession(db,salon);return J({ok:true},200,{'Set-Cookie':cookie(raw)});}
  if(route.startsWith('owner')){
   await owner(req,env);const r=route.slice(6),b=req.method==='GET'?{}:await req.json();
@@ -312,7 +331,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   throw new Problem(404,'مسیر مدیریت یافت نشد');
  }
  if(route==='upload'&&req.method==='POST'){const kind=u.searchParams.get('kind')||'original';let s=null;if(kind==='brand'||kind==='portfolio')await owner(req,env);else{must(['original','reference'].includes(kind));s=await session(req,db,salon);await limited(db,'upload:'+s.id,30);}const bytes=new Uint8Array(await req.arrayBuffer());return J({id:await putImage(env,salon,s,bytes,kind)});}
- if(route.startsWith('media/')){const id=route.slice(6),m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,salon.id);must(m,'عکس یافت نشد',404);const profile=parse(salon.profile);let visible=m.kind==='brand'&&PROFILE_IMAGES.some(k=>profile[k]===id);if(!visible)visible=!!await one(db,'SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)',salon.id,id);if(!visible){let isOwner=false;try{await owner(req,env);isOwner=true}catch{}if(!isOwner){const s=await session(req,db,salon);await ownMedia(db,s,id);}}const object=await getImage(env,m.object_key);must(object,'عکس در دسترس نیست',410);return new Response(object.body,{headers:{'Content-Type':m.mime,'Cache-Control':visible?'public,max-age=300':'private,no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"}});}
+ if(route.startsWith('media/')){const id=route.slice(6),m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,salon.id);must(m,'عکس یافت نشد',404);const profile=parse(salon.profile);let visible=m.kind==='brand'&&PROFILE_IMAGES.some(k=>profile[k]===id);if(!visible)visible=!!await one(db,'SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)',salon.id,id);if(!visible){let isOwner=false;try{await owner(req,env);isOwner=true}catch{}if(!isOwner){const s=await session(req,db,salon);await ownMedia(db,s,id);}}const object=await bucketFor(env).get(m.object_key);must(object,'عکس در دسترس نیست',410);return new Response(object.body,{headers:{'Content-Type':m.mime,'Cache-Control':visible?'public,max-age=300':'private,no-store','X-Content-Type-Options':'nosniff','Content-Security-Policy':"default-src 'none'"}});}
  if(route==='ref'&&req.method==='POST'){const b=await req.json().catch(()=>({}));await limited(db,'ref:'+salon.id+':'+clientIp(req),3000);return J(await attribute(db,salon,String(b.v||''),String(b.r||'')));}
  if(route==='track'&&req.method==='POST'){const b=await req.json().catch(()=>({}));must(TRACK_KINDS.includes(b.kind)&&b.kind!=='sent','رویداد معتبر نیست');await limited(db,'track:'+salon.id+':'+clientIp(req),800);await logEvent(db,salon.id,b.kind,String(b.v||''),typeof b.meta==='string'||typeof b.meta==='number'?String(b.meta):'');return J({ok:true});}
  const s=await session(req,db,salon);
@@ -356,7 +375,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   const cut=(v,n)=>String(v??'').slice(0,n);const name=s.verified_name||text(cut(b.name,100),100);must(name.length>=2,'نام را وارد کنید');const number=s.verified_phone||phone(b.phone);
   const visitorIn=/^[a-f0-9]{16,32}$/.test(String(b.v||''))?String(b.v):'';
   const hasTeam=!!await one(db,'SELECT 1 FROM team WHERE salon_id=? AND active=1',salon.id);
-  must(inboxes(env,salon).length||hasTeam,'این سالن هنوز ارسال آنلاین را فعال نکرده؛ مستقیم با سالن تماس بگیرید',503);
+  must(inboxes(env,salon).length||hasTeam||!!planOf(salon),'این سالن هنوز ارسال آنلاین را فعال نکرده؛ مستقیم با سالن تماس بگیرید',503);
   let handle=text(String(b.telegram||''),40).replace(/^@/,'').replace(/^https?:\/\/t\.me\//,'');if(handle)must(/^[A-Za-z][A-Za-z0-9_]{4,31}$/.test(handle),'آیدی تلگرام معتبر نیست');
   const original=await ownMedia(db,s,b.original_id);must(original.kind==='original','عکس خودتان لازم است');
   if(b.reference_id)await ownMedia(db,s,b.reference_id);
@@ -376,11 +395,12 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   return J({id,delivered,waiting,follow:followLinks(env,follow)});
  }
  if(route==='views'&&req.method==='POST'){
-  const b=await req.json();must(!demo,'نمای ۳۶۰ در نسخهٔ نمونه نیست');must(env.KIE_API_KEY&&cfg.generation_enabled,'تولید فعال نیست',503);must(/^[a-f0-9-]{36}$/.test(b.idem));const existing=await one(db,'SELECT id,state FROM generations WHERE session_id=? AND idem=?',s.id,b.idem);if(existing)return J(existing);const base=await one(db,"SELECT * FROM generations WHERE id=? AND session_id=? AND salon_id=? AND state='success'",b.parent,s.id,salon.id);must(base?.result_id,'عکس پایه معتبر نیست');must((base.line||'hair')==='hair','نمای ۳۶۰ فقط برای مو است');const m=await ownMedia(db,s,base.result_id),id=uid(),now=Date.now();const visitor=visitorOf(b),free=await unlimited(db,s);if(!trial&&!free)await spendQuota(db,salon,s,visitor,'hair');if(dailyLimit(cfg)>0&&!free)await limited(db,'views:'+salon.id,Math.min(20,dailyLimit(cfg)));await spendTrialImage(db,trial);await run(db,"INSERT INTO generations(id,salon_id,session_id,idem,kind,state,original_id,created_at,updated_at,visitor) VALUES(?,?,?,?,'views','creating',?,?,?,?)",id,salon.id,s.id,b.idem,base.original_id,now,now,visitor);
+  const b=await req.json();must(!demo,'نمای ۳۶۰ در نسخهٔ نمونه نیست');must(env.KIE_API_KEY&&cfg.generation_enabled,'تولید فعال نیست',503);must(/^[a-f0-9-]{36}$/.test(b.idem));const existing=await one(db,'SELECT id,state FROM generations WHERE session_id=? AND idem=?',s.id,b.idem);if(existing)return J(existing);const base=await one(db,"SELECT * FROM generations WHERE id=? AND session_id=? AND salon_id=? AND state='success'",b.parent,s.id,salon.id);must(base?.result_id,'عکس پایه معتبر نیست');must((base.line||'hair')==='hair','نمای ۳۶۰ فقط برای مو است');const m=await ownMedia(db,s,base.result_id),id=uid(),now=Date.now();const visitor=visitorOf(b),free=await unlimited(db,s);if(!trial&&!free)await spendQuota(db,salon,s,visitor,'hair');if(!trial&&!free)await spendCredit(db,env,salon);if(dailyLimit(cfg)>0&&!free)await limited(db,'views:'+salon.id,Math.min(20,dailyLimit(cfg)));await spendTrialImage(db,trial);await run(db,"INSERT INTO generations(id,salon_id,session_id,idem,kind,state,original_id,created_at,updated_at,visitor) VALUES(?,?,?,?,'views','creating',?,?,?,?)",id,salon.id,s.id,b.idem,base.original_id,now,now,visitor);
   try{const img=await uploadProvider(env,m);const task=await createImageTask(env,cfg,{prompt:VIEWS_PROMPT,image_input:[img],aspect_ratio:'16:9',resolution:'2K',output_format:'jpg'});await run(db,"UPDATE generations SET state='waiting',task_id=? WHERE id=?",task.taskId,id);return J({id,state:'waiting'});}catch{await run(db,"UPDATE generations SET state='unknown' WHERE id=?",id);throw new Problem(502,'ارسال نامشخص؛ بدون بازتولید خودکار');}
  }
  if(route==='generate'&&req.method==='POST'){
   const b=await req.json();const line=LINE_KEYS.includes(b.line)?b.line:'hair';
+  {const allowed=salonLines(salon);if(allowed)must(allowed.includes(line),'این سالن فقط «'+allowed.map(k=>LINE_LABEL[k]).join('» و «')+'» را ارائه می‌دهد.',403);}
   must(!smsReady(env)||s.verified_phone,'اول شمارهٔ موبایلت را تأیید کن',403);must(!demo||smsReady(env),'ساخت تصویر در نسخهٔ نمونه هنوز فعال نشده است',503);
   must(b.image_consent===true,'رضایت ارسال عکس برای پردازش لازم است');
   must(cfg.generation_enabled&&env.KIE_API_KEY,'تولید واقعی این سالن هنوز فعال نشده است',503);
@@ -403,7 +423,11 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
    must(await one(db,"SELECT 1 FROM generations WHERE result_id=? AND original_id=? AND session_id=? AND salon_id=? AND state='success' AND line='hair'",b.base_id,b.original_id,s.id,salon.id),'مدل موی انتخابی معتبر نیست');
    base=await ownMedia(db,s,b.base_id);baseId=b.base_id;
   }
+  // Every photo this build sends must still be in storage, checked before any quota, credit or provider call.
+  for(const [m,msg] of [[base,'عکست دیگر در دسترس نیست؛ دوباره عکس بگذار.'],[reference,'عکس این مدل در دسترس نیست؛ یک مدل دیگر انتخاب کن.']]){if(m&&typeof bucketFor(env).head==='function')must(await bucketFor(env).head(m.object_key),msg,410);else if(m)must(await bucketFor(env).get(m.object_key),msg,410);}
   const visitor=visitorOf(b),free=await unlimited(db,s);if(!trial&&!demo&&!free)await spendQuota(db,salon,s,visitor,line);
+  // A salon on a paid plan spends one image credit per image; none left, or the plan ended, stops it here.
+  if(!trial&&!demo&&!free)await spendCredit(db,env,salon);
   if(dailyLimit(cfg)>0&&!free)await limited(db,'generation:'+salon.id+':'+new Date().toISOString().slice(0,10),dailyLimit(cfg));if(demo&&!free)await limited(db,'demo:'+s.verified_phone,3,'امروز ۳ تصویر نمونه ساخته‌اید؛ فردا دوباره امتحان کنید یا صفحهٔ آزمایشی سالن خودتان را بسازید');if(!free)await spendTrialImage(db,trial);
   const id=uid(),now=Date.now();
   // Hairstyle copies only the cut from a reference photo; colour only the colour.
