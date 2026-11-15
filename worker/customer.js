@@ -1240,12 +1240,13 @@ function storyBlob(id){
   var k=Math.max(W/iw,H/ih);g.save();g.filter='blur(46px) saturate(1.05)';g.drawImage(img,(W-iw*k)/2,(H-ih*k)/2,iw*k,ih*k);g.restore();
   var gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'rgba(8,30,30,.72)');gr.addColorStop(.45,'rgba(8,30,30,.38)');gr.addColorStop(1,'rgba(8,30,30,.8)');g.fillStyle=gr;g.fillRect(0,0,W,H);
   // the result, whole, at its own proportions — no crop, no filter
-  var maxW=900,maxH=1250,s2=Math.min(maxW/iw,maxH/ih),dw=Math.round(iw*s2),dh=Math.round(ih*s2),dx=Math.round((W-dw)/2),dy=Math.round(400+(maxH-dh)/2),rad=40,bd=10;
+  var maxW=880,maxH=1020,s2=Math.min(maxW/iw,maxH/ih),dw=Math.round(iw*s2),dh=Math.round(ih*s2),dx=Math.round((W-dw)/2),dy=Math.round(510+(maxH-dh)/2),rad=40,bd=10;
   function rr(x,y,w,h,r){g.beginPath();if(g.roundRect)g.roundRect(x,y,w,h,r);else g.rect(x,y,w,h)}
   g.save();g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=60;g.shadowOffsetY=24;g.fillStyle='#fff';rr(dx-bd,dy-bd,dw+bd*2,dh+bd*2,rad+bd);g.fill();g.restore();
   g.save();g.filter='none';rr(dx,dy,dw,dh,rad);g.clip();g.drawImage(img,dx,dy,dw,dh);g.restore();
   // the signature: round logo on a white ring, the name under it
-  var cx=W/2,cy=190,d=150;
+  // Instagram covers about 250px at the top and bottom of a story: everything stays inside.
+  var cx=W/2,cy=320,d=140;
   g.save();g.shadowColor='rgba(0,0,0,.35)';g.shadowBlur=24;g.fillStyle='#fff';g.beginPath();g.arc(cx,cy,d/2+7,0,Math.PI*2);g.fill();g.restore();
   g.save();g.beginPath();g.arc(cx,cy,d/2,0,Math.PI*2);g.clip();
   if(logo){var lw=logo.naturalWidth,lh=logo.naturalHeight;if(o.ayneh){var q=Math.min(d*.78/lw,d*.78/lh);g.fillStyle='#fff';g.fillRect(cx-d/2,cy-d/2,d,d);g.drawImage(logo,cx-lw*q/2,cy-lh*q/2,lw*q,lh*q)}else{var q2=Math.max(d/lw,d/lh);g.drawImage(logo,cx-lw*q2/2,cy-lh*q2/2,lw*q2,lh*q2)}}
@@ -1254,8 +1255,8 @@ function storyBlob(id){
   g.direction='rtl';g.textAlign='center';g.textBaseline='alphabetic';g.fillStyle='#fff';g.font='800 48px Estedad, Vazirmatn, sans-serif';
   var nm=o.name;while(g.measureText(nm).width>W-160&&nm.length>4)nm=nm.slice(0,-2)+'…';g.fillText(nm,cx,cy+d/2+70);
   // caption and the honest note
-  var by=dy+dh+bd+110;g.font='800 56px Estedad, Vazirmatn, sans-serif';g.fillText(STORY_CAP[state.line]||STORY_CAP.hair,cx,Math.min(by,H-150));
-  g.font='500 28px Estedad, Vazirmatn, sans-serif';g.fillStyle='rgba(255,255,255,.72)';g.fillText('نتیجهٔ تقریبی',cx,Math.min(by+56,H-90));
+  var by=dy+dh+bd+96;g.font='800 56px Estedad, Vazirmatn, sans-serif';g.fillText(STORY_CAP[state.line]||STORY_CAP.hair,cx,Math.min(by,1620));
+  g.font='500 28px Estedad, Vazirmatn, sans-serif';g.fillStyle='rgba(255,255,255,.72)';g.fillText('نتیجهٔ تقریبی',cx,Math.min(by+52,1668));
   return new Promise(function(res){c.toBlob(function(b){res(b)},'image/jpeg',.94)});
  });
 }
