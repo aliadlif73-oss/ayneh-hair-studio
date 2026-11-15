@@ -378,7 +378,7 @@ function payCard(){
   var label={open:'منتظر واریز',reviewing:'رسید فرستاده',paid:'تأیید‌شده',expired:'مهلت تمام',cancelled:'لغو‌شده'}[o.status]||o.status;
   var left=o.status==='open'?Math.max(0,Math.round((o.expires_at-Date.now())/60000)):0;
   var acts=[];
-  if(o.status==='open'||o.status==='reviewing')acts.push(el('button',{class:'btn btn--primary btn--sm',type:'button',text:'تأیید پرداخت',onclick:act(function(){return api('/api/owner/orders/'+o.id+'/confirm',{}).then(function(){toast('پرداخت تأیید شد؛ سالن ساخته می‌شود.');load()})})}));
+  if(o.status==='open'||o.status==='reviewing')acts.push(el('button',{class:'btn btn--primary btn--sm',type:'button',text:'تأیید دستی (اضطراری)',onclick:act(function(){if(!confirm('تأیید خودکار با وب‌هوک است. فقط وقتی واریز را خودتان دیده‌اید و وب‌هوک نرسیده، دستی تأیید کنید. ادامه؟'))return Promise.resolve();return api('/api/owner/orders/'+o.id+'/confirm',{}).then(function(){toast('پرداخت تأیید شد؛ سالن ساخته می‌شود.');load()})})}));
   if(o.status==='open'||o.status==='reviewing')acts.push(el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'لغو',onclick:act(function(){return api('/api/owner/orders/'+o.id+'/cancel',{}).then(function(){toast('سفارش لغو شد.');load()})})}));
   if(o.status==='expired')acts.push(el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'بازگشایی ۱۰ دقیقه',onclick:act(function(){return api('/api/owner/orders/'+o.id+'/reopen',{}).then(function(){toast('سفارش دوباره باز شد.');load()})})}));
   if(o.status==='paid'&&o.kind!=='topup')acts.push(el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'ساخت کلید تازه',onclick:act(function(){
