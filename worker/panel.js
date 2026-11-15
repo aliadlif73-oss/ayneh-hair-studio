@@ -35,6 +35,8 @@ const css = String.raw`
 .pn-packs{display:flex;flex-wrap:wrap;gap:8px}
 .pn-packs .btn{min-height:44px}
 .pn-note{font-size:12.5px;color:var(--muted)}
+.pn-ref .pn-link{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pn-ref code{direction:ltr;font-family:ui-monospace,Menlo,monospace;background:#fff;color:var(--ink);border:1px solid var(--line-2);border-radius:10px;padding:9px 12px;font-size:13px;word-break:break-all;flex:1 1 200px;text-align:left}
 .pn [hidden]{display:none!important}
 .pn-tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 14px;padding:4px;border-radius:16px;background:var(--surface);border:1px solid var(--line-2);scroll-snap-type:x proximity;-webkit-mask-image:linear-gradient(to left,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(to left,#000 calc(100% - 28px),transparent)}
 .pn-tab{scroll-snap-align:start}
@@ -150,6 +152,14 @@ function creditCard(d){
  ]);
 }
 
+/* Referral: the salon's own link; a salon that buys a plan through it and this salon both get
+   gift images once the payment is confirmed (worker/rewards.js). Filled in after the first paint. */
+function referralCard(){
+ var link=el('code',{dir:'ltr',text:'…'}),note=h('p','','pn-note'),copy=el('button',{class:'btn btn--soft btn--sm',type:'button',text:'کپی لینک',onclick:function(){var t=link.textContent;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){copy.textContent='کپی شد'},function(){copy.textContent='لینک را نگه دارید و بفرستید'})}});
+ var card=el('div',{class:'pn-card pn-ref'},[h('h2','معرفی'),h('p','آرایشگر دیگری را معرفی کنید. هر دو ۱۰ عکس هدیه می‌گیرید.'),el('div',{class:'pn-link'},[link,copy]),note]);
+ api('/api/panel/referral').then(function(r){link.textContent=r.link;note.textContent=fa(r.rewarded)+' معرفی تا حالا هدیه گرفته؛ تا '+fa(r.cap)+' معرفی هدیه دارد.'}).catch(function(){card.hidden=true});
+ return card;
+}
 var LINE={hair:'مدل مو',color:'رنگ مو',nails:'ناخن',lashes:'مژه'};
 var STATUS_LABEL={called:'📞 تماس گرفتم',booked:'✅ نوبت دادم',declined:'🚫 قابل اجرا نیست'};
 var STATUS_TEXT={new:'تازه',called:'تماس گرفته شد',booked:'نوبت داده شد',declined:'قابل اجرا نبود'};
@@ -373,6 +383,7 @@ function dash(d){
  if(d.salon.url&&d.salon.url.charAt(0)==='/')d.salon.url=location.origin+d.salon.url;
  var home=el('div',{class:'pn-grid'},[
    creditCard(d),
+   referralCard(),
    el('div',{class:'pn-card'},[
     h('h2','راه‌اندازی'),
     h('p',fa(d.setup.done)+' از '+fa(d.setup.total)+' قدم انجام شده.'),

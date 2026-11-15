@@ -17,8 +17,11 @@ import {spendCredit,planOf} from './credits.js';
 import {can,featuresOf,OPENED_BY} from './plans.js';
 import {panelApi,bookingTick} from './panelapi.js';
 import {weeklySummaries} from './reports.js';
+import {regularApi} from './regular.js';
+import {payForImage,quotaView,isDirect} from './customers.js';
 import {spendDemoImage} from './demo.js';
 import {recordTiming} from './timing.js';
+import {attachReferral,refOf} from './rewards.js';
 export {putImage};
 
 const J=(v,s=200,h={})=>new Response(JSON.stringify(v),{status:s,headers:{'Content-Type':'application/json;charset=utf-8','Cache-Control':'no-store',...h}});
@@ -176,7 +179,10 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   await limited(db,'order:'+clientIp(req),12,'سفارش‌های زیادی از این شبکه باز شده؛ کمی بعد دوباره امتحان کنید');
   const b=await req.json().catch(()=>({}));
   if(String(b.website||'').trim())return J({ok:true,id:'x'});// honeypot
-  return J(await createOrder(db,env,b,u.origin));
+  const made=await createOrder(db,env,b,u.origin);
+  /* A plan bought through someone's link (?ref= cookie): rewarded only once it is confirmed. */
+  await attachReferral(db,made.id,refOf(req,b)).catch(e=>console.error('referral',e?.message));
+  return J(made);
  }
  const orderGet=path.match(/^\/api\/order\/([a-f0-9-]{36})$/);
  if(orderGet&&req.method==='GET')return J(await customerOrder(db,env,orderGet[1],u.origin));
@@ -209,6 +215,8 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  /* ---------- salon panel (the door the plan opens) ---------- */
  // Requests, bot link, bookings, report, archive and support (worker/panelapi.js).
  {const pa=await panelApi(req,env,u,path);if(pa)return pa;}
+ // Regular customers (/api/c/*), the panel referral card and the owner's timing (worker/regular.js).
+ {const ra=await regularApi(req,env,u,path,{owner,clientIp});if(ra)return ra;}
  if(path==='/api/panel/login'&&req.method==='POST'){
   await limited(db,'panel-login:'+clientIp(req),20,'تلاش‌های زیاد؛ کمی بعد دوباره امتحان کنید');
   const b=await req.json().catch(()=>({}));
@@ -304,7 +312,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(trial&&!trialLive(trial)&&route!=='public'&&!route.startsWith('owner'))throw new Problem(410,'مهلت ۱۰ ساعتهٔ صفحهٔ آزمایشی تمام شده است؛ برای ادامه با ما تماس بگیرید');
  const readOnly=route==='public'||route==='owner'||route==='requests'||route.startsWith('media/')||route.startsWith('generation/');
  must(route==='session'?['GET','POST'].includes(req.method):req.method===(readOnly?'GET':'POST'),'متد مجاز نیست',405);
- if(route==='public')return J({salon:publicSalon(salon),portfolio:await all(db,'SELECT id,title,category,description,stylist,staff_id AS maker,line,images,try_on,1 AS published FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 ORDER BY created_at DESC',salon.id),generation:!!env.KIE_API_KEY&&!!cfg.generation_enabled,reference:refOn(cfg),telegram:inboxes(env,salon).length>0||!!planOf(salon)||!!await one(db,'SELECT 1 FROM team WHERE salon_id=? AND active=1',salon.id),follow:Object.keys(followLinks(env,'x')),otp:smsReady(env)&&!demo,notice:'خروجی شبیه‌سازی پیشنهادی است و تضمین اجرا نیست.',trial:trialPublic(trial),demo,lines:salonLines(salon)});
+ if(route==='public')return J({salon:publicSalon(salon),portfolio:await all(db,'SELECT id,title,category,description,stylist,staff_id AS maker,line,images,try_on,1 AS published FROM portfolio WHERE salon_id=? AND published=1 AND permission=1 ORDER BY created_at DESC',salon.id),generation:!!env.KIE_API_KEY&&!!cfg.generation_enabled,reference:refOn(cfg),telegram:inboxes(env,salon).length>0||!!planOf(salon)||!!await one(db,'SELECT 1 FROM team WHERE salon_id=? AND active=1',salon.id),follow:Object.keys(followLinks(env,'x')),otp:smsReady(env)&&!demo,notice:'خروجی شبیه‌سازی پیشنهادی است و تضمین اجرا نیست.',trial:trialPublic(trial),demo,direct:isDirect(salon),lines:salonLines(salon)});
  if(route==='session'&&req.method==='POST'){await limited(db,'session:'+salon.id+':'+clientIp(req),30);const {raw}=await newSession(db,salon);return J({ok:true},200,{'Set-Cookie':cookie(raw)});}
  if(route.startsWith('owner')){
   await owner(req,env);const r=route.slice(6),b=req.method==='GET'?{}:await req.json();
@@ -337,7 +345,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(route==='ref'&&req.method==='POST'){const b=await req.json().catch(()=>({}));await limited(db,'ref:'+salon.id+':'+clientIp(req),3000);return J(await attribute(db,salon,String(b.v||''),String(b.r||'')));}
  if(route==='track'&&req.method==='POST'){const b=await req.json().catch(()=>({}));must(TRACK_KINDS.includes(b.kind)&&b.kind!=='sent','رویداد معتبر نیست');await limited(db,'track:'+salon.id+':'+clientIp(req),800);await logEvent(db,salon.id,b.kind,String(b.v||''),typeof b.meta==='string'||typeof b.meta==='number'?String(b.meta):'');return J({ok:true});}
  const s=await session(req,db,salon);
- if(route==='session')return J({ok:true,verified:!!s.verified_phone,name:s.verified_name||'',phone:s.verified_phone||'',quota:trial||demo||await unlimited(db,s)?null:{per:QUOTA_PER_LINE,left:quotaLeft(await quotaUsed(db,salon,s,/^[a-f0-9]{16,32}$/.test(u.searchParams.get('v')||'')?u.searchParams.get('v'):''))}});
+ if(route==='session')return J({ok:true,verified:!!s.verified_phone,name:s.verified_name||'',phone:s.verified_phone||'',quota:trial||demo||await unlimited(db,s)?null:await (async v=>quotaView(db,env,salon,s,v,{per:QUOTA_PER_LINE,left:quotaLeft(await quotaUsed(db,salon,s,v))}))(/^[a-f0-9]{16,32}$/.test(u.searchParams.get('v')||'')?u.searchParams.get('v'):'')});
  // Mobile verification: a one-time code texted by Melipayamak. Only the hash of the code is stored.
  if(route==='otp/send'){
   must(smsReady(env),'تأیید شماره هنوز فعال نشده است',503);
@@ -397,7 +405,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   return J({id,delivered,waiting,follow:followLinks(env,follow)});
  }
  if(route==='views'&&req.method==='POST'){
-  const b=await req.json();must(!demo,'نمای ۳۶۰ در نسخهٔ نمونه نیست');must(env.KIE_API_KEY&&cfg.generation_enabled,'تولید فعال نیست',503);must(/^[a-f0-9-]{36}$/.test(b.idem));const existing=await one(db,'SELECT id,state FROM generations WHERE session_id=? AND idem=?',s.id,b.idem);if(existing)return J(existing);const base=await one(db,"SELECT * FROM generations WHERE id=? AND session_id=? AND salon_id=? AND state='success'",b.parent,s.id,salon.id);must(base?.result_id,'عکس پایه معتبر نیست');must((base.line||'hair')==='hair','نمای ۳۶۰ فقط برای مو است');const m=await ownMedia(db,s,base.result_id),id=uid(),now=Date.now();const visitor=visitorOf(b),free=await unlimited(db,s);if(!trial&&!free)await spendQuota(db,salon,s,visitor,'hair');if(!trial&&!free)await spendCredit(db,env,salon);if(dailyLimit(cfg)>0&&!free)await limited(db,'views:'+salon.id,Math.min(20,dailyLimit(cfg)));await spendTrialImage(db,trial);await run(db,"INSERT INTO generations(id,salon_id,session_id,idem,kind,state,original_id,created_at,updated_at,visitor) VALUES(?,?,?,?,'views','creating',?,?,?,?)",id,salon.id,s.id,b.idem,base.original_id,now,now,visitor);
+  const b=await req.json();must(!demo,'نمای ۳۶۰ در نسخهٔ نمونه نیست');must(env.KIE_API_KEY&&cfg.generation_enabled,'تولید فعال نیست',503);must(/^[a-f0-9-]{36}$/.test(b.idem));const existing=await one(db,'SELECT id,state FROM generations WHERE session_id=? AND idem=?',s.id,b.idem);if(existing)return J(existing);const base=await one(db,"SELECT * FROM generations WHERE id=? AND session_id=? AND salon_id=? AND state='success'",b.parent,s.id,salon.id);must(base?.result_id,'عکس پایه معتبر نیست');must((base.line||'hair')==='hair','نمای ۳۶۰ فقط برای مو است');const m=await ownMedia(db,s,base.result_id),id=uid(),now=Date.now();const visitor=visitorOf(b),free=await unlimited(db,s);const paidBy=!trial&&!free?await payForImage(db,env,{salon,s,visitor,quota:()=>spendQuota(db,salon,s,visitor,'hair')}):null;if(!trial&&!free&&!paidBy)await spendCredit(db,env,salon);if(dailyLimit(cfg)>0&&!free)await limited(db,'views:'+salon.id,Math.min(20,dailyLimit(cfg)));await spendTrialImage(db,trial);await run(db,"INSERT INTO generations(id,salon_id,session_id,idem,kind,state,original_id,created_at,updated_at,visitor) VALUES(?,?,?,?,'views','creating',?,?,?,?)",id,salon.id,s.id,b.idem,base.original_id,now,now,visitor);if(paidBy)await run(db,'UPDATE generations SET paid_by=? WHERE id=?',paidBy,id);
   try{const img=await uploadProvider(env,m);const task=await createImageTask(env,cfg,{prompt:VIEWS_PROMPT,image_input:[img],aspect_ratio:'16:9',resolution:'2K',output_format:'jpg'});await run(db,"UPDATE generations SET state='waiting',task_id=? WHERE id=?",task.taskId,id);return J({id,state:'waiting'});}catch{await run(db,"UPDATE generations SET state='unknown' WHERE id=?",id);throw new Problem(502,'ارسال نامشخص؛ بدون بازتولید خودکار');}
  }
  if(route==='generate'&&req.method==='POST'){
@@ -428,15 +436,18 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   }
   // Every photo this build sends must still be in storage, checked before any quota, credit or provider call.
   for(const [m,msg] of [[base,'عکست دیگر در دسترس نیست؛ دوباره عکس بگذار.'],[reference,'عکس این مدل در دسترس نیست؛ یک مدل دیگر انتخاب کن.']]){if(m&&typeof bucketFor(env).head==='function')must(await bucketFor(env).head(m.object_key),msg,410);else if(m)must(await bucketFor(env).get(m.object_key),msg,410);}
-  const visitor=visitorOf(b),free=await unlimited(db,s);if(!trial&&!demo&&!free)await spendQuota(db,salon,s,visitor,line);
+  // The per-person quota first; past it, images the customer bought herself (worker/customers.js).
+  const visitor=visitorOf(b),free=await unlimited(db,s);const paidBy=!trial&&!demo&&!free?await payForImage(db,env,{salon,s,visitor,quota:()=>spendQuota(db,salon,s,visitor,line)}):null;
   // A salon on a paid plan spends one image credit per image; none left, or the plan ended, stops it here.
-  if(!trial&&!demo&&!free)await spendCredit(db,env,salon);
+  // An image the customer paid for is never taken from the salon's credit.
+  if(!trial&&!demo&&!free&&!paidBy)await spendCredit(db,env,salon);
   if(demo&&!free)await spendDemoImage(db,{salon,s,visitor,ip:clientIp(req)});
   if(dailyLimit(cfg)>0&&!free)await limited(db,'generation:'+salon.id+':'+new Date().toISOString().slice(0,10),dailyLimit(cfg));if(!free)await spendTrialImage(db,trial);
   const id=uid(),now=Date.now();
   // Hairstyle copies only the cut from a reference photo; colour only the colour.
   const mode=look?'salon':line==='hair'?(reference?'style':'catalog'):(reference?'reference':(line==='color'&&!Number.isInteger(b.style)?'text':'catalog'));
   await run(db,'INSERT INTO generations(id,salon_id,session_id,idem,state,original_id,reference_id,style,transfer,color,created_at,updated_at,line,opts,base_id,visitor) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',id,salon.id,s.id,b.idem,'creating',b.original_id,b.reference_id||null,reference?null:(Number.isInteger(b.style)?b.style:null),mode,color,now,now,line,JSON.stringify(opts),baseId,visitor);
+  if(paidBy)await run(db,'UPDATE generations SET paid_by=? WHERE id=?',paidBy,id);
   try{
    const images=[await uploadProvider(env,base)];if(reference)images.push(await uploadProvider(env,reference));
    const prompt=look?(line==='hair'?transferPrompt('catalog',look,''):line==='color'?linePrompt('color','catalog',look,{},''):linePrompt(line,line==='nails'?'salon':'catalog',look,opts,color))

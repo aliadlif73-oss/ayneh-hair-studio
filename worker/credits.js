@@ -46,7 +46,8 @@ export async function balance(db, salon) {
   const plan = planOf(salon);
   if (!plan) return null;
   const granted = Number((await one(db, 'SELECT COALESCE(SUM(delta),0) n FROM credit_ledger WHERE salon_id=?', salon.id))?.n || 0);
-  const used = Number((await one(db, "SELECT COUNT(*) n FROM generations WHERE salon_id=? AND state<>'fail' AND created_at>=?", salon.id, plan.start))?.n || 0);
+  /* An image a customer paid for herself (generations.paid_by, worker/customers.js) is not the salon's. */
+  const used = Number((await one(db, "SELECT COUNT(*) n FROM generations WHERE salon_id=? AND state<>'fail' AND paid_by IS NULL AND created_at>=?", salon.id, plan.start))?.n || 0);
   const now = Date.now();
   return {
     plan: plan.key, start: plan.start, until: plan.until,

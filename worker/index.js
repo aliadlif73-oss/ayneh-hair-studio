@@ -10,6 +10,9 @@ import {webhook,baleWebhook} from './telegram.js';
 import {favicon,baseCSS} from './design.js';
 import {sharePage} from './share.js';
 import {landingHTML,servicePages} from './landing.js';
+import {tryHTML,packsTag} from './regularpage.js';
+import {directSalon} from './customers.js';
+import {refCookie} from './rewards.js';
 const htmlHeaders={'Content-Type':'text/html;charset=utf-8','Cache-Control':'no-store','Referrer-Policy':'no-referrer','X-Content-Type-Options':'nosniff','X-Frame-Options':'DENY','Content-Security-Policy':"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self' data:; media-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",'Permissions-Policy':'camera=(self), geolocation=(), microphone=()'};
 // Only real pages are served the app shell; everything else is a 404, never a blank app page.
 const pages=[/^\/admin\/?$/,/^\/admin\/[a-z0-9-]{1,64}\/?$/,/^\/s\/[a-z0-9-]{1,64}\/?$/,/^\/i\/[a-z0-9-]{1,64}\/?$/,/^\/panel\/?$/,/^\/pay\/?$/,/^\/signin-with-chatgpt(\/.*)?$/];
@@ -28,7 +31,7 @@ async function salonPage(u,env){
  const desc=(p.bio?String(p.bio).slice(0,150)+' ':'')+'مدل مو، طرح ناخن یا مژه را روی عکس خودت امتحان کن و برای سالن بفرست.';
  const img=p.cover||p.logo?origin+'/api/s/'+salon.slug+'/media/'+(p.cover||p.logo):'';
  const tags='<title>'+attr(title)+'</title>\n<meta name="description" content="'+attr(desc)+'">\n<meta property="og:title" content="'+attr(title)+'">\n<meta property="og:description" content="'+attr(desc)+'">\n<meta property="og:type" content="website">\n<meta property="og:url" content="'+attr(url)+'">\n<meta property="og:site_name" content="آینه">\n<meta property="og:locale" content="fa_IR">\n'+(img?'<meta property="og:image" content="'+attr(img)+'">\n<meta property="og:image:alt" content="'+attr(salon.name)+'">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:image" content="'+attr(img)+'">\n':'<meta name="twitter:card" content="summary">\n')+'<link rel="canonical" href="'+attr(url)+'">';
- return customerHTML.replace(/<meta name="description"[^>]*>\n?/,'').replace(/<meta property="og:[a-z:]+"[^>]*>\n?/g,'').replace(/<title>[^<]*<\/title>/,tags);
+ return customerHTML.replace(/<meta name="description"[^>]*>\n?/,'').replace(/<meta property="og:[a-z:]+"[^>]*>\n?/g,'').replace(/<title>[^<]*<\/title>/,tags).replace('</body>',()=>packsTag+'</body>');
 }
 export default {
  async fetch(request,env){try{const u=new URL(request.url);
@@ -49,10 +52,13 @@ export default {
      five-minute max-age with an hour of stale-while-revalidate meant a phone could show a
      build from an hour ago while the server was already serving the new one. The page is not
      an asset: let the browser revalidate it every time, cheaply (304 via ETag below). */
-  if(u.pathname==='/')return new Response(landingHTML.replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-cache'}});
+  /* ?ref=CODE on a public page keeps the referral in a first-party cookie (worker/rewards.js). */
+  if(u.pathname==='/')return new Response(landingHTML.replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-cache',...refCookie(u,request)}});
   /* One page per service: /hair (style and colour), /nails, /lashes. Same headers as the home page. */
   const svc=u.pathname.match(/^\/(hair|nails|lashes)\/?$/);
-  if(svc)return new Response(servicePages[svc[1]].replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-cache'}});
+  if(svc)return new Response(servicePages[svc[1]].replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-cache',...refCookie(u,request)}});
+  /* The regular customer's page: no salon link, 3 free images, then her own packs. */
+  if(/^\/try\/?$/.test(u.pathname)){must(env.DB,'پایگاه داده هنوز آماده نیست',503);const d=await directSalon(env.DB);return new Response(tryHTML(d.slug),{headers:{...htmlHeaders,...refCookie(u,request)}});}
   /* Hit when a preview is holding an old copy and no amount of reloading helps: a URL that
      has never existed cannot be cached, so /new serves the current build under a fresh path.
      It carries no robots policy change — it is the same page, just honest about being new. */
