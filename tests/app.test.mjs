@@ -1814,6 +1814,8 @@ test('credits: a plan salon stops making images at zero or after its end; failed
   const st=JSON.parse(row.settings||'{}');const now=last+1;st.plan={key:'essential',start:now,until:Date.now()+30*86400000};
   e.DB.sql.prepare('UPDATE salons SET settings=? WHERE id=?').run(JSON.stringify(st),row.id);
   e.DB.sql.prepare("INSERT INTO credit_ledger(id,salon_id,delta,reason,order_id,created_at) VALUES(?,?,?,?,?,?)").run(crypto.randomUUID(),row.id,1,'plan:essential',null,now);
+  // the next image must be stamped at or after the plan start, or it would not be counted
+  while(Date.now()<=now)await new Promise(r=>setTimeout(r,1));
   const ok=await gen();assert.equal(ok.status,200,JSON.stringify(ok));
   const empty=await gen();assert.equal(empty.status,402,'no credit left');assert.match(empty.data.error,/ساخت تصویر در این سالن فعلاً متوقف است[\s\S]*بدون شبیه‌سازی/);
   // a failed image gives its credit back
