@@ -1,0 +1,111 @@
+{
+  "note": "PROPOSAL ONLY — not imported by the app. Tokens map to the existing CSS variables of design/landing/index.html (landing) and worker/design.js (salon page / admin).",
+  "current": {
+    "landing": {"canvas": "#F8F2EB", "dark": "#160D07", "metal": "#B9975B", "name": "عاج و برنج (پیشنهادی فعلی، D060)"},
+    "app": {"canvas": "#E8EDEB", "accent": "#0C6B6B", "honey": "#B9822E", "name": "شیشه و فیروزه (اپلیکیشن)"},
+    "problem": "دو هویت رنگی همزمان: لندینگ گرم/برنجی و اپ سرد/فیروزه‌ای. هیچ رنگ اقدام (CTA) واحدی تعریف نشده است."
+  },
+  "palettes": [
+    {
+      "id": "01-aj-o-barang",
+      "n": "۰۱",
+      "name": "عاج و برنج",
+      "en": "Ivory & Brass",
+      "position": "لوکس آرام، صنعتگری ایرانی، اعتبار برای مالک سالن",
+      "idea": "کرم عاجی + قهوه‌ای سوخته + برنج مات؛ یک اقدام مسی برای دکمهٔ اصلی",
+      "psychology": "گرمی = صمیمیت و کاهش اضطراب؛ برنج = مهارت و ارزش بالا بدون زرق‌وبرق طلایی؛ پس‌زمینهٔ کم‌کروما = رنگ مو درست دیده می‌شود.",
+      "risk": "اگر دکمهٔ اقدام هم قهوه‌ای تیره باشد، در صفحه گم می‌شود؛ حتماً یک رنگ مسی جداگانه لازم است.",
+      "tokens": {
+        "canvas": "#F7F2EA", "surface": "#FDFBF7", "sunken": "#ECE3D6",
+        "ink": "#241A12", "ink2": "#4A3A2C", "muted": "#6C5C4C", "line": "#D9CCB9",
+        "dark": "#241710", "dark2": "#322218", "darkHover": "#3D2C1E",
+        "onDark": "#FBF3E6", "onDark2": "#E7D8C3",
+        "metal": "#B08A4E", "metalSoft": "#D8BE8B", "metalText": "#7A5A2F",
+        "brand": "#7A5A2F", "brandInk": "#5C4021", "brandSoft": "#F0E3D0",
+        "cta": "#8A5327", "ctaHover": "#6E401C", "ctaInk": "#FFF8EE",
+        "focus": "#7A5A2F", "honey": "#B9822E", "honeySoft": "#F4E6CC"
+      }
+    },
+    {
+      "id": "02-shishe-o-firouzeh",
+      "n": "۰۲",
+      "name": "شیشه و فیروزه",
+      "en": "Mirror Glass & Firouzeh",
+      "position": "اعتماد، دقت، آرامش قبل از تصمیم پرریسک — پیشنهاد نهایی من",
+      "idea": "شیشهٔ سرد خنثی + فیروزهٔ عمیق + تنها یک اقدام مسیِ مکمل",
+      "psychology": "خنثیِ کم‌کروما خطای دید رنگ مو/پوست را کم می‌کند؛ فیروزهٔ تیره = اعتماد، بهداشت و دقت (نه آبی بیمارستانی روشن)؛ مسی، مکمل فیروزه است و با «اثر انزوا» چشم را مستقیم روی CTA می‌نشاند. فیروزه همچنین ریشهٔ ایرانی دارد و به اسم «آینه» نزدیک است.",
+      "risk": "اگر خنثی‌ها بیش از حد آبی شوند، حس کلینیک می‌دهند؛ سفیدها را کمی گرم نگه می‌داریم.",
+      "recommended": true,
+      "tokens": {
+        "canvas": "#EDF2F0", "surface": "#FCFDFC", "sunken": "#DEE8E5",
+        "ink": "#142825", "ink2": "#344946", "muted": "#546965", "line": "#C6D6D2",
+        "dark": "#102E2C", "dark2": "#173C39", "darkHover": "#21504C",
+        "onDark": "#F2F8F6", "onDark2": "#D3E4E0",
+        "metal": "#B8734A", "metalSoft": "#E7D0BC", "metalText": "#8B4A28",
+        "brand": "#0C6663", "brandInk": "#074B49", "brandSoft": "#D6ECE9",
+        "cta": "#A94E27", "ctaHover": "#8A3D1C", "ctaInk": "#FFF8F3",
+        "focus": "#0C6663", "honey": "#B8734A", "honeySoft": "#F0E2D4"
+      }
+    },
+    {
+      "id": "03-anar-o-poost",
+      "n": "۰۳",
+      "name": "انار و پوست",
+      "en": "Pomegranate & Blush",
+      "position": "زنانگی، احساس، زیبایی؛ نزدیک به دنیای آرایش و مد",
+      "idea": "عاج صورتی + آلو/انار تیره + رزگلد مات",
+      "psychology": "صورتی گرم و انار = حس شخصی، مراقبت و «این برای من است»؛ تضاد رنگی بالا برای دکمه؛ مناسب کمپین‌های احساسی و شبکه‌های اجتماعی.",
+      "risk": "کد رنگی کلیشهٔ لوازم آرایشی؛ زمینهٔ صورتی می‌تواند تشخیص رنگ پوست و رنگ مو را در عکس قبل/بعد منحرف کند.",
+      "tokens": {
+        "canvas": "#FAF2EE", "surface": "#FFFAF7", "sunken": "#F0E2DC",
+        "ink": "#2A171C", "ink2": "#553640", "muted": "#7A6168", "line": "#E4CFC9",
+        "dark": "#301820", "dark2": "#41222C", "darkHover": "#5A2E3C",
+        "onDark": "#FBEDE8", "onDark2": "#E8D0C9",
+        "metal": "#BF8C72", "metalSoft": "#EBD3C3", "metalText": "#8B4F3C",
+        "brand": "#96304B", "brandInk": "#6E2037", "brandSoft": "#F5DBE2",
+        "cta": "#96304B", "ctaHover": "#7A2540", "ctaInk": "#FFF6F8",
+        "focus": "#96304B", "honey": "#B06A5A", "honeySoft": "#F5E3DC"
+      }
+    },
+    {
+      "id": "04-kashi-o-lajvard",
+      "n": "۰۴",
+      "name": "کاشی و لاجورد",
+      "en": "Tile & Lapis",
+      "position": "هویت ایرانی + اعتماد نهادی؛ مناسب فروش B2B به مالک سالن",
+      "idea": "چینی سفید مایل به آبی + لاجوردی عمیق + زعفرانی/برنجی محدود",
+      "psychology": "آبی پراعتمادترین رنگ در تصمیم‌های مالی و خرید خدمات است؛ لاجورد کاشی‌کاری ایرانی، هم اصالت می‌دهد هم از آبی شرکتی/بانکی متمایز است؛ زعفرانی فقط برای جزئیات، نه دکمه.",
+      "risk": "آبی زیاد، سرد و اداری می‌شود؛ برای مشتری نهایی سالن باید گرمای عکس‌ها و لبخند حفظ شود.",
+      "tokens": {
+        "canvas": "#F0F4F8", "surface": "#FBFCFE", "sunken": "#DEE6EF",
+        "ink": "#152238", "ink2": "#354866", "muted": "#5A6A80", "line": "#C9D5E2",
+        "dark": "#101E38", "dark2": "#182B4A", "darkHover": "#24406B",
+        "onDark": "#EEF4FF", "onDark2": "#CBDAEF",
+        "metal": "#C39A4E", "metalSoft": "#E8D7AE", "metalText": "#7D6228",
+        "brand": "#254E9E", "brandInk": "#1A3C7C", "brandSoft": "#DCE7F8",
+        "cta": "#254E9E", "ctaHover": "#1B3D80", "ctaInk": "#F7FAFF",
+        "focus": "#254E9E", "honey": "#C39A4E", "honeySoft": "#F4EBD6"
+      }
+    },
+    {
+      "id": "05-zoghal-o-mes",
+      "n": "۰۵",
+      "name": "زغال و مس",
+      "en": "Charcoal & Copper",
+      "position": "ادیتوریال مدرن، کنتراست بالا، عکس قبل/بعد روی زمینهٔ تیره می‌درخشد",
+      "idea": "سنگ روشن + زغالی تقریباً سیاه + مس برس‌خورده",
+      "psychology": "تیره، عکس پورتفولیو را قاب می‌کند و حس «گالری/مجله» می‌دهد؛ مس، گرما و اقدام را یکجا دارد. مناسب سالن‌های پریمیوم و شهرهای بزرگ.",
+      "risk": "زمینهٔ تیره در موبایل و نور روز سنگین است و برای کاهش اضطراب مشتری مردد، کمتر آرامش‌بخش است؛ به مالک سالن مسن هم «سرد و فنی» به نظر می‌رسد.",
+      "tokens": {
+        "canvas": "#EDEAE5", "surface": "#F8F6F2", "sunken": "#DAD5CD",
+        "ink": "#1B1C1D", "ink2": "#3E403F", "muted": "#66645F", "line": "#CDC7BE",
+        "dark": "#17191A", "dark2": "#242728", "darkHover": "#393C3D",
+        "onDark": "#F4F0E9", "onDark2": "#D6D0C5",
+        "metal": "#B96A3C", "metalSoft": "#E6CBB4", "metalText": "#8A4A26",
+        "brand": "#A8502B", "brandInk": "#803B1C", "brandSoft": "#F1DED0",
+        "cta": "#A8502B", "ctaHover": "#8B3F1E", "ctaInk": "#FFF7F0",
+        "focus": "#A8502B", "honey": "#B96A3C", "honeySoft": "#F1E3D5"
+      }
+    }
+  ]
+}

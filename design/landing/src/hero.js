@@ -307,19 +307,11 @@
  const human=e=>{if(!e.isTrusted||e.target.closest('.demo-controls'))return;if(demonstrating)endDemo('حالا خودتان مدل و رنگ را انتخاب کنید.');if(e.target.closest('#dock,#colors,#styles')){revealPortrait();showFront()}};
  film.addEventListener('pointerdown',human,true);film.addEventListener('keydown',human,true);
  document.addEventListener('visibilitychange',()=>{if(document.hidden&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')});
- const loader=$('siteLoader');
- const essential=Promise.allSettled([prepare('base'),prepare('s06')]);
- loader.hidden=false;
- document.documentElement.classList.add('hero-loading');
- let loadingTimeout;
- const deadline=new Promise(resolve=>{loadingTimeout=setTimeout(()=>resolve(false),1800)});
- window.__AYN_HERO_READY=Promise.race([essential.then(results=>results.every(result=>result.status==='fulfilled'&&result.value)),deadline]).finally(()=>{
-  clearTimeout(loadingTimeout);
-  $('loaderProgress').style.width='100%';
-  document.documentElement.classList.remove('hero-loading');
-  loader.classList.add('is-done');
-  setTimeout(()=>loader.remove(),450);
- });
+ // Step 15: no loading overlay and no timed boot. Preload the two essential
+ // frames without blocking the page, then report "not played" so the optional
+ // walkthrough only starts on a real user action.
+ Promise.allSettled([prepare('base'),prepare('s06')]);
+ window.__AYN_HERO_READY=Promise.resolve(false);
  window.__AYN_HERO_READY.then(ready=>{
   // Never steal attention back if the visitor started interacting or scrolled past the hero while loading.
   const r=film.getBoundingClientRect();if(!ready||played||r.bottom<innerHeight*.5||r.top>innerHeight){endDemo();return}
@@ -328,16 +320,28 @@
  new IntersectionObserver(entries=>{if(!entries[0].isIntersecting&&demonstrating)endDemo('پخش دوبارهٔ نمایش را انتخاب کنید.')},{threshold:0}).observe(studio);
  film.addEventListener('pointerdown',()=>{played=true},{once:true});
  /* ---------- scroll plays the scene (desktop pin only) ---------- */
- const hdr=document.querySelector('.site-header');let tick=false;
+ const hdr=document.querySelector('.site-header');let tick=false,geo=null,hh=76;
+ /* --hh is a root custom property: rewriting it every scroll frame invalidates
+    the whole document's style. Measure it, and the film geometry, only on
+    real layout changes. */
+ function measureGeo(){
+  hh=hdr?hdr.offsetHeight:76;
+  document.documentElement.style.setProperty('--hh',hh+'px');
+  geo={span:film.offsetHeight-stage.offsetHeight,top:film.getBoundingClientRect().top+window.scrollY};
+ }
  function frameUpdate(){tick=false;
-  const hh=hdr?hdr.offsetHeight:76;document.documentElement.style.setProperty('--hh',hh+'px');
+  if(!geo)measureGeo();
   if(mobile.matches){stage.style.setProperty('--p','0');stage.style.setProperty('--z','1');return}
-  const span=film.offsetHeight-stage.offsetHeight;if(span<=0)return;
-  const p=cl((hh-film.getBoundingClientRect().top)/span,0,1);
+  if(geo.span<=0)return;
+  const p=cl((hh-(geo.top-window.scrollY))/geo.span,0,1);
   stage.style.setProperty('--p',p.toFixed(4));stage.style.setProperty('--z',(1+p*.08).toFixed(4));
   $('fade').style.opacity=sm(.6,1,p).toFixed(3)}
  const req=()=>{if(!tick){tick=true;requestAnimationFrame(frameUpdate)}};
  addEventListener('scroll',req,{passive:true});
- new ResizeObserver(()=>{layout();req()}).observe(mirror);
- layout();frameUpdate();
+ addEventListener('resize',()=>{measureGeo();req()},{passive:true});
+ addEventListener('load',()=>{measureGeo();req()});
+ if(hdr&&window.ResizeObserver)new ResizeObserver(()=>{measureGeo();req()}).observe(hdr);
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{measureGeo();req()});
+ new ResizeObserver(()=>{layout();measureGeo();req()}).observe(mirror);
+ layout();measureGeo();frameUpdate();
 })();

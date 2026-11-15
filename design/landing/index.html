@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>آینه | صفحهٔ اختصاصی سالن برای امتحان مدل مو، ناخن و مژه</title>
-<meta name="description" content="صفحهٔ اختصاصی سالن شما: مشتری مدل مو، رنگ، ناخن و مژه را روی عکس خودش امتحان می‌کند و انتخابش را مستقیم به تلگرام یا بله می‌فرستد. پیش‌نمایش رایگان بسازید.">
-<meta name="theme-color" content="#F8F2EB">
+<title>آینه | صفحهٔ اختصاصی آرایشگر برای امتحان مدل مو، ناخن و مژه</title>
+<meta name="description" content="صفحهٔ اختصاصی آرایشگر و آرایشگاه: مشتری مدل مو، رنگ، ناخن و مژه را روی عکس خودش امتحان می‌کند و انتخابش را مستقیم به تلگرام یا بله می‌فرستد. صفحهٔ خودتان را پیش از گفتگو ببینید.">
+<meta name="theme-color" content="#F3F4F5">
 <meta property="og:title" content="آینه | مدل دلخواه مشتری، پیش از مراجعه روی عکس خودش">
-<meta property="og:description" content="برای سالن‌های مو، ناخن و مژه. مدل‌ها را امتحان کنید، پیش‌نمایش رایگان صفحهٔ سالن را بسازید و مسیر راه‌اندازی را ببینید.">
+<meta property="og:description" content="برای آرایشگرها و آرایشگاه‌های مو، ناخن و مژه. مدل‌ها را امتحان کنید، صفحهٔ خودتان را بسازید و مسیر راه‌اندازی را ببینید.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fa_IR">
 <meta property="og:image" content="__ORIGIN__/landing/og.jpg">
@@ -22,15 +22,15 @@
 <style>
 @font-face{font-family:"Estedad";src:url("assets/estedad.woff2") format("woff2");font-weight:100 900;font-style:normal;font-display:swap}
 
-/* ---------- Tokens (Tokens v0.3 PROPOSED; palette per D060, font per D059) ---------- */
+/* Tokens: 04 «کاشی و لاجورد» · champagne + steel */
 :root{
-  --canvas:#F8F2EB; --surface:#FCFAF6; --sunken:#EDE5D9;
-  --ink:#1E140B; --muted:#5C5045;
-  --espresso:#160D07; --espresso-2:#211409; --espresso-hover:#3A291C;
-  --cream:#F9F1E8; --ivory:#FBF4EA; --ivory-2:#E7D9C8;
-  --brass:#B9975B; --brass-soft:#D6BE8C; --brass-text:#7A5A32;
-  --line-decor:#D8CCBB; --line-control:#857460; --line-dark:#806E50;
-  --focus:#6B4F2A; --focus-dark:#F0D08A;
+  --canvas:#F3F4F5; --surface:#FDFDFC; --sunken:#E3E6E9;
+  --ink:#152238; --muted:#3F4F68;
+  --espresso:#101E38; --espresso-2:#182B4A; --espresso-hover:#24406B;
+  --cream:#EEF4FF; --ivory:#EEF4FF; --ivory-2:#CBDAEF;
+  --brass:#D8A63C; --brass-soft:#F2DFAF; --brass-text:#7A5712;
+  --line-decor:#C9D5E2; --line-control:#8C9AAC; --line-dark:#D8A63C;
+  --focus:#254E9E; --focus-dark:#F2DFAF;
   --r-control:12px; --r-card:20px; --r-frame:28px; --r-pill:999px;
   --font:"Estedad",system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;
   --ease:cubic-bezier(.2,.7,.2,1);
@@ -54,22 +54,22 @@ ul,ol{padding:0;list-style:none}
 .num{font-feature-settings:"ss01";font-variant-numeric:tabular-nums}
 
 /* ---------- Header ---------- */
-.site-header{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:14px clamp(20px,4vw,64px);background:linear-gradient(180deg,#F9F1E8,rgba(249,241,232,.96));border-bottom:1px solid rgba(185,151,91,.2)}
+.site-header{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;gap:24px;padding:14px clamp(20px,4vw,64px);background:linear-gradient(180deg,#ebf1f6,rgba(235,241,246,.96));border-bottom:1px solid rgba(124,137,152,.2)}
 .brand{font-size:28px;font-weight:800;line-height:1.3;white-space:nowrap}
 .brand small{font-size:20px;font-weight:700;opacity:.86;margin-inline-start:8px}
-.nav{display:flex;gap:clamp(14px,2.2vw,34px);font-size:16px;font-weight:600;color:#2A1D12}
+.nav{display:flex;gap:clamp(14px,2.2vw,34px);font-size:16px;font-weight:600;color:#141b28}
 .nav a{padding:8px 2px;border-bottom:2px solid transparent;transition:border-color 160ms var(--ease)}
 .nav a:hover{border-color:var(--brass)}
 .header-actions{display:flex;align-items:center;gap:10px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 24px;border-radius:var(--r-pill);background:var(--espresso);color:var(--cream);border:1.5px solid var(--brass);box-shadow:0 0 0 3px rgba(185,151,91,.14),0 10px 24px rgba(22,13,7,.18);font-weight:700;font-size:16px;white-space:nowrap;cursor:pointer;transition:background 160ms var(--ease),transform 160ms var(--ease)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 24px;border-radius:var(--r-pill);background:var(--espresso);color:var(--cream);border:1.5px solid var(--brass);box-shadow:0 0 0 3px rgba(124,137,152,.14),0 10px 24px rgba(8,13,21,.18);font-weight:700;font-size:16px;white-space:nowrap;cursor:pointer;transition:background 160ms var(--ease),transform 160ms var(--ease)}
 .btn:hover{background:var(--espresso-hover)}
 .btn:active{transform:translateY(1px)}
 .btn .arrow{font-size:18px;line-height:1}
-.btn--lg{min-height:56px;padding:0 32px;font-size:19px;font-weight:800;gap:12px;box-shadow:0 0 0 4px rgba(185,151,91,.14),0 16px 34px rgba(22,13,7,.22)}
+.btn--lg{min-height:56px;padding:0 32px;font-size:19px;font-weight:800;gap:12px;box-shadow:0 0 0 4px rgba(124,137,152,.14),0 16px 34px rgba(8,13,21,.22)}
 .btn--ghost{background:transparent;color:var(--ink);border-color:var(--line-control);box-shadow:none}
-.btn--ghost:hover{background:rgba(185,151,91,.14)}
+.btn--ghost:hover{background:rgba(124,137,152,.14)}
 .on-dark .btn--ghost{color:var(--ivory);border-color:var(--brass-soft)}
-.on-dark .btn--ghost:hover{background:rgba(214,190,140,.14)}
+.on-dark .btn--ghost:hover{background:rgba(167,176,187,.14)}
 .on-dark .btn:not(.btn--ghost){background:var(--cream);color:var(--espresso);border-color:var(--brass-soft)}
 .on-dark .btn:not(.btn--ghost):hover{background:#fff}
 .menu-toggle{display:none}
@@ -77,23 +77,23 @@ ul,ol{padding:0;list-style:none}
 
 /* ---------- Hero (refs 15/16, D057/D060/D061) ---------- */
 .hero{position:relative;min-height:780px;background-image:url("assets/hero.webp");background-size:cover;background-position:center 46%;background-repeat:no-repeat;isolation:isolate;background-color:var(--canvas)}
-.hero::after{content:"";position:absolute;inset:auto 0 0 0;height:120px;background:linear-gradient(180deg,rgba(248,242,235,0),rgba(248,242,235,.55));pointer-events:none;z-index:1}
+.hero::after{content:"";position:absolute;inset:auto 0 0 0;height:120px;background:linear-gradient(180deg,rgba(237,242,246,0),rgba(237,242,246,.55));pointer-events:none;z-index:1}
 .hero-copy{position:absolute;z-index:5;top:clamp(56px,9vh,104px);inset-inline-start:clamp(24px,6vw,96px);width:min(410px,27vw);text-align:right}
-.eyebrow{margin:0 0 14px;font-size:17px;font-weight:600;color:#6B5233}
-h1{margin:0 0 18px;font-size:clamp(40px,4vw,60px);line-height:1.25;font-weight:800;color:#170E07}
-.lead{margin:0 0 26px;font-size:19px;line-height:1.9;color:#33261A;font-weight:500}
+.eyebrow{margin:0 0 14px;font-size:17px;font-weight:600;color:#474e57}
+h1{margin:0 0 18px;font-size:clamp(40px,4vw,60px);line-height:1.25;font-weight:800;color:#080d16}
+.lead{margin:0 0 26px;font-size:19px;line-height:1.9;color:#1c2331;font-weight:500}
 .lines-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 24px}
-.lines-row li{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:var(--r-pill);border:1px solid rgba(185,151,91,.6);background:rgba(252,250,246,.7);font-size:15px;font-weight:700;color:#2A1D12}
-.fineprint{margin:16px 0 0;font-size:14px;color:#5C4A38;font-weight:500}
+.lines-row li{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border-radius:var(--r-pill);border:1px solid rgba(124,137,152,.6);background:rgba(247,249,251,.7);font-size:15px;font-weight:700;color:#141b28}
+.fineprint{margin:16px 0 0;font-size:14px;color:#3b4559;font-weight:500}
 .swatch-arc{position:absolute;z-index:6;top:12%;left:clamp(18px,5vw,84px);width:190px;height:470px;pointer-events:none}
 .swatch-arc svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
-.swatch{position:absolute;display:flex;flex-direction:column;align-items:center;gap:8px;width:92px;margin-inline-start:-46px;color:#241A12}
-.swatch .ring{width:64px;height:64px;border-radius:50%;padding:3px;background:linear-gradient(145deg,#E7D3A4,#A9824F 55%,#E2C88F);box-shadow:0 8px 18px rgba(60,40,18,.18),inset 0 0 0 1px rgba(255,248,230,.55)}
+.swatch{position:absolute;display:flex;flex-direction:column;align-items:center;gap:8px;width:92px;margin-inline-start:-46px;color:#131923}
+.swatch .ring{width:64px;height:64px;border-radius:50%;padding:3px;background:linear-gradient(145deg,#e7decd,#aa9877 55%,#ded2bc);box-shadow:0 8px 18px rgba(21,33,57,.18),inset 0 0 0 1px rgba(235,242,250,.55)}
 .swatch .ring img{width:100%;height:100%;border-radius:50%;object-fit:cover}
 .swatch span.t{font-size:14px;font-weight:700;white-space:nowrap;text-shadow:0 1px 0 rgba(255,255,255,.55)}
 .swatch.s1{top:0;left:118px}.swatch.s2{top:118px;left:56px}.swatch.s3{top:238px;left:50px}.swatch.s4{top:356px;left:104px}
-.style-dock{position:absolute;z-index:7;left:50%;bottom:6.5%;transform:translateX(-50%);width:min(340px,30vw);border-radius:20px;overflow:hidden;box-shadow:0 22px 48px rgba(40,26,12,.24),0 0 0 1px rgba(185,151,91,.45);background:rgba(233,222,207,.72);backdrop-filter:blur(10px)}
-.style-dock h3{position:absolute;top:10px;left:0;right:0;text-align:center;font-size:18px;font-weight:800;color:#24170C}
+.style-dock{position:absolute;z-index:7;left:50%;bottom:6.5%;transform:translateX(-50%);width:min(340px,30vw);border-radius:20px;overflow:hidden;box-shadow:0 22px 48px rgba(14,22,38,.24),0 0 0 1px rgba(124,137,152,.45);background:rgba(212,220,228,.72);backdrop-filter:blur(10px)}
+.style-dock h3{position:absolute;top:10px;left:0;right:0;text-align:center;font-size:18px;font-weight:800;color:#0e1522}
 
 /* ---------- Section 2: selection (dark) ---------- */
 .selection{position:relative;background:var(--espresso);color:var(--cream);padding:96px var(--gut) 110px}
@@ -101,12 +101,7 @@ h1{margin:0 0 18px;font-size:clamp(40px,4vw,60px);line-height:1.25;font-weight:8
 .selection-copy h2{margin:0 0 18px;font-size:clamp(32px,4vw,48px);font-weight:800;line-height:1.35;color:var(--ivory)}
 .selection-copy p{margin:0 0 26px;font-size:18px;line-height:2;color:var(--ivory-2);font-weight:500;max-width:520px}
 .chips{display:flex;flex-wrap:wrap;gap:12px}
-.chip{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:var(--r-pill);border:1px solid rgba(214,190,140,.55);background:linear-gradient(180deg,rgba(255,248,238,.08),rgba(255,248,238,.02));color:#F3E7D6;font-size:15px;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
-.compare{position:relative;width:100%;max-width:580px;justify-self:center;z-index:8;filter:drop-shadow(0 30px 60px rgba(0,0,0,.45));align-self:start;margin-top:calc(-96px - min(49.65px,8.56%))}
-.compare img{width:100%;border-radius:28px}
-.compare::before{content:"";position:absolute;z-index:3;pointer-events:none;top:10.45%;left:8.45%;right:2.9%;height:75.5%;border:1.7px solid #B49A76;border-bottom:0;border-radius:15px 15px 0 0;-webkit-mask-image:linear-gradient(to right,#000 0%,#000 28%,transparent 34%,transparent 67%,#000 73%,#000 100%);mask-image:linear-gradient(to right,#000 0%,#000 28%,transparent 34%,transparent 67%,#000 73%,#000 100%)}
-.compare .tag{position:absolute;bottom:11.5%;font-size:16px;font-weight:700;color:#F7EBD9;text-shadow:0 2px 8px rgba(0,0,0,.65)}
-.compare .tag.before{left:9%}.compare .tag.after{right:8%}
+.chip{display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:var(--r-pill);border:1px solid rgba(167,176,187,.55);background:linear-gradient(180deg,rgba(241,246,252,.08),rgba(241,246,252,.02));color:#dce4ed;font-size:15px;font-weight:600;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
 
 /* ---------- Generic sections ---------- */
 .section{padding:var(--sec-y) var(--gut)}
@@ -123,13 +118,13 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
 
 /* Services */
 .cards3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2.4vw,28px)}
-.svc{display:flex;flex-direction:column;gap:14px;padding:clamp(24px,3vw,36px);background:var(--surface);border:1px solid var(--line-decor);border-radius:var(--r-card);box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 14px 34px rgba(60,40,18,.07)}
-.svc .ico{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#E7D3A4,#A9824F 55%,#E2C88F);padding:3px;box-shadow:0 8px 18px rgba(60,40,18,.16)}
+.svc{display:flex;flex-direction:column;gap:14px;padding:clamp(24px,3vw,36px);background:var(--surface);border:1px solid var(--line-decor);border-radius:var(--r-card);box-shadow:0 1px 0 rgba(255,255,255,.7) inset,0 14px 34px rgba(21,33,57,.07)}
+.svc .ico{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#bcc5cf,#6f7b89 55%,#adb8c4);padding:3px;box-shadow:0 8px 18px rgba(21,33,57,.16)}
 .svc .ico span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:var(--espresso)}
 .svc .ico svg{width:34px;height:34px;stroke:var(--brass-soft);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .svc p{color:var(--muted);font-size:16px}
 .svc .picks{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:6px}
-.svc .picks li{padding:2px 12px;min-height:32px;display:inline-flex;align-items:center;border-radius:var(--r-pill);border:1px solid var(--line-decor);background:var(--canvas);font-size:14px;font-weight:600;color:#3A2A1B}
+.svc .picks li{padding:2px 12px;min-height:32px;display:inline-flex;align-items:center;border-radius:var(--r-pill);border:1px solid var(--line-decor);background:var(--canvas);font-size:14px;font-weight:600;color:#1d2638}
 .svc .count{font-size:14px;font-weight:700;color:var(--brass-text)}
 .note-bar{margin-top:clamp(24px,3vw,36px);padding:16px 20px;border:1px solid var(--line-decor);border-radius:var(--r-control);background:var(--surface);font-size:15px;color:var(--muted)}
 
@@ -142,25 +137,15 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
 /* Salons (dark) */
 .split{display:grid;grid-template-columns:1fr 1fr;gap:clamp(28px,5vw,72px);align-items:start}
 .feat{display:grid;gap:14px}
-.feat li{display:flex;gap:14px;align-items:flex-start;padding:18px 20px;border-radius:var(--r-card);border:1px solid var(--line-dark);background:linear-gradient(180deg,rgba(255,248,238,.07),rgba(255,248,238,.02))}
+.feat li{display:flex;gap:14px;align-items:flex-start;padding:18px 20px;border-radius:var(--r-card);border:1px solid var(--line-dark);background:linear-gradient(180deg,rgba(241,246,252,.07),rgba(241,246,252,.02))}
 .feat .dot{flex:0 0 10px;width:10px;height:10px;margin-top:12px;border-radius:50%;background:var(--brass-soft)}
 .feat strong{display:block;color:var(--ivory);font-size:17px;font-weight:700}
 .feat span.d{color:var(--ivory-2);font-size:15px}
 .msgrs{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
-.msgrs li{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:var(--r-pill);border:1px solid rgba(214,190,140,.55);color:var(--ivory);font-weight:700;font-size:15px}
+.msgrs li{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:var(--r-pill);border:1px solid rgba(167,176,187,.55);color:var(--ivory);font-weight:700;font-size:15px}
 .no-list{margin-top:22px;padding:16px 20px;border-radius:var(--r-control);border:1px dashed var(--line-dark);color:var(--ivory-2);font-size:15px}
 
 /* Plans */
-.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(16px,2.4vw,28px);align-items:stretch}
-.plan{display:flex;flex-direction:column;gap:12px;padding:clamp(24px,3vw,36px);background:var(--surface);border:1px solid var(--line-decor);border-radius:var(--r-card)}
-.plan--pro{border:1.5px solid var(--brass);box-shadow:0 0 0 4px rgba(185,151,91,.12),0 18px 40px rgba(60,40,18,.12)}
-.plan .badge{align-self:flex-start;padding:0 12px;min-height:28px;display:inline-flex;align-items:center;border-radius:var(--r-pill);background:var(--espresso);color:var(--brass-soft);font-size:13px;font-weight:700}
-.plan .price{font-size:clamp(30px,3vw,38px);font-weight:800;line-height:1.3}
-.plan .price small{font-size:16px;font-weight:600;color:var(--muted);margin-inline-start:6px}
-.plan ul{display:grid;gap:10px;margin-top:6px;padding-top:16px;border-top:1px solid var(--line-decor)}
-.plan li{position:relative;padding-inline-start:26px;font-size:15px;color:#3A2A1B}
-.plan li::before{content:"";position:absolute;inset-inline-start:0;top:.7em;width:14px;height:1.6px;background:var(--brass-text)}
-.plan-note{margin-top:clamp(20px,3vw,32px);padding:16px 20px;border-radius:var(--r-control);border:1px solid var(--line-decor);background:var(--surface);font-size:15px;color:var(--muted)}
 
 /* FAQ */
 .faq{max-width:860px;display:grid;gap:12px}
@@ -179,25 +164,25 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
 .path h3{color:var(--ivory)}
 
 /* Footer */
-.site-footer{background:var(--espresso);color:#BFA98F;padding:40px var(--gut) 44px;border-top:1px solid rgba(214,190,140,.2);font-size:14px}
+.site-footer{background:var(--espresso);color:#a0a7ae;padding:40px var(--gut) 44px;border-top:1px solid rgba(167,176,187,.2);font-size:14px}
 .foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:20px 40px;align-items:flex-start}
 .foot .brand{color:var(--ivory)}
 .foot ul{display:flex;flex-wrap:wrap;gap:8px 24px}
 .foot a{color:var(--ivory-2);padding:8px 0;display:inline-block}
 .foot a:hover{color:#fff}
-.legal{margin-top:24px;padding-top:20px;border-top:1px solid rgba(214,190,140,.16);line-height:1.9}
+.legal{margin-top:24px;padding-top:20px;border-top:1px solid rgba(167,176,187,.16);line-height:1.9}
 
 /* ---------- Responsive ---------- */
 @media (max-width:1100px){
   .nav{display:none}
   .site-header{gap:10px}
-  .menu-toggle{display:inline-flex;align-items:center;justify-content:center;flex:0 0 46px;width:46px;height:46px;padding:0;border-radius:50%;border:1px solid var(--brass);background:rgba(252,250,246,.88);color:var(--ink);cursor:pointer;box-shadow:0 5px 16px rgba(54,36,19,.08)}
+  .menu-toggle{display:inline-flex;align-items:center;justify-content:center;flex:0 0 46px;width:46px;height:46px;padding:0;border-radius:50%;border:1px solid var(--brass);background:rgba(247,249,251,.88);color:var(--ink);cursor:pointer;box-shadow:0 5px 16px rgba(22,31,51,.08)}
   .menu-bars{position:relative;display:block;width:19px;height:14px}
   .menu-bars i{position:absolute;display:block;width:19px;height:1.8px;background:currentColor;border-radius:3px;inset-inline-start:0;transition:transform 160ms ease,top 160ms ease}
   .menu-bars i:first-child{top:3px}.menu-bars i:last-child{top:10px}
   .menu-toggle[aria-expanded="true"] .menu-bars i:first-child{top:7px;transform:rotate(45deg)}
   .menu-toggle[aria-expanded="true"] .menu-bars i:last-child{top:7px;transform:rotate(-45deg)}
-  .mobile-menu:not([hidden]){display:block;position:absolute;top:calc(100% + 8px);inset-inline-end:clamp(16px,4vw,64px);z-index:35;width:min(380px,calc(100vw - 32px));padding:18px 20px 16px;color:var(--ink);background:var(--surface);border:1px solid var(--line-decor);border-radius:20px;box-shadow:0 20px 55px rgba(34,22,12,.18),0 3px 12px rgba(34,22,12,.06);animation:menu-appear 160ms ease-out both}
+  .mobile-menu:not([hidden]){display:block;position:absolute;top:calc(100% + 8px);inset-inline-end:clamp(16px,4vw,64px);z-index:35;width:min(380px,calc(100vw - 32px));padding:18px 20px 16px;color:var(--ink);background:var(--surface);border:1px solid var(--line-decor);border-radius:20px;box-shadow:0 20px 55px rgba(14,20,32,.18),0 3px 12px rgba(14,20,32,.06);animation:menu-appear 160ms ease-out both}
   .menu-kicker{margin:0 0 8px;color:var(--brass-text);font-size:13px;font-weight:700}
   .menu-link{min-height:51px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--sunken);font-size:16px;font-weight:700}
   .menu-link:hover{color:var(--brass-text)}
@@ -221,8 +206,7 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
   .selection-copy{order:2;text-align:center}
   .selection-copy p{margin-inline:auto}
   .chips{justify-content:center}
-  .compare{order:1;margin:max(-44.52px,-8.56%) auto 0;max-width:520px}
-  .cards3,.steps,.plans{grid-template-columns:1fr}
+  .cards3,.steps{grid-template-columns:1fr}
   .split,.start-grid{grid-template-columns:1fr}
 }
 @media (max-width:560px){
@@ -239,8 +223,7 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
   .swatch .ring{width:76px;height:76px}.swatch span.t{font-size:25px}
   .style-dock{width:min(275px,72vw);margin-top:-50px;transform:translateX(clamp(24px,9vw,35px))}
   .style-dock h3{font-size:15px;top:7px}
-  .compare .tag{font-size:13px;bottom:12%}
-  .selection-copy p,.sec-head p.sub{font-size:17px}
+  .sec-head p.sub{font-size:17px}
 }
 @media (max-width:360px){
   .brand{font-size:20px}.brand small{font-size:13px;margin-inline-start:4px}
@@ -262,27 +245,29 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
 <header class="site-header">
   <a class="brand" href="#intro" aria-label="آینه، بازگشت به ابتدای صفحه"><span class="brand-symbol"><!--AYNEH_MARK--></span><span class="brand-name">آینه<small>AYNEH</small></span></a>
   <nav class="nav" aria-label="ناوبری اصلی">
-    <a href="#studio">تجربهٔ آینه</a>
-    <a href="#how">مزایا</a>
+    <a href="#how">چطور کار می‌کند</a>
+    <a href="#studio">دموی زنده</a>
     <a href="#services">خدمات</a>
-    <a href="#salon-example">ساخت صفحهٔ سالن</a>
+    <a href="#pricing">قیمت‌ها</a>
+    <a href="#salon-example">پیش‌نمایش صفحه</a>
     <a href="#faq">پرسش‌ها</a>
   </nav>
   <div class="header-actions">
-    <a class="btn header-cta" href="#salon-example">ساخت پیش‌نمایش رایگان</a>
+    <a class="btn header-cta" href="#salon-example">ساخت صفحهٔ من</a>
     <button type="button" class="menu-toggle" aria-expanded="false" aria-controls="mobile-menu" aria-label="باز کردن فهرست">
       <span class="menu-bars" aria-hidden="true"><i></i><i></i></span>
     </button>
   </div>
   <nav id="mobile-menu" class="mobile-menu" aria-label="فهرست موبایل" hidden>
     <p class="menu-kicker">فهرست آینه</p>
-    <a class="menu-link" href="#studio"><span>تجربهٔ آینه</span><span aria-hidden="true">↙</span></a>
-    <a class="menu-link" href="#how"><span>مزایا</span><span aria-hidden="true">↙</span></a>
+    <a class="menu-link" href="#how"><span>چطور کار می‌کند</span><span aria-hidden="true">↙</span></a>
+    <a class="menu-link" href="#studio"><span>دموی زنده</span><span aria-hidden="true">↙</span></a>
     <a class="menu-link" href="#services"><span>خدمات مو، ناخن و مژه</span><span aria-hidden="true">↙</span></a>
-    <a class="menu-link" href="#salon-example"><span>ساخت صفحهٔ سالن</span><span aria-hidden="true">↙</span></a>
+    <a class="menu-link" href="#pricing"><span>قیمت‌ها و پنل‌ها</span><span aria-hidden="true">↙</span></a>
+    <a class="menu-link" href="#salon-example"><span>پیش‌نمایش صفحه</span><span aria-hidden="true">↙</span></a>
 
     <a class="menu-link" href="#faq"><span>پرسش‌ها</span><span aria-hidden="true">↙</span></a>
-    <a class="btn menu-cta" href="#salon-example">ساخت پیش‌نمایش رایگان</a>
+    <a class="btn menu-cta" href="#salon-example">ساخت صفحهٔ من</a>
   </nav>
 </header>
 
@@ -294,12 +279,12 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
       <h1 id="h1">انتخاب بعدی‌ات را ببین.</h1>
       <p class="lead">مدل و رنگ دلخواهت را انتخاب کن و با سالن مشورت کن؛ اگر سالن شبیه‌سازی را فعال کرده باشد، نتیجه را روی عکس خودت ببین.</p>
       <ul class="lines-row" aria-label="خدمات پوشش‌داده‌شده"><li>مو</li><li>ناخن</li><li>مژه</li></ul>
-      <a class="btn btn--lg" href="#start"><span>امتحان آینه</span><span class="arrow" aria-hidden="true">←</span></a>
+      <a class="btn btn--lg" href="#salon-example"><span>امتحان آینه</span><span class="arrow" aria-hidden="true">←</span></a>
       <p class="fineprint">شبیه‌سازی پیشنهادی است، نه تضمین نتیجه.</p>
     </div>
 
     <div class="swatch-arc" role="img" aria-label="نمونه رنگ مو: بلوند شامپاینی، کاراملی، اسپرسو، آمبره">
-      <svg viewBox="0 0 190 470" fill="none" aria-hidden="true"><path d="M164 32 C 118 62, 102 104, 102 150 C 102 196, 96 228, 96 270 C 96 318, 118 356, 150 388" stroke="#B9975B" stroke-width="1.6" stroke-linecap="round" opacity=".85"/></svg>
+      <svg viewBox="0 0 190 470" fill="none" aria-hidden="true"><path d="M164 32 C 118 62, 102 104, 102 150 C 102 196, 96 228, 96 270 C 96 318, 118 356, 150 388" stroke="#7c8998" stroke-width="1.6" stroke-linecap="round" opacity=".85"/></svg>
       <div class="swatch s1"><span class="ring"><img src="assets/sw1.webp" alt="" width="56" height="56"></span><span class="t">بلوند شامپاینی</span></div>
       <div class="swatch s2"><span class="ring"><img src="assets/sw2.webp" alt="" width="56" height="56"></span><span class="t">کاراملی</span></div>
       <div class="swatch s3"><span class="ring"><img src="assets/sw3.webp" alt="" width="56" height="56"></span><span class="t">اسپرسو</span></div>
@@ -336,42 +321,43 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
   <section id="services" class="section" aria-labelledby="h-svc" tabindex="-1">
     <div class="wrap">
       <div class="sec-head">
-        <p class="kicker">دموی خدمات</p>
-        <h2 id="h-svc">مو، ناخن و مژه؛ همه در یک صفحه</h2>
-        <p class="sub">هر دمو در صفحهٔ یک سالن نمونه باز می‌شود؛ همان چیزی که مشتری‌های شما می‌بینند.</p>
+        <p class="kicker">چه چیزهایی را می‌شود امتحان کرد</p>
+        <h2 id="h-svc">مو، ناخن و مژه؛ روی عکس خود مشتری</h2>
+        <p class="sub">هر دمو در تب جدید باز می‌شود تا صفحهٔ شما همینجا بماند.</p>
       </div>
       <div class="cards3">
         <article class="svc">
           <!--ICON:hair-->
           <h3>مدل و رنگ مو</h3>
-          <p>عکس چهره را بگذارید، مدل یا رنگ را انتخاب کنید و نتیجه را روی همان عکس ببینید.</p>
-          <a class="btn btn--ghost svc-try" href="https://ayneh-salon.site/s/sanaz-salon?l=hair">دموی مدل و رنگ مو</a>
+          <p>عکس چهره بگذارید، مدل یا رنگ را انتخاب کنید و همان را روی عکس ببینید.</p>
+          <a class="btn btn--ghost svc-try" href="https://ayneh-salon.site/s/sanaz-salon?l=hair&from=landing&utm_source=landing&utm_medium=demo&utm_campaign=owner_preview&utm_content=hair" target="_blank" rel="noopener noreferrer" title="در تب جدید باز می‌شود">دموی مدل و رنگ مو</a>
         </article>
         <article class="svc">
           <!--ICON:nails-->
           <h3>طرح ناخن</h3>
           <p>عکس دست را بگذارید و فرم، رنگ و طرح را روی همان دست امتحان کنید.</p>
-          <a class="btn btn--ghost svc-try" href="https://ayneh-salon.site/s/sanaz-salon?l=nails">دموی طرح ناخن</a>
+          <a class="btn btn--ghost svc-try" href="https://ayneh-salon.site/s/sanaz-salon?l=nails&from=landing&utm_source=landing&utm_medium=demo&utm_campaign=owner_preview&utm_content=nails" target="_blank" rel="noopener noreferrer" title="در تب جدید باز می‌شود">دموی طرح ناخن</a>
         </article>
         <article class="svc">
           <!--ICON:lashes-->
           <h3>مدل مژه</h3>
-          <p>عکس چهره یا چشم را بگذارید و حالت، طول و حجم مژه را روی چشم خودتان ببینید.</p>
-          <a class="btn btn--ghost svc-try" href="https://ayneh-salon.site/s/sanaz-salon?l=lashes">دموی مدل مژه</a>
+          <p>عکس چهره یا چشم بگذارید و حالت و حجم مژه را ببینید.</p>
+          <a class="btn btn--ghost svc-try" href="https://ayneh-salon.site/s/sanaz-salon?l=lashes&from=landing&utm_source=landing&utm_medium=demo&utm_campaign=owner_preview&utm_content=lashes" target="_blank" rel="noopener noreferrer" title="در تب جدید باز می‌شود">دموی مدل مژه</a>
         </article>
       </div>
+      <p class="photo-tip">عکس روبه‌رو، نور کافی و بدون فیلتر، پیش‌نمایش بهتری می‌دهد.</p>
     </div>
   </section>
 
   <!-- 4. How it works -->
   <section id="how" class="section section--sunken" aria-labelledby="h-how" tabindex="-1">
-    <div class="wrap"><header class="sec-head"><p class="kicker">چرا آینه برای سالن شما ساخته شده</p><h2 id="h-how">آینه صفحهٔ اختصاصی سالن شماست</h2><p class="sub">مشتری عکس چهره یا دستش را می‌گذارد، مدل و رنگ مو، طرح ناخن یا مژه را روی عکس خودش امتحان می‌کند و انتخابش را با تصویر برای شما می‌فرستد. شما در تلگرام یا بله درخواست را می‌بینید و جواب می‌دهید.</p></header>
+    <div class="wrap"><header class="sec-head"><p class="kicker">از لینک تا درخواست</p><h2 id="h-how">مشتری انتخاب می‌کند، شما همان را با عکس می‌بینید</h2><p class="sub">لینک صفحه را به مشتری بدهید. او مدل و رنگ مو، طرح ناخن یا مدل مژه را روی عکس خودش امتحان می‌کند. همان انتخاب، با عکس، به تلگرام یا بلهٔ خودتان می‌رسد؛ چه پشت صندلی خودتان باشید، چه چند نفر در یک آرایشگاه.</p></header>
     <div class="benefits-five">
-      <article class="svc benefit"><!--ICON:mirror--><h3>انتخاب قبل از مراجعه</h3><p>مشتری مدل و رنگ را روی عکس خودش می‌بیند و با انتخاب مشخص سراغ سالن می‌آید.</p></article>
-      <article class="svc benefit"><!--ICON:talk--><h3>مشاوره با تصویر</h3><p>آرایشگر عکس و مدل انتخاب‌شده را کنار هم می‌بیند و دربارهٔ همان نتیجه با مشتری حرف می‌زند.</p></article>
-      <article class="svc benefit"><!--ICON:book--><h3>نمونه‌کار قابل امتحان</h3><p>مشتری از میان کارهای خود سالن انتخاب می‌کند و مدل دلخواهش را روی عکس خودش می‌بیند.</p></article>
-      <article class="svc benefit"><!--ICON:link--><h3>یک لینک با نام سالن</h3><p>لینک صفحه را در بیوی اینستاگرام یا دایرکت بگذارید؛ مشتری از همان گوشی وارد می‌شود.</p></article>
-      <article class="svc benefit"><!--ICON:check--><h3>پاسخ در پیام‌رسان</h3><p>درخواست تصویری به تلگرام یا بله می‌رسد و همان‌جا می‌توانید آن را تأیید یا رد کنید.</p></article>
+      <article class="svc benefit"><!--ICON:mirror--><h3>قبل از مراجعه، مشخص است</h3><p>مشتری با عکسی که انتخاب کرده می‌آید؛ نه فقط با یک توضیح شفاهی.</p></article>
+      <article class="svc benefit"><!--ICON:talk--><h3>مشاوره روی عکس</h3><p>آرایشگر عکس و مدل انتخاب‌شده را کنار هم می‌بیند و راحت‌تر حرف می‌زند.</p></article>
+      <article class="svc benefit"><!--ICON:book--><h3>نمونه‌کار خودتان</h3><p>مشتری از کارهای شما انتخاب می‌کند، نه از عکس‌های بی‌نام.</p></article>
+      <article class="svc benefit"><!--ICON:link--><h3>یک لینک، بدون نصب</h3><p>لینک را در بیو یا دایرکت بگذارید؛ صفحه همان‌جا در مرورگر گوشی باز می‌شود.</p></article>
+      <article class="svc benefit"><!--ICON:check--><h3>پاسخ در پیام‌رسان</h3><p>درخواست به تلگرام یا بله می‌رسد؛ پنل تازه‌ای یاد نمی‌گیرید.</p></article>
     </div></div>
   </section>
 
@@ -390,43 +376,15 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
       <ul class="feat">
         <li><span class="dot" aria-hidden="true"></span><div><strong>درخواست کامل در چت سالن</strong><span class="d">عکس‌ها، مدل، رنگ و توضیح مشتری یک‌جا می‌رسد، با دکمه‌های وضعیت مثل «تماس گرفتم» و «نوبت شد».</span></div></li>
         <li><span class="dot" aria-hidden="true"></span><div><strong>نمونه‌کار با ارسال یک عکس</strong><span class="d">هر عکسی که برای ربات بفرستید، روی صفحهٔ سالن به‌عنوان نمونه‌کار نشان داده می‌شود.</span></div></li>
-        <li><span class="dot" aria-hidden="true"></span><div><strong>لینک شخصی برای هر آرایشگر</strong><span class="d">مشتری‌ای که با لینک یک نفر بیاید، درخواستش به همان نفر می‌رسد. مدیر سالن می‌تواند آن را جابه‌جا کند.</span></div></li>
+        <li><span class="dot" aria-hidden="true"></span><div><strong>لینک شخصی برای هر آرایشگر</strong><span class="d">مشتری‌ای که با لینک یک نفر بیاید، درخواستش به همان نفر می‌رسد. مسئول مجموعه می‌تواند آن را جابه‌جا کند.</span></div></li>
         <li><span class="dot" aria-hidden="true"></span><div><strong>یادآوری و گزارش</strong><span class="d">درخواستی که بی‌پاسخ بماند یادآوری می‌شود و مشتری وضعیتش را در همان صفحه می‌بیند.</span></div></li>
       </ul>
     </div>
   </section>
 
-  <!-- 6. Plans -->
-  <section id="plans" class="section section--sunken" aria-labelledby="h-plans" tabindex="-1">
-    <div class="wrap">
-      <div class="sec-head">
-        <p class="kicker">پلن‌ها</p>
-        <h2 id="h-plans">پلن یک‌بار پرداخت می‌شود؛ فقط ساخت تصویر شارژ ماهانه دارد.</h2>
-        <p class="sub">پلن‌ها در آموزش و تعداد کارکنان فرق دارند. پیشنهاد ما: اول پیش‌نمایش را بسازید، بعد انتخاب کنید.</p>
-      </div>
-      <div class="plans">
-        <article class="plan">
-          <h3>Basic</h3>
-          <p class="price num">۱۰ میلیون<small>تومان</small></p>
-          <ul><li>تا ۲ نفر از کارکنان سالن</li><li>ویدئوهای آموزشی کار با آینه</li><li>صفحهٔ اختصاصی سالن با لینک</li></ul>
-          <a class="btn btn--ghost plan-cta" href="#start" data-plan="Basic"><span>شروع با پیش‌نمایش</span></a>
-        </article>
-        <article class="plan plan--pro">
-          <span class="badge">پیشنهادی برای شروع</span>
-          <h3>Pro</h3>
-          <p class="price num">۲۰ میلیون<small>تومان</small></p>
-          <ul><li>تا ۵ نفر از کارکنان سالن</li><li>ویدئوهای آموزشی و یک جلسهٔ آنلاین آموزش و پرسش‌وپاسخ</li><li>همهٔ امکانات Basic به‌علاوهٔ امتحان روی نمونه‌کار سالن و ثبت نمونه‌کار از ربات</li></ul>
-          <a class="btn btn--ghost plan-cta" href="#start" data-plan="Pro"><span>شروع با پیش‌نمایش</span></a>
-        </article>
-        <article class="plan">
-          <h3>VIP</h3>
-          <p class="price num"><small>از</small>۸۰ میلیون<small>تومان</small></p>
-          <ul><li>تا ۲۰ نفر از کارکنان سالن</li><li>ویدئو، جلسهٔ آنلاین و جلسهٔ حضوری آموزش برای نیروهای سالن</li><li>دامنهٔ اختصاصی سالن و امکان سفارشی طبق نیاز</li></ul>
-          <a class="btn btn--ghost plan-cta" href="#start" data-plan="VIP"><span>شروع با پیش‌نمایش</span></a>
-        </article>
-      </div>
-      <p class="plan-note">ساخت تصویر هزینهٔ جدا دارد: شارژ ماهانه بین ۱ تا ۵ میلیون تومان، بسته به تعداد تصویر.</p>
-    </div>
+  <!-- 6. Pricing: assembled by build.py from src/plans.html -->
+  <section id="pricing" class="section section--sunken pricing" aria-labelledby="h-pricing" tabindex="-1">
+    <div class="wrap"><!-- filled by build.py from src/plans.html --></div>
   </section>
 
   <!-- 7. FAQ -->
@@ -434,32 +392,45 @@ h3{font-size:24px;line-height:1.5;font-weight:700}
     <div class="wrap">
       <div class="sec-head"><p class="kicker">پرسش‌های پرتکرار</p><h2 id="h-faq">پاسخ کوتاه به پرسش‌های رایج</h2></div>
       <div class="faq">
-        <details open><summary>آینه دقیقاً چیست؟</summary><p>یک صفحهٔ اینترنتی با نام و رنگ برند سالن شما. مشتری مدل مو، رنگ، ناخن یا مژه را روی عکس خودش امتحان می‌کند و درخواستش را با عکس به تلگرام یا بله شما می‌فرستد.</p></details>
-        <details><summary>چطور سرویس‌ها را امتحان کنم؟</summary><p>بالای صفحه، مدل و رنگ مو را روی چهرهٔ نمونه امتحان کنید. برای امتحان خدمات روی عکس خودتان، یکی از <a href="#services">دموهای خدمات</a> را باز کنید.</p></details>
-        <details><summary>بعد از ثبت درخواست چه می‌شود؟</summary><p>پس از تأیید موبایل، درخواست برای بررسی ثبت می‌شود. تیم آینه برای اعلام هزینه و هماهنگی راه‌اندازی با شما تماس می‌گیرد. ثبت درخواست شامل پرداخت یا انتشار صفحه نیست.</p></details>
-        <details><summary>هزینهٔ آینه چطور مشخص می‌شود؟</summary><p>هزینه دو بخش دارد: راه‌اندازی صفحه و اعتبار ساخت تصویر. پیش از تصمیم‌گیری، امکانات و هزینهٔ متناسب با نیاز سالن را با شما مرور می‌کنیم.</p></details>
+        <details open><summary>آینه دقیقاً چیست؟</summary><p>یک صفحهٔ اینترنتی به نام شما یا آرایشگاه‌تان است. مشتری مدل و رنگ مو، طرح ناخن یا مدل مژه را روی عکس خودش امتحان می‌کند و همان انتخاب را با عکس برایتان می‌فرستد. پیش از مراجعه می‌دانید چه می‌خواهد.</p></details>
+        <details><summary>چطور سرویس‌ها را امتحان کنم؟</summary><p>بالای صفحه، مدل و رنگ مو را روی چهرهٔ نمونه امتحان کنید. برای عکس خودتان، یکی از <a href="#services">دموهای خدمات</a> را باز کنید.</p></details>
+        <details><summary>بعد از ثبت درخواست چه می‌شود؟</summary><p>پس از ثبت درخواست، تیم آینه برای هماهنگی راه‌اندازی با شما تماس می‌گیرد. ثبت درخواست شامل پرداخت یا انتشار صفحه نیست.</p></details>
+        <details><summary>مبلغ پنل‌ها چه زمانی مشخص می‌شود؟</summary><p>پنل‌ها در <a href="#pricing">بخش قیمت</a> با نام و فهرست کارها آمده‌اند. مبلغ و سهمیهٔ تصویر در حال نهایی‌شدن است و پیش از هر پرداختی نوشته می‌شود؛ چیزی پنهان نمی‌ماند. پیش‌نمایش و ثبت درخواست هم بدون پرداخت است.</p></details>
         <details><summary>مشتری‌های من چطور وارد می‌شوند؟</summary><p>با یک لینک. آن را در اینستاگرام، تلگرام یا هر چتی می‌گذارید. چیزی نصب نمی‌شود؛ صفحه در مرورگر گوشی باز می‌شود.</p></details>
-        <details><summary>درخواست مشتری را کجا می‌بینم؟</summary><p>در ربات تلگرام یا بله خودتان. پنل جداگانه‌ای ندارید.</p></details>
-        <details><summary>آینه نوبت می‌دهد؟</summary><p>نه. آینه فقط کمک می‌کند مشتری روشن بگوید چه می‌خواهد. نوبت، زمان و هزینه مثل همیشه دست خود شماست.</p></details>
-        <details><summary>نتیجهٔ شبیه‌سازی دقیق است؟</summary><p>نه، تقریبی است. مثل یک عکس مرجع واضح به گفتگو کمک می‌کند و نتیجهٔ نهایی را تضمین نمی‌کند.</p></details>
-        <details><summary>ناخن و مژه هم دارید؟</summary><p>بله. در صفحهٔ سالن بین مو، ناخن و مژه جابه‌جا می‌شوند و هر کدام عکس و انتخاب‌های خودش را دارد.</p></details>
-        <details><summary>شبیه‌سازی برای همهٔ سالن‌ها روشن است؟</summary><p>هر سالن خودش تصمیم می‌گیرد. اگر خاموش باشد، مشتری باز هم مدل و رنگ را انتخاب می‌کند و درخواستش را می‌فرستد.</p></details>
+        <details><summary>درخواست مشتری را کجا می‌بینم؟</summary><p>در ربات تلگرام یا بله خودتان. داشبورد تازه‌ای برای یادگرفتن نیست؛ گزارش روزانه هم در همان چت می‌آید.</p></details>
+        <details><summary>آینه نوبت می‌دهد؟</summary><p>نه. آینه فقط کمک می‌کند مشتری روشن بگوید چه می‌خواهد. نوبت، زمان و مبلغ خدمات مثل همیشه دست خودتان است.</p></details>
+        <details><summary>نتیجهٔ شبیه‌سازی دقیق است؟</summary><p>خیر، نتیجه دقیق نیست. مثل یک عکس مرجع به گفتگو کمک می‌کند و نتیجهٔ نهایی را تضمین نمی‌کند؛ اخطار کامل را کنار تصویر فولد نوشته‌ایم.</p></details>
+        <details><summary>ناخن و مژه هم دارید؟</summary><p>بله. در صفحهٔ شما بین مو، ناخن و مژه جابه‌جا می‌شوند و هر کدام عکس و انتخاب‌های خودش را دارد. تصویر آزمایشی این صفحه هر سه خدمت را نشان می‌دهد؛ آینهٔ تعاملی فعلاً مخصوص مو است.</p></details>
+        <details><summary>عکس مشتری کجا می‌رود؟</summary><p>عکس مشتری برای ساخت همان پیش‌نمایش و رساندن درخواست به شما استفاده می‌شود. برای شبیه‌سازی، نسخهٔ فشردهٔ عکس به سرویس تصویر فرستاده می‌شود. پیش از ارسال درخواست، خود مشتری تأیید می‌کند. شما خودتان تصمیم می‌گیرید شبیه‌سازی روشن باشد؛ اگر خاموش باشد، باز هم انتخاب و درخواست می‌رسد.</p></details>
       </div>
-      <p class="faq-next"><a class="btn btn--lg" href="#salon-example">ساخت پیش‌نمایش سالن من</a></p>
+      <p class="faq-next"><a class="btn btn--lg" href="#salon-example">ساخت صفحهٔ من</a></p>
     </div>
   </section>
 
 </main>
-<a class="sticky-cta" id="stickyCta" href="#start" hidden><span>ساخت پیش‌نمایش سالن من</span><span class="arrow" aria-hidden="true">←</span></a>
+<a class="sticky-cta" id="stickyCta" href="#start" hidden><span>ساخت صفحهٔ من</span><span class="arrow" aria-hidden="true">←</span></a>
 
 <footer class="site-footer">
   <div class="foot">
     <a class="brand" href="#intro"><span class="brand-symbol"><!--AYNEH_MARK--></span><span class="brand-name">آینه<small>AYNEH</small></span></a>
     <ul aria-label="پیوندهای پایین صفحه">
-      <li><a href="#studio">تجربهٔ آینه</a></li><li><a href="#how">مزایا</a></li><li><a href="#services">خدمات</a></li><li><a href="#salon-example">ساخت صفحهٔ سالن</a></li><li><a href="#faq">پرسش‌ها</a></li>
+      <li><a href="#how">چطور کار می‌کند</a></li><li><a href="#studio">دموی زنده</a></li><li><a href="#services">خدمات</a></li><li><a href="#pricing">قیمت‌ها</a></li><li><a href="#salon-example">پیش‌نمایش صفحه</a></li><li><a href="#faq">پرسش‌ها</a></li>
     </ul>
   </div>
-  <p class="legal"><span>آینه — صفحهٔ اختصاصی سالن برای امتحان مدل و رنگ مو، ناخن و مژه روی عکس مشتری.</span><span>© ۱۴۰۵ آینه</span></p>
+  <div class="foot-contact" aria-label="ارتباط با تیم آینه">
+    <p class="foot-contact-title">تیم سازنده: <b>آینه</b></p>
+    <p class="foot-contact-lines"><a href="tel:09105647497" dir="ltr">09105647497</a><span aria-hidden="true">·</span><a href="mailto:omidadli78@gmail.com" dir="ltr">omidadli78@gmail.com</a></p>
+    <p class="foot-honest">پنل‌ها با نام و فهرست کارها در <a href="#pricing">بخش قیمت</a> آمده‌اند؛ مبلغ و سهمیهٔ تصویر پیش از هر پرداختی نوشته می‌شود. ساخت پیش‌نمایش، ثبت درخواست و امتحان خدمات روی عکس خودتان بدون پرداخت است.</p>
+    <p class="foot-sample-note">مقادیر زیر <b>نمونهٔ موقت</b>اند و به‌زودی با اطلاعات واقعی جایگزین می‌شوند.</p>
+    <dl class="foot-samples">
+      <div><dt>ساعت پاسخگویی</dt><dd data-sample="hours">نمونهٔ موقت: شنبه تا چهارشنبه، ۱۰ تا ۱۸</dd></div>
+      <div><dt>سالن نمونه</dt><dd data-sample="salon">نمونهٔ موقت: سالن آینه</dd></div>
+      <div><dt>ایمیل سازمانی</dt><dd data-sample="email" dir="ltr">sample@ayneh.example</dd></div>
+      <div><dt>عکس قبل و بعد</dt><dd data-sample="beforeafter">نمونهٔ موقت: تصویر آزمایشی همین صفحه؛ فایل واقعی بعداً جایگزین می‌شود</dd></div>
+      <div><dt>ربات تلگرام / بله</dt><dd data-sample="bot">نمونهٔ موقت: تصویر ربات ثبت نشده؛ فایل واقعی بعداً جایگزین می‌شود</dd></div>
+    </dl>
+  </div>
+  <p class="legal"><span>آینه — صفحهٔ اختصاصی آرایشگر و آرایشگاه برای امتحان مدل و رنگ مو، ناخن و مژه روی عکس مشتری.</span><span>© ۱۴۰۵ آینه</span></p>
 </footer>
 
 <script>

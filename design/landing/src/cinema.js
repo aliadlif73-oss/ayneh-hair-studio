@@ -5,7 +5,7 @@
  const clamp=(v,a=0,b=1)=>v<a?a:v>b?b:v;
  const subP=(p,s,e)=>clamp((p-s)/((e-s)||1),0,1);
 
- const actions='.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button';
+ const actions='button,.btn,.sticky-cta,.menu-toggle,.nav-btn,.close,.demo-controls button,summary,[role="button"]';
  const layer=el=>{let g=el.querySelector(':scope>.glass-layer');if(!g){g=document.createElement('span');g.className='glass-layer';g.setAttribute('aria-hidden','true');el.prepend(g)}return g};
  const dress=()=>$$(actions).forEach(layer);dress();
  new MutationObserver(()=>{clearTimeout(dress.t);dress.t=setTimeout(dress,120)}).observe(document.body,{childList:true,subtree:true});
@@ -18,6 +18,15 @@
    ring.style.cssText='left:'+x+'px;top:'+y+'px;width:'+size+'px;height:'+size+'px;animation-delay:'+(k*140)+'ms';
    g.appendChild(ring);ring.addEventListener('animationend',()=>ring.remove(),{once:true});
   }
+  g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');
+ },{passive:true});
+ document.addEventListener('click',e=>{
+  if(e.detail!==0)return;
+  const el=e.target.closest(actions);if(!el||el.disabled||still)return;
+  const g=layer(el),r=el.getBoundingClientRect(),x=r.width/2,y=r.height/2,size=Math.hypot(x,y)*2;
+  for(let k=0;k<3;k++){const ring=document.createElement('i');ring.className='ripple';
+   ring.style.cssText='left:'+x+'px;top:'+y+'px;width:'+size+'px;height:'+size+'px;animation-delay:'+(k*140)+'ms';
+   g.appendChild(ring);ring.addEventListener('animationend',()=>ring.remove(),{once:true})}
   g.classList.remove('flash');void g.offsetWidth;g.classList.add('flash');
  },{passive:true});
 
@@ -75,26 +84,31 @@
 
  const tracks=[];
  const addTrack=(initP,targetFn,applyFn)=>{const t={cur:initP,target:targetFn,apply:applyFn};t.apply(initP);tracks.push(t)};
+ let measureV=0,maxScroll=1,heroH=0;
+ const tops=new WeakMap();
+ const docTop=el=>{let c=tops.get(el);if(!c||c.v!==measureV){const r=el.getBoundingClientRect();c={v:measureV,top:r.top+window.scrollY};tops.set(el,c)}return c.top};
+ const measure=()=>{measureV++;maxScroll=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);heroH=0};
+ addEventListener('resize',measure,{passive:true});addEventListener('load',measure);
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(measure);
+ measure();
  const rectP=(el,enterVh=0.92,fullVh=0.44)=>{
-  const r=el.getBoundingClientRect(),vh=window.innerHeight||800,s=vh*enterVh,e=vh*fullVh;
-  return clamp((s-r.top)/((s-e)||1),0,1);
+  const vh=window.innerHeight||800,s=vh*enterVh,e=vh*fullVh;
+  return clamp((s-(docTop(el)-window.scrollY))/((s-e)||1),0,1);
  };
 
- const heroCopy=$('#copy'),heroH1=$('#h1'),heroEyebrow=$('#intro .eyebrow');
+ const heroCopy=$('#copy');
  if(heroCopy){
-  const slamHero=prepareSlam(heroH1),typeHero=prepareType(heroEyebrow);
-  let boot=0;const t0=performance.now();
-  const bootTick=now=>{boot=clamp((now-t0)/900,0,1);if(boot<1)requestAnimationFrame(bootTick);scheduleScrub()};
-  requestAnimationFrame(bootTick);
+  // Step 15: the opening line is static. No typing, no boot delay; section
+  // choreography and ripples stay intact.
+  const boot=1;
   addTrack(0,()=>{
-   const r=heroCopy.getBoundingClientRect(),vh=window.innerHeight||800;
+   const vh=window.innerHeight||800;if(!heroH)heroH=heroCopy.getBoundingClientRect().height;
    // Fade out only once the copy is actually scrolling away; a short phone screen must still show it at load.
-   const sf=r.top>=-8?1:clamp((r.bottom-vh*0.12)/Math.max(120,Math.min(r.height,vh*0.5)),0,1);
+   const top=docTop(heroCopy)-window.scrollY;
+   const sf=top>=-8?1:clamp((top+heroH-vh*0.12)/Math.max(120,Math.min(heroH,vh*0.5)),0,1);
    return Math.min(boot,sf);
   },p=>{
    heroCopy.style.setProperty('--kp',subP(p,0,0.45).toFixed(3));
-   typeHero(subP(p,0.02,0.62));
-   slamHero(subP(p,0.08,0.82));
    heroCopy.style.setProperty('--lp',subP(p,0.32,0.88).toFixed(3));
    heroCopy.style.setProperty('--cp',subP(p,0.46,0.96).toFixed(3));
    heroCopy.style.setProperty('--fp',subP(p,0.58,1).toFixed(3));
@@ -118,14 +132,13 @@
   how.dataset.cine='glint';
   const grid=$('.benefits-five',how),cards=$$('.benefits-five>.benefit',how);
   cards.forEach((c,i)=>c.style.setProperty('--i',i));
-  if(grid)addTrack(0,()=>rectP(grid,0.88,0.28),rowP=>{
-   const st=window.innerWidth<=580;
-   cards.forEach((card,i)=>{
-    const cp=st?rectP(card,0.92,0.48):subP(rowP,i*0.14,i*0.14+0.44);
-    card.style.setProperty('--p',cp.toFixed(3));
-    card.classList.toggle('scrub-done',cp>0.99);
-   });
-  });
+  cards.forEach((card,i)=>addTrack(0,()=>{
+   const row=grid?rectP(grid,0.88,0.28):1;
+   return window.innerWidth<=580?rectP(card,0.92,0.48):subP(row,i*0.14,i*0.14+0.44);
+  },p=>{
+   card.style.setProperty('--p',p.toFixed(3));
+   card.classList.toggle('scrub-done',p>0.99);
+  }));
  }
 
  const invite=$('.salon-invite');
@@ -137,7 +150,10 @@
    invite.style.setProperty('--kp',subP(p,0.1,0.5).toFixed(3));
    typeInv(subP(p,0.14,0.66));
    slamInv(subP(p,0.20,0.86));
-   copyEls.forEach((el,i)=>{const s=0.26+i*0.12;el.style.setProperty('--cp',subP(p,s,s+0.46).toFixed(3))});
+   // Step 13 added one more copy element; keep the last one (the CTA) fully
+   // revealed by the time the card is fully in view, whatever the count.
+   const n=copyEls.length||1,step=(0.54-0.2)/Math.max(1,n-1);
+   copyEls.forEach((el,i)=>{const s=0.2+i*step;el.style.setProperty('--cp',subP(p,s,s+0.46).toFixed(3))});
   });
  }
 
@@ -146,25 +162,29 @@
   services.dataset.cine='fan';
   const grid=$('.cards3',services),cards=$$('.cards3>.svc',services);
   cards.forEach((c,i)=>c.style.setProperty('--i',i));
-  if(grid)addTrack(0,()=>rectP(grid,0.90,0.32),rowP=>{
-   const st=window.innerWidth<=1100;
-   cards.forEach((card,i)=>{
-    const cp=st?rectP(card,0.92,0.46):subP(rowP,i*0.18,i*0.18+0.64);
-    card.style.setProperty('--p',cp.toFixed(3));
-    card.classList.toggle('scrub-done',cp>0.99);
-   });
-  });
+  cards.forEach((card,i)=>addTrack(0,()=>{
+   const row=grid?rectP(grid,0.90,0.32):1;
+   /* Same fan stagger, but it completes before the row saturates so the third
+      panel is never left behind on desktop either. */
+   return window.innerWidth<=1100?rectP(card,0.92,0.46):subP(row,i*0.12,i*0.12+0.56);
+  },p=>{
+   card.style.setProperty('--p',p.toFixed(3));
+   card.classList.toggle('scrub-done',p>0.99);
+  }));
  }
 
  const transform=$('#transform');
  if(transform){
   transform.dataset.cine='lights';
   const player=$('.film-player',transform),tabs=$$('.service-timeline>button',transform),typeFilm=prepareType($('.film-caption>span',transform));
-  if(player)addTrack(0,()=>rectP(player,0.92,0.36),p=>{
-   transform.style.setProperty('--p',p.toFixed(3));
-   tabs.forEach((btn,i)=>{const s=i*0.14;btn.style.setProperty('--tp',subP(p,s,s+0.56).toFixed(3))});
-   typeFilm(subP(p,0.36,0.92));
-  });
+  if(player){
+   addTrack(0,()=>rectP(player,0.92,0.36),p=>{
+    transform.style.setProperty('--p',p.toFixed(3));
+    typeFilm(subP(p,0.36,0.92));
+   });
+   tabs.forEach((btn,i)=>addTrack(0,()=>subP(rectP(player,0.92,0.36),i*0.14,i*0.14+0.56),
+     p=>btn.style.setProperty('--tp',p.toFixed(3))));
+  }
  }
 
  const builder=$('#salon-example');
@@ -172,17 +192,21 @@
   builder.dataset.cine='desk';
   const stepsList=$('.builder-steps',builder),steps=$$('.builder-steps>li',builder);
   steps.forEach((li,i)=>li.style.setProperty('--i',i));
-  if(stepsList)addTrack(0,()=>rectP(stepsList,0.90,0.42),rowP=>{
-   const st=window.innerWidth<=850;
-   steps.forEach((li,i)=>{
-    const sp=st?rectP(li,0.92,0.48):subP(rowP,i*0.18,i*0.18+0.64);
-    li.style.setProperty('--p',sp.toFixed(3));
-    li.classList.toggle('scrub-done',sp>0.99);
-   });
-  });
+  steps.forEach((li,i)=>addTrack(0,()=>{
+   const row=stepsList?rectP(stepsList,0.90,0.42):1;
+   return window.innerWidth<=850?rectP(li,0.92,0.48):subP(row,i*0.12,i*0.12+0.56);
+  },p=>{
+   li.style.setProperty('--p',p.toFixed(3));
+   li.classList.toggle('scrub-done',p>0.99);
+  }));
   const form=$('.builder-form',builder),preview=$('.builder-preview',builder);
-  if(form)addTrack(0,()=>rectP(form,0.92,0.42),p=>form.style.setProperty('--p',p.toFixed(3)));
-  if(preview)addTrack(0,()=>rectP(preview,0.92,0.42),p=>preview.style.setProperty('--p',p.toFixed(3)));
+  /* Both panes follow the SECTION, not their own boxes: the desktop preview
+     is position:sticky, so caching its own document top gives a scroll-
+     dependent (wrong) value and would leave it half transparent. */
+  if(form||preview)addTrack(0,()=>rectP(builder,0.98,0.72),p=>{
+   if(form)form.style.setProperty('--p',p.toFixed(3));
+   if(preview)preview.style.setProperty('--p',p.toFixed(3));
+  });
  }
 
  const faq=$('#faq');
@@ -200,8 +224,8 @@
   const links=$$('.foot ul li,.legal',footer);
   $$('.site-footer .brand-symbol path').forEach(p=>{try{p.style.setProperty('--len',Math.ceil(p.getTotalLength()))}catch{}});
   addTrack(0,()=>{
-   const base=rectP(footer,0.98,0.72),maxS=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
-   return Math.max(base,clamp((window.scrollY-(maxS-120))/120,0,1));
+   const base=rectP(footer,0.98,0.72);
+   return Math.max(base,clamp((window.scrollY-(maxScroll-120))/120,0,1));
   },p=>{
    footer.style.setProperty('--p',p.toFixed(3));
    links.forEach((el,i)=>{const s=0.2+i*0.1;el.style.setProperty('--lp',subP(p,s,Math.min(1,s+0.5)).toFixed(3))});
@@ -209,14 +233,14 @@
  }
 
  let rafId=0;
+ /* One pass per scroll frame, no trailing loop: the entrance effects stay
+    exactly scroll-linked, but nothing is rewritten while the page is idle. */
  function tick(){
-  rafId=0;let moving=false;
+  rafId=0;
   for(let i=0;i<tracks.length;i++){
-   const t=tracks[i],tgt=t.target(),diff=tgt-t.cur;
-   if(Math.abs(diff)>0.0015){t.cur+=diff*0.28;t.apply(t.cur);moving=true}
-   else if(t.cur!==tgt){t.cur=tgt;t.apply(t.cur)}
+   const t=tracks[i],tgt=Math.round(t.target()*80)/80;
+   if(tgt!==t.cur){t.cur=tgt;t.apply(tgt)}
   }
-  if(moving)rafId=requestAnimationFrame(tick);
  }
  function scheduleScrub(){if(!rafId)rafId=requestAnimationFrame(tick)}
  window.addEventListener('scroll',scheduleScrub,{passive:true});
