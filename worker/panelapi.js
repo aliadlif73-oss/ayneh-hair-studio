@@ -242,7 +242,7 @@ export async function panelApi(req, env, u, path) {
     const topic = text(String(b.topic || ''), 80), message = text(String(b.message || ''), 1000);
     must(message.length >= 5, 'پیام را بنویسید.');
     const {notifyOwner} = await import('./alerts.js');
-    await notifyOwner(env, {salon, kind: 'support', level: 'warn', text: 'SIGNATURE · پشتیبانی ویژه · «' + salon.name + '»' + (topic ? ' · ' + topic : ''), detail: message});
+    await notifyOwner(env, {salon, kind: 'support', level: 'warn', text: 'پلن کامل · پشتیبانی ویژه · «' + salon.name + '»' + (topic ? ' · ' + topic : ''), detail: message});
     return J({ok: true});
   }
   throw new Problem(404, 'مسیر پیدا نشد');

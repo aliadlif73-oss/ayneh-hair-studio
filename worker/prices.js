@@ -6,9 +6,9 @@
 // beyond seats costs seat_amount toman for the whole period (the «پنل آرایشگاه» plans).
 export const PRICE_MINUTES = 10;
 export const PLANS = {
-  essential: {name: 'ESSENTIAL', title: '', months: 1, amount: 2900000, was: 0, credits: 20, tier: 'essential', seats: 0, seat_amount: 0},
-  pro: {name: 'PRO', title: '', months: 3, amount: 6000000, was: 8700000, credits: 75, tier: 'pro', seats: 0, seat_amount: 0},
-  signature: {name: 'SIGNATURE', title: '', months: 6, amount: 10000000, was: 17400000, credits: 180, tier: 'signature', seats: 0, seat_amount: 0},
+  essential: {name: 'پایه', title: '', months: 1, amount: 2900000, was: 0, credits: 20, tier: 'essential', seats: 0, seat_amount: 0},
+  pro: {name: 'حرفه‌ای', title: '', months: 3, amount: 6000000, was: 8700000, credits: 75, tier: 'pro', seats: 0, seat_amount: 0},
+  signature: {name: 'کامل', title: '', months: 6, amount: 10000000, was: 17400000, credits: 180, tier: 'signature', seats: 0, seat_amount: 0},
   salon1: {name: 'پنل آرایشگاه ۱ ماهه', title: 'آرایشگاه', months: 1, amount: 5000000, was: 0, credits: 40, tier: 'essential', seats: 3, seat_amount: 2000000},
   salon3: {name: 'پنل آرایشگاه ۳ ماهه', title: 'آرایشگاه', months: 3, amount: 10000000, was: 0, credits: 150, tier: 'pro', seats: 3, seat_amount: 1500000},
   salon6: {name: 'پنل آرایشگاه ۶ ماهه', title: 'آرایشگاه', months: 6, amount: 15000000, was: 0, credits: 360, tier: 'signature', seats: 3, seat_amount: 1000000},

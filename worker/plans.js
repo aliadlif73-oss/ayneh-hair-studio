@@ -16,7 +16,7 @@ const SIGNATURE = [...PRO, 'report_full', 'archive', 'priority_support'];
 export const FEATURES = {essential: ESSENTIAL, pro: PRO, signature: SIGNATURE};
 export const ALL = SIGNATURE;
 /* The plan that first opens a feature, for the «در پلن …» note on a locked card. */
-export const OPENED_BY = Object.fromEntries(ALL.map(f => [f, ESSENTIAL.includes(f) ? 'ESSENTIAL' : PRO.includes(f) ? 'PRO' : 'SIGNATURE']));
+export const OPENED_BY = Object.fromEntries(ALL.map(f => [f, ESSENTIAL.includes(f) ? 'پایه' : PRO.includes(f) ? 'حرفه‌ای' : 'کامل']));
 
 /* The feature tier of a plan key: the sheet's `tier`, else the key itself (essential/pro/signature). */
 export const tierOf = key => PLANS[key]?.tier || (FEATURES[key] ? key : 'essential');

@@ -7,9 +7,9 @@
   </header>
 
   <ol class="sb-steps" aria-label="مراحل ساخت پیش‌نمایش">
-   <li><strong>نام و نشانی</strong><span>دو فیلد کوتاه؛ پرداختی لازم نیست.</span></li>
-   <li><strong>پیش‌نمایش زنده</strong><span>صفحه‌ای را که مشتری می‌بیند، همان‌جا ببینید.</span></li>
-   <li><strong>انتخاب پلن و پرداخت</strong><span>پلن مناسب را انتخاب کنید؛ بعد از پرداخت، همین صفحه با نشانی خودتان باز می‌شود.</span></li>
+   <li><strong>نام و نشانی</strong><span>فقط دو خانه؛ بدون پرداخت.</span></li>
+   <li><strong>پیش‌نمایش زنده</strong><span>همان صفحه‌ای را که مشتری می‌بیند، همین‌جا ببینید.</span></li>
+   <li><strong>انتخاب پلن و پرداخت</strong><span>بعد از پرداخت، همین صفحه با نشانی خودتان برای مشتری‌ها باز می‌شود.</span></li>
   </ol>
 
   <div class="sb-grid">
@@ -42,7 +42,7 @@
    </div>
 
    <form id="start" class="sb-form" method="post" aria-describedby="builderAvailability">
-    <p id="builderAvailability" class="sb-availability" role="status">پیش‌نمایش بلافاصله آماده می‌شود؛ برای باز کردن صفحهٔ واقعی، یکی از پلن‌ها را بخرید.</p>
+    <p id="builderAvailability" class="sb-availability" role="status">پیش‌نمایش رایگان است؛ برای باز شدن صفحهٔ واقعی، یک پلن بخرید.</p>
     <noscript><p>برای ساخت پیش‌نمایش، جاوااسکریپت مرورگر را فعال کنید.</p></noscript>
     <div class="wiz" id="builderWizard">
      <div class="wiz-top"><span class="wiz-track"><i class="wiz-bar" id="wizardBar"></i></span><span class="wiz-count" id="wizardCount">۱ از ۲</span></div>
@@ -59,7 +59,7 @@
       <label><span>نشانی اختصاصی پیشنهادی</span><span class="wiz-url"><span>ayneh-salon.site/s/</span><input name="slug" id="slugHintInput" aria-describedby="slugHint" dir="ltr" required pattern="[a-z][a-z0-9\-]{1,44}[a-z0-9]" maxlength="46" placeholder="my-salon" autocapitalize="none" spellcheck="false"></span><small id="slugHint">این نشانی، آدرس صفحه‌ای است که مشتری‌ها می‌بینند.</small></label>
      </div>
 
-     <p class="wiz-ready" id="wizardReady" role="status" hidden>پیش‌نمایشتان آماده است. جزئیات را هر وقت خواستید اضافه کنید؛ هیچ‌کدام اجباری نیست.
+     <p class="wiz-ready" id="wizardReady" role="status" hidden>پیش‌نمایش آماده است. بقیهٔ جزئیات اختیاری است.
       <a href="#services" class="wiz-ready__plans">دیدن پلن‌ها و قیمت ←</a></p>
      <p class="wiz-err" id="wizardError" role="alert"></p>
      <div class="wiz-actions">
@@ -68,16 +68,16 @@
       <button type="button" class="btn wiz-next" id="wizardNext">ادامه</button>
      </div>
     </div>
-    <p class="reassure-inline">پیش‌نمایش بلافاصله ساخته می‌شود و جایی فرستاده نمی‌شود؛ فقط برای باز کردن صفحهٔ واقعی، یکی از پلن‌ها را بخرید.</p>
+    <p class="reassure-inline">پیش‌نمایش فقط در مرورگر شما ساخته می‌شود و جایی فرستاده نمی‌شود.</p>
 
     <details class="sb-details" id="builderDetails">
      <summary>تکمیل جزئیات صفحه (اختیاری)</summary>
      <div class="sb-details__body">
-      <p class="hint">هرچه اینجا بنویسید، همان لحظه در پیش‌نمایش بالا دیده می‌شود. پر کردن این بخش برای دیدن پیش‌نمایش لازم نیست.</p>
+      <p class="hint">هرچه بنویسید، همان لحظه در پیش‌نمایش دیده می‌شود. پر کردن این بخش اختیاری است.</p>
 
       <div class="sb-group">
        <h4>رنگ برند خودتان را انتخاب کنید</h4>
-       <p class="hint">رنگ کارت‌ها و دکمه‌های صفحهٔ مشتری فوراً هماهنگ می‌شود.</p>
+       <p class="hint">رنگ دکمه‌ها و کارت‌های صفحهٔ مشتری با آن هماهنگ می‌شود.</p>
        <label>رنگ برند<span class="sb-color"><input type="color" name="brand" value="#068F6C" aria-label="رنگ برند"><output id="builderBrandHex" dir="ltr">#068F6C</output></span></label>
       </div>
 
@@ -89,7 +89,7 @@
 
       <div class="sb-group">
        <h4>عکس کاور صفحه را انتخاب کنید</h4>
-       <p class="hint">اختیاری · همین عکس بالای صفحهٔ مشتری دیده می‌شود.</p>
+       <p class="hint">اختیاری · بالای صفحهٔ مشتری نمایش داده می‌شود.</p>
        <label><span>عکس کاور</span><span class="sb-upload upload-control"><span class="sb-upload__btn">انتخاب عکس کاور</span><span class="sb-upload__name upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="cover" accept="image/jpeg,image/png,image/webp"></span></label>
       </div>
 
@@ -101,7 +101,7 @@
 
       <div class="sb-group">
        <h4>مشتری چطور با شما تماس بگیرد؟</h4>
-       <p class="hint">اختیاری · هر چیزی که پر کنید در کارت «دربارهٔ من» پیش‌نمایش می‌آید.</p>
+       <p class="hint">اختیاری · هرچه پر کنید، در بخش «دربارهٔ من» نمایش داده می‌شود.</p>
        <div class="sb-fields">
         <label>نام مدیر<input type="text" name="manager" maxlength="100"></label>
         <label>تلفن<input type="tel" name="phone" dir="ltr" maxlength="24"></label>

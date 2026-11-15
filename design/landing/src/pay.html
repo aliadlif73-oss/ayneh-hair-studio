@@ -22,12 +22,12 @@
           <!-- «پنل آرایشگاه» only: how many users. The line under it is a preview from the same plan
                table the cards use; the amount to pay is the one the server answers with. -->
           <div class="pay-users" id="payUsersBox" hidden>
-            <label class="field"><span>تعداد کاربر <small>مدیر هم یکی است</small></span><input id="payUsers" name="users" type="number" inputmode="numeric" dir="ltr" min="1" max="50" step="1" value="3"></label>
+            <label class="field"><span>تعداد کاربر <small>با احتساب مدیر</small></span><input id="payUsers" name="users" type="number" inputmode="numeric" dir="ltr" min="1" max="50" step="1" value="3"></label>
             <p class="pay-users__total" id="payUsersTotal" aria-live="polite"></p>
           </div>
-          <label class="pay-consent"><input type="checkbox" id="payConsent" name="consent"><span>با تماس تیم آینه برای هماهنگی راه‌اندازی موافقم.</span></label>
+          <label class="pay-consent"><input type="checkbox" id="payConsent" name="consent"><span>موافقم تیم آینه برای راه‌اندازی با من تماس بگیرد.</span></label>
           <p class="pay-err" id="payErr" role="alert" hidden></p>
-          <button class="btn btn--lg btn--block" type="submit" id="payStart">دریافت مبلغ و شمارهٔ کارت</button>
+          <button class="btn btn--lg btn--block" type="submit" id="payStart">نمایش مبلغ و شمارهٔ کارت</button>
         </form>
 
         <!-- step 2: the order line, the card, the 10-minute clock. No receipt and no manager:
@@ -59,7 +59,7 @@
               <button class="btn btn--ghost btn--sm" type="button" id="payCopy">کپی</button>
             </div>
             <p class="pay-card-box__owner" id="payCardOwner">—</p>
-            <p class="pay-card-box__warn" id="payCardWarn" hidden>پرداخت موقتاً بسته است: شمارهٔ کارت آینه هنوز ثبت نشده. به هیچ حسابی واریز نکنید؛ همین صفحه پس از ثبت شماره خودکار تازه می‌شود. سؤال دارید؟ ۰۹۹۳۳۷۷۳۵۱۵</p>
+            <p class="pay-card-box__warn" id="payCardWarn" hidden>پرداخت موقتاً ممکن نیست: شمارهٔ کارت آینه هنوز ثبت نشده. فعلاً به هیچ حسابی واریز نکنید؛ به‌محض ثبت شماره، این صفحه خودش به‌روز می‌شود. سؤالی دارید؟ ۰۹۹۳۳۷۷۳۵۱۵</p>
             <p class="pay-ref">کد سفارش: <b id="payRef" dir="ltr">—</b></p>
           </div>
 
@@ -77,18 +77,18 @@
             <a class="btn btn--ghost btn--lg" id="payPageLink" href="#" hidden>دیدن صفحهٔ اختصاصی</a>
           </div>
           <div class="pay-done__key">
-            <span>کلید ورود به پنل؛ برای ورودهای بعدی نگهش دارید</span>
+            <span>کلید ورود به پنل؛ آن را برای دفعه‌های بعد نگه دارید</span>
             <b id="payAccessKey" dir="ltr">—</b>
             <button class="btn btn--ghost btn--sm" type="button" id="payKeyCopy">کپی کلید</button>
           </div>
-          <p class="pay-done__note" id="payDoneNote" hidden>کلید ورود روی همان مرورگری بود که خرید را شروع کردید. اگر آن را نگه نداشته‌اید، از پشتیبانی بخواهید کلید تازه بسازد.</p>
+          <p class="pay-done__note" id="payDoneNote" hidden>کلید ورود فقط روی مرورگری نمایش داده شد که خرید را با آن شروع کردید. اگر آن را ندارید، از پشتیبانی کلید تازه بخواهید.</p>
         </div>
 
         <!-- step 4: the window closed. A transfer made in time can still arrive late, so the page
              keeps listening for the webhook and says so, instead of claiming nothing was paid. -->
         <div class="pay-expired" id="payExpired" hidden>
           <h3 id="payLateTitle">مهلت پرداخت تمام شد</h3>
-          <p id="payLateLead">هر سفارش ۱۰ دقیقه اعتبار دارد. اگر واریز نکرده‌اید، به این کارت واریز نکنید و دوباره شروع کنید. اگر واریز کرده‌اید، همین صفحه را باز نگه دارید؛ پرداخت شما خودکار تأیید می‌شود.</p>
+          <p id="payLateLead">هر سفارش فقط ۱۰ دقیقه اعتبار دارد. اگر هنوز واریز نکرده‌اید، به این کارت پول نریزید و از اول شروع کنید. اگر واریز کرده‌اید، همین صفحه را باز نگه دارید تا پرداخت خودکار تأیید شود.</p>
           <p class="pay-help">اگر بعد از واریز تأیید نشد، به ما پیام بدهید: <a href="https://t.me/+989933773515" target="_blank" rel="noopener">تلگرام</a> · <a href="https://wa.me/989933773515" target="_blank" rel="noopener">واتس‌اپ</a> · <a href="tel:09933773515" dir="ltr">۰۹۹۳۳۷۷۳۵۱۵</a></p>
           <button class="btn btn--lg" type="button" id="payAgain">شروع دوباره</button>
         </div>

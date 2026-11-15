@@ -329,7 +329,7 @@ function reportTab(d,box){
    if(r.looks.length)parts.push(h('h2','پرطرفدارترین مدل‌ها'),bars(r.looks,function(x){return x.label},function(x){return x.count}));
    if(r.colors&&r.colors.length)parts.push(h('h2','پرطرفدارترین رنگ‌ها'),bars(r.colors,function(x){return x.label},function(x){return x.count||x.n||0}));
    if(r.staff.length)parts.push(h('h2','عملکرد هر نفر'),bars(r.staff,function(x){return x.name},function(x){return x.requests}));
-  }else parts.push(el('p',{class:'pn-note',text:'نمودارها، پرطرفدارترین مدل‌ها و عملکرد هر نفر در پلن SIGNATURE.'}));
+  }else parts.push(el('p',{class:'pn-note',text:'نمودارها، پرطرفدارترین مدل‌ها و عملکرد هر نفر در پلن کامل.'}));
   box.replaceChildren.apply(box,parts);
  }).catch(function(x){box.replaceChildren(el('p',{class:'notice notice--warn',text:x.message}))});
 }
@@ -357,7 +357,7 @@ function supportTab(d,box){
  if(!has(d,'priority_support'))return box.replaceChildren(locked(d,'priority_support','پشتیبانی ویژه','پیام شما مستقیم و در اولویت به تیم آینه می‌رسد.'));
  var topic=el('input',{placeholder:'موضوع','aria-label':'موضوع'}),msg=el('textarea',{placeholder:'پیام شما','aria-label':'پیام پشتیبانی',maxlength:'1000'}),out=el('p',{class:'pn-note',hidden:true});
  var send=el('button',{class:'btn btn--primary',type:'button',text:'ارسال به پشتیبانی',onclick:function(){send.disabled=true;api('/api/panel/support',{topic:topic.value,message:msg.value}).then(function(){out.textContent='پیام شما رسید؛ به‌زودی با شما تماس می‌گیریم.';out.hidden=false;msg.value=''}).catch(function(x){out.textContent=x.message;out.hidden=false}).then(function(){send.disabled=false})}});
- box.replaceChildren(h('p','پشتیبانی ویژهٔ SIGNATURE: پیام شما در اولویت به تیم آینه می‌رسد. برای کار فوری تماس بگیرید: '+SUPPORT_FA),el('div',{class:'pn-form'},[el('label',{},['موضوع',topic]),el('label',{},['پیام',msg]),send,out]));
+ box.replaceChildren(h('p','پشتیبانی ویژهٔ پلن کامل: پیام شما در اولویت به تیم آینه می‌رسد. برای کار فوری تماس بگیرید: '+SUPPORT_FA),el('div',{class:'pn-form'},[el('label',{},['موضوع',topic]),el('label',{},['پیام',msg]),send,out]));
 }
 function botCard(d){
  if(!has(d,'bot')){var lk=locked(d,'bot','اتصال ربات تلگرام یا بله','درخواست‌ها و نمونه‌کارها را مستقیم در پیام‌رسان بگیرید و بفرستید.');lk.id='pnBot';return lk}
@@ -421,10 +421,10 @@ function shrink(file){
  });
 }
 /* «پلن و ارتقا»: renew the same plan or move up, through the same checkout; same salon, same key. */
-var PLAN_ADDS={essential:['صفحهٔ اختصاصی و گالری نمونه‌کار','تست مدل با عکس مرجع','درخواست‌ها در پنل و در تلگرام یا بله'],pro:['همهٔ امکانات ESSENTIAL','ثبت نوبت با یادآوری به مشتری','گزارش عملکرد ساده'],signature:['همهٔ امکانات PRO','گزارش عملکرد کامل','آرشیو مشتریان با خروجی اکسل','پشتیبانی ویژه']};
-PLAN_ADDS.salon1=['همهٔ خدمت‌ها: مدل مو، رنگ مو، ناخن و مژه','امکانات ESSENTIAL برای کل سالن'];
-PLAN_ADDS.salon3=['همهٔ خدمت‌ها: مدل مو، رنگ مو، ناخن و مژه','امکانات PRO برای کل سالن'];
-PLAN_ADDS.salon6=['همهٔ خدمت‌ها: مدل مو، رنگ مو، ناخن و مژه','امکانات SIGNATURE برای کل سالن'];
+var PLAN_ADDS={essential:['صفحهٔ اختصاصی و گالری نمونه‌کار','امتحان مدل با عکس دلخواه مشتری','درخواست‌ها در پنل و در تلگرام یا بله'],pro:['همهٔ امکانات پلن پایه','ثبت نوبت با یادآوری به مشتری','گزارش عملکرد ساده'],signature:['همهٔ امکانات پلن حرفه‌ای','گزارش عملکرد کامل','آرشیو مشتریان با خروجی اکسل','پشتیبانی ویژه']};
+PLAN_ADDS.salon1=['همهٔ خدمت‌ها: مدل مو، رنگ مو، ناخن و مژه','امکانات پلن پایه برای کل سالن'];
+PLAN_ADDS.salon3=['همهٔ خدمت‌ها: مدل مو، رنگ مو، ناخن و مژه','امکانات پلن حرفه‌ای برای کل سالن'];
+PLAN_ADDS.salon6=['همهٔ خدمت‌ها: مدل مو، رنگ مو، ناخن و مژه','امکانات پلن کامل برای کل سالن'];
 function plansTab(d,box){
  var cur=(d.credits&&d.credits.plan)||'',err=el('p',{class:'notice notice--warn',hidden:true});
  var cards=(d.plans||[]).map(function(p){var isCur=p.key===cur;
