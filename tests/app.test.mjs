@@ -2236,7 +2236,8 @@ test('nails and lashes requests are recorded and delivered like hairstyle ones: 
   assert.ok(!sentTo(tg,777).slice(mgr).some(c=>(c.body.text||'').includes('مشتری مریم '+n)),line+' never reaches the manager');
  }
  }finally{tg.restore()}
-=======
+});
+
 /* ---------- automatic payment: the webhook alone confirms (no receipt, no manager approval) ---------- */
 async function hookKey(e){return (await call(e,'/api/owner/payment',undefined,OWNER)).data.webhook.key}
 const payHook=(e,key,body)=>app.fetch(new Request(origin+'/api/pay/confirm',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+key},body:JSON.stringify(body)}),e);
