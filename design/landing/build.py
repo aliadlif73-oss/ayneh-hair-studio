@@ -323,7 +323,7 @@ SERVICES = {
 # The REAL before/after of each service ("نمونهٔ ساخته‌شده با آینه"). Filled only with a real,
 # approved pair — {'before': 'assets/….webp', 'after': 'assets/….webp'}. While a service has no
 # entry its page simply has no sample section; nothing is invented to fill the gap.
-REAL_SAMPLES = {}
+REAL_SAMPLES = {k: {'before': f'assets/sample-{k}-before.webp', 'after': f'assets/sample-{k}-after.webp'} for k in ('hair', 'color', 'nails', 'lashes')}  # owner's illustrative pairs, labelled «نمونهٔ نمایشی»
 HINTS = {  # the first-chip hint under the demo's title; tryon.js writes the same texts on click
     'hair': 'یک عکس روبه‌رو با صورت کامل، بدون کلاه و عینک آفتابی، در نور طبیعی.',
     'color': 'عکسی که موهایتان کامل و واضح در آن دیده شود؛ نور زرد لامپ رنگ را عوض می‌کند.',

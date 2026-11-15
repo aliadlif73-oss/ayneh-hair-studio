@@ -1118,8 +1118,8 @@ test('copy plan: header has the logo, three links, one fixed «نمونه بسا
 test('copy plan: home sections come in the approved order and every page has one h1',()=>{
  const ids=html=>[...html.matchAll(/<main id="main">[\s\S]*?<\/main>/g)][0][0].match(/<section id="[\w-]+"/g).map(s=>s.slice(13,-1));
  assert.deepEqual(ids(landingHTML),['intro','demo','how','salon-example','get','choose','why','services','pay','faq','cta'],'home');
- assert.deepEqual(ids(servicePages.hair),['intro','play','demo','benefits','salon-example','services','pay','cta'],'hairstyle page (with the sample-face mirror)');
- for(const k of ['color','nails','lashes'])assert.deepEqual(ids(servicePages[k]),['intro','demo','benefits','salon-example','services','pay','cta'],k+' page: one template, no real sample section yet');
+ assert.deepEqual(ids(servicePages.hair),['intro','play','demo','sample','benefits','salon-example','services','pay','cta'],'hairstyle page (with the sample-face mirror)');
+ for(const k of ['color','nails','lashes'])assert.deepEqual(ids(servicePages[k]),['intro','demo','sample','benefits','salon-example','services','pay','cta'],k+' page: one template with its illustrative sample');
  assert.deepEqual(ids(servicePages.salon),['intro','glance','team','demo','salon-example','bundle','services','pay','cta'],'salon panel page');
  assert.deepEqual(ids(servicePages.sample),['intro','demo'],'the demo page');
  for(const html of [landingHTML,...Object.values(servicePages)])assert.equal((html.match(/<h1[\s>]/g)||[]).length,1,'one h1');
@@ -1147,7 +1147,7 @@ test('copy plan: the four service pages share one template with their own lines,
   assert.ok(html.includes('<h1 id="h1" class="h1">'+h1),k+' hero line');assert.ok(html.includes(lead),k+' solution line');assert.ok(html.includes(benefit),k+' benefit');
   assert.equal((html.match(/<ul class="benefits__list">[\s\S]*?<\/ul>/)[0].match(/<li>/g)||[]).length,3,k+': three benefits');
   assert.ok(html.includes('نمونهٔ نمایشی. نتیجه تقریبی است؛ برای انتخاب قبل از نوبت.'),k+' near-image note');
-  assert.doesNotMatch(html,/id="sample"|نمونهٔ ساخته‌شده با آینه/,k+': no real before/after yet, and none is invented');
+  assert.match(html,/id="sample"/,k+': illustrative before/after');assert.ok(html.includes('نمونهٔ نمایشی · تقریبی'),k+': labelled illustrative');assert.doesNotMatch(html,/نمونهٔ ساخته‌شده با آینه/,k+': never claimed as made by Ayneh');
   assert.equal((html.match(/data-line="/g)||[]).length,1,k+' demo offers its own service only');
   assert.ok(html.includes('data-line="'+({hair:'hair',color:'color',nails:'nails',lashes:'lashes'})[k]+'"'));
   assert.doesNotMatch(html,/id="faq"|id="choose"|id="why"/,k+' does not repeat the home page');
@@ -1826,7 +1826,7 @@ test('storybook: six illustrated chapters turn like pages behind the sections, o
 test('before/after follows the finger in RTL, plays itself first, and step labels clear their numbers',()=>{
  // --split is measured from the RIGHT edge, so pointer maths and the range direction must be too
  assert.ok(servicePages.hair.includes('set((r.right-e.clientX)/r.width*100)'),'the divider follows the pointer');
- assert.equal((servicePages.hair.match(/class="compare__range"[^>]*dir="rtl"/g)||[]).length,1,'the demo slider runs right-to-left');
+ assert.equal((servicePages.hair.match(/class="compare__range"[^>]*dir="rtl"/g)||[]).length,2,'the demo and sample sliders run right-to-left');
  assert.match(servicePages.hair,/\.compare__img--after\{clip-path:inset\(0 var\(--split,50%\) 0 0\)\}/,'«بعد» is the left side, under its tag');
  assert.ok(servicePages.hair.includes('engines.set(box,play)')&&servicePages.hair.includes('engines.get(demoBox)'),'each item plays its own before → after');
  // RTL: the step number sits at the inline start, so the padding that clears it must too
