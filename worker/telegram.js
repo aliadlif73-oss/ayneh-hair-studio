@@ -18,7 +18,7 @@ import {can} from './plans.js';
 import {inviteReady,sendInvite} from './sms.js';
 import {shareLinks,shareKeyboard} from './share.js';
 import {bucketFor,putImage} from './storage.js';
-import {createStaff,transfer,assign,team as teamOf,SPECIALTIES} from './referral.js';
+import {createStaff,assign,team as teamOf,SPECIALTIES,requestTransfer,decideTransfer,expireTransfers} from './referral.js';
 import {guessLine,lineFromSpecialty,LINE_LABEL} from './lines.js';
 import {notifyOwner,linkOwner,isOwnerChat,sendDigest,setupStatus} from './alerts.js';
 const STALE=20*60000; // an unfinished wizard or team question is dropped after 20 idle minutes
@@ -360,14 +360,68 @@ async function teamCallback(ctx,data,q){
  }
  if(op==='x'){
   const heirId=to&&to!=='0'?to:null;
-  const ids=await transfer(db,salon.id,t.id,heirId);
-  for(const lid of ids){const l=await one(db,'SELECT * FROM leads WHERE id=?',lid);if(l)await deliverLead(ctx.env,l)}
+  const r=await requestTransfer(db,salon.id,t.id,heirId);
   const heir=heirId?(await one(db,'SELECT name FROM team WHERE id=?',heirId))?.name:'خود سالن';
-  await notifyOwner(ctx.env,{salon,kind:'team',level:'info',text:'آرایشگر «'+t.name+'» را حذف کرد؛ مشتری‌هایش به «'+heir+'» رسید.'});
-  try{await call(ctx.env,ctx.p,'editMessageText',{chat_id:ctx.chat,message_id:q.message.message_id,text:'«'+t.name+'» از تیم حذف شد. مشتری‌ها و لینک‌هایش از این به بعد مال «'+heir+'» است.'})}catch{}
-  return 'حذف شد';
+  let msg;
+  if(r.done){
+   for(const lid of r.ids){const l=await one(db,'SELECT * FROM leads WHERE id=?',lid);if(l)await deliverLead(ctx.env,l)}
+   await notifyOwner(ctx.env,{salon,kind:'team',level:'info',text:'آرایشگر «'+t.name+'» را که مشتری نداشت حذف کرد.'});
+   msg='«'+t.name+'» از تیم حذف شد.';
+  }else{
+   const sent=await askTransfer(ctx.env,salon,r.request);
+   await notifyOwner(ctx.env,{salon,kind:'team',level:'info',text:'برای حذف «'+t.name+'» از خودش اجازهٔ انتقال مشتری‌ها خواسته شد.'});
+   msg='«'+t.name+'» هنوز حذف نشده. مشتری‌های او فقط وقتی به «'+heir+'» می‌رسند که خودش در ربات «موافقم» را بزند.'+(sent?' درخواست برایش فرستاده شد؛ مهلت ۷ روز.':' او هنوز ربات را وصل نکرده؛ همین که وصل کند درخواست برایش می‌رسد (مهلت ۷ روز).')+' تا آن موقع چیزی جابه‌جا نمی‌شود.';
+  }
+  try{await call(ctx.env,ctx.p,'editMessageText',{chat_id:ctx.chat,message_id:q.message.message_id,text:msg})}catch{}
+  return r.done?'حذف شد':'منتظر تأیید نیرو';
  }
  return 'انجام نشد';
+}
+
+// ---------- consent to move a member's customers (manager asks, the member decides) ----------
+const tellManager=async(env,salon,text)=>{for(const p of inboxes(env,salon))await call(env,p,'sendMessage',{chat_id:salon[PLATFORMS[p].col],text}).catch(e=>console.error('transfer note',e?.message))};
+// Sends the ask to the member's own chat(s). Returns true once it reached one; false while they are
+// not linked (it is retried every tick). A failed send alerts the owner; no customer data is in it.
+export async function askTransfer(env,salon,req){
+ const from=await one(env.DB,'SELECT * FROM team WHERE id=?',req.from_staff);if(!from)return false;
+ const heir=req.to_staff?(await one(env.DB,'SELECT name FROM team WHERE id=?',req.to_staff))?.name:'خود سالن (مدیر)';
+ const text='مدیر سالن «'+salon.name+'» می‌خواهد مشتری‌ها و لینک اختصاصی تو را به «'+heir+'» بدهد و تو را از تیم بردارد.\nتا خودت موافقت نکنی هیچ چیز جابه‌جا نمی‌شود. اگر مخالفی «مخالفم» را بزن؛ تا ۷ روز دیگر بدون جواب خودش بسته می‌شود.';
+ const keys={inline_keyboard:[[{text:'✅ موافقم',callback_data:'tr:y:'+req.id},{text:'🚫 مخالفم',callback_data:'tr:n:'+req.id}]]};
+ let ok=false,failed=false;
+ for(const p of Object.keys(PLATFORMS)){
+  const chat=from[PLATFORMS[p].col];if(!chat||!platformReady(env,p))continue;
+  try{await call(env,p,'sendMessage',{chat_id:chat,text,reply_markup:keys});ok=true}catch(e){failed=true;console.error('transfer ask',e?.message)}
+ }
+ if(ok)await run(env.DB,'UPDATE staff_transfer_requests SET notified=1 WHERE id=?',req.id);
+ else if(failed)await notifyOwner(env,{salon,kind:'error',level:'error',text:'درخواست تأیید انتقال مشتری‌ها به «'+from.name+'» فرستاده نشد.'});
+ return ok;
+}
+export async function transferTick(env,now=Date.now()){
+ let n=0;
+ for(const r of await all(env.DB,"SELECT * FROM staff_transfer_requests WHERE status='pending' AND notified=0 AND expires_at>? LIMIT 50",now)){
+  const salon=await one(env.DB,'SELECT * FROM salons WHERE id=?',r.salon_id);if(salon&&await askTransfer(env,salon,r))n++;
+ }
+ for(const r of await expireTransfers(env.DB,now)){
+  const salon=await one(env.DB,'SELECT * FROM salons WHERE id=?',r.salon_id),from=await one(env.DB,'SELECT name FROM team WHERE id=?',r.from_staff);
+  if(salon)await tellManager(env,salon,'مهلت درخواست انتقال مشتری‌های «'+(from?.name||'نیرو')+'» تمام شد و بدون پاسخ بسته شد. او همچنان در تیم است و چیزی جابه‌جا نشد.');
+ }
+ return n;
+}
+// "tr:y:<id>" / "tr:n:<id>": only the member whose customers they are can answer.
+async function transferCallback(ctx,data,q){
+ const [,op,id]=data.split(':');
+ if(!/^[a-f0-9-]{36}$/.test(id||''))return 'انجام نشد';
+ const r=await one(ctx.db,'SELECT * FROM staff_transfer_requests WHERE id=? AND salon_id=?',id,ctx.salon.id);
+ if(!r)return 'این درخواست دیگر وجود ندارد';
+ if(!ctx.staff||ctx.staff.id!==r.from_staff)return 'این درخواست مال نیروی دیگری است';
+ const {ids}=await decideTransfer(ctx.db,id,op==='y');
+ const heir=r.to_staff?(await one(ctx.db,'SELECT name FROM team WHERE id=?',r.to_staff))?.name:'خود سالن';
+ const done=op==='y'?'✅ انجام شد. مشتری‌ها و لینک تو از این به بعد مال «'+heir+'» است.':'🚫 مخالفت ثبت شد؛ چیزی جابه‌جا نشد و در تیم می‌مانی.';
+ try{await call(ctx.env,ctx.p,'editMessageText',{chat_id:ctx.chat,message_id:q.message.message_id,text:done})}catch{}
+ if(op==='y')for(const lid of ids){const l=await one(ctx.db,'SELECT * FROM leads WHERE id=?',lid);if(l)await deliverLead(ctx.env,l)}
+ await tellManager(ctx.env,ctx.salon,op==='y'?'«'+ctx.staff.name+'» موافقت کرد؛ مشتری‌هایش به «'+heir+'» رسید و از تیم برداشته شد.':'«'+ctx.staff.name+'» با انتقال مشتری‌هایش موافقت نکرد؛ چیزی جابه‌جا نشد.');
+ await notifyOwner(ctx.env,{salon:ctx.salon,kind:'team',level:'info',text:op==='y'?'نیرو با انتقال مشتری‌هایش موافقت کرد.':'نیرو با انتقال مشتری‌هایش مخالفت کرد.'});
+ return op==='y'?'انجام شد':'ثبت شد';
 }
 
 // Manager hands a salon customer's request to a member ("la:<memberId>:<leadId>"), or settles a
@@ -470,6 +524,7 @@ async function onCallback(ctx,q){
   else if(data.startsWith('del:')){const id=data.slice(4);if(/^[a-f0-9-]{36}$/.test(id)){const r=manager?await run(db,'DELETE FROM portfolio WHERE id=? AND salon_id=?',id,salon.id):await run(db,'DELETE FROM portfolio WHERE id=? AND salon_id=? AND staff_id=?',id,salon.id,ctx.staff.id);note=r.meta.changes?'از صفحهٔ سالن حذف شد':'قبلاً حذف شده بود'}}
   else if(data.startsWith('pfl:')){note=await portfolioLine(ctx,data,q,manager)}
   else if(data.startsWith('pl:')){ctx.role=actor.role;await sendList(ctx,Math.max(0,Number(data.slice(3))||0));note='صفحهٔ بعد'}
+  else if(data.startsWith('tr:')){note=await transferCallback(ctx,data,q)}
   else if(data.startsWith('tm:')){note=manager?await teamCallback(ctx,data,q):'فقط مدیر سالن'}
   else if(data.startsWith('la:')||data.startsWith('cf:')){note=manager?await assignCallback(ctx,data,q):'فقط مدیر سالن'}
   else if(data.startsWith('ls:')){

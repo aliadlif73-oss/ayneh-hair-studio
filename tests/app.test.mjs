@@ -564,11 +564,56 @@ test('a member who has not linked yet: the request waits, the manager only hears
  await hook(e,{message:{chat:{id:4001,type:'private'},text:'/start '+maryam.code}});
  assert(sentTo(tg,4001).some(c=>c.body.text?.includes('نگار')));assert.equal(e.DB.sql.prepare('SELECT waiting,status FROM leads').get().status,'sent');
  // Remove Maryam → Sara inherits customers, links and the open request.
- const r=await call(e,'/api/s/salon-a/owner/team/remove',{id:maryam.id,to:sara.id},OWNER);assert.equal(r.status,200);assert.equal(r.data.moved,1);
+ const r=await call(e,'/api/s/salon-a/owner/team/remove',{id:maryam.id,to:sara.id},OWNER);assert.equal(r.status,200);assert.equal(r.data.pending,true,'a member with customers is only asked');
+ assert.equal((await visit(e,s,V(1),'')).mine,maryam.id,'nothing moves before she agrees');assert.equal(e.DB.sql.prepare('SELECT active FROM team WHERE id=?').get(maryam.id).active,1);
+ const ask=sentTo(tg,4001).find(c=>c.body.reply_markup?.inline_keyboard?.[0]?.[0]?.callback_data?.startsWith('tr:y:'));assert(ask,'Maryam gets the ask in her own chat');assert(!ask.body.text.includes('نگار'));
+ await hook(e,{callback_query:{id:'ok',data:ask.body.reply_markup.inline_keyboard[0][0].callback_data,message:{chat:{id:4001},message_id:9}}});
  assert(sentTo(tg,4002).some(c=>c.body.text?.includes('نگار')));
  assert.equal((await visit(e,s,V(7),maryam.ref.split('r=')[1])).mine,sara.id,'old links now bring customers to Sara');
  assert.equal((await visit(e,s,V(1),'')).mine,sara.id);
  assert.equal((await call(e,'/api/s/salon-a/owner',undefined,OWNER)).data.team.length,1);
+}finally{tg.restore()}});
+
+test('transfer consent: only the member can approve, decline keeps everything, no customers means no ask, expiry closes it',async()=>{const e=tgEnv(fixture()),s=await salon(e);const tg=mockTelegram();try{
+ await linkSalon(e,s,777);const maryam=await addMember(e,s,'مریم',4001),sara=await addMember(e,s,'سارا',4002),lone=await addMember(e,s,'لیلا',4003);
+ await visit(e,s,V(1),maryam.ref.split('r=')[1]);
+ const rm=()=>call(e,'/api/s/salon-a/owner/team/remove',{id:maryam.id,to:sara.id},OWNER);
+ let r=await rm();assert.equal(r.data.pending,true);
+ const tm=await call(e,'/api/s/salon-a/owner',undefined,OWNER);assert(tm.data.team.find(t=>t.id===maryam.id).transfer,'pending shows to the manager');
+ const ask=sentTo(tg,4001).find(c=>c.body.reply_markup?.inline_keyboard?.[0]?.[0]?.callback_data?.startsWith('tr:'));const [yes,no]=ask.body.reply_markup.inline_keyboard[0].map(b=>b.callback_data);
+ // another member and the manager cannot approve for her
+ await hook(e,{callback_query:{id:'x1',data:yes,message:{chat:{id:4002},message_id:1}}});
+ await hook(e,{callback_query:{id:'x2',data:yes,message:{chat:{id:777},message_id:1}}});
+ assert.equal(e.DB.sql.prepare('SELECT status FROM staff_transfer_requests').get().status,'pending');assert.equal((await visit(e,s,V(1),'')).mine,maryam.id);
+ // she declines
+ await hook(e,{callback_query:{id:'x3',data:no,message:{chat:{id:4001},message_id:1}}});
+ assert.equal(e.DB.sql.prepare('SELECT status FROM staff_transfer_requests').get().status,'declined');assert.equal((await visit(e,s,V(1),'')).mine,maryam.id);assert.equal(e.DB.sql.prepare('SELECT active FROM team WHERE id=?').get(maryam.id).active,1);
+ assert(sentTo(tg,777).some(c=>/موافقت نکرد/.test(c.body.text||'')),'manager hears the decline');
+ // a decided request cannot be replayed
+ await hook(e,{callback_query:{id:'x4',data:yes,message:{chat:{id:4001},message_id:1}}});assert.equal((await visit(e,s,V(1),'')).mine,maryam.id);
+ // asked again, then it expires with no answer
+ r=await rm();assert.equal(r.data.pending,true);
+ await tick(e,origin);assert.equal(e.DB.sql.prepare("SELECT status FROM staff_transfer_requests WHERE status='pending'").all().length,1);
+ e.DB.sql.exec('UPDATE staff_transfer_requests SET expires_at=1 WHERE status=\'pending\'');await tick(e,origin);
+ assert.equal(e.DB.sql.prepare("SELECT status FROM staff_transfer_requests ORDER BY created_at DESC").get().status,'expired');assert.equal((await visit(e,s,V(1),'')).mine,maryam.id);
+ assert(sentTo(tg,777).some(c=>/مهلت درخواست انتقال/.test(c.body.text||'')));
+ // a member without any customers leaves at once, no ask
+ r=await call(e,'/api/s/salon-a/owner/team/remove',{id:lone.id,to:null},OWNER);assert.equal(r.data.pending,false);assert.equal(e.DB.sql.prepare('SELECT active FROM team WHERE id=?').get(lone.id).active,0);
+ // manager cancels a pending ask
+ await rm();r=await call(e,'/api/s/salon-a/owner/team/remove/cancel',{id:maryam.id},OWNER);assert.equal(r.data.cancelled,true);
+ assert.equal(e.DB.sql.prepare("SELECT count(*) n FROM staff_transfer_requests WHERE status='pending'").get().n,0);
+}finally{tg.restore()}});
+
+test('transfer consent through the bot: the manager button asks, an unlinked member is asked when she links, the ask carries no customer data',async()=>{const e=tgEnv(fixture()),s=await salon(e);const tg=mockTelegram();try{
+ await linkSalon(e,s,777);const maryam=await addMember(e,s,'مریم',null),sara=await addMember(e,s,'سارا',4002);
+ await visit(e,s,V(1),maryam.ref.split('r=')[1]);
+ await hook(e,{callback_query:{id:'m',data:'tm:x:'+maryam.id+':'+sara.id,message:{chat:{id:777},message_id:3}}});
+ assert.equal(e.DB.sql.prepare('SELECT active FROM team WHERE id=?').get(maryam.id).active,1,'not removed by the manager alone');
+ assert(tg.calls.some(c=>c.method==='editMessageText'&&/هنوز ربات را وصل نکرده/.test(c.body.text)));
+ assert.equal(e.DB.sql.prepare('SELECT notified FROM staff_transfer_requests').get().notified,0);
+ await hook(e,{message:{chat:{id:4001,type:'private'},text:'/start '+maryam.code}});await tick(e,origin);
+ const ask=sentTo(tg,4001).find(c=>c.body.reply_markup?.inline_keyboard?.[0]?.[0]?.callback_data?.startsWith('tr:y:'));assert(ask,'asked after linking');assert.equal(e.DB.sql.prepare('SELECT notified FROM staff_transfer_requests').get().notified,1);
+ assert(!/09\d{9}/.test(ask.body.text));
 }finally{tg.restore()}});
 
 test('Bale: a member links through Bale and gets their customers there, in plain text',async()=>{const e=tgEnv(fixture());e.BALE_BOT_TOKEN='777:bale';e.BALE_BOT_USERNAME='ayneh_bale_bot';const s=await salon(e);
