@@ -1,6 +1,6 @@
 // The salon panel's working API (/api/panel/*), behind the panel session (worker/orders.js
 // panelSalon) and the plan's features (worker/plans.js):
-//   requests (all plans) · bot link (PRO+) · bookings (PRO+) · report (PRO simple, SIGNATURE full)
+//   requests (all plans) · bot link (all plans) · bookings (PRO+) · report (PRO simple, SIGNATURE full)
 //   · customer archive + CSV (SIGNATURE) · priority support (SIGNATURE)
 //   · the salon's own page: portfolio photos and the page details (every paid plan)
 // The panel is the manager's: it lists only requests whose owner is the salon itself, never a
@@ -135,7 +135,7 @@ export async function panelApi(req, env, u, path) {
     return J({ok: true, name, profile: {bio: p.bio || '', address: p.address || '', hours: p.hours || '', phone: p.phone || '', instagram: p.instagram || ''}});
   }
 
-  /* ---------- bot connection: PRO+ ---------- */
+  /* ---------- bot connection: every paid plan ---------- */
   if (route === 'bot-link' && req.method === 'POST') {
     need(salon, 'bot');
     const {newLinkCode} = await import('./telegram.js');
