@@ -1224,6 +1224,65 @@ function brandedBlob(id){
   return new Promise(function(res){c.toBlob(function(b){res(b)},'image/jpeg',.92)});
  });
 }
+// Instagram story (1080×1920): the result itself, untouched — never re-generated, filtered or
+// retouched, so her face stays exactly as the result shows it — framed on a soft blurred copy of
+// itself. A salon or member page signs it with the salon's logo and name; Ayneh's own pages
+// (direct, demo) with Ayneh's mark. Made in the browser; nothing is uploaded.
+var STORY_CAP={hair:'مدل موی جدید من',color:'رنگ موی جدید من',nails:'طرح ناخن جدید من',lashes:'مژهٔ جدید من'};
+function storyOwner(){var s=state.pub.salon||{},p=s.profile||{};return (state.pub.direct||state.pub.demo)?{name:'آینه',logo:'/landing/ayneh-logo-lg.webp',ayneh:true}:{name:s.name||'',logo:p.logo?media(p.logo):'',ayneh:false}}
+function storyBlob(id){
+ var o=storyOwner(),W=1080,H=1920;
+ var fonts=document.fonts&&document.fonts.load?Promise.all([document.fonts.load('800 52px Estedad'),document.fonts.load('500 30px Estedad')]).catch(function(){}):Promise.resolve();
+ return Promise.all([loadImg(media(id)),o.logo?loadImg(o.logo).catch(function(){return null}):Promise.resolve(null),fonts]).then(function(r){
+  var img=r[0],logo=r[1],iw=img.naturalWidth,ih=img.naturalHeight,c=document.createElement('canvas');c.width=W;c.height=H;var g=c.getContext('2d');
+  g.imageSmoothingEnabled=true;g.imageSmoothingQuality='high';
+  // background: the same photo, blurred and dimmed (only the backdrop; the photo itself is drawn clean below)
+  var k=Math.max(W/iw,H/ih);g.save();g.filter='blur(46px) saturate(1.05)';g.drawImage(img,(W-iw*k)/2,(H-ih*k)/2,iw*k,ih*k);g.restore();
+  var gr=g.createLinearGradient(0,0,0,H);gr.addColorStop(0,'rgba(8,30,30,.72)');gr.addColorStop(.45,'rgba(8,30,30,.38)');gr.addColorStop(1,'rgba(8,30,30,.8)');g.fillStyle=gr;g.fillRect(0,0,W,H);
+  // the result, whole, at its own proportions — no crop, no filter
+  var maxW=900,maxH=1250,s2=Math.min(maxW/iw,maxH/ih),dw=Math.round(iw*s2),dh=Math.round(ih*s2),dx=Math.round((W-dw)/2),dy=Math.round(400+(maxH-dh)/2),rad=40,bd=10;
+  function rr(x,y,w,h,r){g.beginPath();if(g.roundRect)g.roundRect(x,y,w,h,r);else g.rect(x,y,w,h)}
+  g.save();g.shadowColor='rgba(0,0,0,.45)';g.shadowBlur=60;g.shadowOffsetY=24;g.fillStyle='#fff';rr(dx-bd,dy-bd,dw+bd*2,dh+bd*2,rad+bd);g.fill();g.restore();
+  g.save();g.filter='none';rr(dx,dy,dw,dh,rad);g.clip();g.drawImage(img,dx,dy,dw,dh);g.restore();
+  // the signature: round logo on a white ring, the name under it
+  var cx=W/2,cy=190,d=150;
+  g.save();g.shadowColor='rgba(0,0,0,.35)';g.shadowBlur=24;g.fillStyle='#fff';g.beginPath();g.arc(cx,cy,d/2+7,0,Math.PI*2);g.fill();g.restore();
+  g.save();g.beginPath();g.arc(cx,cy,d/2,0,Math.PI*2);g.clip();
+  if(logo){var lw=logo.naturalWidth,lh=logo.naturalHeight;if(o.ayneh){var q=Math.min(d*.78/lw,d*.78/lh);g.fillStyle='#fff';g.fillRect(cx-d/2,cy-d/2,d,d);g.drawImage(logo,cx-lw*q/2,cy-lh*q/2,lw*q,lh*q)}else{var q2=Math.max(d/lw,d/lh);g.drawImage(logo,cx-lw*q2/2,cy-lh*q2/2,lw*q2,lh*q2)}}
+  else{g.fillStyle='#0c6b6b';g.fillRect(cx-d/2,cy-d/2,d,d);g.fillStyle='#fff';g.font='800 72px Estedad, Vazirmatn, sans-serif';g.textAlign='center';g.textBaseline='middle';g.fillText((o.name||'آ').trim().charAt(0),cx,cy+4)}
+  g.restore();
+  g.direction='rtl';g.textAlign='center';g.textBaseline='alphabetic';g.fillStyle='#fff';g.font='800 48px Estedad, Vazirmatn, sans-serif';
+  var nm=o.name;while(g.measureText(nm).width>W-160&&nm.length>4)nm=nm.slice(0,-2)+'…';g.fillText(nm,cx,cy+d/2+70);
+  // caption and the honest note
+  var by=dy+dh+bd+110;g.font='800 56px Estedad, Vazirmatn, sans-serif';g.fillText(STORY_CAP[state.line]||STORY_CAP.hair,cx,Math.min(by,H-150));
+  g.font='500 28px Estedad, Vazirmatn, sans-serif';g.fillStyle='rgba(255,255,255,.72)';g.fillText('نتیجهٔ تقریبی',cx,Math.min(by+56,H-90));
+  return new Promise(function(res){c.toBlob(function(b){res(b)},'image/jpeg',.94)});
+ });
+}
+var stories={};
+function prepareStory(id){
+ if(!id)return Promise.resolve(null);if(stories[id])return stories[id].p;
+ var rec=stories[id]={};
+ rec.p=storyBlob(id).then(function(b){if(!b)throw new Error('x');rec.name=saveName(id).replace(/\.jpg$/,'-story.jpg');rec.url=URL.createObjectURL(b);try{rec.file=new File([b],rec.name,{type:'image/jpeg'})}catch(e){}
+  Array.prototype.forEach.call(document.querySelectorAll('a[data-story="'+id+'"]'),function(a){a.href=rec.url;a.setAttribute('download',rec.name)});return rec}).catch(function(){rec.failed=true;return rec});
+ return rec.p;
+}
+function storyLink(cls){
+ var id=state.result;
+ var a=el('a',{class:cls,'data-story':id,href:'#',download:'',html:ICO.download+'<span>قالب استوری اینستاگرام</span>'});
+ a.addEventListener('click',function(e){
+  var r=stories[id];
+  // on a phone the share sheet goes straight to Instagram; on a computer it downloads
+  if(r&&r.file&&(IOS||/Android/.test(navigator.userAgent))&&navigator.canShare&&navigator.canShare({files:[r.file]})){e.preventDefault();track('save','story');navigator.share({files:[r.file]}).catch(function(){});return}
+  if(r&&r.url){track('save','story');return}
+  e.preventDefault();
+  if(r&&r.failed){toast('ساخت قالب استوری ممکن نشد؛ «ذخیره تصویر» را بزنید.');return}
+  toast('یک لحظه، استوری را آماده می‌کنم…');
+  prepareStory(id).then(function(x){if(x&&x.url){a.href=x.url;a.setAttribute('download',x.name);a.click()}});
+ });
+ prepareStory(id);
+ return a;
+}
 // The logo version is made as soon as a result appears, so a tap downloads at once (phones block a
 // download or share that starts seconds after the tap).
 var branded={};
@@ -1268,12 +1327,14 @@ function stepResult(){
   if(state.pub.demo){box.append(el('div',{class:'result-actions'},[
    el('button',{class:'btn btn--soft btn--sm',type:'button',onclick:function(){state.result=null;state.gen=null;state.idem=null;state.error='';state.busy=false;state.resultBase=null;go(2)},text:'نمونهٔ دیگر بساز'}),
    el('a',{class:'btn btn--primary btn--sm',href:'/'+L,target:'_top',text:'این را برای مشتریان خودم می‌خواهم'}),
-   downloadLink('btn btn--ghost btn--sm','ذخیره تصویر')
+   downloadLink('btn btn--ghost btn--sm','ذخیره تصویر'),
+   storyLink('btn btn--ghost btn--sm')
   ]))}else
   box.append(el('div',{class:'result-actions'},[
    L==='hair'?el('button',{class:'btn btn--soft btn--sm',type:'button',onclick:openViews,html:ICO.orbit+'<span>نمای ۳۶۰ درجه</span>'}):null,
    el('button',{class:'btn btn--soft btn--sm',type:'button',onclick:openAsk,html:SHARE_IC.chat+'<span>از دوستم نظر بپرسم</span>'}),
    downloadLink('btn btn--ghost btn--sm','ذخیره تصویر'),
+   storyLink('btn btn--ghost btn--sm'),
    el('button',{class:'btn btn--ghost btn--sm',type:'button',onclick:function(){state.result=null;state.gen=null;state.idem=null;state.error='';state.busy=false;state.resultBase=null;go(2)},text:'یک مدل دیگر'})
   ]));
   // After a new hairstyle, the natural next step is its colour.
