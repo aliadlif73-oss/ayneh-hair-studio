@@ -1376,7 +1376,7 @@ test('step 25 expiry: the window is enforced by the server, and a closed order c
     const confirm = await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER);
     assert.equal(confirm.status, 409);
     const receipt = await call(e, '/api/order/' + r.data.id + '/receipt', {note: '123456'});
-    assert.equal(receipt.status, 410);
+    assert.equal(receipt.status, 404, 'there is no receipt step any more');
     const panel = await call(e, '/api/panel/me');
     assert.equal(panel.data.salon, null, 'no panel before payment');
   } finally { restore() }
@@ -1405,8 +1405,10 @@ test('step 25 coupons: one code per order lowers the toman amount; a bad code is
     assert.equal(c.data.amount, 1600000);
     const bad = await call(e, '/api/order/' + r.data.id + '/coupon', {coupon: 'NOPE'});
     assert.equal(bad.status, 422);
-    // The code is spent when the customer commits (sends a receipt), not when a window opens.
-    assert.equal((await call(e, '/api/order/' + r.data.id + '/receipt', {note: '۱۲۳۴'})).data.status, 'reviewing');
+    // The code is spent when the payment is confirmed, not when a window opens.
+    const other0 = await call(e, '/api/order', orderBody('pro', {phone: '۰۹۱۲۰۰۰۰۰۰۱'}));
+    assert.equal((await call(e, '/api/order/' + other0.data.id + '/coupon', {coupon: 'AYNEH20'})).status, 200, 'an unpaid order has not spent it');
+    assert.equal((await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER)).data.order.status, 'paid');
     const other = await call(e, '/api/order', orderBody('pro', {phone: '۰۹۱۲۰۰۰۰۰۰۰'}));
     const used = await call(e, '/api/order/' + other.data.id + '/coupon', {coupon: 'AYNEH20'});
     assert.equal(used.status, 422, 'max:1 is used up');
@@ -1530,22 +1532,21 @@ test('step 25 last step: the paid page opens the customer\'s own panel with one 
   } finally { restore() }
 });
 
-test('step 25 receipt: sending one moves the order to reviewing and the panel stays shut until confirmation', async () => {
+test('step 25 no receipt: the customer never sends one; an old reviewing order still confirms and never expires', async () => {
   const e = fixture();
   const restore = priced('essential', 900000);
   try {
     const r = await call(e, '/api/order', orderBody('essential'));
-    const v = await call(e, '/api/order/' + r.data.id + '/receipt', {note: '۴ رقم آخر ۴۵۵'});
-    assert.equal(v.data.status, 'reviewing');
-    assert.equal((await call(e, '/api/panel/me')).data.salon, null);
+    assert.equal((await call(e, '/api/order/' + r.data.id + '/receipt', {note: '۴ رقم آخر ۴۵۵'})).status, 404, 'the receipt route is gone');
+    assert.equal((await call(e, '/api/order/' + r.data.id)).data.status, 'open');
     const list = (await call(e, '/api/owner/orders', undefined, OWNER)).data.orders[0];
-    assert.equal(list.receipt_note, '۴ رقم آخر ۴۵۵');
     assert.equal(list.plan, 'ESSENTIAL', 'the console shows the plan name from the sheet');
     assert.equal(list.contact_phone, '09121234567', 'and a local mobile, not +98');
     assert.equal(list.amount, 900000, 'amount in toman');
-    // A sent receipt is never closed by the 10-minute clock: the owner can still confirm it.
-    e.DB.sql.prepare('UPDATE orders SET expires_at=? WHERE id=?').run(Date.now() - 1, r.data.id);
+    // An order left in 'reviewing' by the retired receipt step is never closed by the clock.
+    e.DB.sql.prepare("UPDATE orders SET status='reviewing',expires_at=? WHERE id=?").run(Date.now() - 1, r.data.id);
     assert.equal((await call(e, '/api/order/' + r.data.id)).data.status, 'reviewing');
+    assert.equal((await call(e, '/api/panel/me')).data.salon, null);
     assert.equal((await call(e, '/api/owner/orders/' + r.data.id + '/confirm', {}, OWNER)).data.order.status, 'paid');
   } finally { restore() }
 });
@@ -2071,7 +2072,7 @@ test('a build whose photo is gone from storage stops with a plain message before
  }finally{globalThis.fetch=previous}
 });
 
-/* ============================================================================
+/* =====================================================================
    Plans per service, «پنل آرایشگاه» with users, the bot on every paid plan.
    ========================================================================== */
 import {orderTotal, orderUsers} from '../worker/orders.js';
@@ -2235,4 +2236,169 @@ test('nails and lashes requests are recorded and delivered like hairstyle ones: 
   assert.ok(!sentTo(tg,777).slice(mgr).some(c=>(c.body.text||'').includes('مشتری مریم '+n)),line+' never reaches the manager');
  }
  }finally{tg.restore()}
+=======
+/* ---------- automatic payment: the webhook alone confirms (no receipt, no manager approval) ---------- */
+async function hookKey(e){return (await call(e,'/api/owner/payment',undefined,OWNER)).data.webhook.key}
+const payHook=(e,key,body)=>app.fetch(new Request(origin+'/api/pay/confirm',{method:'POST',headers:{'content-type':'application/json',authorization:'Bearer '+key},body:JSON.stringify(body)}),e);
+const warnings=e=>e.DB.sql.prepare("SELECT text FROM activity WHERE level='warn' AND kind='order'").all().map(x=>x.text);
+
+test('pay webhook happy path: the payment site\'s call alone opens the salon, its credits and the panel the customer\'s key logs into',async()=>{
+ const e=fixture();const key=await hookKey(e);
+ const o=await call(e,'/api/order',orderBody('pro',{service:'hair'}));
+ assert.equal(o.data.summary.title,'PRO');assert.equal(o.data.summary.months,3,'the order line reads «پلن … · ۳ ماهه»');
+ const res=await payHook(e,key,{ref:o.data.ref.toLowerCase(),status:'paid',amount:o.data.amount});
+ const body=await res.json();
+ assert.equal(res.status,200,JSON.stringify(body));assert.equal(body.status,'paid');assert.match(body.page,/\/s\//);
+ const row=e.DB.sql.prepare('SELECT status,confirmed_by,salon_id FROM orders WHERE id=?').get(o.data.id);
+ assert.equal(row.status,'paid');assert.equal(row.confirmed_by,'webhook','no owner click involved');
+ // the page polling the order sees it paid, with the panel address, and never the key again
+ const seen=(await call(e,'/api/order/'+o.data.id)).data;
+ assert.equal(seen.status,'paid');assert.match(seen.panel_url,/\/panel$/);assert.equal(seen.access_key,'');
+ // the key handed out when the order opened now logs in, and the plan clock started at confirmation
+ const login=await call(e,'/api/panel/login',{key:o.data.access_key});assert.equal(login.status,200);
+ const d=await (await app.fetch(new Request(origin+'/api/panel/me',{headers:{cookie:login.cookie}}),e)).json();
+ assert.equal(d.credits.granted,75);assert.equal(d.credits.days_left,90);
+ assert.equal(d.checklist.total,4);assert.deepEqual(d.checklist.items.map(i=>i.key),['portfolio','bot','try','share']);
+ assert.ok(d.checklist.started_at>=row.confirmed_at||d.checklist.started_at>0,'the start date comes from the server');
+ assert.equal(d.checklist.until,d.credits.until,'the end date is the plan\'s');
+});
+
+test('pay webhook is idempotent: a repeated or simultaneous call makes one salon and grants once (plan, renewal and top-up)',async()=>{
+ const e=fixture();const key=await hookKey(e);
+ const o=await call(e,'/api/order',orderBody('signature'));
+ const [a,b]=await Promise.all([payHook(e,key,{ref:o.data.ref,status:'paid',amount:o.data.amount}),payHook(e,key,{ref:o.data.ref,status:'paid',amount:o.data.amount})]);
+ assert.equal(a.status,200);assert.equal(b.status,200);
+ assert.equal((await payHook(e,key,{ref:o.data.ref,status:'paid'})).status,200,'a late retry is still a 200');
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM salons').get().n,1,'one salon');
+ assert.equal(e.DB.sql.prepare('SELECT COALESCE(SUM(delta),0) n FROM credit_ledger').get().n,180,'granted once');
+ // a renewal from the panel, paid twice by the payment site, extends once
+ const login=await call(e,'/api/panel/login',{key:o.data.access_key});
+ const until0=JSON.parse(e.DB.sql.prepare('SELECT settings FROM salons').get().settings).plan.until;
+ const ren=await call(e,'/api/panel/renew',{plan:'essential'},{cookie:login.cookie});assert.equal(ren.status,200,JSON.stringify(ren));
+ for(let i=0;i<3;i++)assert.equal((await payHook(e,key,{ref:ren.data.ref,status:'paid',amount:ren.data.amount})).status,200);
+ const until1=JSON.parse(e.DB.sql.prepare('SELECT settings FROM salons').get().settings).plan.until;
+ assert.equal(until1-until0,30*86400000,'one month added once');
+ assert.equal(e.DB.sql.prepare('SELECT COALESCE(SUM(delta),0) n FROM credit_ledger').get().n,200,'180 + 20, not + 60');
+ // a top-up, paid twice
+ const top=await call(e,'/api/panel/topup',{packs:1},{cookie:login.cookie});
+ await payHook(e,key,{ref:top.data.ref,status:'paid',amount:200000});await payHook(e,key,{ref:top.data.ref,status:'paid',amount:200000});
+ assert.equal(e.DB.sql.prepare('SELECT COALESCE(SUM(delta),0) n FROM credit_ledger').get().n,210);
+});
+
+test('pay webhook: a wrong amount or an unknown order opens nothing and tells the owner',async()=>{
+ const e=fixture();const key=await hookKey(e);
+ const o=await call(e,'/api/order',orderBody('essential'));
+ const short=await payHook(e,key,{ref:o.data.ref,status:'paid',amount:o.data.amount-1000});
+ assert.equal(short.status,409);
+ assert.equal((await call(e,'/api/order/'+o.data.id)).data.status,'open','still waiting for the right amount');
+ assert.ok(warnings(e).some(t=>t.includes(o.data.ref)),'the owner hears the code that did not match');
+ assert.equal((await payHook(e,key,{ref:'AYZZZZZZ',status:'paid',amount:1})).status,404);
+ assert.equal((await payHook(e,key,{order:'00000000-0000-4000-8000-000000000000',status:'paid'})).status,404);
+ assert.equal((await payHook(e,key,{status:'paid'})).status,404,'no code at all');
+ assert.ok(warnings(e).some(t=>t.includes('ناشناس')),'an unknown payment is reported');
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM salons').get().n,0);
+ assert.equal(e.DB.sql.prepare('SELECT count(*) n FROM credit_ledger').get().n,0);
+ // a coupon is spent only when the money is in
+ e.DB.sql.prepare("INSERT INTO app_settings(key,value,updated_at) VALUES('pay_coupons','{\"ONE\":{\"percent\":10,\"max\":1}}',?)").run(Date.now());
+ const c=await call(e,'/api/order/'+o.data.id+'/coupon',{coupon:'ONE'});assert.equal(c.data.amount,2610000);
+ assert.equal((await payHook(e,key,{ref:o.data.ref,status:'paid',amount:2610000})).status,200);
+ assert.equal(JSON.parse(e.DB.sql.prepare("SELECT value FROM app_settings WHERE key='pay_coupons'").get().value).ONE.used,1);
+});
+
+test('pay webhook after the 10 minutes: confirmed when the reported amount proves the payment; never without it, never for a cancelled order',async()=>{
+ const e=fixture();const key=await hookKey(e);
+ const late=await call(e,'/api/order',orderBody('essential',{phone:'09120000011'}));
+ e.DB.sql.prepare('UPDATE orders SET expires_at=? WHERE id=?').run(Date.now()-60000,late.data.id);
+ assert.equal((await call(e,'/api/order/'+late.data.id)).data.status,'expired');
+ const bare=await payHook(e,key,{ref:late.data.ref,status:'paid'});
+ assert.equal(bare.status,409,'no amount, no proof: the clock wins');
+ assert.ok(warnings(e).some(t=>t.includes(late.data.ref)),'and the owner is told to look');
+ const proven=await payHook(e,key,{ref:late.data.ref,status:'paid',amount:late.data.amount});
+ assert.equal(proven.status,200);assert.equal((await proven.json()).status,'paid');
+ assert.equal((await call(e,'/api/panel/login',{key:late.data.access_key})).status,200,'the late payer gets the panel too');
+ // the owner's console still cannot confirm an expired order without reopening it
+ const x=await call(e,'/api/order',orderBody('essential',{phone:'09120000012'}));
+ e.DB.sql.prepare('UPDATE orders SET expires_at=? WHERE id=?').run(Date.now()-1,x.data.id);
+ assert.equal((await call(e,'/api/owner/orders/'+x.data.id+'/confirm',{},OWNER)).status,409);
+ // a cancelled order (replaced by a newer one, or cancelled by the owner) never opens by itself
+ const first=await call(e,'/api/order',orderBody('essential',{phone:'09120000013'}));
+ await call(e,'/api/order',orderBody('pro',{phone:'09120000013'}));
+ assert.equal((await call(e,'/api/order/'+first.data.id)).data.status,'cancelled');
+ assert.equal((await payHook(e,key,{ref:first.data.ref,status:'paid',amount:first.data.amount})).status,409);
+ assert.ok(warnings(e).some(t=>t.includes(first.data.ref)));
+});
+
+test('end of credit: the panel stays open with its data, generation stops, and the panel says renew; a soft warning comes 7 days before',async()=>{
+ const e=fixture();
+ const ctx=await planSalon(e,'essential');
+ const me=async()=>(await app.fetch(new Request(origin+'/api/panel/me',{headers:{cookie:ctx.cookie}}),e)).json();
+ await call(e,'/api/panel/portfolio?title='+encodeURIComponent('بالیاژ')+'&line=color',png(),{cookie:ctx.cookie});
+ const set=until=>{const r=e.DB.sql.prepare('SELECT id,settings FROM salons WHERE slug=?').get(ctx.slug);const st=JSON.parse(r.settings);st.plan.until=until;e.DB.sql.prepare('UPDATE salons SET settings=? WHERE id=?').run(JSON.stringify(st),r.id)};
+ set(Date.now()+5*86400000);
+ let d=await me();assert.equal(d.credits.expired,false);assert.ok(d.credits.days_left<=7,'inside the warning window');
+ set(Date.now()-1000);
+ d=await me();
+ assert.ok(d.salon,'the panel still opens');assert.equal(d.credits.expired,true);
+ assert.equal(d.portfolio.length,1,'portfolio kept');
+ assert.equal((await panel(e,ctx,'requests')).status,200,'requests (customers) still readable');
+ assert.equal((await call(e,'/api/s/'+ctx.slug+'/public')).status,200,'the public page stays up');
+ // the copy the owner approved, and the renew button, ship in the panel
+ assert.match(panelHTML,/اعتبار پنل تمام شد\. نمونه‌سازی متوقف شده\. برای ادامه تمدید کنید\./);
+ assert.match(panelHTML,/اعتبار پنل نزدیک به پایان است\./);
+ assert.match(panelHTML,/'تمدید پنل'/);
+ assert.match(panelHTML,/days_left<=7/,'the existing 7-day rule drives the warning');
+ // renewing from the panel after the end still works
+ const r=await call(e,'/api/panel/renew',{plan:'essential'},{cookie:ctx.cookie});assert.equal(r.status,200);
+});
+
+test('renewal extends from the later of now and the previous end',async()=>{
+ const e=fixture(),s=await salon(e);
+ const {applyPlan,MONTH}=await import('../worker/credits.js');
+ const id=e.DB.sql.prepare("SELECT id FROM salons WHERE slug='salon-a'").get().id;
+ const plan=()=>JSON.parse(e.DB.sql.prepare('SELECT settings FROM salons WHERE id=?').get(id).settings).plan;
+ const t0=Date.now();await applyPlan(e.DB,id,{key:'essential',months:1,credits:20},null);
+ const first=plan();assert.ok(first.until>=t0+MONTH&&first.until<=Date.now()+MONTH);
+ // still running: the new months stack on the current end
+ await applyPlan(e.DB,id,{key:'pro',months:3,credits:75},null);
+ assert.equal(plan().until,first.until+3*MONTH,'from the previous end, not from now');assert.equal(plan().start,first.start,'the start stays');
+ // already over: the new months start now
+ const st=JSON.parse(e.DB.sql.prepare('SELECT settings FROM salons WHERE id=?').get(id).settings);st.plan.until=Date.now()-10*86400000;
+ e.DB.sql.prepare('UPDATE salons SET settings=? WHERE id=?').run(JSON.stringify(st),id);
+ const t1=Date.now();await applyPlan(e.DB,id,{key:'essential',months:1,credits:20},null);
+ assert.ok(plan().until>=t1+MONTH&&plan().until<=Date.now()+MONTH,'from now, the lost days are not back-dated');
+});
+
+test('«پنل شما باز شد» checklist: four steps tick themselves or by hand; only known steps; dates from the server',async()=>{
+ const e=fixture();
+ const ctx=await planSalon(e,'pro');
+ const me=async()=>(await app.fetch(new Request(origin+'/api/panel/me',{headers:{cookie:ctx.cookie}}),e)).json();
+ let d=await me();
+ assert.deepEqual(d.checklist.items.map(i=>i.label),['نمونه‌های کارتان را اضافه کنید','ربات تلگرام یا بله را وصل کنید','نمونه‌ای بسازید و نتیجه را ببینید','لینک خودتان را به مشتریان بدهید']);
+ assert.equal(d.checklist.done,0);assert.ok(d.checklist.started_at>0&&d.checklist.until>d.checklist.started_at);
+ await call(e,'/api/panel/portfolio?title=x&line=hair',png(),{cookie:ctx.cookie});
+ d=await me();assert.ok(d.checklist.items[0].done&&d.checklist.items[0].auto,'adding a portfolio photo ticks step 1');
+ const tick=(key,done)=>app.fetch(new Request(origin+'/api/panel/checklist',{method:'POST',headers:{'content-type':'application/json',origin,cookie:ctx.cookie},body:JSON.stringify({key,done})}),e);
+ assert.equal((await tick('share',true)).status,200);
+ d=await me();assert.ok(d.checklist.items[3].done,'ticked by hand');assert.equal(d.checklist.done,2);
+ assert.equal((await tick('share',false)).status,200);
+ d=await me();assert.equal(d.checklist.items[3].done,false,'and unticked');
+ assert.equal((await tick('nonsense',true)).status,400);
+ assert.equal((await call(e,'/api/panel/checklist',{key:'share'})).status,401,'only the salon itself');
+ // the page copy
+ for(const t of ['پنل شما باز شد.','چهار کار تا اولین مشتری','اعتبار پنل از امروز شروع شد.'])assert.ok(panelHTML.includes(t),t);
+ assert.doesNotMatch(panelHTML,/استوری/,'no story template is promised');
+});
+
+test('pay page: the owner\'s final copy, no receipt or manager step anywhere, the one support number, a late payment still watched',()=>{
+ for(const k of ['hair','nails','lashes']){
+  const html=servicePages[k];
+  for(const t of ['مبلغ را به کارت زیر واریز کنید.','۱۰ دقیقه مهلت دارید.','پرداخت شما خودکار تأیید می‌شود.','پرداخت تأیید شد. پنل شما باز شد.','اعتبار از لحظهٔ باز شدن پنل شروع می‌شود. تمدید خودکار ندارد.','اگر بعد از واریز تأیید نشد، به ما پیام بدهید'])
+   assert.ok(html.includes(t),k+': '+t);
+  assert.doesNotMatch(html,/id="payReceipt"|رسید را|پرداخت کردم|شمارهٔ پیگیری بانک|در انتظار تأیید|بررسی واریز/,k+': no receipt and no manual review');
+  assert.match(html,/id="paySummary"/,k+': the order line');
+ }
+ assert.doesNotMatch(payJS,/\/receipt|payReceipt|payWait/,'the checkout never posts a receipt');
+ assert.match(payJS,/'پلن ' \+ title \+ '\\u200f · ' \+ fa\(s\.months\) \+ ' ماهه'/,'«پلن … · ۳ ماهه», bidi-safe');
+ assert.match(payJS,/s\.users > 1/,'a multi-user plan shows its user count');
+ assert.match(payJS,/Date\.now\(\) - Number\(order\.expires_at \|\| 0\) < LATE/,'an expired order keeps being polled for a late webhook');
 });

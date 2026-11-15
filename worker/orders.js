@@ -1,5 +1,5 @@
 // Paid plans: a plan card → bank transfer to the owner's card → a 10-minute window →
-// confirmation (by the owner in /admin, or by the payment site's webhook) → the salon page,
+// automatic confirmation by the payment site's webhook (/api/pay/confirm) → the salon page,
 // the salon panel and the plan's image credits open. A salon with a plan can also buy
 // image top-ups (10 images per pack) from its panel through the same checkout.
 //
@@ -7,9 +7,13 @@
 //  * Amounts come only from worker/prices.js, generated from the owner's price sheet in
 //    design/landing/build.py. The server never takes an amount from the browser.
 //  * The card number lives in app_settings ('pay_card'), set in /admin — never in the code.
-//  * The 10-minute window only applies while an order is waiting for money (open). Once the
-//    customer has sent a receipt (reviewing), the order waits for confirmation however long
-//    that takes; an expired order can be reopened by the owner.
+//  * The customer never sends a receipt: the webhook alone confirms a payment. The owner's
+//    «تأیید پرداخت» in /admin stays as an emergency path only; customers never see it.
+//  * The 10-minute window only applies while an order is waiting for money (open). A payment
+//    that lands after the window (expired order) is still confirmed by the webhook, but only
+//    when the webhook reports the amount and it equals the order's amount (proof of payment).
+//    Without that proof, or for a cancelled order, nothing opens and the owner is alerted.
+//    Old orders still in 'reviewing' (from the retired receipt step) never expire.
 //  * Confirmation is atomic: one UPDATE claims the order, and only the call that claimed it
 //    provisions the salon and grants credits. Retries and double clicks are harmless.
 //  * Money is TOMAN on the page; amounts are stored in RIALS (×10).
@@ -106,6 +110,14 @@ export function discountFor(coupon, amountToman, table) {
 
 const toman = rial => Math.round(Number(rial || 0) / 10);
 
+/* The checkout's first line: «پلن … · ۳ ماهه» (+ the user count for a multi-user plan). The
+   plan table may carry a display title and a user count; without them the plan name stands. */
+function orderSummary(row) {
+  if (row.kind === 'topup') return {title: planName(row), months: 0, users: 0};
+  const p = PLANS[row.plan] || {};
+  return {title: String(p.title || p.name || row.plan), months: Number(p.months || 0), users: Number(row.users || p.users || 0)};
+}
+
 /* What the page needs to draw: the figures, never the internals. */
 export async function publicOrder(db, env, row, {key = '', origin = ''} = {}) {
   const card = (await one(db, 'SELECT value FROM app_settings WHERE key=?', PAY_CARD))?.value || '';
@@ -118,6 +130,7 @@ export async function publicOrder(db, env, row, {key = '', origin = ''} = {}) {
     users: Number(row.users || 0), seats: Number(PLANS[row.plan]?.seats || 0),
     extra_users: Math.max(0, Number(row.users || 0) - Number(PLANS[row.plan]?.seats || 0)),
     seat_amount: Number(PLANS[row.plan]?.seat_amount || 0),
+    summary: orderSummary(row),
     amount: toman(row.amount), discount: toman(row.discount),
     status: row.status, created_at: row.created_at, expires_at: row.expires_at,
     card: cardDigits(card) || '', card_owner: card ? cardOwner(card) : '',
@@ -165,7 +178,7 @@ export async function rotateWebhookKey(db) {
   return k;
 }
 
-/* Only an order still waiting for money expires. A sent receipt is never closed by the clock. */
+/* Only an order still waiting for money expires. A legacy 'reviewing' order is never closed by the clock. */
 export async function closeExpired(db) {
   await run(db, "UPDATE orders SET status='expired',updated_at=? WHERE status='open' AND expires_at<=?", Date.now(), Date.now());
 }
@@ -297,17 +310,6 @@ export async function setCoupon(db, env, id, code, origin = '') {
   return publicOrder(db, env, await orderById(db, id), {origin});
 }
 
-export async function markReviewing(db, env, id, note, origin = '') {
-  await closeExpired(db);
-  const row = await orderById(db, id);
-  must(row, 'سفارش پیدا نشد.', 404);
-  must(row.status === 'open' || row.status === 'reviewing', 'مهلت این سفارش تمام شده؛ سفارش تازه بسازید.', 410);
-  const changed = await run(db, "UPDATE orders SET status='reviewing',receipt_note=?,updated_at=? WHERE id=? AND status='open' AND expires_at>?",
-    text(String(note || ''), 120), Date.now(), id, Date.now());
-  if (changed.meta.changes && row.coupon) await bumpCoupon(db, row.coupon);
-  return publicOrder(db, env, await orderById(db, id), {origin});
-}
-
 /* The owner gives an expired order another 10 minutes (the customer paid late, or asked). */
 export async function reopenOrder(db, id) {
   const row = await orderById(db, id);
@@ -318,20 +320,40 @@ export async function reopenOrder(db, id) {
 }
 
 /* Confirmation. One UPDATE claims the order; only the call that claimed it does the work, so
-   the owner clicking twice and the payment site retrying can never make two salons or grant
-   credits twice. A paid plan whose salon was not provisioned (a crash mid-way) is repaired. */
-export async function confirmOrder(db, env, id, {by = 'owner', origin = ''} = {}) {
+   the payment site retrying (or the owner's emergency click at the same time) can never make
+   two salons or grant credits twice. A paid plan whose salon was not provisioned (a crash
+   mid-way) is repaired.
+   `amount` is what the payment site reports (toman). When given, it must equal the order's
+   amount. A webhook for an expired order (paid after the 10 minutes) confirms only with that
+   proof; the owner reopens an expired order instead of confirming it. */
+export async function confirmOrder(db, env, id, {by = 'owner', origin = '', amount} = {}) {
   await closeExpired(db);
   let row = await orderById(db, id);
   must(row, 'سفارش پیدا نشد.', 404);
   const now = Date.now();
+  const reported = amount === undefined || amount === null || amount === '' ? null : Number(amount);
+  if (reported !== null && reported !== toman(row.amount)) {
+    if (row.status !== 'paid') await missed(env, row, 'مبلغ گزارش‌شده ' + (Number.isFinite(reported) ? reported.toLocaleString('fa-IR') : '؟') + ' تومان است، نه ' + toman(row.amount).toLocaleString('fa-IR'));
+    must(false, 'مبلغ گزارش‌شده با مبلغ سفارش یکی نیست', 409);
+  }
   if (row.status !== 'paid') {
-    must(row.status === 'open' || row.status === 'reviewing', 'این سفارش بسته شده و قابل تأیید نیست.', 409);
-    const claim = await run(db, "UPDATE orders SET status='paid',confirmed_by=?,confirmed_at=?,updated_at=? WHERE id=? AND status IN ('open','reviewing')", by, now, now, id);
+    const late = by === 'webhook' && reported !== null;
+    const allowed = late ? ['open', 'reviewing', 'expired'] : ['open', 'reviewing'];
+    if (!allowed.includes(row.status)) {
+      if (by === 'webhook') await missed(env, row, row.status === 'expired' ? 'بعد از ۱۰ دقیقه رسید و مبلغ را گزارش نکرد' : 'این سفارش لغو شده بود');
+      must(false, 'این سفارش بسته شده و قابل تأیید نیست.', 409);
+    }
+    const claim = await run(db, "UPDATE orders SET status='paid',confirmed_by=?,confirmed_at=?,updated_at=? WHERE id=? AND status IN (" + allowed.map(() => '?').join(',') + ')', by, now, now, id, ...allowed);
+    /* A coupon is spent once the money is in. Legacy 'reviewing' orders spent it on the receipt. */
+    if (claim.meta.changes && row.coupon && row.status !== 'reviewing') await bumpCoupon(db, row.coupon);
     row = await orderById(db, id);
     if (!claim.meta.changes) return {order: await publicOrder(db, env, row, {origin}), claimed: false};
-  } else if ((row.salon_id && row.note !== 'renewal') || row.kind === 'topup') {
-    return {order: await publicOrder(db, env, row, {origin}), claimed: false};
+  } else {
+    /* Already paid. Only a plan whose grant never landed (a crash mid-way) is repaired; a
+       renewal carries its salon_id from the start, so the ledger is what says it was applied. */
+    const applied = await one(db, 'SELECT 1 FROM credit_ledger WHERE order_id=? LIMIT 1', id);
+    if (applied || row.kind === 'topup' || (row.salon_id && row.note !== 'renewal'))
+      return {order: await publicOrder(db, env, row, {origin}), claimed: false};
   }
   let salon;
   if (row.kind === 'topup') {
@@ -354,6 +376,34 @@ export async function confirmOrder(db, env, id, {by = 'owner', origin = ''} = {}
     });
   } catch {}
   return {order: await publicOrder(db, env, updated, {origin}), claimed: true};
+}
+
+/* A payment the webhook reported but that opened nothing: the owner hears it at once, with the
+   order code and the reason, so the customer who writes to support gets an answer. */
+async function missed(env, row, reason) {
+  try {
+    const {notifyOwner} = await import('./alerts.js');
+    await notifyOwner(env, {
+      kind: 'order', level: 'warn',
+      text: 'واریز سفارش ' + (row?.ref || 'ناشناس') + ' خودکار تأیید نشد',
+      detail: '⚠️ ' + reason + (row ? '\n💳 ' + row.ref + ' · ' + toman(row.amount).toLocaleString('fa-IR') + ' تومان\n👤 ' + row.contact_name : '') + '\nدر /admin بررسی کنید.',
+    });
+  } catch {}
+}
+
+/* The payment site's call, after its token was checked: body {ref} or {order}, optional status
+   and amount (toman). A non-success status is ignored; an unknown order is a 404 and an alert. */
+export async function webhookConfirm(db, env, b, origin = '') {
+  const code = String(b?.ref || '').toUpperCase().slice(0, 12);
+  const byRef = code ? await one(db, 'SELECT id FROM orders WHERE ref=?', code) : null;
+  const id = byRef?.id || String(b?.order || '');
+  const row = /^[a-f0-9-]{36}$/.test(id) ? await one(db, 'SELECT id FROM orders WHERE id=?', id) : null;
+  if (!row) {
+    await missed(env, null, 'کد ' + (code || id.slice(0, 40) || '—') + ' به هیچ سفارشی نمی‌خورد');
+    must(false, 'سفارش پیدا نشد', 404);
+  }
+  if (b.status && !['paid', 'success', 'confirmed', 'ok'].includes(String(b.status).toLowerCase())) return {ignored: true};
+  return confirmOrder(db, env, row.id, {by: 'webhook', origin, amount: b.amount});
 }
 
 /* The salon a plan unlocks. A returning buyer (same mobile, an earlier paid plan) renews the
@@ -422,15 +472,46 @@ export async function rekeyOrder(db, id) {
   return fresh;
 }
 
+/* «پنل شما باز شد»: the four things between a new panel and its first customer (owner's
+   wording). Each one ticks itself when the server sees it done; the salon can also tick (or
+   untick) any of them by hand, kept in salons.settings.checklist. The credit dates come from
+   the plan, never from the browser. */
+export const CHECKLIST = [
+  {key: 'portfolio', label: 'نمونه‌های کارتان را اضافه کنید'},
+  {key: 'bot', label: 'ربات تلگرام یا بله را وصل کنید'},
+  {key: 'try', label: 'نمونه‌ای بسازید و نتیجه را ببینید'},
+  {key: 'share', label: 'لینک خودتان را به مشتریان بدهید'},
+];
+function checklistOf(salon, seen, credit) {
+  let ticks = {};
+  try { ticks = JSON.parse(salon.settings || '{}').checklist || {}; } catch {}
+  const auto = {portfolio: seen.portfolio, bot: seen.bot, try: seen.tried, share: seen.shared};
+  const items = CHECKLIST.map(c => ({...c, done: !!ticks[c.key] || !!auto[c.key], auto: !!auto[c.key]}));
+  const plan = PLANS[credit?.plan] || {};
+  return {
+    items, done: items.filter(i => i.done).length, total: items.length,
+    started_at: credit?.start || null, until: credit?.until || null,
+    /* A multi-user plan also invites colleagues (the plan table says how many users it has). */
+    users: Number(plan.users || 0),
+  };
+}
+export async function tickChecklist(db, {salon}, key, done) {
+  must(CHECKLIST.some(c => c.key === key), 'این مورد در فهرست نیست.', 400);
+  await run(db, "UPDATE salons SET settings=json_set(COALESCE(settings,'{}'),'$.checklist',json_patch(COALESCE(json_extract(settings,'$.checklist'),'{}'),?)) WHERE id=?",
+    JSON.stringify({[key]: !!done}), salon.id);
+  return {ok: true, key, done: !!done};
+}
+
 /* What the salon panel shows: the page, the plan and its credits, the setup steps, the last
    requests and the first portfolio items — nothing that pretends work was done that was not. */
 export async function panelDashboard(db, env, {order, salon}) {
-  const [leads, portfolio, team, credit, topups] = await Promise.all([
+  const [leads, portfolio, team, credit, topups, tried] = await Promise.all([
     all(db, 'SELECT id,status,created_at FROM leads WHERE salon_id=? ORDER BY created_at DESC LIMIT 5', salon.id),
     all(db, 'SELECT id,title,line,images FROM portfolio WHERE salon_id=? AND published=1 ORDER BY created_at DESC LIMIT 60', salon.id),
     all(db, 'SELECT id,name,specialty,is_manager FROM team WHERE salon_id=? AND active=1', salon.id),
     balance(db, salon),
     all(db, "SELECT id,ref,credits,amount,status,created_at FROM orders WHERE salon_id=? AND kind='topup' ORDER BY created_at DESC LIMIT 5", salon.id),
+    one(db, "SELECT 1 n FROM generations WHERE salon_id=? AND state<>'fail' LIMIT 1", salon.id),
   ]);
   const origin = env.APP_ORIGIN || '';
   const p = (() => { try { return JSON.parse(salon.profile || '{}'); } catch { return {}; } })();
@@ -468,6 +549,7 @@ export async function panelDashboard(db, env, {order, salon}) {
     plans: Object.entries(PLANS).filter(([, v]) => !onSalonPlan || v.seats > 0)
       .map(([key, v]) => ({key, name: v.name, months: v.months, amount: planAmount(key), credits: v.credits, seats: v.seats, seat_amount: v.seat_amount})),
     setup: {steps, done: steps.filter(s => s.done).length, total: steps.length},
+    checklist: checklistOf(salon, {portfolio: portfolio.length > 0, bot: !!(salon.telegram_chat_id || salon.bale_chat_id), tried: !!tried, shared: leads.length > 0}, credit),
     bot: {telegram: !!(env.TELEGRAM_BOT_TOKEN), bale: !!(env.BALE_BOT_TOKEN)},
   };
 }

@@ -11,8 +11,8 @@ import {stats} from './stats.js';
 import {smsReady,inviteReady,sendOtp} from './sms.js';
 import {createTrial,trialOf,trialLive,trialPublic,spendTrialImage} from './trial.js';
 import {PLANS as PLANS_TABLE} from './prices.js';
-import {createOrder,createTopup,createRenewal,customerOrder,setCoupon,markReviewing,confirmOrder,reopenOrder,rekeyOrder,closeExpired,cardSetting,saveCard,
- webhookKey,rotateWebhookKey,panelLogin,panelSalon,panelLogout,panelDashboard,orderById,ORDER_MINUTES,SERVICE_LABEL} from './orders.js';
+import {createOrder,createTopup,createRenewal,customerOrder,setCoupon,confirmOrder,webhookConfirm,reopenOrder,rekeyOrder,closeExpired,cardSetting,saveCard,
+ webhookKey,rotateWebhookKey,panelLogin,panelSalon,panelLogout,panelDashboard,tickChecklist,ORDER_MINUTES,SERVICE_LABEL} from './orders.js';
 import {spendCredit,planOf} from './credits.js';
 import {can,featuresOf,OPENED_BY,linesOf} from './plans.js';
 import {panelApi,bookingTick} from './panelapi.js';
@@ -178,11 +178,13 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  }
  const orderGet=path.match(/^\/api\/order\/([a-f0-9-]{36})$/);
  if(orderGet&&req.method==='GET')return J(await customerOrder(db,env,orderGet[1],u.origin));
- const orderAct=path.match(/^\/api\/order\/([a-f0-9-]{36})\/(receipt|coupon)$/);
+ // The coupon is the customer's only action on an open order. There is no receipt step: the
+ // payment site's webhook alone confirms a payment (worker/orders.js).
+ const orderAct=path.match(/^\/api\/order\/([a-f0-9-]{36})\/coupon$/);
  if(orderAct&&req.method==='POST'){
   await limited(db,'order-act:'+clientIp(req),40);
   const b=await req.json().catch(()=>({}));
-  return J(orderAct[2]==='receipt'?await markReviewing(db,env,orderAct[1],b.note,u.origin):await setCoupon(db,env,orderAct[1],b.coupon,u.origin));
+  return J(await setCoupon(db,env,orderAct[1],b.coupon,u.origin));
  }
  // The payment site's door. A single token in Authorization (Bearer) or X-Webhook-Key;
  // body {ref} or {order}, plus optional amount/status. Constant-time compare, never a cookie.
@@ -191,16 +193,8 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   const given=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'')||req.headers.get('x-webhook-key')||'';
   must(expected&&same(String(given),expected),'توکن وب‌هوک معتبر نیست',401);
   const b=await req.json().catch(()=>({}));
-  const byRef=b.ref?await one(db,'SELECT id FROM orders WHERE ref=?',String(b.ref).toUpperCase().slice(0,12)):null;
-  const id=byRef?.id||String(b.order||'');
-  must(id,'سفارش پیدا نشد',404);
-  if(b.status&&!['paid','success','confirmed','ok'].includes(String(b.status).toLowerCase()))return J({ok:true,ignored:true});
-  /* When the payment site reports an amount, it must be the order's amount (toman). */
-  if(b.amount!==undefined&&b.amount!==null&&b.amount!==''){
-   const row=await orderById(db,id);must(row,'سفارش پیدا نشد',404);
-   must(Number(b.amount)===Math.round(Number(row.amount)/10),'مبلغ گزارش‌شده با مبلغ سفارش یکی نیست',409);
-  }
-  const r=await confirmOrder(db,env,id,{by:'webhook',origin:u.origin});
+  const r=await webhookConfirm(db,env,b,u.origin);
+  if(r.ignored)return J({ok:true,ignored:true});
   return J({ok:true,status:r.order.status,ref:r.order.ref,page:r.order.page_url});
  }
 
@@ -229,6 +223,11 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(path==='/api/panel/me'&&req.method==='GET'){
   try{const ctx=await panelSalon(req,db);return J(await panelDashboard(db,env,ctx))}
   catch(e){if(e.status===401)return J({salon:null});throw e}
+ }
+ // «پنل شما باز شد» checklist: the salon ticks or unticks one of the four steps by hand.
+ if(path==='/api/panel/checklist'&&req.method==='POST'){
+  const ctx=await panelSalon(req,db);const b=await req.json().catch(()=>({}));
+  return J(await tickChecklist(db,ctx,String(b.key||''),b.done!==false));
  }
  if(path==='/api/pay/config'&&req.method==='GET'){
   const card=await cardSetting(db);
