@@ -50,9 +50,10 @@ export default {
      build from an hour ago while the server was already serving the new one. The page is not
      an asset: let the browser revalidate it every time, cheaply (304 via ETag below). */
   if(u.pathname==='/')return new Response(landingHTML.replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-cache'}});
-  /* One page per service: /hair (style and colour), /nails, /lashes. Same headers as the home page. */
-  const svc=u.pathname.match(/^\/(hair|nails|lashes)\/?$/);
-  if(svc)return new Response(servicePages[svc[1]].replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-cache'}});
+  /* One page per service (/hair = hairstyle, /color, /nails, /lashes), the salon panel and the demo.
+     Same headers as the home page. */
+  const svc=u.pathname.match(/^\/(hair|color|nails|lashes|salon-panel|try)\/?$/);
+  if(svc)return new Response(servicePages[svc[1]==='salon-panel'?'salon':svc[1]].replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-cache'}});
   /* Hit when a preview is holding an old copy and no amount of reloading helps: a URL that
      has never existed cannot be cached, so /new serves the current build under a fresh path.
      It carries no robots policy change — it is the same page, just honest about being new. */
