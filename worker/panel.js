@@ -440,7 +440,7 @@ function plansTab(d,box){
   el('div',{style:'display:flex;justify-content:space-between;align-items:center;gap:8px'},[el('b',{dir:p.seats?'rtl':'ltr',text:p.name}),isCur?h('span','پلن فعلی','pn-badge'):null]),
   h('span',fa(p.months)+' ماهه · '+fa(p.credits)+' عکس هدیه','pn-who'),
   total,
-  p.seats?el('label',{class:'pn-who'},['تعداد کاربر (با خود مدیر): ',users,' — '+fa(p.seats)+' کاربر در قیمت است؛ هر کاربر بیشتر '+fa(p.seat_amount)+' تومان برای کل دوره']):null,
+  p.seats?el('label',{class:'pn-who'},['تعداد کاربر (با خود مدیر): ',users,' — '+fa(p.seats)+' کاربر در قیمت است؛ هر کاربر بیشتر '+fa(p.seat_amount)+' تومان برای کل دوره. تعداد تازه از شروع همین دورهٔ تازه حساب می‌شود.']):null,
   el('ul',{},(PLAN_ADDS[p.key]||[]).map(function(x){return el('li',{text:x})})),
   el('button',{class:'btn '+(isCur?'btn--ghost':'btn--primary')+' btn--sm',type:'button',text:isCur?'تمدید همین پلن':'ارتقا به '+p.name,onclick:function(e){
    e.target.disabled=true;err.hidden=true;

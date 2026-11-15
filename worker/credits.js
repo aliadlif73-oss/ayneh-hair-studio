@@ -30,13 +30,29 @@ export async function grant(db, salonId, delta, reason, orderId = null) {
     uid(), salonId, Math.trunc(delta), String(reason), orderId, Date.now());
 }
 
+/* Paid users at time t. settings.plan.seats is what the current period paid for; a renewal with
+   another user count is written as a step {from, seats} that starts when the period it paid for
+   starts (seat_steps), so added users are never free for the rest of the current period and
+   users already paid for are never taken away before it ends. */
+export function seatsAt(plan, t = Date.now()) {
+  let seats = Math.trunc(Number(plan?.seats)) || 0;
+  for (const s of Array.isArray(plan?.seat_steps) ? plan.seat_steps : []) if (Number(s.from) <= t) seats = Math.trunc(Number(s.seats)) || seats;
+  return seats;
+}
+const LEGACY_LINES = {hair: ['hair', 'color'], color: ['color'], nails: ['nails'], lashes: ['lashes']};
+
 /* A confirmed plan: start (or extend) the plan and add its gift images.
    The order (when given) also decides what the salon offers and how many users it may have:
      * a «پنل آرایشگاه» plan (sheet `seats` > 0) opens every line and records the paid users
-       (settings.plan.seats = max(seats, orders.users));
-     * a single-service plan on a new salon, or one coming down from the salon plan, offers only
-       the order's service (settings.lines). A renewal of the same service changes nothing, so a
-       salon that bought «مدل و رنگ مو» before the split keeps both (worker/plans.js linesOf). */
+       (max(seats, orders.users)); while a salon plan is running, a new user count starts with
+       the period it pays for (see seatsAt);
+     * a single-service plan on a new salon, or one coming down from an ended salon plan, offers
+       only the order's service (settings.lines);
+     * a single-service plan for ANOTHER service while a single-service plan is running adds that
+       service (nails, then lashes = nails + lashes) and extends the plan. A renewal of the same
+       service changes nothing, so a salon that bought «مدل و رنگ مو» before the split keeps both.
+   createOrder / createRenewal refuse a single-service order for a salon whose salon plan is still
+   running, so the salon plan is never downgraded by a purchase. */
 export async function applyPlan(db, salonId, {key, months, credits}, orderId) {
   const salon = await one(db, 'SELECT id,settings FROM salons WHERE id=?', salonId);
   if (!salon) throw new Problem(404, 'سالن پیدا نشد.');
@@ -46,13 +62,27 @@ export async function applyPlan(db, salonId, {key, months, credits}, orderId) {
   const sheet = PLANS[key] || {};
   const from = Math.max(now, Number(prev?.until) || 0);
   settings.plan = {key, start: Number(prev?.start) || now, until: from + months * MONTH};
+  const running = !!prev && Number(prev.until) > now;
   if (sheet.seats > 0) {
-    settings.plan.seats = Math.max(sheet.seats, Math.trunc(Number(order?.users)) || 0);
+    const paid = Math.max(sheet.seats, Math.trunc(Number(order?.users)) || 0);
+    if (running && PLANS[prev.key]?.seats > 0) {
+      const steps = (Array.isArray(prev.seat_steps) ? prev.seat_steps : []).filter(s => Number(s.from) > now);
+      settings.plan.seats = seatsAt(prev, now);
+      if (paid !== (steps.length ? steps[steps.length - 1].seats : settings.plan.seats)) steps.push({from, seats: paid});
+      if (steps.length) settings.plan.seat_steps = steps;
+    } else settings.plan.seats = paid;
     settings.lines = [...LINE_KEYS];
     settings.service = 'all';
-  } else if (order && LINE_KEYS.includes(order.service) && (!prev || PLANS[prev.key]?.seats > 0)) {
-    settings.lines = [order.service];
-    settings.service = order.service;
+  } else if (order && LINE_KEYS.includes(order.service)) {
+    const fromSalonPlan = !prev || PLANS[prev.key]?.seats > 0;
+    const had = Array.isArray(settings.lines) ? settings.lines : LEGACY_LINES[settings.service] || null;
+    if (fromSalonPlan || !running || !had) {
+      /* no plan yet, an ended plan, or coming down from the salon plan: the order's service only.
+         (A running single plan with no recorded service is a legacy all-lines salon: kept.) */
+      if (fromSalonPlan || !running) { settings.lines = [order.service]; settings.service = order.service; }
+    } else if (!had.includes(order.service)) {
+      settings.lines = LINE_KEYS.filter(k => had.includes(k) || k === order.service);
+    }
   }
   await run(db, 'UPDATE salons SET settings=? WHERE id=?', JSON.stringify(settings), salonId);
   if (credits > 0) await grant(db, salonId, credits, 'plan:' + key, orderId);

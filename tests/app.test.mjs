@@ -1355,7 +1355,7 @@ import {panelHTML} from '../worker/panel.js';
 const payJS = readFileSync(new URL('../design/landing/src/pay.js', import.meta.url), 'utf8');
 
 const CARD = '6037-9911-2233-4455';      // passes the Luhn check, expires nowhere
-const orderBody = (plan = 'pro', extra = {}) => ({plan, salon: 'سالن نمونه', name: 'سارا محمدی', phone: '۰۹۱۲۱۲۳۴۵۶۷', city: 'تهران', consent: true, ...extra});
+const orderBody = (plan = 'pro', extra = {}) => ({plan, service: PLANS[plan]?.seats ? 'all' : 'hair', salon: 'سالن نمونه', name: 'سارا محمدی', phone: '۰۹۱۲۱۲۳۴۵۶۷', city: 'تهران', consent: true, ...extra});
 /* A priced plan is needed to test a checkout; the shipped page stays unpriced until the
    owner approves numbers. This only mutates the in-memory import for these tests. */
 function priced(plan, amount, quota = 30) {
@@ -2082,7 +2082,7 @@ test('customer page offers only the service the salon bought (hair = hairstyle +
  const slug=e.DB.sql.prepare('SELECT s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.id=?').get(o.data.id).slug;
  const pub=await call(e,'/api/s/'+slug+'/public');assert.deepEqual(pub.data.lines,['nails']);
  const hair=await planSalon(e,'pro','09125550010');
- e.DB.sql.prepare("UPDATE salons SET settings=json_set(settings,'$.service','hair') WHERE slug=?").run(hair.slug);
+ e.DB.sql.prepare("UPDATE salons SET settings=json_remove(json_set(settings,'$.service','hair'),'$.lines') WHERE slug=?").run(hair.slug);
  assert.deepEqual((await call(e,'/api/s/'+hair.slug+'/public')).data.lines,['hair','color']);
  // the server refuses a line the salon does not offer
  const s={slug},g=await guest(e,s);
@@ -2168,7 +2168,7 @@ test('«پنل آرایشگاه» pricing: base + users beyond 3 × the per-user
  assert.equal(orderUsers('salon1'),3,'3 users when none is sent');assert.equal(orderUsers('salon1',1),3,'never below the included 3');
  assert.equal(orderUsers('salon1','۵'),5,'Persian digits');assert.throws(()=>orderUsers('salon1','abc'));assert.throws(()=>orderUsers('salon1',51));
  const e=fixture();
- const o=await call(e,'/api/order',orderBody('salon3',{users:5,amount:1,service:'nails'}));
+ const o=await call(e,'/api/order',orderBody('salon3',{users:5,amount:1}));
  assert.equal(o.status,200,JSON.stringify(o));
  assert.equal(o.data.amount,13000000,'10M + 2 × 1.5M, the sent amount is ignored');
  assert.equal(o.data.users,5);assert.equal(o.data.extra_users,2);assert.equal(o.data.seat_amount,1500000);
@@ -2570,4 +2570,59 @@ test('sample links: every public page sends the sample builder to /sample; /try 
   for(const m of html.matchAll(/<a\b[^>]*>(?:[^<]|<(?!\/a>))*?نمونه بساز/g))assert.match(m[0],/href="(?:#demo|\/sample)"/,k+': «نمونه بساز» goes to the builder');
  }
  assert.deepEqual(Object.keys(servicePages).sort(),['color','hair','lashes','nails','salon','sample']);
+});
+
+/* ---------- review fixes: the service on an order, lines on a second plan, seats on renewal ---------- */
+const salonSettings=(e,slug)=>JSON.parse(e.DB.sql.prepare('SELECT settings FROM salons WHERE slug=?').get(slug).settings);
+const confirmOwner=(e,id)=>call(e,'/api/owner/orders/'+id+'/confirm',{},OWNER);
+test('createOrder: a single-service plan needs a real service, «پنل آرایشگاه» is «all», users only on the salon plan',async()=>{
+ const e=fixture();
+ for(const [plan,extra,why] of [['pro',{service:''},'empty service'],['pro',{service:'salon'},'the old /salon-panel value'],['essential',{service:undefined},'no service'],
+  ['signature',{service:'all'},'«all» on a single plan'],['pro',{service:'hair',users:5},'users on a single plan'],['salon3',{service:'nails'},'one service on the salon plan']]){
+  const r=await call(e,'/api/order',{...orderBody(plan,{phone:'09125551000'}),...extra});
+  assert.equal(r.status,400,why+': '+JSON.stringify(r.data));assert.match(r.data.error,/[آ-ی]/,why+' answers in Persian');
+ }
+ assert.equal(e.DB.sql.prepare('SELECT COUNT(*) n FROM orders').get().n,0,'nothing was stored');
+ const ok=await call(e,'/api/order',orderBody('salon1',{service:'all',users:3,phone:'09125551001'}));assert.equal(ok.status,200);assert.equal(ok.data.service,'all');
+ const none=await call(e,'/api/order',{...orderBody('salon1',{phone:'09125551002'}),service:undefined});assert.equal(none.status,200,'the salon plan may omit the service');assert.equal(none.data.service,'all');
+});
+test('a second single-service plan adds its service; a salon on «پنل آرایشگاه» cannot be moved down by a purchase',async()=>{
+ const e=fixture();
+ const a=await call(e,'/api/order',orderBody('essential',{service:'nails',phone:'09125552000',salon:'Nails First'}));await confirmOwner(e,a.data.id);
+ const slug=e.DB.sql.prepare('SELECT s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.id=?').get(a.data.id).slug;
+ assert.deepEqual(salonSettings(e,slug).lines,['nails']);
+ const until1=salonSettings(e,slug).plan.until;
+ const b=await call(e,'/api/order',orderBody('essential',{service:'lashes',phone:'09125552000',salon:'Nails First'}));await confirmOwner(e,b.data.id);
+ assert.deepEqual(salonSettings(e,slug).lines,['nails','lashes'],'lashes paid for, nails kept');
+ assert.ok(salonSettings(e,slug).plan.until>until1,'the plan is extended');
+ assert.deepEqual((await call(e,'/api/s/'+slug+'/public')).data.lines,['nails','lashes']);
+ // the same service again changes nothing
+ const c=await call(e,'/api/order',orderBody('essential',{service:'nails',phone:'09125552000',salon:'Nails First'}));await confirmOwner(e,c.data.id);
+ assert.deepEqual(salonSettings(e,slug).lines,['nails','lashes']);
+ // a salon plan buyer: a single-service order from the same mobile is refused
+ const s=await call(e,'/api/order',orderBody('salon1',{users:4,phone:'09125552001',salon:'Big One'}));await confirmOwner(e,s.data.id);
+ const down=await call(e,'/api/order',orderBody('pro',{service:'hair',phone:'09125552001',salon:'Big One'}));
+ assert.equal(down.status,409);assert.match(down.data.error,/پشتیبانی/);
+ const big=e.DB.sql.prepare('SELECT s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.id=?').get(s.data.id).slug;
+ assert.equal(salonSettings(e,big).service,'all');
+});
+test('salon plan renewal: a new user count starts with the period it pays for; paid users are never cut mid-period',async()=>{
+ const {seatsAt}=await import('../worker/credits.js');const {seatsOf}=await import('../worker/plans.js');
+ const e=fixture();
+ const o=await call(e,'/api/order',orderBody('salon1',{users:6,phone:'09125553000',salon:'Seat Salon'}));await confirmOwner(e,o.data.id);
+ const login=await call(e,'/api/panel/login',{key:o.data.access_key});const ctx={cookie:login.cookie};
+ const slug=e.DB.sql.prepare('SELECT s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.id=?').get(o.data.id).slug;
+ const row=()=>e.DB.sql.prepare('SELECT * FROM salons WHERE slug=?').get(slug);
+ assert.equal(seatsOf(row()),6);
+ // fewer users next period: the 6 paid now stay until this period ends
+ const less=await call(e,'/api/panel/renew',{plan:'salon1',users:3},ctx);await confirmOwner(e,less.data.id);
+ const p1=salonSettings(e,slug).plan;
+ assert.equal(seatsOf(row()),6,'paid users are kept for the rest of the period');
+ assert.equal(seatsAt(p1,p1.until-1),3,'the cheaper count starts with the new period');assert.equal(seatsAt(p1,Date.now()),6);
+ // more users: not free before the period they were paid for
+ const more=await call(e,'/api/panel/renew',{plan:'salon1',users:9},ctx);await confirmOwner(e,more.data.id);
+ const p2=salonSettings(e,slug).plan;
+ assert.equal(seatsOf(row()),6,'still 6 today');
+ assert.deepEqual(p2.seat_steps.map(s=>s.seats),[3,9],'each renewal starts when its own period starts');
+ assert.equal(seatsAt(p2,p2.until-1),9);
 });

@@ -191,6 +191,15 @@ export async function closeExpired(db) {
 export async function createOrder(db, env, b, origin = '') {
   const plan = String(b.plan || '');
   must(PLANS[plan], 'این پلن وجود ندارد.', 404);
+  /* The service is the buyer's choice and decides what the salon offers (worker/plans.js
+     linesOf): a single-service plan needs one of the four, «پنل آرایشگاه» is 'all'. An empty or
+     unknown service would open every line for the price of one, so it is refused. */
+  const salonPlan = PLANS[plan].seats > 0, asked = String(b.service ?? '');
+  if (salonPlan) must(asked === '' || asked === 'all', 'پلن آرایشگاه همهٔ خدمت‌ها را دارد؛ از تب «آرایشگاه» بخرید.');
+  else {
+    must(SERVICES.includes(asked), 'خدمت پلن را انتخاب کنید: مدل مو، رنگ مو، ناخن یا مژه.');
+    must(b.users === undefined || b.users === null || b.users === '', 'تعداد کاربر فقط برای پلن آرایشگاه است.');
+  }
   const users = orderUsers(plan, b.users);
   const amount = orderTotal(plan, users);
   must(amount > 0, 'مبلغ این پلن تعیین نشده است.', 409);
@@ -198,8 +207,14 @@ export async function createOrder(db, env, b, origin = '') {
   must(salon.length >= 2, 'نام سالن را بنویسید.');
   must(name.length >= 2, 'نام و نام خانوادگی را بنویسید.');
   must(b.consent === true, 'برای هماهنگی راه‌اندازی، تأیید تماس لازم است.');
-  const service = users ? 'all' : SERVICES.includes(b.service) ? b.service : '';
+  const service = salonPlan ? 'all' : asked;
   const tel = phone(b.phone), now = Date.now();
+  /* The same buyer's salon (provisionSalon renews it): a salon on «پنل آرایشگاه» is never moved
+     down to one service by a purchase — the same rule as createRenewal. */
+  if (!salonPlan) {
+    const prior = await priorSalon(db, tel);
+    must(!prior || !seatsOf(prior), 'برای برگشت از «پنل آرایشگاه» به پلن یک‌خدمتی با پشتیبانی آینه تماس بگیرید.', 409);
+  }
   await closeExpired(db);
   await run(db, "UPDATE orders SET status='cancelled',updated_at=? WHERE phone=? AND kind='plan' AND status='open'", now, tel);
   const coupon = discountFor(String(b.coupon || ''), amount, await couponTable(db));
@@ -413,6 +428,9 @@ export async function webhookConfirm(db, env, b, origin = '') {
   return confirmOrder(db, env, row.id, {by: 'webhook', origin, amount: b.amount});
 }
 
+/* The salon an earlier paid plan of this mobile opened (the one a new plan order renews). */
+const priorSalon = (db, tel, notId = '') => one(db, "SELECT s.* FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.phone=? AND o.kind='plan' AND o.status='paid' AND o.id<>? ORDER BY o.confirmed_at DESC LIMIT 1", tel, notId);
+
 /* The salon a plan unlocks. A returning buyer (same mobile, an earlier paid plan) renews the
    same salon instead of getting a second one. The slug comes from the salon's name when it is
    written in Latin letters, otherwise from the order code — never from a person's name. */
@@ -421,8 +439,8 @@ async function provisionSalon(db, row) {
     const own = await one(db, 'SELECT id,name,slug FROM salons WHERE id=?', row.salon_id);
     if (own) return own;
   }
-  const prior = await one(db, "SELECT s.id,s.name,s.slug FROM orders o JOIN salons s ON s.id=o.salon_id WHERE o.phone=? AND o.kind='plan' AND o.status='paid' AND o.id<>? ORDER BY o.confirmed_at DESC LIMIT 1", row.phone, row.id);
-  if (prior) return prior;
+  const prior = await priorSalon(db, row.phone, row.id);
+  if (prior) return {id: prior.id, name: prior.name, slug: prior.slug};
   const latin = String(row.salon_name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 28);
   const base = latin.length >= 3 ? latin : 'salon-' + String(row.ref).slice(2).toLowerCase();
   let slug = base, n = 1;

@@ -6,7 +6,7 @@
 // The «پنل آرایشگاه» plans (salon1/salon3/salon6 in worker/prices.js) open every service and
 // carry the features of their tier (prices.js `tier`), plus a user cap (`seats`).
 // Salons without a plan (made by the owner, the demo, trials) keep every feature as before.
-import {planOf} from './credits.js';
+import {planOf, seatsAt} from './credits.js';
 import {PLANS} from './prices.js';
 import {LINE_KEYS} from './lines.js';
 
@@ -59,6 +59,6 @@ export function linesOf(salon) {
 export function seatsOf(salon) {
   const plan = planOf(salon), sheet = plan && PLANS[plan.key];
   if (!sheet?.seats) return 0;
-  return Math.max(sheet.seats, Math.trunc(Number(plan.seats)) || 0);
+  return Math.max(sheet.seats, seatsAt(plan));
 }
 export const seatsFull = cap => 'پلن شما برای ' + cap.toLocaleString('fa-IR') + ' کاربر است (با خود مدیر) و همه‌اش پر شده. برای افزودن همکار تازه، یک همکار را حذف کنید یا هنگام تمدید در پنل («پلن و ارتقا») تعداد کاربر را بیشتر کنید.';

@@ -13,7 +13,7 @@ async function call(env,path,body,{cookie='',user='',email='',headers:extra={}}=
 const png=()=>{const b=new Uint8Array(150);b.set([137,80,78,71,13,10,26,10]);return b};
 async function guest(env,slug){const r=await call(env,'/api/s/'+slug+'/session',{});assert.equal(r.status,200,JSON.stringify(r));return {cookie:r.cookie};}
 async function upload(env,slug,g){const r=await call(env,'/api/s/'+slug+'/upload?kind=original',png(),g);assert.equal(r.status,200,JSON.stringify(r));return r.data.id;}
-const orderBody=(plan='pro',extra={})=>({plan,salon:'سالن نمونه',name:'سارا محمدی',phone:'۰۹۱۲۱۲۳۴۵۶۷',city:'تهران',consent:true,...extra});
+const orderBody=(plan='pro',extra={})=>({plan,service:PLANS[plan]?.seats?'all':'hair',salon:'سالن نمونه',name:'سارا محمدی',phone:'۰۹۱۲۱۲۳۴۵۶۷',city:'تهران',consent:true,...extra});
 const confirm=(e,id)=>call(e,'/api/owner/orders/'+id+'/confirm',{},OWNER);
 async function planSalon(e,plan,phone,name,cookie=''){
  const o=await call(e,'/api/order',orderBody(plan,{phone,salon:name}),{cookie});assert.equal(o.status,200,JSON.stringify(o));
