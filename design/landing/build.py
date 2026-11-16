@@ -471,6 +471,24 @@ def make_pages(full):
     # ---- home ----
     # The home hero shows one woman in three combined looks (hairstyle + colour + lashes + nails),
     # so a visitor sees at once that every service is covered (owner's decision). 5 frames, 15 s.
+    def svc(h):
+        # Home hero: every service gets two frames (before / after), 8 frames, 3 s each = 24 s.
+        names = {'style': 'مدل مو', 'color': 'رنگ مو', 'lashes': 'مژه', 'nails': 'ناخن'}
+        figs = []
+        for pair in ('style', 'color', 'lashes', 'nails'):
+            for kind, cap in (('before', 'عکس مشتری'), ('after', 'نتیجهٔ نمایشی')):
+                n = len(figs)
+                pri = ' fetchpriority="high"' if n == 0 else ''
+                figs.append('<figure class="loop__f loop__s%d">
+                <img src="assets/demo-%s-%s.webp" width="450" height="600"%s decoding="async" alt="نمونهٔ نمایشی: %s، %s">
+                <figcaption>%s: %s</figcaption>
+              </figure>' % (n, pair, kind, pri, names[pair], cap, names[pair], cap))
+        h = re.sub(r'(<div class="loop__screen">)[\s\S]*?(</div>\s*<ol class="loop__dots")', lambda m: m.group(1) + '
+              ' + '
+              '.join(figs) + '
+            ' + m.group(2), h, count=1)
+        h = h.replace('hero-stage loop"', 'hero-stage loop loop--svc"').replace('سه قاب پشت‌سرهم', 'هشت قاب پشت‌سرهم')
+        return h.replace('<li></li><li></li><li></li>', '<li></li>' * 8)
     def mix(h):
         f1 = re.search(r'<figure class="loop__f loop__f--1">[\s\S]*?</figure>', h).group(0)
         f2 = re.search(r'<figure class="loop__f loop__f--2">[\s\S]*?</figure>', h).group(0)
@@ -485,7 +503,7 @@ def make_pages(full):
         h = h.replace('hero-stage loop"', 'hero-stage loop loop--mix"').replace('سه قاب پشت‌سرهم', 'پنج قاب پشت‌سرهم')
         return h.replace('<li></li><li></li><li></li>', '<li></li><li></li><li></li><li></li><li></li>')
     home_main = (
-        mix(hero('style', '', '«این مدل بهم می‌اد؟» را', 'دیگر حدسی جواب ندهید.',
+        svc(hero('style', '', '«این مدل بهم می‌اد؟» را', 'دیگر حدسی جواب ندهید.',
              'مشتری مدل مو، رنگ، ناخن و مژه را روی عکس خودش می‌بیند و با خیال راحت نوبت می‌گیرد.',
              'مدل را می‌بیند', 'درخواست مدل مو', HOME_NOTE))
         + demo(list(LINE_TITLE), 'خودتان <em>امتحان کنید.</em>', 'عکس خودتان را بگذارید و مدل را ببینید.', 'hair')
