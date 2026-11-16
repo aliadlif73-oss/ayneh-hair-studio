@@ -1336,7 +1336,7 @@ test('step 24 budget: payload and markup stay inside the review envelope',()=>{
  assert.ok(landingHTML.length<250000,'landing under 250k ('+landingHTML.length+')');
  assert.ok(landingHTML.length>60000,'the page still carries its content');
  assert.match(landingHTML,/og:image" content="__ORIGIN__\/landing\/og\.jpg"/,'the share image is origin-relative in source');
- assert.equal((landingHTML.match(/__ORIGIN__/g)||[]).length,4,'signup links and the share image carry the origin token');
+ assert.equal((landingHTML.match(/__ORIGIN__/g)||[]).length,12,'signup links, the share image, the canonical and the organisation data carry the origin token');
  assert.equal((landingHTML.match(/<h1[\s>]/g)||[]).length,1);
  // The retired engine is the NAVY one (cinema.css / cinema.js with .sec-head, .kicker,
  // .film-player, #transform). The redesigned page has its own scroll-scrubbed entrances in
@@ -2667,4 +2667,19 @@ test('result: Instagram story keeps the result untouched and signs it with the r
  assert.ok(js.includes("g.filter='none';rr(dx,dy,dw,dh,rad);g.clip();g.drawImage(img,dx,dy,dw,dh)"),'the result itself is drawn whole and unfiltered');
  assert.match(js,/\(state\.pub\.direct\|\|state\.pub\.demo\)\?\{name:'آینه',logo:'\/landing\/ayneh-logo-lg\.webp'/,'Ayneh pages sign with Ayneh');
  assert.match(js,/logo:p\.logo\?media\(p\.logo\):''/,'salon pages sign with the salon logo');
+});
+test('search engines: canonical per page, robots.txt, sitemap.xml and organisation data',async()=>{
+ const e=fixture();
+ for(const p of ['/','/hair','/color','/nails','/lashes','/salon-panel','/sample']){
+  const html=await (await app.fetch(new Request(origin+p),e)).text();
+  assert.ok(html.includes('<link rel="canonical" href="'+origin+p+'">'),'canonical '+p);
+  assert.doesNotMatch(html,/__CANON__|__ORIGIN__/,'no placeholder left on '+p);
+  assert.ok(html.includes('"@type":"Organization"'),'organisation data on '+p);
+ }
+ assert.doesNotMatch(await (await app.fetch(new Request(origin+'/pay'),e)).text(),/__CANON__/);
+ const robots=await (await app.fetch(new Request(origin+'/robots.txt'),e)).text();
+ assert.match(robots,/Disallow: \/admin/);assert.match(robots,/Disallow: \/api\//);assert.ok(robots.includes('Sitemap: '+origin+'/sitemap.xml'));
+ const map=await (await app.fetch(new Request(origin+'/sitemap.xml'),e)).text();
+ for(const p of ['/hair','/salon-panel','/try'])assert.ok(map.includes('<loc>'+origin+p+'</loc>'),'sitemap '+p);
+ assert.doesNotMatch(map,/admin|example\/panel|\/s\//);
 });
