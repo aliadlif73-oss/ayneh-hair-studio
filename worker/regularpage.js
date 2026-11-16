@@ -153,7 +153,7 @@ const attr = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': 
 
 /* The page for one direct salon slug; the slug is only ever the system salon's own. */
 export function tryHTML(slug) {
-  return '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#e8edeb"><link rel="icon" href="/favicon.svg" type="image/svg+xml">'
+  return '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#e8edeb"><link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest">'
     + '<title>امتحان روی عکس خودتان | آینه</title><meta name="description" content="مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید. ۳ نمونهٔ رایگان. بدون نصب.">'
     + '<style>' + baseCSS + packsCSS + tryCSS + '</style></head><body>'
     + '<main class="tr">'

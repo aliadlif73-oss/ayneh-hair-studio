@@ -538,7 +538,7 @@ function salonPage(){return api('/api/s/'+slug+'/owner').then(function(d){
 $('#logout').addEventListener('click',function(){api('/api/logout',{}).then(function(){location.href='/'})});
 `;
 
-export const appHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#e8edeb"><meta name="robots" content="noindex"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="preload" href="/fonts/vazirmatn-arabic.woff2" as="font" type="font/woff2" crossorigin><title>آینه | مدیریت سالن‌ها</title><style>__CSS__</style></head><body>
+export const appHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#e8edeb"><meta name="robots" content="noindex"><link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest"><link rel="preload" href="/fonts/vazirmatn-arabic.woff2" as="font" type="font/woff2" crossorigin><title>آینه | مدیریت سالن‌ها</title><style>__CSS__</style></head><body>
 <a class="skip" href="#app">پرش به محتوای اصلی</a>
 <header class="appbar"><a href="/admin" class="appbar__brand">__MARKHTML__<span>آینه</span></a><button class="btn btn--ghost btn--sm" id="logout" type="button" hidden>خروج</button></header>
 <main id="app"><div class="loading">در حال باز کردن…</div></main>
