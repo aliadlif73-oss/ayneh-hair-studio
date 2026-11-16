@@ -862,6 +862,10 @@ test('demo salon behind the landing: no sign-up, 1 image per visitor, a coarse n
   // A failed image does not count.
   e.DB.sql.prepare("UPDATE generations SET state='fail' WHERE id=?").run(first.data.id);
   assert.equal((await gen()).status,200,'the failed image gave its turn back');
+  {const gc=await guest(e,s),ic=await upload(e,s,gc),n=prompts.length;
+   const r=await call(e,'/api/s/demo/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:ic,custom:'مدل موی پیکسی کوتاه با چتری',v:'cf'.repeat(16)},{...gc,headers:{'cf-connecting-ip':'198.51.100.99'}});
+   assert.equal(r.status,200,'a look she typed herself is made');assert.ok(prompts[n]&&prompts[n].includes('مدل موی پیکسی کوتاه با چتری'),'her own words reach the prompt')}
+  const pubd=await call(e,'/api/s/demo/public');assert.equal(pubd.data.salon.name,'سالن آینه');assert.equal(pubd.data.salon.profile.cover_url,'/landing/salon-cover.webp');
   const views=await call(e,'/api/s/demo/views',{idem:crypto.randomUUID(),parent:'x'},g);assert.equal(views.status,400,'no 360 view in the demo');
   // Fresh browsers on one network: the hashed-IP counter stops them after DEMO_IP_DAILY images.
   const {DEMO_IP_DAILY}=await import('../worker/demo.js');let stopped=null;
