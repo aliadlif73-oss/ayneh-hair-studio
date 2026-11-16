@@ -33,6 +33,35 @@ const packsCSS = String.raw`
 .ap-sheet__head h2{font-family:var(--display);font-size:18px}
 .ap-x{border:0;background:transparent;font-size:26px;line-height:1;color:var(--ink);cursor:pointer;min-width:var(--tap);min-height:var(--tap)}
 .ap [hidden]{display:none!important}
+/* The same glass material as the rest of the site, for every control in the sheet: two
+   bodies (light and emerald) drawn from one recipe — translucent fill, the blur, the
+   glossy top edge, the soft shadow and the diagonal sheen. */
+:root{
+  --glass-blur:blur(14px) saturate(160%);
+  --glass-bg-l:rgba(255,255,255,.55);--glass-top-l:rgba(255,255,255,.34);--glass-edge-l:rgba(255,255,255,.78);
+  --glass-sheen-l:linear-gradient(105deg,rgba(255,255,255,0) 6%,rgba(255,255,255,.55) 30%,rgba(255,255,255,0) 56%,rgba(255,255,255,.22) 100%);
+  --glass-bg-p:rgba(4,54,42,.86);--glass-top-p:rgba(255,255,255,.1);--glass-edge-p:rgba(255,255,255,.42);
+  --glass-sheen-p:linear-gradient(105deg,rgba(255,255,255,0) 4%,rgba(255,255,255,.12) 26%,rgba(255,255,255,0) 50%,rgba(255,255,255,.06) 100%);
+}
+.btn,.ap-pack,.ap-x{
+  --glass-bg:var(--glass-bg-l);--glass-top:var(--glass-top-l);--glass-edge:var(--glass-edge-l);--glass-sheen:var(--glass-sheen-l);
+  position:relative;isolation:isolate;background-color:var(--glass-bg);
+  background-image:linear-gradient(180deg,var(--glass-top) 0%,rgba(255,255,255,0) 48%,rgba(10,32,42,.05) 100%);
+  border:1px solid var(--glass-edge);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(10,32,42,.06),0 6px 16px rgba(10,32,42,.13);
+}
+.btn::after,.ap-pack::after,.ap-x::after{content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;pointer-events:none;background:var(--glass-sheen)}
+/* the primary action, at rest: emerald glass with a white label */
+.btn--primary,.btn--build{--glass-bg:var(--glass-bg-p);--glass-top:var(--glass-top-p);--glass-edge:var(--glass-edge-p);--glass-sheen:var(--glass-sheen-p);color:#fff;text-shadow:0 1px 1px rgba(3,45,36,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -1px 0 rgba(3,45,36,.3),0 8px 20px rgba(6,143,108,.26)}
+.btn--soft{--glass-bg:rgba(211,233,230,.9);color:var(--accent-ink)}
+.btn:hover,.ap-pack:hover,.ap-x:hover{filter:brightness(1.05)}
+.btn:active,.ap-pack:active,.ap-x:active{transform:translateY(1px) scale(.98);filter:brightness(.96)}
+.btn[disabled],.ap-pack[disabled]{opacity:.5;cursor:not-allowed;transform:none;filter:grayscale(.3)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .btn,.ap-pack,.ap-x{background-image:none;background-color:#fff;color:var(--ink-2);text-shadow:none}
+  .btn--primary,.btn--build{background-color:var(--accent);color:#fff}
+  .btn--soft{background-color:var(--accent-soft);color:var(--accent-ink)}
+}
 `;
 
 // window.AynehPacks: mount(box,{referral,onCredited}), open(), out(), button(). Inside the /try

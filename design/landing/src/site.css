@@ -19,13 +19,30 @@
   --band:1240px;
   --sec-y:clamp(48px,6vw,84px);
 
-  /* ---- glass material (iPhone-style): one recipe for every button and chip ----
-     The fill stays opaque enough that its label keeps AA contrast on both the
-     cream ground and the white cards; the blur and the sheen are decoration. */
+  /* ---- glass material: ONE iPhone-style recipe for every button, pill and chip ----
+     Two bodies, one recipe. The light body carries an ink label; the emerald body
+     carries a white one. Both stay AA after the top gloss and the diagonal sheen
+     are composited on top of them (tests/app.test.mjs recomputes the blending). */
   --glass-blur:blur(14px) saturate(160%);
-  --glass-edge:rgba(255,255,255,.78);
   --glass-shade:rgba(10,32,42,.13);
-  --glass-sheen:linear-gradient(105deg,rgba(255,255,255,0) 6%,rgba(255,255,255,.55) 30%,rgba(255,255,255,0) 56%,rgba(255,255,255,.22) 100%);
+  /* light glass: the default body — ghost, quiet and login buttons, chips, tabs */
+  --glass-bg-l:rgba(255,255,255,.55);
+  --glass-top-l:rgba(255,255,255,.34);
+  --glass-edge-l:rgba(255,255,255,.78);
+  --glass-sheen-l:linear-gradient(105deg,rgba(255,255,255,0) 6%,rgba(255,255,255,.55) 30%,rgba(255,255,255,0) 56%,rgba(255,255,255,.22) 100%);
+  --glass-lift-l:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(10,32,42,.06);
+  --glass-shadow-l:0 6px 16px var(--glass-shade);
+  --glass-shadow-hl:0 10px 24px rgba(10,32,42,.2);
+  /* emerald glass: every primary action. Deep enough that its white label holds
+     4.5:1 on the cream ground AND on a white card, measured at the brightest point
+     of the top gloss and the sheen, which is where the label actually sits. */
+  --glass-bg-p:rgba(4,54,42,.86);
+  --glass-top-p:rgba(255,255,255,.1);
+  --glass-edge-p:rgba(255,255,255,.42);
+  --glass-sheen-p:linear-gradient(105deg,rgba(255,255,255,0) 4%,rgba(255,255,255,.12) 26%,rgba(255,255,255,0) 50%,rgba(255,255,255,.06) 100%);
+  --glass-lift-p:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -1px 0 rgba(3,45,36,.3);
+  --glass-shadow-p:0 8px 20px rgba(6,143,108,.26);
+  --glass-shadow-hp:0 12px 26px rgba(6,143,108,.34);
   /* ---- clay material: the soft glossy 3D tile every icon sits on ---- */
   --clay-hi:rgba(255,255,255,.96);
   --clay-shade:rgba(7,66,55,.20);
@@ -65,19 +82,13 @@ ul,ol{padding:0;list-style:none}
 .head .sub{margin-inline:auto}
 .head .h2{margin-top:10px}
 
+/* The body of a button is the shared glass material further down this file; this block only
+   gives it its shape, its type and (through the two body groups there) its colour. */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:50px;padding:0 24px;
-  border:1.5px solid transparent;border-radius:var(--r-pill);background:var(--emerald-deep);color:#fff;
-  font-size:15.5px;font-weight:800;white-space:nowrap;cursor:pointer;
-  box-shadow:0 6px 16px rgba(6,143,108,.20);transition:background .18s var(--ease),transform .18s var(--ease),box-shadow .18s var(--ease),border-color .18s var(--ease)}
-.btn:hover{background:#057a5c;box-shadow:0 10px 22px rgba(6,143,108,.26)}
-.btn:active{transform:translateY(1px)}
+  border:1.5px solid var(--glass-edge);border-radius:var(--r-pill);color:#fff;
+  font-size:15.5px;font-weight:800;white-space:nowrap;cursor:pointer}
 .btn svg{flex:0 0 auto;width:19px;height:19px}
 .btn--lg{min-height:56px;padding:0 28px;font-size:16.5px}
-.btn--ghost{background:var(--paper);color:var(--ink-2);border-color:var(--line-2);box-shadow:none}
-.btn--ghost:hover{background:var(--cream);border-color:var(--line-strong);box-shadow:none}
-.btn--quiet{background:transparent;border-color:var(--line-2);color:var(--ink-2);box-shadow:none;min-height:44px;font-size:14px}
-.btn--quiet:hover{background:var(--cream-2)}
-.btn[disabled]{opacity:.55;cursor:not-allowed;box-shadow:none}
 
 /* ornament: the eight-point tile from the reference corners */
 .ornament{position:absolute;z-index:0;pointer-events:none;width:clamp(160px,15vw,240px);height:clamp(160px,15vw,240px);
@@ -108,12 +119,12 @@ ul,ol{padding:0;list-style:none}
 .nav a[aria-current="page"]::after{transform:scaleX(1)}
 .header-cta{display:flex;align-items:center;gap:9px;margin-inline-start:auto}
 .btn--login{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 15px;border-radius:var(--r-pill);
-  border:1px solid var(--line-2);background:var(--paper);font-size:13.5px;font-weight:700;white-space:nowrap}
+  border:1px solid var(--line-2);font-size:13.5px;font-weight:700;white-space:nowrap}
 .btn--login svg{width:16px;height:16px;color:var(--ink-2)}
 .btn--login:hover{border-color:var(--line-strong)}
 .header-cta .btn{min-height:44px;padding:0 18px;font-size:14px}
 .menu-toggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;padding:0;
-  border:1px solid var(--line-2);border-radius:13px;background:var(--paper);cursor:pointer}
+  border:1px solid var(--line-2);border-radius:13px;cursor:pointer}
 .menu-bars{position:relative;display:block;width:19px;height:13px}
 .menu-bars i{position:absolute;inset-inline:0;height:2px;border-radius:2px;background:var(--ink);transition:transform .18s var(--ease),top .18s var(--ease)}
 .menu-bars i:first-child{top:2px}.menu-bars i:last-child{top:9px}
@@ -188,7 +199,10 @@ ul,ol{padding:0;list-style:none}
 .compare__tag--before{inset-inline-start:10px}
 .compare__tag--after{inset-inline-end:10px;background:rgba(10,107,84,.96)}
 .compare__divider{position:absolute;top:0;bottom:0;inset-inline-start:var(--split,50%);width:2px;background:#fff;
-  box-shadow:0 0 12px rgba(10,32,42,.35);z-index:2;pointer-events:none;transform:translateX(-1px)}
+  box-shadow:0 0 12px rgba(10,32,42,.35);z-index:2;pointer-events:none;
+  /* the 2px line has to sit ON the split, so it is pulled back by half its width on the
+     start side: a physical translateX would push it the wrong way in one direction. */
+  margin-inline-start:-1px}
 .compare__knob{position:absolute;top:50%;inset-inline-start:var(--split,50%);z-index:3;display:grid;place-items:center;
   width:40px;height:40px;margin-top:-20px;margin-inline-start:-20px;border-radius:50%;background:#fff;
   box-shadow:0 4px 14px rgba(10,32,42,.32);pointer-events:none}
@@ -290,6 +304,8 @@ ul,ol{padding:0;list-style:none}
 .step{position:relative;display:flex;flex-direction:column;gap:10px;padding:clamp(13px,1.6vw,18px);
   padding-top:clamp(26px,3vw,32px);background:var(--paper);border:1px solid var(--line);border-radius:var(--r-xl);
   box-shadow:var(--shadow-sm)}
+/* centred on the start edge: inset-inline-start puts the badge's start edge on the middle
+   line, and the physical translateX(50%) pulls it back by half its width in either direction. */
 .step__num{position:absolute;top:-15px;inset-inline-start:50%;transform:translateX(50%);display:grid;place-items:center;
   width:34px;height:34px;border-radius:50%;background:var(--emerald-deep);color:#fff;font-size:14px;font-weight:900;
   box-shadow:0 4px 12px rgba(6,143,108,.3);border:3px solid var(--cream)}
@@ -349,10 +365,9 @@ ul,ol{padding:0;list-style:none}
 .plan li{position:relative;padding-inline-start:23px;font-size:13.5px;line-height:1.8;color:var(--ink-2)}
 .plan li svg{position:absolute;inset-inline-start:0;top:4px;width:15px;height:15px;color:var(--emerald)}
 .plan .btn{width:100%;min-height:46px;font-size:14.5px}
-/* The plans' button is the emerald action like every other primary path; a plan that is not
-   for sale yet changes only its small note, never the look of the button. */
-.plan a.btn{background:var(--emerald-deep);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(6,143,108,.20)}
-.plan a.btn:hover{background:#057a5c;border-color:transparent}
+/* The three cards are one row: «پیشنهاد آینه» is the emerald primary glass and the other
+   two are the light glass — the same shared material, one line each further down. A plan
+   that is not for sale yet changes only its small note, never the look of the button. */
 .plan-note{display:flex;align-items:flex-start;gap:10px;margin-top:clamp(14px,2vw,20px);padding:13px 17px;
   border-radius:var(--r-md);border:1px dashed var(--line-strong);background:var(--emerald-wash);
   font-size:13px;line-height:1.85;color:var(--teal-ink)}
@@ -385,7 +400,7 @@ ul,ol{padding:0;list-style:none}
 .quote__text{font-size:13.5px;line-height:1.95;color:var(--ink-2);font-weight:500;flex:1}
 .quote__flag{font-size:11px;font-weight:800;color:var(--muted)}
 .quote-nav{flex:0 0 36px;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;
-  border:1px solid var(--line-2);background:var(--paper);color:var(--ink-2);cursor:pointer}
+  border:1px solid var(--line-2);color:var(--ink-2);cursor:pointer}
 .quote-nav svg{width:16px;height:16px}
 .quote-nav:hover{border-color:var(--emerald);color:var(--emerald-deep)}
 .quote-nav[disabled]{opacity:.4;cursor:default}
@@ -452,7 +467,13 @@ ul,ol{padding:0;list-style:none}
   cursor:pointer;font-size:15px;font-weight:700;color:var(--ink);list-style:none}
 .faq-item summary::-webkit-details-marker{display:none}
 .faq-item summary::after{content:"";flex:0 0 22px;width:22px;height:22px;border-radius:50%;
-  background:var(--emerald-wash) url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230A6B54' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9.5 12 15.5 18 9.5'/%3E%3C/svg%3E") center/14px no-repeat;
+  /* the same clay chip as every other icon: the chevron rides on the gloss, not on the card */
+  background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230A6B54' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9.5 12 15.5 18 9.5'/%3E%3C/svg%3E") center/14px no-repeat,
+    linear-gradient(151deg,rgba(255,255,255,.62),rgba(255,255,255,.06) 46%,rgba(7,66,55,.05)),
+    radial-gradient(120% 92% at 26% 10%,rgba(255,255,255,.98) 0 10%,rgba(255,255,255,.34) 42%,rgba(255,255,255,0) 66%),
+    linear-gradient(151deg,#FFFFFF 0%,#F2FBF7 32%,#D3EDDF 68%,#A9DBC8 100%);
+  box-shadow:inset 2px 2px 3px var(--clay-hi),inset -2px -3px 5px var(--clay-shade),
+    0 2px 0 var(--clay-foot),0 5px 10px var(--clay-glow);
   transition:transform .2s var(--ease)}
 .faq-item[open] summary::after{transform:rotate(180deg)}
 .faq-item__body{padding:0 16px 15px;font-size:13.5px;line-height:1.95;color:var(--ink-soft)}
@@ -491,7 +512,7 @@ ul,ol{padding:0;list-style:none}
 .foot-social{display:flex;gap:8px;margin-top:14px}
 .foot-social a{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;
   border:1px solid rgba(252,243,235,.24);color:var(--cream);transition:background .18s var(--ease),border-color .18s var(--ease)}
-.foot-social a:hover{background:rgba(155,217,197,.18);border-color:var(--emerald-soft)}
+.foot-social a:hover{border-color:var(--emerald-soft)}
 .foot-social svg{width:16px;height:16px}
 .foot-col h3{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:800;color:var(--cream);margin-bottom:11px}
 .foot-col h3 svg{width:15px;height:15px;color:var(--emerald-soft)}
@@ -516,8 +537,7 @@ ul,ol{padding:0;list-style:none}
    11. Sticky mobile action + motion
    ========================================================================== */
 .sticky-cta{position:fixed;inset-inline:16px;bottom:14px;z-index:80;display:none;align-items:center;justify-content:center;
-  gap:9px;min-height:52px;border-radius:var(--r-pill);background:var(--emerald-deep);color:#fff;
-  font-size:15px;font-weight:800;box-shadow:0 10px 26px rgba(6,143,108,.32)}
+  gap:9px;min-height:52px;border-radius:var(--r-pill);font-size:15px;font-weight:800}
 .sticky-cta[hidden]{display:none!important}
 .sticky-cta.show{display:flex}
 @media(min-width:901px){.sticky-cta{display:none!important}}
@@ -670,10 +690,9 @@ body.is-paying .sticky-cta{display:none!important}
 .films__tabs{display:inline-flex;gap:6px;padding:5px;border-radius:var(--r-pill);
   background:var(--cream-2);border:1px solid var(--line);box-shadow:var(--shadow-sm)}
 .film-tab{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 16px;border:0;
-  border-radius:var(--r-pill);background:transparent;color:var(--ink-soft);font:inherit;font-size:14px;
-  font-weight:800;cursor:pointer;transition:background .18s var(--ease),color .18s var(--ease)}
-.film-tab:hover{background:var(--emerald-wash);color:var(--emerald-deep)}
-.film-tab[aria-pressed="true"]{background:var(--ink);color:var(--cream)}
+  border-radius:var(--r-pill);color:var(--ink-soft);font:inherit;font-size:14px;
+  font-weight:800;cursor:pointer}
+.film-tab:hover{--glass-bg:rgba(255,255,255,.84);color:var(--emerald-deep)}
 .film-tab__icon{display:grid;place-items:center;width:20px;height:20px}
 .film-tab__icon svg{width:19px;height:19px}
 .films__frame{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);align-items:center;
@@ -727,14 +746,14 @@ body.is-paying .sticky-cta{display:none!important}
 .tryon__steps b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--emerald-wash);color:var(--emerald-deep);font-size:12.5px}
 .tryon__lines{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
 .tryon__line{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 14px;min-height:78px;
-  border-radius:var(--r-md);border:1.5px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;
-  cursor:pointer;text-align:start;transition:border-color .16s var(--ease),background .16s var(--ease),transform .16s var(--ease)}
-.tryon__line:hover{border-color:var(--emerald-soft);transform:translateY(-1px)}
+  border-radius:var(--r-md);border:1.5px solid var(--line);color:var(--ink);font:inherit;
+  cursor:pointer;text-align:start}
+.tryon__line:hover{--glass-bg:rgba(255,255,255,.84);border-color:var(--emerald-soft)}
 .tryon__line b{font-size:15px;font-weight:800}
 .tryon__line small{font-size:12px;color:var(--muted);font-weight:600}
 .tryon__line-ico{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--emerald-wash);color:var(--emerald-deep);margin-bottom:4px}
 .tryon__line-ico svg{width:17px;height:17px}
-.tryon__line[aria-pressed="true"]{border-color:var(--emerald);background:var(--emerald-wash);box-shadow:0 0 0 3px rgba(6,143,108,.1)}
+.tryon__line[aria-pressed="true"]{--glass-bg:rgba(228,244,238,.92);border-color:var(--emerald);box-shadow:0 0 0 3px rgba(6,143,108,.1),var(--glass-lift-l),var(--glass-shadow-l)}
 .tryon__frame{border-radius:var(--r-xl);overflow:hidden;background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow-md)}
 .tryon__meta{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:13px 18px;border-bottom:1px solid var(--line);background:var(--cream)}
 .tryon__meta b{font-size:15px;font-weight:800}
@@ -841,8 +860,8 @@ body.is-paying .sticky-cta{display:none!important}
 .play-sw__nm{display:block;max-width:100%;overflow:hidden;color:var(--ink-2);font-size:9px;line-height:1.2;font-weight:700;white-space:nowrap;text-overflow:ellipsis}
 .play-sw[aria-checked="true"]{outline:2px solid var(--emerald);outline-offset:1px;border-radius:50%}
 .nav-btn{position:absolute;top:50%;transform:translateY(-50%);z-index:2;display:grid;place-items:center;
-  width:30px;height:30px;border-radius:50%;border:1px solid var(--line-2);background:rgba(255,255,255,.95);
-  color:var(--ink);cursor:pointer;box-shadow:var(--shadow-sm)}
+  width:30px;height:30px;border-radius:50%;border:1px solid var(--line-2);
+  color:var(--ink);cursor:pointer}
 .nav-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .nav-btn:disabled{opacity:.35;cursor:default}
 .nav-r{inset-inline-start:-4px}.nav-l{inset-inline-end:-4px}
@@ -868,7 +887,7 @@ body.is-paying .sticky-cta{display:none!important}
   background:rgba(252,243,235,.9);color:var(--ink-soft);font-size:11.5px;font-weight:700;box-shadow:var(--shadow-sm);transition:opacity .3s}
 .play.has-choice .play-hint{opacity:0;pointer-events:none}
 .play-replay{position:absolute;z-index:7;inset-inline-end:12px;bottom:12px;min-height:40px;padding:0 14px;border:1px solid var(--line-2);border-radius:var(--r-pill);
-  background:rgba(252,243,235,.9);color:var(--ink-2);font:inherit;font-size:11px;font-weight:800;cursor:pointer;box-shadow:var(--shadow-sm)}
+  color:var(--ink-2);font:inherit;font-size:11px;font-weight:800;cursor:pointer}
 @media(max-width:980px){
   .play__frame{grid-template-columns:minmax(0,1fr)}
   .play__side{order:0;padding:0 0 18px}
@@ -1159,7 +1178,8 @@ body.is-paying .sticky-cta{display:none!important}
    embossed glyph. Purely decorative: the glyph itself keeps its own contrast.
    ========================================================================== */
 :is(.why__icon,.setup__icon,.step__icon,.svc__icon,.proof-stat__icon,.hero-benefits__icon,
-    .film-tab__icon,.tryon__line-ico,.tryon__curtain-ico,.pay-done__tick,.compare__knob){
+    .film-tab__icon,.tryon__line-ico,.tryon__curtain-ico,.pay-done__tick,.compare__knob,
+    .foot-social a){
   position:relative;
   isolation:isolate;
   overflow:hidden;
@@ -1179,7 +1199,8 @@ body.is-paying .sticky-cta{display:none!important}
 }
 /* the specular ellipse: the wet-looking highlight of glazed clay */
 :is(.why__icon,.setup__icon,.step__icon,.svc__icon,.proof-stat__icon,.hero-benefits__icon,
-    .film-tab__icon,.tryon__line-ico,.tryon__curtain-ico,.pay-done__tick,.compare__knob)::after{
+    .film-tab__icon,.tryon__line-ico,.tryon__curtain-ico,.pay-done__tick,.compare__knob,
+    .foot-social a)::after{
   content:"";position:absolute;z-index:1;pointer-events:none;
   inset-inline-start:14%;top:7%;width:60%;height:34%;border-radius:50%;
   background:radial-gradient(closest-side,rgba(255,255,255,.92),rgba(255,255,255,0) 76%);
@@ -1187,7 +1208,8 @@ body.is-paying .sticky-cta{display:none!important}
 }
 /* the white embossed stroke: a highlight under the glyph, a shadow over it */
 :is(.why__icon,.setup__icon,.step__icon,.svc__icon,.proof-stat__icon,.hero-benefits__icon,
-    .film-tab__icon,.tryon__line-ico,.tryon__curtain-ico,.pay-done__tick,.compare__knob) svg{
+    .film-tab__icon,.tryon__line-ico,.tryon__curtain-ico,.pay-done__tick,.compare__knob,
+    .foot-social a) svg{
   position:relative;z-index:2;
   filter:drop-shadow(0 1px 0 rgba(255,255,255,.95)) drop-shadow(0 -1px 0 rgba(7,66,55,.22)) drop-shadow(0 2px 2px rgba(11,59,50,.20));
 }
@@ -1212,87 +1234,160 @@ body.is-paying .sticky-cta{display:none!important}
 .pay-done__tick svg{filter:drop-shadow(0 1px 1px rgba(3,45,36,.5))}
 /* The compare knob rides on a photo, so it keeps the light clay and a dark glyph. */
 .compare__knob{box-shadow:inset 2px 2px 3px var(--clay-hi),inset -2px -3px 5px var(--clay-shade),0 2px 0 var(--clay-foot),0 8px 18px rgba(10,32,42,.34)}
+/* A glyph with no tile of its own (a plan tick, a badge crown, a card's heading mark) still
+   gets the same emboss: a highlight under the stroke and a shade over it. */
+:where(.plan li,.plan__badge,.plan__months,.hero-points,.foot-col h3,.pay-card-box__label,
+       .svc__foot,.cta-chips,.benefits__list) svg{
+  filter:drop-shadow(0 1px 0 rgba(255,255,255,.95)) drop-shadow(0 -1px 0 rgba(7,66,55,.22));
+}
+/* An icon inside a button is only a shadow: the button itself is already the material. */
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .chip,.menu-toggle,.quote-nav,.salon-strip,.mini__try,.tryon__line,.plan__buy,.sb-add,
+       .sb-upload__btn,.wiz-next,.wiz-prev,.wiz-skip,.sb-build,.sb-activate,.sb-close,.close)
+  svg{filter:drop-shadow(0 1px 1px rgba(3,45,36,.3))}
+/* The footer's social tiles are clay on a dark ground, so their hover lifts the tile rather
+   than repainting its body. */
+.foot-social a:hover{transform:translateY(-1px);filter:brightness(1.05)}
+.foot-social a:active{transform:translateY(1px)}
 
 /* ============================================================================
-   Glass controls — one iPhone-style material for every button, pill and chip:
-   a translucent body that blurs what is behind it, a bright inner edge along the
-   top, a soft outer shadow and a glossy diagonal sheen. The fill stays opaque
-   enough for its label to keep AA contrast on the cream ground and on the white
-   cards, and hover / active / focus / disabled are drawn on top of the same body.
-   Every state only touches background-color and box-shadow, so the existing
-   per-variant colours (a pressed tab, a selected plan) still win as before.
+   Glass controls — ONE iPhone-style material for every button, pill, chip and tab
+   on the public pages. Two bodies (light and emerald) drawn from one recipe: a
+   translucent fill that blurs what is behind it, a glossy top edge, a soft outer
+   shadow and a diagonal sheen.
+
+   Every selector here sits inside :where(), so the shared recipe never out-specifies
+   a component's own rule. A control joins the system by being listed, and it picks a
+   body by also being listed in the light or the emerald group below — the groups are
+   the same shape, so adding a control is one line, never a copy of the recipe. The
+   four states (hover, active, focus, disabled) and the two fallbacks (no blur, no
+   transparency) are written once, for all of them.
    ========================================================================== */
-:is(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,.tryon__line,.sb-upload__btn,.chip){
-  --glass-bg:rgba(255,255,255,.6);
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try){
+  /* the light body is the default; the emerald group below overrides these five */
+  --glass-bg:var(--glass-bg-l);
+  --glass-top:var(--glass-top-l);
+  --glass-edge:var(--glass-edge-l);
+  --glass-sheen:var(--glass-sheen-l);
+  --glass-shadow:var(--glass-shadow-l);
   position:relative;
   isolation:isolate;
   background-color:var(--glass-bg);
+  /* the top gloss: a bright lip along the top edge, a shade under the bottom one */
+  background-image:linear-gradient(180deg,var(--glass-top) 0%,rgba(255,255,255,0) 48%,rgba(10,32,42,.05) 100%);
   border:1px solid var(--glass-edge);
   -webkit-backdrop-filter:var(--glass-blur);
   backdrop-filter:var(--glass-blur);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.95),
-    inset 0 -1px 0 rgba(10,32,42,.05),
-    0 6px 16px var(--glass-shade);
+  box-shadow:var(--glass-lift-l),var(--glass-shadow);
   transition:transform .18s var(--ease),box-shadow .18s var(--ease),background-color .18s var(--ease),
              border-color .18s var(--ease),color .18s var(--ease),filter .18s var(--ease);
 }
 /* the glossy sheen; border-radius:inherit keeps it inside the pill without clipping */
-:is(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,.tryon__line,.sb-upload__btn,.chip)::after{
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try)::after{
   content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;pointer-events:none;
   background:var(--glass-sheen);
 }
-/* the primary action: emerald glass, still AA for its white label */
-:is(.btn,.sticky-cta){
-  --glass-bg:rgba(10,107,84,.93);
-  /* the emerald body carries a weaker sheen: it has to stay dark under its white label */
-  --glass-sheen:linear-gradient(105deg,rgba(255,255,255,0) 4%,rgba(255,255,255,.18) 26%,rgba(255,255,255,0) 50%,rgba(255,255,255,.1) 100%);
-  border-color:rgba(255,255,255,.4);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.5),
-    inset 0 -1px 0 rgba(3,45,36,.3),
-    0 8px 20px rgba(6,143,108,.26);
-  text-shadow:0 1px 1px rgba(3,45,36,.3);
+/* ---- body 1: the emerald body. Every primary action, at rest and not on hover. ----
+   .btn and .sticky-cta are primary by default; a plan card, a selected tab and the
+   studio's own two calls join them. The label is white and the sheen is weak, so the
+   fill never lifts out from under it. */
+:where(.btn,.sticky-cta,.sb-build,.sb-activate,.mini__try,
+       .ptabs__row button[aria-selected="true"],.try-switch button[aria-selected="true"],
+       .film-tab[aria-pressed="true"]){
+  --glass-bg:var(--glass-bg-p);
+  --glass-top:var(--glass-top-p);
+  --glass-edge:var(--glass-edge-p);
+  --glass-sheen:var(--glass-sheen-p);
+  --glass-shadow:var(--glass-shadow-p);
+  color:#fff;
+  text-shadow:0 1px 1px rgba(3,45,36,.35);
+  box-shadow:var(--glass-lift-p),var(--glass-shadow-p);
 }
-.btn--ghost{--glass-bg:rgba(255,255,255,.62)}
+/* ---- body 2: the light body, restated for the controls that are not primary ----
+   (a second, later :where() list, so it wins over the emerald one above). */
+:where(.btn--ghost,.btn--quiet,.btn--login,.nav-btn,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,
+       .plan .btn){
+  --glass-bg:var(--glass-bg-l);
+  --glass-top:var(--glass-top-l);
+  --glass-edge:var(--glass-edge-l);
+  --glass-sheen:var(--glass-sheen-l);
+  --glass-shadow:var(--glass-shadow-l);
+  color:var(--ink-2);
+  text-shadow:none;
+  box-shadow:var(--glass-lift-l),var(--glass-shadow-l);
+}
+/* The label colour sits at the control's own specificity: .btn sets a white label, so the
+   light body has to answer it here or a ghost button would be invisible at rest. */
+.btn--ghost,.btn--quiet,.btn--login,.nav-btn,.film-tab,.ptabs__row button,.try-switch button,
+.tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,
+.plan .btn{color:var(--ink-2);text-shadow:none}
+/* The recommended card («پیشنهاد آینه», and «بهترین» on «پنل آرایشگاه») is the only
+   green button in the row, so it takes the emerald body after the light group. It is written after the
+   light group and after the ink-label rule, so its white label is the one that sticks. */
+.plan--lead .btn{
+  --glass-bg:var(--glass-bg-p);
+  --glass-top:var(--glass-top-p);
+  --glass-edge:var(--glass-edge-p);
+  --glass-sheen:var(--glass-sheen-p);
+  --glass-shadow:var(--glass-shadow-p);
+  color:#fff;text-shadow:0 1px 1px rgba(3,45,36,.35);
+  box-shadow:var(--glass-lift-p),var(--glass-shadow-p);
+}
+/* Quiet is quieter: the same material, less fill. */
 .btn--quiet{--glass-bg:rgba(255,255,255,.34)}
-.btn--login{--glass-bg:rgba(255,255,255,.42);color:var(--ink-2)}
-.nav-btn{--glass-bg:rgba(255,255,255,.68);position:absolute}
-.sticky-cta{position:fixed}
-:is(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,.tryon__line,.sb-upload__btn,.chip):hover:not([disabled]):not(:disabled):not([aria-pressed="true"]):not([aria-selected="true"]){
+/* a control that is a dashed pill (the studio's file button) keeps its dashed edge */
+.sb-upload__btn{border-style:dashed;border-color:var(--line-strong)}
+/* ---- the four states, written once for every control ---- */
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try):hover:not([disabled]):not(:disabled):not([aria-pressed="true"]):not([aria-selected="true"]){
   transform:translateY(-1px);
-  filter:saturate(1.08) brightness(1.04);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.95),
-    inset 0 -1px 0 rgba(10,32,42,.06),
-    0 10px 24px rgba(10,32,42,.2);
+  /* hover only brightens: the body never changes colour, so the rest state is the real one */
+  filter:saturate(1.06) brightness(1.05);
+  box-shadow:var(--glass-lift-l),var(--glass-shadow-hl);
 }
-:is(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,.tryon__line,.sb-upload__btn,.chip):active:not([disabled]):not(:disabled){
-  transform:translateY(1px) scale(.995);
-  filter:brightness(.97);
-  box-shadow:
-    inset 0 2px 6px rgba(10,32,42,.16),
-    0 2px 6px rgba(10,32,42,.12);
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try):active:not([disabled]):not(:disabled){
+  transform:translateY(1px) scale(.98);
+  filter:brightness(.96);
+  box-shadow:inset 0 2px 6px rgba(10,32,42,.16),0 2px 6px rgba(10,32,42,.12);
 }
-:is(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,.tryon__line,.sb-upload__btn,.chip):disabled,
-:is(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,.tryon__line,.sb-upload__btn,.chip)[disabled],
-:is(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,.tryon__line,.sb-upload__btn,.chip)[aria-disabled="true"]{
-  opacity:.55;cursor:not-allowed;transform:none;filter:grayscale(.25);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.6);
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try):focus-visible{
+  outline:3px solid var(--emerald-soft);
+  outline-offset:3px;
+  box-shadow:var(--glass-lift-l),var(--glass-shadow-hl),0 0 0 6px rgba(6,143,108,.3);
 }
-/* the hover colours, kept translucent instead of the old opaque ones */
-.btn:hover{background-color:rgba(9,97,75,.96)}
-.btn--ghost:hover{background-color:rgba(255,255,255,.84)}
-.btn--quiet:hover{background-color:rgba(255,255,255,.52)}
-.btn--login:hover{background-color:rgba(255,255,255,.64);border-color:var(--line-2)}
-/* Where the blur is not supported the material falls back to a solid body: the
-   same shapes, the same AA labels, no half-transparent text. */
-@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
-  :is(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,.tryon__line,.sb-upload__btn,.chip){background-color:#fff}
-  :is(.btn,.sticky-cta){background-color:var(--emerald-deep)}
-  :is(.btn--ghost,.btn--quiet,.btn--login,.nav-btn,.film-tab,.ptabs__row button,.try-switch button,.tryon__line,.sb-upload__btn,.chip){color:var(--ink-2)}
-  .btn:hover{background-color:#057a5c}
-  .film-tab[aria-pressed="true"],.ptabs__row button[aria-selected="true"],.try-switch button[aria-selected="true"]{background-color:var(--ink);color:var(--cream)}
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try):disabled,
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try)[disabled],
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try)[aria-disabled="true"]{
+  opacity:.55;cursor:not-allowed;transform:none;filter:grayscale(.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 2px 6px rgba(10,32,42,.08);
+}
+/* ---- the two fallbacks: the same shapes and the same AA labels, solid ---- */
+/* Where the blur is not supported the material falls back to a solid body. */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  :where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+         .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try){
+    --glass-bg:#fff;background-image:none;color:var(--ink-2);text-shadow:none}
+  :where(.btn,.sticky-cta,.sb-build,.sb-activate,.mini__try,.plan--lead .btn,
+         .ptabs__row button[aria-selected="true"],.try-switch button[aria-selected="true"],
+         .film-tab[aria-pressed="true"]){--glass-bg:var(--emerald-deep);color:#fff}
+  :where(.btn--ghost,.btn--quiet,.btn--login,.nav-btn,.film-tab,.ptabs__row button,.try-switch button,
+         .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,
+         .plan .btn){--glass-bg:#fff;color:var(--ink-2)}
+  :where(.plan--lead .btn){--glass-bg:var(--emerald-deep);color:#fff}
+}
+/* And where the visitor asked for no transparency at all, the same, without the blur. */
+@media (prefers-reduced-transparency:reduce){
+  :where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+         .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try){
+    background-image:none;-webkit-backdrop-filter:none;backdrop-filter:none}
 }
 
 /* ============================================================================
@@ -1486,7 +1581,7 @@ body{background:transparent}
 .plan li small{display:block;font-size:11.5px;line-height:1.7;font-weight:400;color:var(--muted)}
 .plan--lead{border:2px solid #D8B46A;background:linear-gradient(180deg,#F1F8F4,#fff 40%)}
 .plan__badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#C9A15A,#E6C989);color:#3B2A0B;
-  inset-inline-start:50%;transform:translateX(50%);white-space:nowrap}
+  inset-inline-start:50%;transform:translateX(50%);white-space:nowrap}/* centred like .step__num */
 .plan__badge svg{width:15px;height:15px}
 .plan-note{justify-content:center;text-align:center;font-weight:800;color:var(--ink)}
 @media(max-width:860px){.plan__was[aria-hidden="true"]{display:none}}
@@ -1494,8 +1589,7 @@ body{background:transparent}
 /* /hair: one try block, two tabs */
 .try-switch{display:flex;gap:6px;justify-content:center;margin:clamp(24px,4vw,40px) auto 0;padding:5px;max-width:560px;border-radius:18px;background:var(--paper);border:1px solid var(--line);scroll-margin-top:84px}
 .try-switch[hidden]{display:none}
-.try-switch button{flex:1;min-height:52px;border:0;border-radius:14px;background:transparent;font:inherit;font-size:14px;font-weight:800;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;line-height:1.4;padding:6px 10px}
+.try-switch button{flex:1;min-height:52px;border-radius:14px;font:inherit;font-size:14px;font-weight:800;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;line-height:1.4;padding:6px 10px}
 .try-switch button small{font-size:11.5px;font-weight:500;color:var(--muted)}
-.try-switch button[aria-selected="true"]{background:var(--emerald-deep);color:#fff}
 .try-switch button[aria-selected="true"] small{color:#d6efe6}
 #play[hidden],#try-on[hidden]{display:none!important}

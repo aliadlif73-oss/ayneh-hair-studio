@@ -56,8 +56,10 @@
 .mini__chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .mini__chips span{display:inline-flex;align-items:center;min-height:22px;padding:0 8px;border-radius:var(--r-pill);
   background:var(--emerald-wash);color:var(--teal-ink);font-size:10.5px;font-weight:700}
+/* «شروع با عکس خودم» is a primary action on the salon's own mini site: it wears the shared
+   emerald glass (site.css), so only its shape and type are set here. */
 .mini__try{display:inline-flex;align-items:center;gap:6px;margin-top:10px;min-height:36px;padding:0 14px;border-radius:var(--r-pill);
-  background:var(--brand-action,var(--brand));color:#fff;font-size:12px;font-weight:800}
+  font-size:12px;font-weight:800}
 .mini__try svg{width:14px;height:14px}
 .mini__services{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}
 .mini__services span{display:grid;place-items:center;gap:4px;padding:8px 4px;border-radius:12px;background:var(--cream-2);
@@ -117,8 +119,9 @@
 .wiz-err{margin:0;min-height:1.5em;font-size:12.5px;font-weight:700;color:#9C3A2A}
 .wiz-actions{display:flex;gap:8px;margin-top:2px}
 .wiz-actions .btn{flex:1;min-height:48px}
-.wiz-next{background:var(--emerald-deep)}
-.wiz-skip{background:transparent;color:var(--ink-soft);border-color:var(--line-2);box-shadow:none}
+/* the wizard's «ادامه» is the primary glass; «رد کردن» is the quiet one */
+.wiz-next{--glass-bg:var(--glass-bg-p);--glass-top:var(--glass-top-p);--glass-edge:var(--glass-edge-p);--glass-sheen:var(--glass-sheen-p);--glass-shadow:var(--glass-shadow-p);color:#fff;text-shadow:0 1px 1px rgba(3,45,36,.35);box-shadow:var(--glass-lift-p),var(--glass-shadow-p)}
+.wiz-skip{--glass-bg:rgba(255,255,255,.28);--glass-top:rgba(255,255,255,.2);--glass-shadow:0 2px 8px rgba(10,32,42,.06);color:var(--ink-soft);border-color:var(--line-2);box-shadow:var(--glass-lift-l),0 2px 8px rgba(10,32,42,.06)}
 .reassure-inline{margin:0;font-size:12px;color:var(--muted)}
 
 .sb-details{border:1px dashed var(--line-strong);border-radius:var(--r-md);background:var(--cream);overflow:hidden}
@@ -145,25 +148,9 @@
 .sb-color input[type=color]{width:52px;height:40px;padding:2px;border-radius:10px;border:1.5px solid var(--line-2);background:var(--paper);cursor:pointer}
 .sb-color output{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--muted);direction:ltr}
 .sb-upload{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-/* the upload pill is the same glass material as every other button (site.css), with a
-   dashed edge so it still reads as «add a file»; its body is restated here because this
-   stylesheet is loaded after the shared material. */
-.sb-upload__btn{--glass-bg:rgba(255,255,255,.55);position:relative;isolation:isolate;
-  display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:var(--r-pill);
-  border:1.5px dashed var(--line-strong);background-color:var(--glass-bg);
-  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(10,32,42,.05),0 6px 16px var(--glass-shade);
-  font-size:12.5px;font-weight:700;color:var(--ink-2);cursor:pointer;
-  transition:transform .18s var(--ease),box-shadow .18s var(--ease),background-color .18s var(--ease),
-             border-color .18s var(--ease),filter .18s var(--ease)}
-.sb-upload__btn::after{content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;pointer-events:none;background:var(--glass-sheen)}
-.sb-upload__btn:hover{--glass-bg:rgba(255,255,255,.8);transform:translateY(-1px);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(10,32,42,.06),0 10px 24px rgba(10,32,42,.2)}
-.sb-upload__btn:active{transform:translateY(1px);filter:brightness(.97);
-  box-shadow:inset 0 2px 6px rgba(10,32,42,.16),0 2px 6px rgba(10,32,42,.12)}
-@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
-  .sb-upload__btn{background-color:var(--paper);color:var(--ink-2)}
-}
+/* the upload pill is the same glass material as every other button (site.css); only its
+   dashed edge and its quieter fill are its own. */
+.sb-upload__btn{--glass-bg:rgba(255,255,255,.45);border-style:dashed;border-color:var(--line-strong)}
 .sb-upload input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .sb-upload__name{font-size:11.5px;color:var(--muted);max-width:22ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sb-works{display:grid;gap:8px}
@@ -172,8 +159,10 @@
 .sb-work .wide{grid-column:1/-1}
 .sb-remove{justify-self:start;min-height:34px;padding:0 12px;border-radius:var(--r-pill);border:1px solid var(--line-2);
   background:var(--paper);font-size:11.5px;font-weight:700;color:#8C3B2A;cursor:pointer}
-.sb-add{justify-self:start;min-height:38px;padding:0 14px;border-radius:var(--r-pill);border:1.5px solid var(--emerald);
-  background:var(--emerald-wash);color:var(--emerald-deep);font-size:12.5px;font-weight:800;cursor:pointer}
+/* The studio's own two calls («افزودن نمونه‌کار» and «آماده‌کردن پیش‌نمایش») wear the shared
+   glass material: this file only sizes them, because it is loaded after the recipe. */
+.sb-add{--glass-bg:rgba(228,244,238,.92);justify-self:start;min-height:38px;padding:0 14px;border-radius:var(--r-pill);
+  border:1.5px solid var(--emerald);color:var(--emerald-deep);font-size:12.5px;font-weight:800;cursor:pointer}
 
 .sb-error{margin:0;min-height:1.4em;font-size:12.5px;font-weight:700;color:#9C3A2A}
 .sb-note--form{margin:0;font-size:11.5px;line-height:1.8;color:var(--muted)}

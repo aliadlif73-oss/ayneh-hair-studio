@@ -45,6 +45,8 @@
   .loop__f,.loop__dots li{animation:none}
   .loop--mix .loop__f--m1{opacity:1}
   .loop__f--2{opacity:1}
+  /* the eight-frame hero: the first frame («قبل») is the one that stays */
+  .loop--svc .loop__s0{opacity:1}
   .loop__dots{display:none}
 }
 @media(max-width:600px){.loop__screen{aspect-ratio:1/1.08}.loop__f figcaption{font-size:12.5px;min-height:32px;padding:0 12px}}
@@ -95,6 +97,7 @@
 .setup{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,1.6vw,22px);counter-reset:none}
 .setup__step{position:relative;display:grid;justify-items:center;gap:12px;text-align:center;padding:clamp(22px,2.6vw,32px) 16px clamp(18px,2.2vw,26px);
   background:var(--paper);border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:var(--shadow-sm)}
+/* centred the same way as .step__num: start edge on the middle line, then half back. */
 .setup__num{position:absolute;top:-15px;inset-inline-start:50%;transform:translateX(50%);display:grid;place-items:center;width:34px;height:34px;
   border-radius:50%;background:var(--emerald-deep);color:#fff;font-size:14px;font-weight:900;border:3px solid var(--cream)}
 /* the clay body lives with the other icons in site.css */
@@ -125,7 +128,7 @@
 .sample-card__body p{margin:0;font-size:13.5px;line-height:1.8;color:var(--ink-soft);min-height:2.4em}
 .sample-card__body .btn{min-height:46px;font-size:14.5px}
 .salon-strip{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;padding:15px 20px;border-radius:var(--r-lg);
-  background:var(--emerald-wash);border:1px solid var(--emerald-soft);font-size:15px;font-weight:600;color:var(--ink-2);line-height:1.7}
+  border:1px solid var(--emerald-soft);font-size:15px;font-weight:600;color:var(--ink-2);line-height:1.7}
 .salon-strip b{font-weight:900;color:var(--ink)}
 .salon-strip:hover{border-color:var(--emerald)}
 .why-grid--3{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -140,7 +143,6 @@
 .ptabs__q{font-size:15px;font-weight:800;color:var(--ink-2)}
 .ptabs__row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:5px;border-radius:var(--r-pill);background:var(--paper);border:1px solid var(--line)}
 .ptabs__row button{min-height:44px;padding:0 20px;border-radius:var(--r-pill);font-size:14.5px;font-weight:800;color:var(--ink-2);cursor:pointer}
-.ptabs__row button[aria-selected="true"]{background:var(--emerald-deep);color:#fff}
 [data-plans-panel][hidden]{display:none!important}
 .pbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px;margin-top:clamp(18px,2.4vw,26px);padding:16px 20px;
   border-radius:var(--r-lg);background:var(--emerald-wash);border:1px solid var(--emerald-soft)}
@@ -218,38 +220,25 @@
 .loop--svc .loop__s7{animation-delay:21s}.loop--svc .loop__dots li:nth-child(8){animation-delay:21s}
 @keyframes loopSvc{0%{opacity:0}1.5%{opacity:1}12%{opacity:1}13.5%,100%{opacity:0}}
 @keyframes loopSvcDot{0%{background:var(--line-2)}1%,12%{background:var(--emerald)}13.5%,100%{background:var(--line-2)}}
-@media(prefers-reduced-motion:reduce){.loop--svc .loop__s0{opacity:1}}
 .loop--svc .loop__screen{aspect-ratio:3/3.4;background:linear-gradient(160deg,#F6EDE0,#EAF3EF)}
 .loop--svc .loop__f img{width:100%;height:100%;object-fit:contain;object-position:center}
 @media(max-width:600px){.loop--svc .loop__screen{aspect-ratio:3/3.6}}
 
 /* ============================================================================
-   Glass, continued — «ورود», the price tabs and the try-on tabs draw their own
-   body further down this file, so the shared material is restated here for
-   exactly those three. Same recipe as site.css: translucent fill, the blur, the
-   inner top highlight, the soft shadow and the sheen.
+   The price tabs already wear the shared glass material from site.css: the recipe
+   lives in one :where() list there, so this file only says which body the chosen
+   tab takes. Nothing here restates the material.
    ========================================================================== */
-.btn--login,.ptabs__row button,.try-switch button{
-  position:relative;isolation:isolate;
-  background-color:var(--glass-bg);
-  border:1px solid var(--glass-edge);
-  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(10,32,42,.05),0 6px 16px var(--glass-shade);
-  transition:transform .18s var(--ease),box-shadow .18s var(--ease),background-color .18s var(--ease),
-             border-color .18s var(--ease),color .18s var(--ease),filter .18s var(--ease);
+/* The chosen service is the emerald body; the others stay on the light one. */
+.ptabs__row button[aria-selected="true"]{
+  --glass-bg:var(--glass-bg-p);
+  --glass-top:var(--glass-top-p);
+  --glass-edge:var(--glass-edge-p);
+  --glass-sheen:var(--glass-sheen-p);
+  --glass-shadow:var(--glass-shadow-p);
+  color:#fff;text-shadow:0 1px 1px rgba(3,45,36,.35);
+  box-shadow:var(--glass-lift-p),var(--glass-shadow-p);
 }
-.btn--login{--glass-bg:rgba(255,255,255,.42)}
-.ptabs__row button,.try-switch button{--glass-bg:rgba(255,255,255,.6)}
-.btn--login:hover,.ptabs__row button:hover:not([aria-selected="true"]),.try-switch button:hover:not([aria-selected="true"]){
-  transform:translateY(-1px);filter:saturate(1.08) brightness(1.04);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(10,32,42,.06),0 10px 24px rgba(10,32,42,.2);
-}
-.btn--login:hover{--glass-bg:rgba(255,255,255,.64);border-color:var(--line-2)}
-.ptabs__row button:hover:not([aria-selected="true"]),.try-switch button:hover:not([aria-selected="true"]){--glass-bg:rgba(255,255,255,.84)}
-.btn--login:active,.ptabs__row button:active,.try-switch button:active{
-  transform:translateY(1px) scale(.995);filter:brightness(.97);
-  box-shadow:inset 0 2px 6px rgba(10,32,42,.16),0 2px 6px rgba(10,32,42,.12);
-}
-@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
-  .btn--login,.ptabs__row button,.try-switch button{background-color:#fff;color:var(--ink-2)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .ptabs__row button[aria-selected="true"]{--glass-bg:var(--emerald-deep);color:#fff}
 }

@@ -235,11 +235,49 @@ a.hchip,button.hchip{cursor:pointer}a.hchip:hover,button.hchip:hover{border-colo
 .dock{position:fixed;inset-inline:0;bottom:0;z-index:40;padding:12px 14px calc(12px + var(--safe-b));background:linear-gradient(180deg,rgba(232,237,235,0),rgba(232,237,235,.92) 40%);pointer-events:none}
 .dock__inner{pointer-events:auto;max-width:620px;margin:0 auto;display:flex;gap:8px;align-items:center;background:var(--ink);border-radius:20px;padding:7px;box-shadow:var(--float)}
 .dock__hint{font-size:13px;color:rgba(255,255,255,.72);padding-inline-start:12px;flex:1;min-width:0;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dock .btn--ghost{color:#fff;border-color:rgba(255,255,255,.22)}
-.dock .btn--ghost:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.4)}
-.dock .btn--primary{flex:none;box-shadow:none}
+.dock .btn--primary{flex:none}
 .dock .btn--primary[disabled]{opacity:.55}
 @media(max-width:560px){.dock__hint{display:none}.dock .btn--primary{flex:1}}
+/* ---------- the same glass material: one recipe for every control on this page ----------
+   Two bodies (light and emerald) from one recipe, exactly like the public pages: a
+   translucent fill that blurs what is behind it, a glossy top edge, a soft shadow and a
+   diagonal sheen. «بساز» is the emerald body, so it reads as the primary action at rest. */
+:root{
+  --glass-blur:blur(14px) saturate(160%);
+  --glass-bg-l:rgba(255,255,255,.55);--glass-top-l:rgba(255,255,255,.34);--glass-edge-l:rgba(255,255,255,.78);
+  --glass-sheen-l:linear-gradient(105deg,rgba(255,255,255,0) 6%,rgba(255,255,255,.55) 30%,rgba(255,255,255,0) 56%,rgba(255,255,255,.22) 100%);
+  --glass-bg-p:rgba(4,54,42,.86);--glass-top-p:rgba(255,255,255,.1);--glass-edge-p:rgba(255,255,255,.42);
+  --glass-sheen-p:linear-gradient(105deg,rgba(255,255,255,0) 4%,rgba(255,255,255,.12) 26%,rgba(255,255,255,0) 50%,rgba(255,255,255,.06) 100%);
+}
+.btn,.chip,.icon-btn,button.hchip,a.hchip{
+  --glass-bg:var(--glass-bg-l);--glass-top:var(--glass-top-l);--glass-edge:var(--glass-edge-l);--glass-sheen:var(--glass-sheen-l);
+  position:relative;isolation:isolate;
+  background-color:var(--glass-bg);
+  background-image:linear-gradient(180deg,var(--glass-top) 0%,rgba(255,255,255,0) 48%,rgba(10,32,42,.05) 100%);
+  border:1px solid var(--glass-edge);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(10,32,42,.06),0 6px 16px rgba(10,32,42,.13);
+}
+.btn::after,.chip::after,.icon-btn::after,button.hchip::after,a.hchip::after{
+  content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;pointer-events:none;background:var(--glass-sheen);
+}
+/* the primary action, at rest: emerald glass with a white label */
+.btn--primary,.btn--build,.chip[aria-pressed="true"],.chip.is-on{
+  --glass-bg:var(--glass-bg-p);--glass-top:var(--glass-top-p);--glass-edge:var(--glass-edge-p);--glass-sheen:var(--glass-sheen-p);
+  color:#fff;text-shadow:0 1px 1px rgba(3,45,36,.35);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -1px 0 rgba(3,45,36,.3),0 8px 20px rgba(6,143,108,.26);
+}
+.btn:hover,.chip:hover,.icon-btn:hover{filter:brightness(1.05)}
+.btn:active,.chip:active,.icon-btn:active{transform:translateY(1px) scale(.98);filter:brightness(.96)}
+.btn[disabled],.chip[disabled]{opacity:.5;cursor:not-allowed;transform:none;filter:grayscale(.3)}
+/* the dock is a dark bar, so its controls wear the material over the dark, not over the cream */
+.dock .btn--ghost{--glass-bg:rgba(255,255,255,.08);--glass-top:rgba(255,255,255,.06);--glass-edge:rgba(255,255,255,.22);color:#fff}
+.dock .btn--ghost:hover{border-color:rgba(255,255,255,.4)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .btn,.chip,.icon-btn,button.hchip,a.hchip{background-image:none;background-color:#fff;color:var(--ink-2);text-shadow:none}
+  .btn--primary,.btn--build,.chip[aria-pressed="true"],.chip.is-on{background-color:var(--accent);color:#fff}
+  .dock .btn--ghost{background-color:transparent;color:#fff}
+}
 @media(min-width:960px){.dock{display:none}}
 
 
@@ -899,7 +937,14 @@ function pickLook(fn){fn();state.result=null;state.error='';renderFlow();renderD
 // view. The same for all four lines: hair, colour, nails and lashes. Nothing else is a step:
 // the shape, length and colour rows are optional and never scrolled to on their own.
 function chooseLook(fn){pickLook(fn);scrollToBuild()}
-function buildButton(){var f=$('#flow');return f?f.querySelector('.btn--build'):null}
+/* «بساز» lives in the flow on a wide screen and in the fixed dock on a phone: whichever one
+   is on the page is the one to bring into view. */
+function buildButton(){
+ var f=$('#flow'),d=$('#dock');
+ var inFlow=f?f.querySelector('.btn--build'):null;
+ var inDock=d&&!d.hidden?d.querySelector('.btn--build'):null;
+ return inFlow||inDock;
+}
 function scrollToBuild(){
  var f=$('#flow');if(!f)return;
  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches,beh=reduce?'auto':'smooth';
@@ -1435,7 +1480,7 @@ function renderDock(){
   var ready=hasChoice(),can=canGenerate();
   var out=quotaLeft()===0;
   hint=out?'سهم ساخت این بخش تمام شد':ready?(can?'آماده؛ بزن بساز':'آماده'):missingReason();
-  primary=el('button',{class:'btn btn--primary',type:'button',disabled:!ready,onclick:build,html:can?ICO.spark+'<span>بساز</span>':out?ICO.send+'<span>فرستادن</span>':ICO.arrow+'<span>ادامه</span>'});
+  primary=el('button',{class:'btn btn--primary btn--build',type:'button',disabled:!ready,onclick:build,html:can?ICO.spark+'<span>بساز</span>':out?ICO.send+'<span>فرستادن</span>':ICO.arrow+'<span>ادامه</span>'});
  }else{
   if(state.busy){hint='در حال ساخت…';primary=el('button',{class:'btn btn--primary',type:'button',disabled:true,text:'در حال ساخت…'})}
   else if(state.result||!canGenerate()){hint='فرستادن برای سالن';primary=el('button',{class:'btn btn--primary',type:'button',onclick:openRequest,html:ICO.send+'<span>'+(state.result?'درخواست نوبت می‌دهم':'فرستادن برای '+artist())+'</span>'})}
@@ -1456,7 +1501,9 @@ function handleFile(file,kind){
   return api('upload?kind='+kind,r[0],true);
  }).then(function(d){
   if(kind==='original'){track('photo',state.line);state.original=d.id;state.ratio=compress.ratio||'';state.result=null;state.error='';state.idem=null;state.justUploaded=true;
-   state.advT=setTimeout(function(){if(state.step===1&&state.justUploaded){state.justArrived=true;go(2)}},1600)}
+   /* quiet: scrollToBuild, not focusFlow, decides where we land — on «بساز» when a look is
+      already chosen (she only changed her photo), on the looks when it is not. */
+   state.advT=setTimeout(function(){if(state.step===1&&state.justUploaded){state.justArrived=true;go(2,true);scrollToBuild()}},1600)}
   else{track('look','u');state.reference=d.id;state.refTitle='';state.style=null;state.result=null;state.error='';if(state.line==='color')state.color='';setTimeout(scrollToBuild,60)}
   renderFlow();renderSteps();renderDock();
  }).catch(function(e){if(kind==='original'&&!state.original){state.preview=null;renderFlow()}toast(e.message,'error')}).then(function(){state.busy=false;renderDock()});

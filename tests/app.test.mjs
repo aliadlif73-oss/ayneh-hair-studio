@@ -888,11 +888,20 @@ test('customer page: four services, «بساز» starts building with no consent
  // Photo and look in → «بساز» comes into view and takes the focus, on every line. No service
  // stops at the optional shape, length or colour rows on the way there.
  assert.match(js,/function chooseLook\(fn\)\{pickLook\(fn\);scrollToBuild\(\)\}/,'picking a look goes straight to the build button');
- assert.match(js,/function buildButton\(\)\{var f=\$\('#flow'\);return f\?f\.querySelector\('\.btn--build'\):null\}/,'one place knows which button builds');
+ // buildButton() looks in the flow and in the dock, so the phone's «بساز» is found too.
+ assert.match(js,/function buildButton\(\)\{[\s\S]*?return inFlow\|\|inDock;\n\}/,'one place knows which button builds');
+ assert.match(js,/inFlow=f\?f\.querySelector\('\.btn--build'\):null/,'the flow carries the hook');
+ assert.match(js,/inDock=d&&!d\.hidden\?d\.querySelector\('\.btn--build'\):null/,'and so does the dock');
+ assert.match(js,/class:'btn btn--primary btn--build',type:'button',disabled:!ready,onclick:build/,'the dock «بساز» is the same button');
  const stb=js.match(/function scrollToBuild\(\)\{[\s\S]*?\n\}/)[0];
  assert.match(stb,/if\(btn&&hasChoice\(\)\)\{[\s\S]*?window\.scrollTo[\s\S]*?btn\.focus\(\{preventScroll:true\}\)\}[\s\S]*?return;\n  \}/,'the build button is scrolled to and focused as soon as both are in');
  assert.ok(stb.indexOf('if(btn&&hasChoice())')<stb.indexOf('if(opt)'),'the optional rows never come before «بساز»');
+ assert.match(stb,/reduce=window\.matchMedia\('\(prefers-reduced-motion: reduce\)'\)\.matches,beh=reduce\?'auto':'smooth'/,'no smooth scroll when she asked for none');
  assert.match(js,/setTimeout\(scrollToBuild,60\)/,'uploading her own model photo does the same');
+ // She changed her photo with a look already chosen: the auto-advance lands on «بساز» too.
+ assert.match(js,/go\(2,true\);scrollToBuild\(\)\}\},1600\)\}/,'a re-upload with a look already chosen lands on «بساز»');
+ // Nothing builds by itself: build() only ever runs from her tap on «بساز» (or the dock).
+ assert.ok(!/scrollToBuild[\s\S]{0,200}build\(\)/.test(js),'coming into view never starts the build');
  // Every service has its building scene and stages.
  for(const l of ['hair','color','nails','lashes'])assert.match(js,new RegExp('\\n '+l+":\\{title:'"));
 });
@@ -1242,8 +1251,8 @@ test('step 24 palette: cream ground, ink type, a single emerald accent',()=>{
  // Every icon tile is the same clay: a radial highlight over an emerald body, an inset
  // rim light and an inset shade for the bevel, an emerald drop shadow, a specular
  // ellipse and a white embossed glyph.
- const CLAY=/:is\(\.why__icon,\.setup__icon,\.step__icon,\.svc__icon,\.proof-stat__icon,\.hero-benefits__icon,\s*\.film-tab__icon,\.tryon__line-ico,\.tryon__curtain-ico,\.pay-done__tick,\.compare__knob\)/;
- assert.match(siteCSS,CLAY,'one recipe lists all eleven icon tiles');
+ const CLAY=/:is\(\.why__icon,\.setup__icon,\.step__icon,\.svc__icon,\.proof-stat__icon,\.hero-benefits__icon,\s*\.film-tab__icon,\.tryon__line-ico,\.tryon__curtain-ico,\.pay-done__tick,\.compare__knob,\s*\.foot-social a\)/;
+ assert.match(siteCSS,CLAY,'one recipe lists every icon tile');
  assert.match(siteCSS,/:is\(\.why__icon[\s\S]*?\)(\s*\{)[\s\S]*?box-shadow:\s*inset 2px 2px 3px var\(--clay-hi\),\s*inset -2px -3px 5px var\(--clay-shade\),[\s\S]*?0 8px 16px var\(--clay-glow\)/,'every icon tile uses dimensional highlights and shadows');
  assert.match(siteCSS,/::after\{\s*content:"";position:absolute;z-index:1;pointer-events:none;\s*inset-inline-start:14%[\s\S]*?radial-gradient\(closest-side/,'every icon tile carries the specular highlight');
  assert.match(siteCSS,/drop-shadow\(0 1px 0 rgba\(255,255,255,\.95\)\) drop-shadow\(0 -1px 0 rgba\(7,66,55,\.22\)\)/,'icon glyphs keep a white embossed stroke');
@@ -1263,33 +1272,90 @@ test('step 24 palette: cream ground, ink type, a single emerald accent',()=>{
  for(const bg of ['#0A6B54','#057A5C'])assert.ok(contrast('#FFFFFF',bg)>=4.5,'white action text passes on '+bg);
 });
 
-test('step 26 material: one glass recipe for every button, one clay recipe for every icon',()=>{
+test('step 27 material: one glass recipe for every control, one clay recipe for every icon',()=>{
  const siteCSS=readFileSync(new URL('../design/landing/src/site.css',import.meta.url),'utf8');
  const copyCSS=readFileSync(new URL('../design/landing/src/copy.css',import.meta.url),'utf8');
  const studioCSS=readFileSync(new URL('../design/landing/src/studio.css',import.meta.url),'utf8');
- const GLASS=':is\\(\\.btn,\\.btn--login,\\.nav-btn,\\.sticky-cta,\\.film-tab,\\.ptabs__row button,\\.try-switch button,\\.tryon__line,\\.sb-upload__btn,\\.chip\\)';
- assert.match(siteCSS,/--glass-blur:blur\(14px\) saturate\(160%\)/,'one blur recipe for the whole page');
- assert.match(siteCSS,new RegExp(GLASS+'\\{[\\s\\S]*?background-color:var\\(--glass-bg\\)[\\s\\S]*?backdrop-filter:var\\(--glass-blur\\)'),'every control is translucent glass');
- assert.match(siteCSS,new RegExp(GLASS+'\\{[\\s\\S]*?box-shadow:\\s*inset 0 1px 0 rgba\\(255,255,255,\\.95\\)'),'with the bright inner edge along the top');
- assert.match(siteCSS,new RegExp(GLASS+'::after\\{[\\s\\S]*?background:var\\(--glass-sheen\\)'),'and the glossy sheen');
- for(const state of [':hover:not\\(\\[disabled\\]\\)',':active:not\\(\\[disabled\\]\\)','\\[aria-disabled="true"\\]'])
-  assert.match(siteCSS,new RegExp(GLASS+state+'[\\s\\S]{0,400}?(box-shadow|cursor:not-allowed)'),'the '+state+' state is drawn on the same body');
- assert.match(siteCSS,/@supports not \(\(backdrop-filter:blur\(2px\)\) or \(-webkit-backdrop-filter:blur\(2px\)\)\)\{[\s\S]*?background-color:#fff/,'a solid body where the blur is missing');
- assert.match(siteCSS,/@supports not \(\(backdrop-filter[\s\S]*?:is\(\.btn,\.sticky-cta\)\{background-color:var\(--emerald-deep\)\}/,'the primary action stays emerald without the blur');
- // The three controls whose own body is written after the shared recipe restate it.
- assert.match(copyCSS,/--glass-bg:rgba\(255,255,255,\.42\)\}/,'ورود is the same glass');
- assert.match(studioCSS,/\.sb-upload__btn\{--glass-bg:[\s\S]*?backdrop-filter:var\(--glass-blur\)/,'the upload pill is the same glass');
- // AA: the emerald glass stays dark enough for its white label on the cream ground
- // and on a white card, which is the lightest thing a button ever sits on.
- const over=(a,b,alpha)=>a.map((c,i)=>Math.round(alpha*c+(1-alpha)*b[i]));
+ // ONE recipe, and every control is listed inside :where() so the recipe can never
+ // out-specify the component that wears it. Two bodies: the light one by default, the
+ // emerald one for the primary action — both at rest, never only on :hover.
+ const L=':where\\(\\.btn,\\.btn--login,\\.nav-btn,\\.sticky-cta,\\.film-tab,\\.ptabs__row button,\\.try-switch button,';
+ assert.match(siteCSS,new RegExp(L+'[\\s\\S]*?\\)\\{[\\s\\S]*?background-color:var\\(--glass-bg\\)[\\s\\S]*?backdrop-filter:var\\(--glass-blur\\)'),'one recipe, every control on it');
+ assert.match(siteCSS,new RegExp(L+'[\\s\\S]*?\\)\\{[\\s\\S]*?--glass-bg:var\\(--glass-bg-l\\)'),'the light body is the default');
+ assert.match(siteCSS,new RegExp(L+'[\\s\\S]*?\\)::after\\{[\\s\\S]*?background:var\\(--glass-sheen\\)'),'and the glossy sheen over it');
+ assert.match(siteCSS,/--glass-blur:blur\(14px\) saturate\(160%\)/,'the same blur everywhere');
+ assert.match(siteCSS,/:where\(\.btn,\.sticky-cta,\.sb-build,\.sb-activate,[\s\S]*?--glass-bg:var\(--glass-bg-p\)/,'the primary action is the emerald body at rest');
+ assert.match(siteCSS,/\.plan \.btn\{width:100%[^}]*\}/,'every plan button shares the plan rule');
+ // «پیشنهاد آینه» is the emerald one. It is written AFTER the light group and after the
+ // ink-label rule — at the same specificity — or the ink rule would win and the featured
+ // card's button would be ink letters on emerald.
+ const lead=siteCSS.indexOf('.plan--lead .btn{'),inkRule=siteCSS.indexOf('\n.plan .btn{color:var(--ink-2)');
+ assert.ok(lead>0&&inkRule>0,'the featured card and the ink label are both defined');
+ assert.ok(lead>inkRule,'«پیشنهاد آینه» is written after the ink-label rule, so its white label wins');
+ assert.match(siteCSS,/\.plan--lead \.btn\{[\s\S]*?--glass-bg:var\(--glass-bg-p\)[\s\S]*?color:#fff/,'the featured card is the emerald body');
+ assert.ok(!/\.plan--lead \.btn\{[^}]*color:var\(--ink/.test(siteCSS),'the featured card never answers with an ink label');
+ // The four states are written once, for the whole list.
+ for(const state of [':hover:not\\(\\[disabled\\]\\)',':active:not\\(\\[disabled\\]\\)',':focus-visible','\\[aria-disabled="true"\\]'])
+  assert.match(siteCSS,new RegExp(L+'[\\s\\S]*?\\)'+state+'[\\s\\S]{0,420}?(box-shadow|cursor:not-allowed)'),'the '+state+' state is drawn on the same body');
+ assert.match(siteCSS,new RegExp(L+'[\\s\\S]*?\\):focus-visible\\{[\\s\\S]*?outline:3px solid var\\(--emerald-soft\\)'),'a visible 3px focus ring');
+ assert.match(siteCSS,new RegExp(L+'[\\s\\S]*?\\):active:not[\\s\\S]*?scale\\(\\.98\\)'),'pressing down presses the control');
+ // Nothing may repaint a control's own body: the recipe is the only place that does it.
+ const controls=['.btn','.btn--login','.nav-btn','.sticky-cta','.film-tab','.ptabs__row button','.try-switch button',
+  '.tryon__line','.sb-upload__btn','.sb-add','.chip','.menu-toggle','.salon-strip','.play-replay','.quote-nav','.plan__buy'];
+ const stripAtRules=css=>css.replace(/\/\*[\s\S]*?\*\//g,'').replace(/@supports not \([\s\S]*?\n\}\n/g,'')
+   .replace(/@media \(prefers-reduced-transparency[\s\S]*?\n\}\n/g,'');
+ for(const [name,css] of [['site.css',siteCSS],['copy.css',copyCSS],['studio.css',studioCSS]])
+  for(const m of stripAtRules(css).matchAll(/([^{}]+)\{([^{}]*)\}/g)){
+   const sel=m[1].trim(); if(sel.startsWith('@'))continue;
+   if(!/(^|;)background(-color|-image)?:/.test(m[2]))continue;
+   const bare=sel.replace(/\s+/g,'');
+   if(!controls.some(c=>bare.includes(c.replace(/\s+/g,''))&&/^([.\w\[\]:()'"=-]|>|\+|~|,|\s)*$/.test(sel)))continue;
+   if(!controls.some(c=>{const i=bare.indexOf(c.replace(/\s+/g,''));if(i<0)return false;
+     const after=bare[i+c.replace(/\s+/g,'').length]||'';return after===''||' ,:>.#['.includes(after)}))continue;
+   assert.fail(name+' repaints a control outside the shared recipe: '+sel.slice(0,60));
+  }
+ // No glass control waits for :hover to become green: its own body is already green at rest.
+ for(const m of stripAtRules(siteCSS+copyCSS+studioCSS).matchAll(/([^{}]*:hover[^{}]*)\{([^{}]*)\}/g)){
+  const sel=m[1].trim(); if(sel.startsWith('@'))continue;
+  if(!controls.some(c=>sel.includes(c)))continue;
+  assert.ok(!/(^|;)background(-color)?:\s*(var\(--emerald|#0)/.test(m[2]),'no control turns emerald only on hover: '+sel.slice(0,50));
+ }
+ // Fallbacks: no blur, and no transparency at all.
+ assert.match(siteCSS,/@supports not \(\(backdrop-filter:blur\(1px\)\) or \(-webkit-backdrop-filter:blur\(1px\)\)\)\{[\s\S]*?--glass-bg:#fff/,'a solid body where the blur is missing');
+ assert.match(siteCSS,/@supports not \(\(backdrop-filter[\s\S]*?--glass-bg:var\(--emerald-deep\);color:#fff\}/,'the primary action stays emerald without the blur');
+ assert.match(siteCSS,/@media \(prefers-reduced-transparency:reduce\)\{[\s\S]*?backdrop-filter:none/,'and a solid body when transparency is not wanted');
+ // AA, measured on the real tokens: the fill composited over the ground it sits on, then
+ // the top gloss, then the sheen at its brightest — the worst case, and the point where
+ // the label actually sits. Nothing here is a hand-copied number.
+ const over=(a,b,alpha)=>a.map((c,i)=>alpha*c+(1-alpha)*b[i]);
  const lum=c=>{const x=c.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4});return .2126*x[0]+.7152*x[1]+.0722*x[2]};
  const ratio=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
- const white=[255,255,255],emerald=[10,107,84];
- for(const bg of [[252,243,235],[255,255,255],[244,251,248]]){
-  const body=over(emerald,bg,.93);
-  assert.ok(ratio(white,body)>=4.5,'white label on the primary glass over '+bg);
-  assert.ok(ratio([18,51,60],over(white,bg,.6))>=4.5,'an ink label on the quiet glass over '+bg);
+ const white=[255,255,255],ink=[18,51,60];
+ const body=name=>{
+  const rgb=siteCSS.match(new RegExp('--glass-bg-'+name+':rgba\\((\\d+),(\\d+),(\\d+),(\\.?[\\d.]+)?\\)'));
+  const top=siteCSS.match(new RegExp('--glass-top-'+name+':rgba\\((\\d+),(\\d+),(\\d+),(\\.?[\\d.]+)\\)'));
+  const sheen=siteCSS.match(new RegExp('--glass-sheen-'+name+':([^;}]+)'));
+  assert.ok(rgb&&top&&sheen,'the '+name+' body is complete');
+  const peak=Math.max(...[...sheen[1].matchAll(/rgba\(\d+,\d+,\d+,(\.?[\d.]+)\)/g)].map(m=>Number(m[1])));
+  return {fill:[+rgb[1],+rgb[2],+rgb[3]],alpha:rgb[4]!==undefined?Number(rgb[4]):1,
+          gloss:Number(top[4]),sheen:peak};
+ };
+ const grounds=[[252,243,235],[255,255,255],[244,251,248],[228,244,238]];
+ for(const [name,label,fg] of [['p','white label on the emerald glass',white],['l','ink label on the light glass',ink]]){
+  const b=body(name);
+  assert.ok(b.alpha<=.92,name+' body is still glass, not paint');
+  for(const bg of grounds){
+   const lit=over(white,over(white,over(b.fill,bg,b.alpha),b.gloss),b.sheen);
+   assert.ok(ratio(fg,lit)>=4.5,label+' over '+bg+' ('+ratio(fg,lit).toFixed(2)+')');
+  }
  }
+ // The three copies of the recipe (landing, the customer page, the pack sheet) agree.
+ for(const [name,src] of [['customer.js',readFileSync(new URL('../worker/customer.js',import.meta.url),'utf8')],
+                          ['regularpage.js',readFileSync(new URL('../worker/regularpage.js',import.meta.url),'utf8')]])
+  for(const tok of ['--glass-bg-p','--glass-top-p','--glass-sheen-p']){
+   const mine=siteCSS.match(new RegExp(tok+':([^;}]+)'));assert.ok(mine,'site.css defines '+tok);
+   assert.ok(src.includes(tok+':'+mine[1]),name+' uses the same '+tok);
+  }
 });
 
 test('step 24 layout: the grids collapse cleanly at 1120 / 900 / 600',()=>{
