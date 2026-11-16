@@ -1124,7 +1124,7 @@ test('copy plan: home sections come in the approved order and every page has one
  assert.deepEqual(ids(servicePages.sample),['intro','demo'],'the demo page');
  for(const html of [landingHTML,...Object.values(servicePages)])assert.equal((html.match(/<h1[\s>]/g)||[]).length,1,'one h1');
  for(const title of ['خودتان <em>امتحان کنید.</em>','راه‌اندازی در <em>۳ گام</em>','دیگر «یک عکس بفرست ببینم» <em>نمی‌خواهد.</em>',
-  'خدمت شما <em>کدام است؟</em>','چیزی <em>پنهان نیست.</em>','پیش از خرید <em>سؤال‌های پرتکرار</em>','اولین نمونه را همین الان روی عکس خودتان بسازید.'])
+  'خدمت شما <em>کدام است؟</em>','چیزی <em>پنهان نیست.</em>','سؤال‌های <em>پرتکرار</em>','اولین نمونه را همین الان روی عکس خودتان بسازید.'])
   assert.ok(landingHTML.includes(title),'home title '+title);
  assert.ok(landingHTML.includes('عکس، مدل و شمارهٔ مشتری یک‌جا می‌رسد.')&&landingHTML.includes('وضعیت را با یک لمس ثبت کنید؛ مشتری هم همان را می‌بیند.'));
  // the services section is the sample work and the door in one: four cards, four prices pages
