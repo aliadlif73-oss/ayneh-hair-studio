@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync,readdirSync,existsSync} from 'node:fs';
 import {database,memoryBucket} from '../scripts/local-adapter.mjs';import app from '../worker/index.js';
-import {phone,transferPrompt} from '../worker/domain.js';import {appHTML} from '../worker/ui.js';import {customerHTML,customerJS} from '../worker/customer.js';import {landingHTML,servicePages} from '../worker/landing.js';
+import {phone,transferPrompt} from '../worker/domain.js';import {appHTML} from '../worker/ui.js';import {customerHTML,customerJS} from '../worker/customer.js';import {tryHTML} from '../worker/regularpage.js';import {landingHTML,servicePages} from '../worker/landing.js';
 import {brandMark as generatedMark,favicon as faviconMark} from '../worker/brand.js';
 const brand=()=>({brandMark:generatedMark,faviconMark});import {tick} from '../worker/server.js';import {styles} from '../worker/legacy.js';
 
@@ -902,6 +902,34 @@ test('customer page: four services, «بساز» starts building with no consent
  assert.match(js,/go\(2,true\);scrollToBuild\(\)\}\},1600\)\}/,'a re-upload with a look already chosen lands on «بساز»');
  // Nothing builds by itself: build() only ever runs from her tap on «بساز» (or the dock).
  assert.ok(!/scrollToBuild[\s\S]{0,200}build\(\)/.test(js),'coming into view never starts the build');
+ // The four services are four LINE tabs of ONE page, so «بساز» behaves identically on every
+ // one of them — there is no per-service copy of the flow that could drift. The table is
+ // inlined at build time, so read it back out of the served page.
+ {
+  const at=js.indexOf('var LINES=');assert.ok(at>0,'one table drives every line');
+  let i=js.indexOf('{',at),depth=0,end=i;
+  for(;i<js.length;i++){const c=js[i];if(c==='{')depth++;else if(c==='}'){depth--;if(!depth){end=i;break}}}
+  const lines=JSON.parse(js.slice(js.indexOf('{',at),end+1));
+  for(const [k,w] of [['hair','مدل مو'],['color','رنگ مو'],['nails','ناخن'],['lashes','مژه']]){
+   assert.equal(lines.label[k],w,'the '+k+' line is served by the same page');
+   assert.ok(lines.photo[k]&&lines.photo[k].drop,k+' has its own upload step');
+  }
+  // every line tab on the page comes out of that table, through one switch
+  assert.match(js,/function switchLine\(to,opts\)\{/,'one place switches line');
+  assert.match(js,/class:'linesw__btn'\+\(on\?' is-on':''\)/,'the tab is built per line');
+  assert.match(js,/'data-line':x\[0\][\s\S]{0,80}switchLine\(x\[0\]\)/,'the tab hands its key to the one switch');
+  // the two cross-line shortcuts («رفتن به مدل مو» and «رنگ را روی همین مدل امتحان کن») use it too
+  assert.match(js,/switchLine\('hair',\{scroll:true\}\)/,'the colour hint switches line through it');
+  assert.match(js,/switchLine\('color',\{step:2,onHair:true,scroll:true\}\)/,'and so does the hair step');
+ }
+ // The page that /s/<slug> and /salon-preview serve carries the hook twice: once in the flow,
+ // once in the phone dock. Served, not just written.
+ const tryOn=customerHTML,tryPage=tryHTML('try');
+ assert.ok((tryOn.match(/btn--build/g)||[]).length>=2,'the try-on ships «بساز» in the flow AND in the dock');
+ assert.match(tryOn,/id="flow"/,'the flow is where a look is chosen');
+ assert.match(tryOn,/id="dock"/,'the phone dock carries the same button');
+ // /try is the same engine in a frame, so she cannot get a different behaviour there.
+ assert.match(tryPage,/src="\/s\/[a-z0-9-]+\?embed=1"/,'/try embeds the salon try-on rather than repeating it');
  // Every service has its building scene and stages.
  for(const l of ['hair','color','nails','lashes'])assert.match(js,new RegExp('\\n '+l+":\\{title:'"));
 });
