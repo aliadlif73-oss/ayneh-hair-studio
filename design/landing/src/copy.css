@@ -7,7 +7,8 @@
 
 /* ---------- header: logo, three links, one fixed action, a small «ورود» ---------- */
 .header-cta .btn{white-space:nowrap}
-.btn--login{background:transparent;border-color:transparent;color:var(--ink-soft);font-size:13px;padding:0 10px;min-height:40px}
+/* the body of every button is the shared glass material (site.css); this only sizes it */
+.btn--login{color:var(--ink-2);font-size:13px;padding:0 10px;min-height:40px}
 .btn--login svg{width:15px;height:15px}
 @media(max-width:640px){.btn--login{display:none}}
 
@@ -96,7 +97,8 @@
   background:var(--paper);border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:var(--shadow-sm)}
 .setup__num{position:absolute;top:-15px;inset-inline-start:50%;transform:translateX(50%);display:grid;place-items:center;width:34px;height:34px;
   border-radius:50%;background:var(--emerald-deep);color:#fff;font-size:14px;font-weight:900;border:3px solid var(--cream)}
-.setup__icon{display:grid;place-items:center;width:64px;height:64px;border-radius:20px;background:var(--emerald-wash);color:var(--emerald-deep)}
+/* the clay body lives with the other icons in site.css */
+.setup__icon{display:grid;place-items:center;width:64px;height:64px;border-radius:20px;color:var(--emerald-deep)}
 .setup__icon svg{width:30px;height:30px}
 .setup__step h3{font-size:clamp(16px,1.6vw,19px);font-weight:800;line-height:1.6}
 @media(max-width:700px){
@@ -137,7 +139,7 @@
 .ptabs{display:grid;justify-items:center;gap:10px;margin-bottom:clamp(18px,2.6vw,28px)}
 .ptabs__q{font-size:15px;font-weight:800;color:var(--ink-2)}
 .ptabs__row{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;padding:5px;border-radius:var(--r-pill);background:var(--paper);border:1px solid var(--line)}
-.ptabs__row button{min-height:44px;padding:0 20px;border:0;border-radius:var(--r-pill);background:transparent;font-size:14.5px;font-weight:800;color:var(--ink-2);cursor:pointer}
+.ptabs__row button{min-height:44px;padding:0 20px;border-radius:var(--r-pill);font-size:14.5px;font-weight:800;color:var(--ink-2);cursor:pointer}
 .ptabs__row button[aria-selected="true"]{background:var(--emerald-deep);color:#fff}
 [data-plans-panel][hidden]{display:none!important}
 .pbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px;margin-top:clamp(18px,2.4vw,26px);padding:16px 20px;
@@ -220,3 +222,34 @@
 .loop--svc .loop__screen{aspect-ratio:3/3.4;background:linear-gradient(160deg,#F6EDE0,#EAF3EF)}
 .loop--svc .loop__f img{width:100%;height:100%;object-fit:contain;object-position:center}
 @media(max-width:600px){.loop--svc .loop__screen{aspect-ratio:3/3.6}}
+
+/* ============================================================================
+   Glass, continued — «ورود», the price tabs and the try-on tabs draw their own
+   body further down this file, so the shared material is restated here for
+   exactly those three. Same recipe as site.css: translucent fill, the blur, the
+   inner top highlight, the soft shadow and the sheen.
+   ========================================================================== */
+.btn--login,.ptabs__row button,.try-switch button{
+  position:relative;isolation:isolate;
+  background-color:var(--glass-bg);
+  border:1px solid var(--glass-edge);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(10,32,42,.05),0 6px 16px var(--glass-shade);
+  transition:transform .18s var(--ease),box-shadow .18s var(--ease),background-color .18s var(--ease),
+             border-color .18s var(--ease),color .18s var(--ease),filter .18s var(--ease);
+}
+.btn--login{--glass-bg:rgba(255,255,255,.42)}
+.ptabs__row button,.try-switch button{--glass-bg:rgba(255,255,255,.6)}
+.btn--login:hover,.ptabs__row button:hover:not([aria-selected="true"]),.try-switch button:hover:not([aria-selected="true"]){
+  transform:translateY(-1px);filter:saturate(1.08) brightness(1.04);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(10,32,42,.06),0 10px 24px rgba(10,32,42,.2);
+}
+.btn--login:hover{--glass-bg:rgba(255,255,255,.64);border-color:var(--line-2)}
+.ptabs__row button:hover:not([aria-selected="true"]),.try-switch button:hover:not([aria-selected="true"]){--glass-bg:rgba(255,255,255,.84)}
+.btn--login:active,.ptabs__row button:active,.try-switch button:active{
+  transform:translateY(1px) scale(.995);filter:brightness(.97);
+  box-shadow:inset 0 2px 6px rgba(10,32,42,.16),0 2px 6px rgba(10,32,42,.12);
+}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  .btn--login,.ptabs__row button,.try-switch button{background-color:#fff;color:var(--ink-2)}
+}

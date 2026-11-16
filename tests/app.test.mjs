@@ -617,7 +617,7 @@ test('transfer consent through the bot: the manager button asks, an unlinked mem
 }finally{tg.restore()}});
 
 test('result sharing: three actions, approximate note, friend share with the same link, Ayneh mark on the saved image, privacy text is the true one',()=>{
- for(const x of ['درخواست نوبت می‌دهم','از دوستم نظر بپرسم','ذخیره تصویر','نتیجه تقریبی است.','کدوم مدل بیشتر بهم میاد؟','function openAsk','fillText(\'آینه\''])assert(customerJS.includes(x),x);
+ for(const x of ['درخواست نوبت می‌دهم','از دوستم نظر بپرسم','ذخیره تصویر','یک نمونه است؛ برای انتخاب قبل از نوبت.','کدوم مدل بیشتر بهم میاد؟','function openAsk','fillText(\'آینه\''])assert(customerJS.includes(x),x);
  assert(customerJS.includes('openAsk')&&/var url=shareUrl\(\),both=ASK_TEXT/.test(customerJS),'the friend link is the visitor tag link of this salon');
  const PRIV='عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.';
  assert(customerJS.includes(PRIV)&&customerHTML.includes(PRIV),'one agreed privacy sentence');
@@ -885,6 +885,14 @@ test('customer page: four services, «بساز» starts building with no consent
  // Only the landing demo explicitly combines hairstyle and colour; salon hair keeps its original colour.
  assert.match(js,/var col=state\.line==='hair'\?\(state\.pub\.demo\?state\.color:''\)/);assert.match(js,/base_id:state\.line==='color'/);
  assert.match(js,/function maybeTour\(\)\{if\(SLUG==='demo'&&/,'gallery handoff is not interrupted by the welcome tour');
+ // Photo and look in → «بساز» comes into view and takes the focus, on every line. No service
+ // stops at the optional shape, length or colour rows on the way there.
+ assert.match(js,/function chooseLook\(fn\)\{pickLook\(fn\);scrollToBuild\(\)\}/,'picking a look goes straight to the build button');
+ assert.match(js,/function buildButton\(\)\{var f=\$\('#flow'\);return f\?f\.querySelector\('\.btn--build'\):null\}/,'one place knows which button builds');
+ const stb=js.match(/function scrollToBuild\(\)\{[\s\S]*?\n\}/)[0];
+ assert.match(stb,/if\(btn&&hasChoice\(\)\)\{[\s\S]*?window\.scrollTo[\s\S]*?btn\.focus\(\{preventScroll:true\}\)\}[\s\S]*?return;\n  \}/,'the build button is scrolled to and focused as soon as both are in');
+ assert.ok(stb.indexOf('if(btn&&hasChoice())')<stb.indexOf('if(opt)'),'the optional rows never come before «بساز»');
+ assert.match(js,/setTimeout\(scrollToBuild,60\)/,'uploading her own model photo does the same');
  // Every service has its building scene and stages.
  for(const l of ['hair','color','nails','lashes'])assert.match(js,new RegExp('\\n '+l+":\\{title:'"));
 });
@@ -1091,9 +1099,9 @@ test('copy plan: the home page opens with one hero, the approved headline, one m
  assert.match(hero,/class="btn btn--lg" href="#demo">روی عکس خودم امتحان کنم</,'it opens the live demo');
  assert.match(hero,/class="hero-link" href="#services">قیمت پلن‌ها/,'the price link is a text link');
  assert.doesNotMatch(hero,/ساخت صفحهٔ من|خرید پلن/,'no second sales button in the hero');
- assert.equal((hero.match(/<figure class="loop__f /g)||[]).length,5,'before, three combined looks, the request');assert.ok(hero.includes('hero-mix-1.webp')&&hero.includes('loop--mix'),'mixed looks of every service');
- for(const f of ['مشتری عکس می‌گذارد','مدل مو، رنگ، مژه و ناخن','درخواست به شما می‌رسد'])assert.ok(hero.includes(f),'frame '+f);
- assert.ok(hero.includes('نمونهٔ نمایشی؛ شبیه‌سازی تقریبی است'),'the loop is labelled a sample and approximate');
+ assert.equal((hero.match(/<figure class="loop__f /g)||[]).length,8,'every service gets a before and an after frame');assert.ok(hero.includes('loop--svc'),'the loop covers every service');
+ for(const f of ['مدل مو: عکس مشتری','مدل مو: نتیجهٔ نمایشی','رنگ مو: عکس مشتری','رنگ مو: نتیجهٔ نمایشی','مژه: عکس مشتری','مژه: نتیجهٔ نمایشی','ناخن: عکس مشتری','ناخن: نتیجهٔ نمایشی'])assert.ok(hero.includes(f),'frame '+f);
+ assert.ok(hero.includes('نمونهٔ نمایشی'),'the loop is labelled a sample');
  assert.match(landingHTML,/\.loop__f\{[^}]*animation:loopFrame 8s linear infinite/,'a self-running 8-second loop, no scroll and no sound');
  assert.doesNotMatch(hero,/<video|<audio/,'no sound');
  assert.doesNotMatch(landingHTML,/id="heroCompare"|class="hero-thumb"|class="hero-benefits__icon"/,'the old hero mirror and benefit cards are gone');
@@ -1149,8 +1157,8 @@ test('copy plan: the four service pages share one template with their own lines,
   const html=servicePages[k];
   assert.ok(html.includes('<h1 id="h1" class="h1">'+h1),k+' hero line');assert.ok(html.includes(lead),k+' solution line');assert.ok(html.includes(benefit),k+' benefit');
   assert.equal((html.match(/<ul class="benefits__list">[\s\S]*?<\/ul>/)[0].match(/<li>/g)||[]).length,3,k+': three benefits');
-  assert.ok(html.includes('نمونهٔ نمایشی. نتیجه تقریبی است؛ برای انتخاب قبل از نوبت.'),k+' near-image note');
-  assert.match(html,/id="sample"/,k+': illustrative before/after');assert.ok(html.includes('نمونهٔ نمایشی · تقریبی'),k+': labelled illustrative');assert.doesNotMatch(html,/نمونهٔ ساخته‌شده با آینه/,k+': never claimed as made by Ayneh');
+  assert.ok(html.includes('نمونهٔ نمایشی؛ برای انتخاب قبل از نوبت.'),k+' near-image note');
+  assert.match(html,/id="sample"/,k+': illustrative before/after');assert.ok(html.includes('نمونهٔ نمایشی'),k+': labelled illustrative');assert.doesNotMatch(html,/نمونهٔ ساخته‌شده با آینه/,k+': never claimed as made by Ayneh');
   assert.equal((html.match(/data-line="/g)||[]).length,1,k+' demo offers its own service only');
   assert.ok(html.includes('data-line="'+({hair:'hair',color:'color',nails:'nails',lashes:'lashes'})[k]+'"'));
   assert.doesNotMatch(html,/id="faq"|id="choose"|id="why"/,k+' does not repeat the home page');
@@ -1208,7 +1216,7 @@ test('copy plan: the FAQ is six short answers in the order they block a purchase
  assert.match(foot,/0993 377 3515/,'the one public support number');
  assert.doesNotMatch(foot,/mailto:|@gmail\.com|ble\.ir/,'no email or Bale contact');
  assert.match(foot,/t\.me\/\+989933773515/,'Telegram contact');assert.match(foot,/wa\.me\/989933773515/,'WhatsApp contact');
- assert.match(foot,/<p>نتیجه تقریبی است\.<\/p>/);
+ assert.match(foot,/<p>یک نمونه است؛ برای انتخاب قبل از نوبت.<\/p>/);
  assert.match(foot,/© ۱۴۰۵ آینه/);
  assert.equal((foot.match(/class="brand__mark"/g)||[]).length,1,'the teal mark returns in the footer');
 });
@@ -1231,8 +1239,14 @@ test('step 24 palette: cream ground, ink type, a single emerald accent',()=>{
  assert.match(landingHTML,/--emerald-soft:#9BD9C5/);
  assert.match(landingHTML,/--font:"Estedad","Vazirmatn"/,'the app font stack is shared');
  const siteCSS=readFileSync(new URL('../design/landing/src/site.css',import.meta.url),'utf8');
- assert.match(siteCSS,/:is\(\.svc__icon,\.step__icon,\.why__icon,\.proof-stat__icon,\.hero-benefits__icon\)\{[\s\S]*?box-shadow:inset 2px 2px 4px/,'the main icon tiles use dimensional highlights and shadows');
- assert.match(siteCSS,/drop-shadow\(0 1px 0 rgba\(255,255,255,\.92\)\) drop-shadow\(0 2px 1px rgba\(11,59,50,\.24\)\)/,'icon glyphs keep a raised 3D edge');
+ // Every icon tile is the same clay: a radial highlight over an emerald body, an inset
+ // rim light and an inset shade for the bevel, an emerald drop shadow, a specular
+ // ellipse and a white embossed glyph.
+ const CLAY=/:is\(\.why__icon,\.setup__icon,\.step__icon,\.svc__icon,\.proof-stat__icon,\.hero-benefits__icon,\s*\.film-tab__icon,\.tryon__line-ico,\.tryon__curtain-ico,\.pay-done__tick,\.compare__knob\)/;
+ assert.match(siteCSS,CLAY,'one recipe lists all eleven icon tiles');
+ assert.match(siteCSS,/:is\(\.why__icon[\s\S]*?\)(\s*\{)[\s\S]*?box-shadow:\s*inset 2px 2px 3px var\(--clay-hi\),\s*inset -2px -3px 5px var\(--clay-shade\),[\s\S]*?0 8px 16px var\(--clay-glow\)/,'every icon tile uses dimensional highlights and shadows');
+ assert.match(siteCSS,/::after\{\s*content:"";position:absolute;z-index:1;pointer-events:none;\s*inset-inline-start:14%[\s\S]*?radial-gradient\(closest-side/,'every icon tile carries the specular highlight');
+ assert.match(siteCSS,/drop-shadow\(0 1px 0 rgba\(255,255,255,\.95\)\) drop-shadow\(0 -1px 0 rgba\(7,66,55,\.22\)\)/,'icon glyphs keep a white embossed stroke');
  // The old espresso/brass tokens must not survive.
  assert.doesNotMatch(landingHTML,/--brass:#/);
  assert.doesNotMatch(landingHTML,/--espresso:#/);
@@ -1247,6 +1261,35 @@ test('step 24 palette: cream ground, ink type, a single emerald accent',()=>{
  const muted='#5D6B68';
  for(const bg of ['#FCF3EB','#F8F0E8','#E4F4EE','#FFFFFF'])assert.ok(contrast(muted,bg)>=4.5,'muted body copy passes on '+bg);
  for(const bg of ['#0A6B54','#057A5C'])assert.ok(contrast('#FFFFFF',bg)>=4.5,'white action text passes on '+bg);
+});
+
+test('step 26 material: one glass recipe for every button, one clay recipe for every icon',()=>{
+ const siteCSS=readFileSync(new URL('../design/landing/src/site.css',import.meta.url),'utf8');
+ const copyCSS=readFileSync(new URL('../design/landing/src/copy.css',import.meta.url),'utf8');
+ const studioCSS=readFileSync(new URL('../design/landing/src/studio.css',import.meta.url),'utf8');
+ const GLASS=':is\\(\\.btn,\\.btn--login,\\.nav-btn,\\.sticky-cta,\\.film-tab,\\.ptabs__row button,\\.try-switch button,\\.tryon__line,\\.sb-upload__btn,\\.chip\\)';
+ assert.match(siteCSS,/--glass-blur:blur\(14px\) saturate\(160%\)/,'one blur recipe for the whole page');
+ assert.match(siteCSS,new RegExp(GLASS+'\\{[\\s\\S]*?background-color:var\\(--glass-bg\\)[\\s\\S]*?backdrop-filter:var\\(--glass-blur\\)'),'every control is translucent glass');
+ assert.match(siteCSS,new RegExp(GLASS+'\\{[\\s\\S]*?box-shadow:\\s*inset 0 1px 0 rgba\\(255,255,255,\\.95\\)'),'with the bright inner edge along the top');
+ assert.match(siteCSS,new RegExp(GLASS+'::after\\{[\\s\\S]*?background:var\\(--glass-sheen\\)'),'and the glossy sheen');
+ for(const state of [':hover:not\\(\\[disabled\\]\\)',':active:not\\(\\[disabled\\]\\)','\\[aria-disabled="true"\\]'])
+  assert.match(siteCSS,new RegExp(GLASS+state+'[\\s\\S]{0,400}?(box-shadow|cursor:not-allowed)'),'the '+state+' state is drawn on the same body');
+ assert.match(siteCSS,/@supports not \(\(backdrop-filter:blur\(2px\)\) or \(-webkit-backdrop-filter:blur\(2px\)\)\)\{[\s\S]*?background-color:#fff/,'a solid body where the blur is missing');
+ assert.match(siteCSS,/@supports not \(\(backdrop-filter[\s\S]*?:is\(\.btn,\.sticky-cta\)\{background-color:var\(--emerald-deep\)\}/,'the primary action stays emerald without the blur');
+ // The three controls whose own body is written after the shared recipe restate it.
+ assert.match(copyCSS,/--glass-bg:rgba\(255,255,255,\.42\)\}/,'ورود is the same glass');
+ assert.match(studioCSS,/\.sb-upload__btn\{--glass-bg:[\s\S]*?backdrop-filter:var\(--glass-blur\)/,'the upload pill is the same glass');
+ // AA: the emerald glass stays dark enough for its white label on the cream ground
+ // and on a white card, which is the lightest thing a button ever sits on.
+ const over=(a,b,alpha)=>a.map((c,i)=>Math.round(alpha*c+(1-alpha)*b[i]));
+ const lum=c=>{const x=c.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4});return .2126*x[0]+.7152*x[1]+.0722*x[2]};
+ const ratio=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+ const white=[255,255,255],emerald=[10,107,84];
+ for(const bg of [[252,243,235],[255,255,255],[244,251,248]]){
+  const body=over(emerald,bg,.93);
+  assert.ok(ratio(white,body)>=4.5,'white label on the primary glass over '+bg);
+  assert.ok(ratio([18,51,60],over(white,bg,.6))>=4.5,'an ink label on the quiet glass over '+bg);
+ }
 });
 
 test('step 24 layout: the grids collapse cleanly at 1120 / 900 / 600',()=>{
@@ -1333,7 +1376,10 @@ test('step 24 studio: the live salon preview survives the rebuild',()=>{
 });
 
 test('step 24 budget: payload and markup stay inside the review envelope',()=>{
- assert.ok(landingHTML.length<250000,'landing under 250k ('+landingHTML.length+')');
+ // Step 26 gave every button the glass material (blur, sheen, four states and a solid
+ // fallback) and every icon the clay material: ~8k of design-system CSS on top of the
+ // page (255.3k shipped). Still far below the Worker script limit.
+ assert.ok(landingHTML.length<260000,'landing under 260k ('+landingHTML.length+')');
  assert.ok(landingHTML.length>60000,'the page still carries its content');
  assert.match(landingHTML,/og:image" content="__ORIGIN__\/landing\/og\.jpg"/,'the share image is origin-relative in source');
  assert.equal((landingHTML.match(/__ORIGIN__/g)||[]).length,12,'signup links, the share image, the canonical and the organisation data carry the origin token');
@@ -1715,7 +1761,7 @@ test('step 28 demo: the demo salon is on the page as «خودتان امتحان
    assert.equal(own.includes('data-line="'+line+'"'),lines.includes(line),page+' page offers '+line+': '+lines.includes(line));
  }
  assert.equal((section.match(/data-line="/g)||[]).length,4,'home: four service chips');
- assert.ok(section.includes('عکس خودم را انتخاب کنم')&&section.includes('عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود.')&&section.includes('نتیجه تقریبی است.'));
+ assert.ok(section.includes('عکس خودم را انتخاب کنم')&&section.includes('عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود.')&&section.includes('یک نمونه است؛ برای انتخاب قبل از نوبت.'));
  assert.ok(section.includes('id="demoCompare"'),'the interactive mirror lives here, not in the hero');
  assert.ok(section.includes('صفحهٔ سالن من همین را داشته باشد')&&section.includes('این را برای مشتریان خودم می‌خواهم'),'what to do after a result');
  // The frame is not fetched until the visitor asks for it.
@@ -2682,4 +2728,12 @@ test('search engines: canonical per page, robots.txt, sitemap.xml and organisati
  const map=await (await app.fetch(new Request(origin+'/sitemap.xml'),e)).text();
  for(const p of ['/hair','/salon-panel','/try'])assert.ok(map.includes('<loc>'+origin+p+'</loc>'),'sitemap '+p);
  assert.doesNotMatch(map,/admin|example\/panel|\/s\//);
+});
+
+test('no page calls the simulation «تقریبی»: the sample label stays, the vague word is gone',()=>{
+ for(const [name,src] of [['landing',landingHTML],['customer page',customerHTML],['customer script',customerJS],['salon panel',panelHTML],['regular page',readFileSync(new URL('../worker/regularpage.js',import.meta.url),'utf8')],...Object.entries(servicePages)])
+  assert.doesNotMatch(src,/تقریبی/,name+' must not call the result approximate');
+ for(const k of Object.keys(servicePages))assert.ok(servicePages[k].includes('نمونهٔ نمایشی'),k+' keeps the sample label');
+ assert.ok(landingHTML.includes('نمونهٔ نمایشی'),'the home page keeps the sample label');
+ assert.ok(customerJS.includes('نمونهٔ نمایشی'),'the shared story image keeps the sample label');
 });

@@ -14,7 +14,7 @@ import {REFERRAL_IMAGES} from './customerprices.js';
 const packsCSS = String.raw`
 .ap{display:grid;gap:12px}
 .ap-packs{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
-.ap-pack{display:grid;gap:2px;justify-items:start;text-align:right;padding:14px 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;min-height:var(--tap)}
+.ap-pack{display:grid;gap:2px;justify-items:start;text-align:start;padding:14px 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;min-height:var(--tap)}
 .ap-pack b{font-family:var(--display);font-size:18px;font-weight:800}
 .ap-pack span{font-size:13px;color:var(--muted)}
 .ap-pack:hover,.ap-pack:focus-visible{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-ring)}
@@ -25,7 +25,7 @@ const packsCSS = String.raw`
 .ap-pay{display:grid;gap:10px;padding:16px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line-2)}
 .ap-row{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:space-between;font-size:14px}
 .ap-row b{font-weight:800}
-.ap-card{direction:ltr;text-align:left;font:700 18px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.08em;word-break:break-all}
+.ap-card{direction:ltr;text-align:start;font:700 18px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.08em;word-break:break-all}
 .ap-note{font-size:12.5px;color:var(--muted);line-height:1.9}
 .ap-sheet{position:fixed;inset:0;z-index:80;display:grid;align-items:end;justify-items:center;background:rgba(35,23,15,.45)}
 .ap-sheet__panel{width:min(560px,100%);max-height:92vh;overflow:auto;background:var(--glass);border-radius:var(--r-lg) var(--r-lg) 0 0;padding:18px 16px calc(18px + var(--safe-b));display:grid;gap:12px}
@@ -116,7 +116,7 @@ const tryCSS = String.raw`
 .tr-card p{color:var(--ink-2)}
 .tr-ref{background:var(--surface-2)}
 .tr-ref .tr-link{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.tr-ref code{direction:ltr;text-align:left;flex:1 1 220px;background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 12px;font:13px ui-monospace,Menlo,monospace;word-break:break-all;color:var(--ink)}
+.tr-ref code{direction:ltr;text-align:start;flex:1 1 220px;background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 12px;font:13px ui-monospace,Menlo,monospace;word-break:break-all;color:var(--ink)}
 .tr-more{justify-self:start}
 .tr-foot{max-width:760px;margin:0 auto;padding:0 16px 32px;font-size:12.5px;color:var(--muted);line-height:1.9}
 .tr [hidden]{display:none!important}
@@ -164,6 +164,6 @@ export function tryHTML(slug) {
     + '<section id="trPacks" class="tr-card" hidden><h2 id="trOutTitle">نمونهٔ رایگانتان استفاده شد.</h2><p>برای نمونه‌های بیشتر، ثبت‌نام کنید و حسابتان را شارژ کنید.</p><div id="trPackBox"></div></section>'
     + '<section id="trRef" class="tr-card tr-ref" hidden><p>آرایشگر یا آرایشگاه‌دار می‌شناسید؟ لینک شما را به او بدهید؛ اگر پلن آینه بگیرد، ' + REFERRAL_IMAGES.toLocaleString('fa-IR') + ' تصویر هدیه می‌گیرید.</p><div class="tr-link"><code id="trRefLink"></code><button id="trCopy" class="btn btn--soft btn--sm" type="button">کپی لینک</button></div></section>'
     + '</main>'
-    + '<footer class="tr-foot">نتیجه تقریبی است. عکس شما فقط برای ساخت نمونه استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.</footer>'
+    + '<footer class="tr-foot">یک نمونه است؛ برای انتخاب قبل از نوبت. عکس شما فقط برای ساخت نمونه استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.</footer>'
     + '<script>' + packsJS + tryJS + '</script></body></html>';
 }

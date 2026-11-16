@@ -91,7 +91,7 @@ a.hchip,button.hchip{cursor:pointer}a.hchip:hover,button.hchip:hover{border-colo
 .upl__scan{position:absolute;inset-inline:0;top:-35%;height:35%;background:linear-gradient(180deg,transparent,rgba(255,255,255,.5),transparent);animation:scan 1.5s ease-in-out infinite}
 .upl__bar{width:70%;height:4px;border-radius:2px;background:rgba(255,255,255,.3);overflow:hidden}.upl__bar i{display:block;width:40%;height:100%;border-radius:2px;background:#fff;animation:slide 1.1s ease-in-out infinite}
 @keyframes scan{to{top:100%}}@keyframes slide{0%{transform:translateX(160%)}100%{transform:translateX(-260%)}}
-.photo__badge{position:absolute;left:50%;top:50%;width:76px;height:76px;margin:-38px 0 0 -38px;border-radius:50%;display:grid;place-items:center;background:var(--ok);color:#fff;box-shadow:0 0 0 8px rgba(255,255,255,.55),0 14px 30px -10px rgba(0,0,0,.45);animation:pop .55s var(--ease) both}
+.photo__badge{position:absolute;inset:0;margin:auto;width:76px;height:76px;border-radius:50%;display:grid;place-items:center;background:var(--ok);color:#fff;box-shadow:0 0 0 8px rgba(255,255,255,.55),0 14px 30px -10px rgba(0,0,0,.45);animation:pop .55s var(--ease) both}
 .photo__badge svg{width:38px;height:38px}
 @keyframes pop{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.12);opacity:1}100%{transform:scale(1)}}
 .photo__auto{height:4px;border-radius:2px;background:#dfe6e3;overflow:hidden;margin-top:14px}.photo__auto i{display:block;height:100%;width:0;background:var(--accent);animation:fill 1.8s linear forwards}
@@ -117,7 +117,7 @@ a.hchip,button.hchip{cursor:pointer}a.hchip:hover,button.hchip:hover{border-colo
 .invite::after{content:"";position:absolute;inset:auto -40px -60px auto;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(214,166,92,.35),transparent 70%);pointer-events:none}
 .invite__pics{position:relative;width:112px;height:92px;flex:none}
 .invite__pics img,.invite__pics span{position:absolute;bottom:0;width:52px;height:68px;object-fit:cover;border-radius:26px 26px 8px 8px;border:3px solid rgba(255,255,255,.9);background:#cfdcd8;box-shadow:0 8px 16px -8px rgba(0,0,0,.5)}
-.invite__pics :nth-child(1){right:6px;transform:rotate(8deg)}.invite__pics :nth-child(2){right:30px;bottom:14px;z-index:1;width:56px;height:74px}.invite__pics :nth-child(3){right:56px;transform:rotate(-8deg)}
+.invite__pics :nth-child(1){inset-inline-start:6px;transform:rotate(8deg)}.invite__pics :nth-child(2){inset-inline-start:30px;bottom:14px;z-index:1;width:56px;height:74px}.invite__pics :nth-child(3){inset-inline-start:56px;transform:rotate(-8deg)}
 .invite__txt{display:grid;gap:6px;position:relative;z-index:1}
 .invite__txt b{font-family:var(--display);font-weight:800;font-size:19px;line-height:1.5}
 .invite__txt span{font-size:13.5px;line-height:1.9;color:rgba(255,255,255,.85)}
@@ -126,7 +126,7 @@ a.hchip,button.hchip{cursor:pointer}a.hchip:hover,button.hchip:hover{border-colo
 @media (max-width:420px){.invite{grid-template-columns:1fr;justify-items:start}.invite__pics{height:84px}}
 .share__prev{display:flex;gap:12px;align-items:center;padding:12px;border-radius:16px;background:var(--glass);margin:4px 0 16px}
 .share__prev img,.share__prev .share__logo{width:46px;height:46px;border-radius:12px;object-fit:cover;flex:none;background:var(--accent);display:grid;place-items:center;color:#fff;font-weight:800}
-.share__prev div{display:grid;gap:2px;min-width:0}.share__prev b{font-size:14.5px}.share__prev span{font-size:12px;color:var(--muted);direction:ltr;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.share__prev div{display:grid;gap:2px;min-width:0}.share__prev b{font-size:14.5px}.share__prev span{font-size:12px;color:var(--muted);direction:ltr;text-align:end;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .share__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .share__opt{display:grid;justify-items:center;gap:8px;padding:14px 6px;border:1px solid var(--line,#dfe6e3);border-radius:16px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;transition:background .15s var(--ease),transform .15s var(--ease)}
 .share__opt:hover{background:var(--surface-2,#f1f5f4);transform:translateY(-1px)}
@@ -188,18 +188,18 @@ a.hchip,button.hchip{cursor:pointer}a.hchip:hover,button.hchip:hover{border-colo
 .compare-wrap{width:min(100%,400px);margin:18px auto 0}
 .compare{position:relative;aspect-ratio:3/4;overflow:hidden;border-radius:999px 999px calc(var(--r) - 5px) calc(var(--r) - 5px);background:var(--glass-2);touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:ew-resize;direction:ltr}
 .compare img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;-webkit-user-drag:none}
-.compare__after{position:absolute;inset:0;clip-path:inset(0 calc(100% - var(--x,50%)) 0 0)}
-.compare__handle{position:absolute;top:0;bottom:0;left:var(--x,50%);width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.1),0 0 12px rgba(0,0,0,.25);pointer-events:none}
-.compare__grip{position:absolute;top:58%;left:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:var(--lift);color:var(--ink);transition:transform .15s var(--ease)}
+.compare__after{position:absolute;inset:0;clip-path:inset(0 var(--x,50%) 0 0)}
+.compare__handle{position:absolute;top:0;bottom:0;inset-inline-start:var(--x,50%);width:2px;margin-inline-start:-1px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.1),0 0 12px rgba(0,0,0,.25);pointer-events:none}
+.compare__grip{position:absolute;inset-inline:0;margin-inline:auto;top:calc(58% - 23px);width:46px;height:46px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:var(--lift);color:var(--ink);transition:transform .15s var(--ease)}
 .compare.is-dragging .compare__grip{transform:scale(1.12)}
 .compare.is-animating .compare__after{transition:clip-path .28s var(--ease)}
-.compare.is-animating .compare__handle{transition:left .28s var(--ease)}
+.compare.is-animating .compare__handle{transition:inset-inline-start .28s var(--ease)}
 .compare__grip svg{width:22px;height:22px}
-.compare__range{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;bottom:0;left:0}
+.compare__range{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;bottom:0;inset-inline-start:0}
 .compare:has(.compare__range:focus-visible){outline:3px solid var(--accent-ring);outline-offset:3px}
 .compare__tag{position:absolute;bottom:12px;z-index:2;background:rgba(250,251,250,.94);padding:3px 12px;border-radius:999px;font-size:12px;font-weight:700;color:var(--ink-2);pointer-events:none}
-.compare__tag--before{right:12px}
-.compare__tag--after{left:12px}
+.compare__tag--before{inset-inline-start:12px}
+.compare__tag--after{inset-inline-end:12px}
 .compare__hint{text-align:center;font-size:12.5px;color:var(--muted);margin-top:10px}
 .progress{display:grid;gap:10px;margin-top:18px}
 .progress__bar{height:6px;border-radius:999px;background:var(--glass-2);overflow:hidden}
@@ -251,6 +251,7 @@ a.hchip,button.hchip{cursor:pointer}a.hchip:hover,button.hchip:hover{border-colo
 .tour{position:fixed;inset:0;z-index:100;animation:tourIn .25s var(--ease)}
 .tour.is-leaving{opacity:0;transition:opacity .2s var(--ease)}
 @keyframes tourIn{from{opacity:0}to{opacity:1}}
+/* placed by script in viewport coordinates, so these three keep physical edges */
 .tour__spot{position:fixed;left:0;top:0;width:0;height:0;border-radius:20px;box-shadow:0 0 0 200vmax rgba(24,16,10,.66),0 0 0 3px rgba(255,255,255,.9) inset;pointer-events:none;transition:transform .38s var(--ease),width .38s var(--ease),height .38s var(--ease)}
 .tour--welcome .tour__spot{transform:translate(50vw,50vh);box-shadow:0 0 0 200vmax rgba(24,16,10,.72)}
 .tour__card{position:fixed;left:0;top:0;width:min(360px,calc(100vw - 24px));background:var(--surface);border-radius:22px;padding:18px 18px 16px;box-shadow:var(--float);outline:none;transition:transform .38s var(--ease)}
@@ -288,7 +289,7 @@ body.is-touring{overflow:hidden}
 .demo{flex:none}
 .demo--small{width:118px;padding:4px}
 .demo .compare__tag{font-size:10.5px;padding:1px 8px;bottom:8px}
-.demo .compare__tag--before{right:8px}.demo .compare__tag--after{left:8px}
+.demo .compare__tag--before{inset-inline-start:8px}.demo .compare__tag--after{inset-inline-end:8px}
 .demo-row{display:flex;gap:14px;align-items:center;margin:0 0 18px;padding:10px 14px 10px 10px;border-radius:20px;background:var(--glass)}
 .demo-row__text{display:grid;gap:3px;font-size:13px;line-height:1.85;color:var(--ink-2)}
 .demo-row__text b{font-family:var(--display);font-weight:800;font-size:17px;color:var(--ink)}
@@ -322,17 +323,17 @@ body.is-touring{overflow:hidden}
 .spin__orbit{width:58%;aspect-ratio:3/4;border-radius:999px 999px 12px 12px;overflow:hidden;box-shadow:var(--float);animation:sway 3.2s ease-in-out infinite;transform-style:preserve-3d}
 .spin__orbit img{width:100%;height:100%;object-fit:cover}
 @keyframes sway{0%,100%{transform:rotateY(-24deg)}50%{transform:rotateY(24deg)}}
-.spin__ring{position:absolute;left:50%;top:44%;width:84%;aspect-ratio:1;transform:translate(-50%,-50%) rotateX(74deg);border-radius:50%;border:2px dashed rgba(12,107,107,.35);animation:orbit 6s linear infinite;pointer-events:none}
-@keyframes orbit{to{transform:translate(-50%,-50%) rotateX(74deg) rotate(360deg)}}
+.spin__ring{position:absolute;inset-inline:0;margin-inline:auto;top:44%;width:84%;aspect-ratio:1;transform:translateY(-50%) rotateX(74deg);border-radius:50%;border:2px dashed rgba(12,107,107,.35);animation:orbit 6s linear infinite;pointer-events:none}
+@keyframes orbit{to{transform:translateY(-50%) rotateX(74deg) rotate(360deg)}}
 .spin__tip{font-size:13px;color:var(--ink-2);min-height:1.8em}
 .spin__track{width:62%;height:4px;border-radius:9px;background:rgba(35,23,15,.1);overflow:hidden}
 .spin__bar{display:block;height:100%;width:2%;background:var(--accent);border-radius:9px;transition:width .4s linear}
 .spin__controls{margin-top:12px;display:grid;gap:12px}.spin__controls[hidden]{display:none}
 .spin__row{display:flex;align-items:center;gap:12px;justify-content:center}
 .spin__dial{position:relative;width:34px;height:34px;border-radius:50%;border:2px solid var(--line);--r:0deg}
-.spin__dial::before{content:"";position:absolute;left:50%;top:-6px;width:2px;height:6px;margin-left:-1px;background:var(--muted);border-radius:2px}
+.spin__dial::before{content:"";position:absolute;inset-inline:0;margin-inline:auto;top:-6px;width:2px;height:6px;background:var(--muted);border-radius:2px}
 .spin__dot{position:absolute;inset:0;transform:rotate(var(--r));transition:transform .2s var(--ease)}
-.spin__dot::after{content:"";position:absolute;left:50%;top:2px;width:8px;height:8px;margin-left:-4px;border-radius:50%;background:var(--accent)}
+.spin__dot::after{content:"";position:absolute;inset-inline:0;margin-inline:auto;top:2px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
 .spin__angle{min-width:58px;font-weight:700;font-size:14px;text-align:center}
 .spin__thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:260px;margin:0 auto;width:100%}
 .spin__thumb{aspect-ratio:3/4;border-radius:999px 999px 6px 6px;border:2px solid transparent;background-size:300% 100%;background-repeat:no-repeat;padding:0;opacity:.6;transition:opacity .15s,border-color .15s}
@@ -469,26 +470,26 @@ img[loading="lazy"].is-in{opacity:1}
 .build__spark--1{top:14%;inset-inline-start:16%}.build__spark--2{top:38%;inset-inline-end:12%;animation-delay:.6s;font-size:14px}.build__spark--3{top:62%;inset-inline-start:22%;animation-delay:1.2s;font-size:22px}
 @keyframes twinkle{0%,100%{opacity:0;transform:scale(.4) rotate(0)}50%{opacity:1;transform:scale(1) rotate(25deg)}}
 /* hair: scissors snipping across the hair, little cut ends falling */
-.fx--scissors{top:12%;left:10%;animation:snipPath 3.6s ease-in-out infinite alternate}
+.fx--scissors{top:12%;inset-inline-start:10%;animation:snipPath 3.6s ease-in-out infinite alternate}
 .fx__b1,.fx__b2{transform-origin:33px 32px}
 .fx__b1{animation:bladeA .32s ease-in-out infinite alternate}.fx__b2{animation:bladeB .32s ease-in-out infinite alternate}
 @keyframes bladeA{to{transform:rotate(-14deg)}}@keyframes bladeB{to{transform:rotate(14deg)}}
-@keyframes snipPath{0%{transform:translate(0,0) rotate(-8deg)}50%{transform:translate(60px,22px) rotate(6deg)}100%{transform:translate(150px,6px) rotate(-4deg)}}
+@keyframes snipPath{0%{transform:translate(0,0) rotate(8deg)}50%{transform:translate(-60px,22px) rotate(-6deg)}100%{transform:translate(-150px,6px) rotate(4deg)}}
 .fx__bit{position:absolute;top:24%;width:14px;height:3px;border-radius:3px;background:#e9d3b6;opacity:0;animation:fall 2.2s ease-in infinite}
-.fx__bit:nth-of-type(1){left:28%}.fx__bit:nth-of-type(2){left:48%;animation-delay:.5s}.fx__bit:nth-of-type(3){left:64%;animation-delay:1s}.fx__bit:nth-of-type(4){left:38%;animation-delay:1.5s}
+.fx__bit:nth-of-type(1){inset-inline-start:28%}.fx__bit:nth-of-type(2){inset-inline-start:48%;animation-delay:.5s}.fx__bit:nth-of-type(3){inset-inline-start:64%;animation-delay:1s}.fx__bit:nth-of-type(4){inset-inline-start:38%;animation-delay:1.5s}
 @keyframes fall{0%{opacity:0;transform:translateY(0) rotate(0)}15%{opacity:1}100%{opacity:0;transform:translateY(150px) rotate(220deg)}}
 /* colour: a brush painting a wash of the chosen colour down the hair */
 .fx__wash{position:absolute;inset:0;background:linear-gradient(180deg,var(--wash) 0,var(--wash) 55%,transparent 80%);mix-blend-mode:color;opacity:.85;clip-path:inset(0 0 100% 0);animation:wash 3.4s var(--ease) infinite}
 @keyframes wash{0%{clip-path:inset(0 0 100% 0)}70%,100%{clip-path:inset(0 0 22% 0)}}
-.fx--brush{top:4%;left:8%;animation:brushPath 1.7s ease-in-out infinite alternate}
-@keyframes brushPath{0%{transform:translate(0,0) rotate(-6deg)}100%{transform:translate(150px,70px) rotate(10deg)}}
+.fx--brush{top:4%;inset-inline-start:8%;animation:brushPath 1.7s ease-in-out infinite alternate}
+@keyframes brushPath{0%{transform:translate(0,0) rotate(6deg)}100%{transform:translate(-150px,70px) rotate(-10deg)}}
 /* nails: a polish bottle bobbing and a brush gliding */
 .fx--bottle{bottom:24%;inset-inline-start:12%;animation:bob 1.4s ease-in-out infinite alternate}
 @keyframes bob{to{transform:translateY(-10px) rotate(-6deg)}}
 .fx--wand{top:30%;inset-inline-end:14%;animation:stroke 1.1s ease-in-out infinite alternate}
-@keyframes stroke{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(-40px,26px) rotate(-12deg)}}
+@keyframes stroke{0%{transform:translate(0,0) rotate(0)}100%{transform:translate(40px,26px) rotate(12deg)}}
 /* lashes: an eye blinking while its lashes grow one by one */
-.fx--eye{width:120px;height:75px;top:26%;left:50%;margin-left:-60px}
+.fx--eye{width:120px;height:75px;top:26%;inset-inline:0;margin-inline:auto}
 .fx__lid{transform-origin:40px 30px;animation:blink 3.2s ease-in-out infinite}
 @keyframes blink{0%,44%,56%,100%{transform:scaleY(1)}50%{transform:scaleY(.08)}}
 .fx__lash path{stroke-dasharray:14;stroke-dashoffset:14;animation:grow 3.2s ease-out infinite}
@@ -894,8 +895,11 @@ var MODEL_HEAD={
  lashes:['مدل مژه را انتخاب کن','از کارهای همین سالن، مدل‌های آماده یا عکس مدلی که خودت پیدا کرده‌ای. حالت و طول را هم انتخاب کن.']
 };
 function pickLook(fn){fn();state.result=null;state.error='';renderFlow();renderDock()}
-// Choosing a look brings the next thing to do into view: nail and lash options, or «بساز».
+// Photo and look are in — the only thing left to do is «بساز», so that is what comes into
+// view. The same for all four lines: hair, colour, nails and lashes. Nothing else is a step:
+// the shape, length and colour rows are optional and never scrolled to on their own.
 function chooseLook(fn){pickLook(fn);scrollToBuild()}
+function buildButton(){var f=$('#flow');return f?f.querySelector('.btn--build'):null}
 function scrollToBuild(){
  var f=$('#flow');if(!f)return;
  var reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches,beh=reduce?'auto':'smooth';
@@ -903,11 +907,23 @@ function scrollToBuild(){
  var dock=$('#dock:not([hidden])'),bottom=(dock&&getComputedStyle(dock).position==='fixed'?dock.getBoundingClientRect().height:0)+16;
  var opt=f.querySelector('.opt'),nav=f.querySelector('.flow__nav'),picked=f.querySelector('.picked');
  requestAnimationFrame(function(){
-  var y;
-  if(opt)y=opt.getBoundingClientRect().top+window.pageYOffset-top;
-  else if(nav){var hint=f.querySelector('.build-hint')||nav,end=hint.getBoundingClientRect().bottom+window.pageYOffset;y=end-(window.innerHeight-bottom);
-   var start=(picked||nav).getBoundingClientRect().top+window.pageYOffset-top;if(y>start)y=start}
-  if(y!=null)window.scrollTo({top:Math.max(0,y),behavior:beh});
+  var btn=buildButton();
+  if(btn&&hasChoice()){
+   // Only move when the button is not already clear of the sticky bar and the dock.
+   var y0=window.pageYOffset,vh=window.innerHeight,r=btn.getBoundingClientRect();
+   var y=y0;
+   if(r.bottom+window.pageYOffset+bottom>y0+vh)y=r.bottom+window.pageYOffset+bottom-vh;
+   if(r.top+window.pageYOffset-top<y)y=r.top+window.pageYOffset-top;
+   window.scrollTo({top:Math.max(0,y),behavior:beh});
+   if(!btn.disabled){try{btn.focus({preventScroll:true})}catch(e){btn.focus()}}
+   return;
+  }
+  // Only the photo is in: bring the next thing to do into view (the looks, or the search).
+  var to;
+  if(opt)to=opt.getBoundingClientRect().top+window.pageYOffset-top;
+  else if(nav){var hint=f.querySelector('.build-hint')||nav,end=hint.getBoundingClientRect().bottom+window.pageYOffset;to=end-(window.innerHeight-bottom);
+   var start=(picked||nav).getBoundingClientRect().top+window.pageYOffset-top;if(to>start)to=start}
+  if(to!=null)window.scrollTo({top:Math.max(0,to),behavior:beh});
  });
 }
 function stepModel(){
@@ -1078,7 +1094,7 @@ function colorPicker(){
  var clear=el('button',{class:'color__clear',type:'button','aria-label':'پاک کردن رنگ',text:'×',hidden:!state.color});
  var active=-1,shown=[];
  function typed(){if(state.line==='color'&&state.color){var had=state.style!==null||state.reference;state.style=null;state.reference=null;state.refTitle='';if(had){renderDockSoon()}}}
- function pick(name){track('color',name);state.color=name;input.value=name;clear.hidden=false;close();state.result=null;typed();if(state.line==='color'){renderFlow();renderDock()}}
+ function pick(name){track('color',name);state.color=name;input.value=name;clear.hidden=false;close();state.result=null;typed();if(state.line==='color'){renderFlow();renderDock();scrollToBuild()}}
  function close(){list.hidden=true;input.setAttribute('aria-expanded','false');active=-1}
  function render(){
   var q=normFa(input.value);
@@ -1130,15 +1146,15 @@ function compareBlock(){
  wrap.append(el('div',{class:'compare__handle'},[el('span',{class:'compare__grip',html:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8 5 12l4 4M15 8l4 4-4 4"/></svg>'})]));
  wrap.append(el('span',{class:'compare__tag compare__tag--before',text:'قبل'}));
  wrap.append(el('span',{class:'compare__tag compare__tag--after',text:'بعد'}));
- var range=el('input',{type:'range',min:'0',max:'100',value:'50',dir:'ltr',class:'compare__range','aria-label':'مقایسهٔ قبل و بعد؛ با کلیدهای جهت خط را جابه‌جا کن'});
+ var range=el('input',{type:'range',min:'0',max:'100',value:'50',dir:'rtl',class:'compare__range','aria-label':'مقایسهٔ قبل و بعد؛ با کلیدهای جهت خط را جابه‌جا کن'});
  wrap.append(range);
  var x=50;
  function set(v,animate){x=Math.max(0,Math.min(100,v));wrap.classList.toggle('is-animating',!!animate);wrap.style.setProperty('--x',x+'%');range.value=String(Math.round(x))}
  set(50);
  var start=null;
  wrap.addEventListener('pointerdown',function(e){if(e.button>0)return;var r=wrap.getBoundingClientRect();start={px:e.clientX,x:x,w:r.width,left:r.left,moved:false,id:e.pointerId};wrap.classList.add('is-dragging')});
- wrap.addEventListener('pointermove',function(e){if(!start||e.pointerId!==start.id)return;var dx=e.clientX-start.px;if(!start.moved&&Math.abs(dx)<4)return;if(!start.moved){start.moved=true;try{wrap.setPointerCapture(e.pointerId)}catch(err){}}e.preventDefault();set(start.x+dx/start.w*100,false)});
- function end(e){if(!start)return;if(!start.moved&&e.type==='pointerup')set((e.clientX-start.left)/start.w*100,true);start=null;wrap.classList.remove('is-dragging')}
+ wrap.addEventListener('pointermove',function(e){if(!start||e.pointerId!==start.id)return;var dx=e.clientX-start.px;if(!start.moved&&Math.abs(dx)<4)return;if(!start.moved){start.moved=true;try{wrap.setPointerCapture(e.pointerId)}catch(err){}}e.preventDefault();set(start.x-dx/start.w*100,false)});
+ function end(e){if(!start)return;if(!start.moved&&e.type==='pointerup')set(100-(e.clientX-start.left)/start.w*100,true);start=null;wrap.classList.remove('is-dragging')}
  wrap.addEventListener('pointerup',end);wrap.addEventListener('pointercancel',end);
  range.addEventListener('input',function(){set(Number(range.value),false)});
  return el('div',{},[el('div',{class:'mirror compare-wrap'},[wrap]),el('p',{class:'compare__hint',text:'خط را با انگشت بکش یا روی هر جای عکس بزن'})]);
@@ -1284,7 +1300,7 @@ function storyBlob(id){
   var nm=o.name;while(g.measureText(nm).width>W-160&&nm.length>4)nm=nm.slice(0,-2)+'…';g.fillText(nm,cx,cy+d/2+70);
   // caption and the honest note
   var by=dy+dh+bd+96;g.font='800 56px Estedad, Vazirmatn, sans-serif';g.fillText(STORY_CAP[state.line]||STORY_CAP.hair,cx,Math.min(by,1620));
-  g.font='500 28px Estedad, Vazirmatn, sans-serif';g.fillStyle='rgba(255,255,255,.72)';g.fillText('نتیجهٔ تقریبی',cx,Math.min(by+52,1668));
+  g.font='500 28px Estedad, Vazirmatn, sans-serif';g.fillStyle='rgba(255,255,255,.72)';g.fillText('نمونهٔ نمایشی',cx,Math.min(by+52,1668));
   return new Promise(function(res){c.toBlob(function(b){res(b)},'image/jpeg',.94)});
  });
 }
@@ -1351,7 +1367,7 @@ function stepResult(){
  if(state.busy&&!state.result){box.append(buildStage());startBuildClock()}
  if(state.result){
   box.append(compareBlock());
-  box.append(h('p','نتیجه تقریبی است.','fine-print result-approx'));
+  box.append(h('p','یک نمونه است؛ برای انتخاب قبل از نوبت.','fine-print result-approx'));
   // The visitor demo (/sample): another sample (2 in all, worker/demo.js) or this service's plans.
   if(state.pub.demo){box.append(el('div',{class:'result-actions'},[
    el('a',{class:'btn btn--soft btn--sm',href:'/try?l='+L,target:'_top',text:'ثبت‌نام و نمونهٔ بیشتر'}),
