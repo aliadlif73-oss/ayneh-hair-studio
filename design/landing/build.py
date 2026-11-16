@@ -332,8 +332,8 @@ HINTS = {  # the first-chip hint under the demo's title; tryon.js writes the sam
 }
 LINE_TITLE = {'hair': 'مدل مو', 'color': 'رنگ مو', 'nails': 'ناخن', 'lashes': 'مژه'}
 LINE_PAIR = {'hair': 'style', 'color': 'color', 'nails': 'nails', 'lashes': 'lashes'}
-HOME_NOTE = 'نمونهٔ نمایشی؛ شبیه‌سازی تقریبی است'
-SERVICE_NOTE = 'نمونهٔ نمایشی. نتیجه تقریبی است؛ برای انتخاب قبل از نوبت.'
+HOME_NOTE = 'نمونهٔ نمایشی'
+SERVICE_NOTE = 'نمونهٔ نمایشی؛ برای انتخاب قبل از نوبت.'
 SALON_HERO = {
     'title': 'پنل آرایشگاه',
     'desc': 'پنل آرایشگاه: هر چهار خدمت، تا ۳ کاربر، لینک اختصاصی برای هر همکار. نمونه، پلن‌ها و روش کار.',
@@ -550,7 +550,7 @@ def make_pages(full):
     # ---- ساخت نمونه: the demo on a page of its own (for links from reels and the service pages) ----
     try_main = R('src/try.html') + demo(list(LINE_TITLE), '', '', 'hair')
     pages['sample'] = shell(full, try_main, [('/#choose', 'خدمات'), ('/#services', 'تعرفه‌ها'), ('/#faq', 'سؤالات')],
-                         title='ساخت نمونه', desc='خدمت را انتخاب کنید، عکس روبه‌رو و روشن بگذارید و مدل را روی خودتان ببینید. نتیجه تقریبی است.')
+                         title='ساخت نمونه', desc='خدمت را انتخاب کنید، عکس روبه‌رو و روشن بگذارید و مدل را روی خودتان ببینید؛ یک نمونه برای انتخاب قبل از نوبت.')
     for k, v in pages.items():
         assert v.count('<main id="main">') == 1, k
         assert 'id="demo"' in v and 'id="h1"' in v, k

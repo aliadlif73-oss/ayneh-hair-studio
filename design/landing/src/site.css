@@ -18,6 +18,43 @@
   --gut:clamp(18px,4.4vw,64px);
   --band:1240px;
   --sec-y:clamp(48px,6vw,84px);
+
+  /* ---- glass material: ONE iPhone-style recipe for every button, pill and chip ----
+     Two bodies, one recipe. The light body carries an ink label; the emerald body
+     carries a white one. Both stay AA after the top gloss and the diagonal sheen
+     are composited on top of them (tests/app.test.mjs recomputes the blending). */
+  --glass-blur:blur(14px) saturate(160%);
+  --glass-shade:rgba(10,32,42,.13);
+  /* light glass: the default body — ghost, quiet and login buttons, chips, tabs */
+  --glass-bg-l:rgba(255,255,255,.55);
+  --glass-top-l:rgba(255,255,255,.34);
+  --glass-edge-l:rgba(255,255,255,.78);
+  --glass-sheen-l:linear-gradient(105deg,rgba(255,255,255,0) 6%,rgba(255,255,255,.55) 30%,rgba(255,255,255,0) 56%,rgba(255,255,255,.22) 100%);
+  --glass-lift-l:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(10,32,42,.06);
+  --glass-shadow-l:0 6px 16px var(--glass-shade);
+  --glass-shadow-hl:0 10px 24px rgba(10,32,42,.2);
+  /* emerald glass: every primary action. Deep enough that its white label holds
+     4.5:1 on the cream ground AND on a white card, measured at the brightest point
+     of the top gloss and the sheen, which is where the label actually sits. */
+  --glass-bg-p:rgba(4,54,42,.86);
+  --glass-top-p:rgba(255,255,255,.1);
+  --glass-edge-p:rgba(255,255,255,.42);
+  --glass-sheen-p:linear-gradient(105deg,rgba(255,255,255,0) 4%,rgba(255,255,255,.12) 26%,rgba(255,255,255,0) 50%,rgba(255,255,255,.06) 100%);
+  --glass-lift-p:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -1px 0 rgba(3,45,36,.3);
+  --glass-shadow-p:0 8px 20px rgba(6,143,108,.26);
+  --glass-shadow-hp:0 12px 26px rgba(6,143,108,.34);
+  /* ---- clay material: the soft glossy 3D tile every icon sits on ---- */
+  --clay-hi:rgba(255,255,255,.96);
+  --clay-shade:rgba(7,66,55,.20);
+  --clay-glow:rgba(6,143,108,.26);
+  --clay-foot:rgba(163,212,193,.85);
+  /* ---- the same clay, softened for a whole box: every card on the page ---- */
+  --card-a:#FFFFFF;--card-b:#FBF7F1;--card-c:#F1E9DE;
+  --card-gloss:rgba(255,255,255,.74);
+  --card-spec:rgba(255,255,255,.90);
+  --card-edge:rgba(255,255,255,.92);
+  --card-shade:rgba(7,66,55,.07);
+  --card-drop:rgba(10,32,42,.10);
 }
 *,*::before,*::after{box-sizing:border-box}
 html{scroll-behavior:smooth;scroll-padding-top:98px;-webkit-text-size-adjust:100%;overflow-x:clip}
@@ -52,19 +89,13 @@ ul,ol{padding:0;list-style:none}
 .head .sub{margin-inline:auto}
 .head .h2{margin-top:10px}
 
+/* The body of a button is the shared glass material further down this file; this block only
+   gives it its shape, its type and (through the two body groups there) its colour. */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:50px;padding:0 24px;
-  border:1.5px solid transparent;border-radius:var(--r-pill);background:var(--emerald-deep);color:#fff;
-  font-size:15.5px;font-weight:800;white-space:nowrap;cursor:pointer;
-  box-shadow:0 6px 16px rgba(6,143,108,.20);transition:background .18s var(--ease),transform .18s var(--ease),box-shadow .18s var(--ease),border-color .18s var(--ease)}
-.btn:hover{background:#057a5c;box-shadow:0 10px 22px rgba(6,143,108,.26)}
-.btn:active{transform:translateY(1px)}
+  border:1.5px solid var(--glass-edge);border-radius:var(--r-pill);color:#fff;
+  font-size:15.5px;font-weight:800;white-space:nowrap;cursor:pointer}
 .btn svg{flex:0 0 auto;width:19px;height:19px}
 .btn--lg{min-height:56px;padding:0 28px;font-size:16.5px}
-.btn--ghost{background:var(--paper);color:var(--ink-2);border-color:var(--line-2);box-shadow:none}
-.btn--ghost:hover{background:var(--cream);border-color:var(--line-strong);box-shadow:none}
-.btn--quiet{background:transparent;border-color:var(--line-2);color:var(--ink-2);box-shadow:none;min-height:44px;font-size:14px}
-.btn--quiet:hover{background:var(--cream-2)}
-.btn[disabled]{opacity:.55;cursor:not-allowed;box-shadow:none}
 
 /* ornament: the eight-point tile from the reference corners */
 .ornament{position:absolute;z-index:0;pointer-events:none;width:clamp(160px,15vw,240px);height:clamp(160px,15vw,240px);
@@ -95,12 +126,12 @@ ul,ol{padding:0;list-style:none}
 .nav a[aria-current="page"]::after{transform:scaleX(1)}
 .header-cta{display:flex;align-items:center;gap:9px;margin-inline-start:auto}
 .btn--login{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 15px;border-radius:var(--r-pill);
-  border:1px solid var(--line-2);background:var(--paper);font-size:13.5px;font-weight:700;white-space:nowrap}
+  border:1px solid var(--line-2);font-size:13.5px;font-weight:700;white-space:nowrap}
 .btn--login svg{width:16px;height:16px;color:var(--ink-2)}
 .btn--login:hover{border-color:var(--line-strong)}
 .header-cta .btn{min-height:44px;padding:0 18px;font-size:14px}
 .menu-toggle{display:none;align-items:center;justify-content:center;width:44px;height:44px;padding:0;
-  border:1px solid var(--line-2);border-radius:13px;background:var(--paper);cursor:pointer}
+  border:1px solid var(--line-2);border-radius:13px;cursor:pointer}
 .menu-bars{position:relative;display:block;width:19px;height:13px}
 .menu-bars i{position:absolute;inset-inline:0;height:2px;border-radius:2px;background:var(--ink);transition:transform .18s var(--ease),top .18s var(--ease)}
 .menu-bars i:first-child{top:2px}.menu-bars i:last-child{top:9px}
@@ -175,7 +206,10 @@ ul,ol{padding:0;list-style:none}
 .compare__tag--before{inset-inline-start:10px}
 .compare__tag--after{inset-inline-end:10px;background:rgba(10,107,84,.96)}
 .compare__divider{position:absolute;top:0;bottom:0;inset-inline-start:var(--split,50%);width:2px;background:#fff;
-  box-shadow:0 0 12px rgba(10,32,42,.35);z-index:2;pointer-events:none;transform:translateX(-1px)}
+  box-shadow:0 0 12px rgba(10,32,42,.35);z-index:2;pointer-events:none;
+  /* the 2px line has to sit ON the split, so it is pulled back by half its width on the
+     start side: a physical translateX would push it the wrong way in one direction. */
+  margin-inline-start:-1px}
 .compare__knob{position:absolute;top:50%;inset-inline-start:var(--split,50%);z-index:3;display:grid;place-items:center;
   width:40px;height:40px;margin-top:-20px;margin-inline-start:-20px;border-radius:50%;background:#fff;
   box-shadow:0 4px 14px rgba(10,32,42,.32);pointer-events:none}
@@ -236,8 +270,8 @@ ul,ol{padding:0;list-style:none}
    2. Features (امکانات و خدمات)
    ========================================================================== */
 .svc-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(12px,1.6vw,20px)}
-.svc{grid-column:span 1;display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--line);
-  border-radius:var(--r-xl);overflow:hidden;box-shadow:var(--shadow-sm);transition:box-shadow .2s var(--ease),transform .2s var(--ease)}
+.svc{grid-column:span 1;display:flex;flex-direction:column;
+  border-radius:var(--r-xl);overflow:hidden;transition:box-shadow .2s var(--ease),transform .2s var(--ease)}
 .svc:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
 .svc--wide{grid-column:span 1}
 .svc__media{position:relative;aspect-ratio:16/7.4;background:var(--emerald-wash);overflow:hidden}
@@ -257,8 +291,8 @@ ul,ol{padding:0;list-style:none}
   border-radius:50%;border:1px solid var(--line-2);color:var(--emerald);align-self:center}
 .svc__go svg{width:15px;height:15px}
 .svc__go:hover{background:var(--emerald-wash);border-color:var(--emerald)}
-.req-mini{width:min(100%,330px);padding:11px;border-radius:14px;background:var(--paper);border:1px solid var(--line);
-  box-shadow:var(--shadow-sm);display:grid;gap:7px}
+.req-mini{width:min(100%,330px);padding:11px;border-radius:14px;
+  display:grid;gap:7px}
 .req-mini__top{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .req-mini__top b{font-size:12px;font-weight:800;color:var(--ink)}
 .req-mini__top span{font-size:10px;font-weight:800;color:#fff;background:var(--emerald-deep);border-radius:var(--r-pill);padding:3px 8px}
@@ -275,9 +309,12 @@ ul,ol{padding:0;list-style:none}
    ========================================================================== */
 .steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(10px,1.3vw,18px);counter-reset:step}
 .step{position:relative;display:flex;flex-direction:column;gap:10px;padding:clamp(13px,1.6vw,18px);
-  padding-top:clamp(26px,3vw,32px);background:var(--paper);border:1px solid var(--line);border-radius:var(--r-xl);
-  box-shadow:var(--shadow-sm)}
-.step__num{position:absolute;top:-15px;inset-inline-start:50%;transform:translateX(50%);display:grid;place-items:center;
+  padding-top:clamp(26px,3vw,32px);border-radius:var(--r-xl);
+  }
+/* Centred on the middle line whatever the writing direction is: the abspos box is stretched
+   edge to edge and auto inline margins centre it, so there is no physical translate to get
+   wrong when the direction flips. (A translateX(50%) here only centres in RTL.) */
+.step__num{position:absolute;top:-15px;inset-inline:0;margin-inline:auto;display:grid;place-items:center;
   width:34px;height:34px;border-radius:50%;background:var(--emerald-deep);color:#fff;font-size:14px;font-weight:900;
   box-shadow:0 4px 12px rgba(6,143,108,.3);border:3px solid var(--cream)}
 .section--soft .step__num{border-color:var(--cream-2)}
@@ -302,7 +339,7 @@ ul,ol{padding:0;list-style:none}
    ========================================================================== */
 .why-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(10px,1.4vw,18px)}
 .why{display:grid;justify-items:center;text-align:center;gap:9px;padding:clamp(18px,2.2vw,28px) clamp(14px,1.8vw,22px);
-  background:var(--paper);border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:var(--shadow-sm);
+  border-radius:var(--r-xl);
   transition:transform .2s var(--ease),box-shadow .2s var(--ease)}
 .why:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
 .why__icon{display:grid;place-items:center;width:52px;height:52px;border-radius:15px;background:var(--emerald-wash);color:var(--emerald-deep)}
@@ -317,14 +354,21 @@ ul,ol{padding:0;list-style:none}
    ========================================================================== */
 .plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,1.6vw,20px);align-items:stretch}
 .plan{position:relative;display:flex;flex-direction:column;gap:11px;padding:clamp(18px,2.2vw,26px);
-  background:var(--paper);border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:var(--shadow-sm)}
-.plan--lead{border:1.5px solid var(--emerald);box-shadow:0 12px 32px rgba(6,143,108,.14)}
+  border-radius:var(--r-xl);}
+.plan--lead{border:1.5px solid var(--emerald);}
 .plan__badge{position:absolute;top:-13px;inset-inline-start:22px;display:inline-flex;align-items:center;min-height:26px;
   padding:0 12px;border-radius:var(--r-pill);background:var(--emerald-deep);color:#fff;font-size:12px;font-weight:800}
 .plan h3{font-size:20px;font-weight:900;color:var(--ink)}
 .plan__deck{font-size:13.5px;line-height:1.7;color:var(--muted);min-height:2.6em}
-.plan__price{margin-top:2px;padding-top:13px;border-top:1px solid var(--line)}
-.plan__amount{display:flex;align-items:baseline;gap:7px;font-weight:900;color:var(--ink);line-height:1.5}
+/* the price box: an inset glass panel — the same material as the controls, so the
+   number sits on glass rather than on a flat stripe */
+.plan__price{margin-top:2px;padding:13px 13px 14px;border-radius:var(--r-md);
+  background-color:rgba(255,255,255,.42);
+  background-image:linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,0) 52%,rgba(10,32,42,.045) 100%);
+  border:1px solid rgba(255,255,255,.8);
+  -webkit-backdrop-filter:blur(10px) saturate(150%);backdrop-filter:blur(10px) saturate(150%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -2px 4px rgba(7,66,55,.06)}
+.plan__amount{display:flex;align-items:baseline;gap:7px;font-weight:900;line-height:1.5}
 .plan__amount b{font-size:clamp(20px,2.2vw,26px)}
 .plan__amount small{font-size:13px;font-weight:700;color:var(--muted)}
 .plan__quota{display:flex;align-items:center;gap:6px;margin-top:3px;font-size:14px;font-weight:700;color:var(--ink-2)}
@@ -336,12 +380,11 @@ ul,ol{padding:0;list-style:none}
 .plan li{position:relative;padding-inline-start:23px;font-size:13.5px;line-height:1.8;color:var(--ink-2)}
 .plan li svg{position:absolute;inset-inline-start:0;top:4px;width:15px;height:15px;color:var(--emerald)}
 .plan .btn{width:100%;min-height:46px;font-size:14.5px}
-/* The plans' button is the emerald action like every other primary path; a plan that is not
-   for sale yet changes only its small note, never the look of the button. */
-.plan a.btn{background:var(--emerald-deep);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(6,143,108,.20)}
-.plan a.btn:hover{background:#057a5c;border-color:transparent}
+/* The three cards are one row: «پیشنهاد آینه» is the emerald primary glass and the other
+   two are the light glass — the same shared material, one line each further down. A plan
+   that is not for sale yet changes only its small note, never the look of the button. */
 .plan-note{display:flex;align-items:flex-start;gap:10px;margin-top:clamp(14px,2vw,20px);padding:13px 17px;
-  border-radius:var(--r-md);border:1px dashed var(--line-strong);background:var(--emerald-wash);
+  border-radius:var(--r-md);border:1px dashed var(--line-strong);
   font-size:13px;line-height:1.85;color:var(--teal-ink)}
 .plan-note svg{flex:0 0 19px;width:19px;height:19px;margin-top:2px;color:var(--emerald-deep)}
 @media(max-width:900px){.plans{grid-template-columns:1fr;gap:14px}.plan__deck{min-height:0}}
@@ -358,8 +401,8 @@ ul,ol{padding:0;list-style:none}
   padding:4px;margin:-4px;flex:1;min-width:0}
 .quotes__rail::-webkit-scrollbar{display:none}
 .quote{position:relative;flex:0 0 calc((100% - 32px)/3);scroll-snap-align:start;display:flex;flex-direction:column;gap:11px;
-  padding:clamp(16px,2vw,24px);background:var(--paper);border:1px solid var(--line);border-radius:var(--r-xl);
-  box-shadow:var(--shadow-sm)}
+  padding:clamp(16px,2vw,24px);border-radius:var(--r-xl);
+  }
 .quote__person{display:flex;align-items:center;gap:10px}
 .quote__avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;object-position:50% 25%;flex:0 0 auto;
   border:2px solid var(--emerald-wash)}
@@ -372,7 +415,7 @@ ul,ol{padding:0;list-style:none}
 .quote__text{font-size:13.5px;line-height:1.95;color:var(--ink-2);font-weight:500;flex:1}
 .quote__flag{font-size:11px;font-weight:800;color:var(--muted)}
 .quote-nav{flex:0 0 36px;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;
-  border:1px solid var(--line-2);background:var(--paper);color:var(--ink-2);cursor:pointer}
+  border:1px solid var(--line-2);color:var(--ink-2);cursor:pointer}
 .quote-nav svg{width:16px;height:16px}
 .quote-nav:hover{border-color:var(--emerald);color:var(--emerald-deep)}
 .quote-nav[disabled]{opacity:.4;cursor:default}
@@ -433,13 +476,22 @@ ul,ol{padding:0;list-style:none}
 .faq-art{margin:18px 0;border-radius:var(--r-lg);overflow:hidden;aspect-ratio:16/9;background:var(--cream-3);width:100%}
 .faq-art img{width:100%;height:100%;object-fit:cover;object-position:50% 50%}
 .faq-list{display:grid;gap:9px}
-.faq-item{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;box-shadow:var(--shadow-sm)}
-.faq-item[open]{border-color:var(--emerald-soft);box-shadow:var(--shadow-md)}
+.faq-item{border-radius:var(--r-md);overflow:hidden;}
+/* an open row keeps the same clay depth, with the emerald cast of an active surface */
+.faq-item[open]{border-color:var(--emerald-soft);
+  box-shadow:inset 0 1px 0 var(--clay-hi),inset 0 -2px 5px var(--card-shade),
+    0 2px 0 var(--clay-foot),0 10px 24px rgba(6,143,108,.18)}
 .faq-item summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;padding:11px 16px;
   cursor:pointer;font-size:15px;font-weight:700;color:var(--ink);list-style:none}
 .faq-item summary::-webkit-details-marker{display:none}
 .faq-item summary::after{content:"";flex:0 0 22px;width:22px;height:22px;border-radius:50%;
-  background:var(--emerald-wash) url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230A6B54' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9.5 12 15.5 18 9.5'/%3E%3C/svg%3E") center/14px no-repeat;
+  /* the same clay chip as every other icon: the chevron rides on the gloss, not on the card */
+  background:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230A6B54' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M6 9.5 12 15.5 18 9.5'/%3E%3C/svg%3E") center/14px no-repeat,
+    linear-gradient(151deg,rgba(255,255,255,.62),rgba(255,255,255,.06) 46%,rgba(7,66,55,.05)),
+    radial-gradient(120% 92% at 26% 10%,rgba(255,255,255,.98) 0 10%,rgba(255,255,255,.34) 42%,rgba(255,255,255,0) 66%),
+    linear-gradient(151deg,#FFFFFF 0%,#F2FBF7 32%,#D3EDDF 68%,#A9DBC8 100%);
+  box-shadow:inset 2px 2px 3px var(--clay-hi),inset -2px -3px 5px var(--clay-shade),
+    0 2px 0 var(--clay-foot),0 5px 10px var(--clay-glow);
   transition:transform .2s var(--ease)}
 .faq-item[open] summary::after{transform:rotate(180deg)}
 .faq-item__body{padding:0 16px 15px;font-size:13.5px;line-height:1.95;color:var(--ink-soft)}
@@ -450,8 +502,8 @@ ul,ol{padding:0;list-style:none}
    9. Demo request block
    ========================================================================== */
 .form-card{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(18px,3vw,42px);
-  align-items:start;padding:clamp(18px,3vw,38px);border-radius:var(--r-xl);background:var(--paper);
-  border:1px solid var(--line);box-shadow:var(--shadow-md)}
+  align-items:start;padding:clamp(18px,3vw,38px);border-radius:var(--r-xl);
+  }
 .form-card__copy .h2{margin-top:10px}
 .form-card__list{display:grid;gap:8px;margin-top:16px}
 .form-card__list li{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink-2)}
@@ -463,8 +515,14 @@ ul,ol{padding:0;list-style:none}
 /* ============================================================================
    10. Footer
    ========================================================================== */
-.site-footer{position:relative;overflow:hidden;overflow:clip;background:#0B3B32;color:rgba(252,243,235,.76);
-  padding-block:clamp(30px,4vw,48px) 0}
+/* The footer was the one dark slab on an otherwise cream page. It is the same clay card
+   as every other box now, tinted emerald, with a bright lip along its top edge so it
+   reads as the surface the page rests on — and the type on it is the page's own ink. */
+.site-footer{position:relative;overflow:hidden;overflow:clip;
+  --card-a:#FFFFFF;--card-b:#F4FBF8;--card-c:#E4F3EC;
+  color:var(--ink-soft);
+  padding-block:clamp(30px,4vw,48px) 0;
+  box-shadow:inset 0 1px 0 var(--clay-hi),inset 0 -2px 5px var(--card-shade)}
 .foot-ornament{position:absolute;inset-inline-start:-90px;bottom:-90px;width:280px;height:280px;opacity:.16;pointer-events:none;
   background:radial-gradient(circle at 50% 50%,transparent 0 30%,var(--emerald-soft) 30% 34%,transparent 34%),
     conic-gradient(from 22.5deg,transparent 0 6.25%,var(--emerald-soft) 6.25% 12.5%,transparent 12.5% 43.75%,var(--emerald-soft) 43.75% 50%,transparent 50%);
@@ -472,26 +530,26 @@ ul,ol{padding:0;list-style:none}
   mask:radial-gradient(circle at 50% 50%,#000 0 46%,transparent 47%)}
 .foot-grid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.35fr) repeat(2,minmax(0,1fr)) minmax(0,1.15fr);
   gap:clamp(18px,2.8vw,38px)}
-.foot-brand .brand__word{color:var(--cream);font-size:25px}
-.foot-brand .brand__mark{color:var(--emerald-soft);width:41px;height:60px}
-.foot-tag{margin-top:10px;font-size:13px;line-height:1.85;color:rgba(252,243,235,.66)}
+.foot-brand .brand__word{color:var(--ink);font-size:25px}
+.foot-brand .brand__mark{color:var(--emerald-deep);width:41px;height:60px}
+.foot-tag{margin-top:10px;font-size:13px;line-height:1.85;color:var(--ink-soft)}
 .foot-social{display:flex;gap:8px;margin-top:14px}
 .foot-social a{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;
-  border:1px solid rgba(252,243,235,.24);color:var(--cream);transition:background .18s var(--ease),border-color .18s var(--ease)}
-.foot-social a:hover{background:rgba(155,217,197,.18);border-color:var(--emerald-soft)}
+  transition:transform .18s var(--ease),border-color .18s var(--ease)}
+.foot-social a:hover{border-color:var(--emerald-soft)}
 .foot-social svg{width:16px;height:16px}
-.foot-col h3{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:800;color:var(--cream);margin-bottom:11px}
-.foot-col h3 svg{width:15px;height:15px;color:var(--emerald-soft)}
+.foot-col h3{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:800;color:var(--ink);margin-bottom:11px}
+.foot-col h3 svg{width:15px;height:15px;color:var(--emerald-deep)}
 .foot-col li{margin-bottom:8px}
-.foot-col a,.foot-col span{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:rgba(252,243,235,.72);line-height:1.7}
-.foot-col a:hover{color:var(--cream)}
-.foot-col svg{width:14px;height:14px;flex:0 0 auto;color:var(--emerald-soft)}
+.foot-col a,.foot-col span{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-soft);line-height:1.7}
+.foot-col a:hover{color:var(--emerald-deep)}
+.foot-col svg{width:14px;height:14px;flex:0 0 auto;color:var(--emerald-deep)}
 .foot-col a svg{display:none}
 .foot-col--contact a,.foot-col--contact span{font-size:12.5px}
 .foot-col--contact a svg,.foot-col--contact span svg{display:block}
 .foot-legal{position:relative;z-index:1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;
-  gap:8px 20px;margin-top:clamp(22px,3vw,34px);padding-block:16px;border-top:1px solid rgba(252,243,235,.14);
-  font-size:12px;color:rgba(252,243,235,.55)}
+  gap:8px 20px;margin-top:clamp(22px,3vw,34px);padding-block:16px;border-top:1px solid var(--line);
+  font-size:12px;color:var(--muted)}
 .foot-legal p{max-width:86ch;line-height:1.8}
 @media(max-width:940px){.foot-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){
@@ -503,8 +561,7 @@ ul,ol{padding:0;list-style:none}
    11. Sticky mobile action + motion
    ========================================================================== */
 .sticky-cta{position:fixed;inset-inline:16px;bottom:14px;z-index:80;display:none;align-items:center;justify-content:center;
-  gap:9px;min-height:52px;border-radius:var(--r-pill);background:var(--emerald-deep);color:#fff;
-  font-size:15px;font-weight:800;box-shadow:0 10px 26px rgba(6,143,108,.32)}
+  gap:9px;min-height:52px;border-radius:var(--r-pill);font-size:15px;font-weight:800}
 .sticky-cta[hidden]{display:none!important}
 .sticky-cta.show{display:flex}
 @media(min-width:901px){.sticky-cta{display:none!important}}
@@ -528,8 +585,8 @@ ul,ol{padding:0;list-style:none}
    12. Payment: card transfer, a 10-minute window, then the salon panel
    ========================================================================== */
 .pay-section{padding-bottom:var(--sec-y)}
-.pay-card{background:var(--paper);border:1px solid var(--line);border-radius:var(--r-xl);
-  box-shadow:var(--shadow-md);padding:clamp(20px,3.4vw,40px);max-width:880px;margin-inline:auto;
+.pay-card{border-radius:var(--r-xl);
+  padding:clamp(20px,3.4vw,40px);max-width:880px;margin-inline:auto;
   display:grid;gap:22px;scroll-margin-top:96px}
 .pay-card__head{display:grid;gap:8px;justify-items:start}
 .pay-card__head .h2{font-size:clamp(24px,3vw,32px)}
@@ -657,10 +714,9 @@ body.is-paying .sticky-cta{display:none!important}
 .films__tabs{display:inline-flex;gap:6px;padding:5px;border-radius:var(--r-pill);
   background:var(--cream-2);border:1px solid var(--line);box-shadow:var(--shadow-sm)}
 .film-tab{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 16px;border:0;
-  border-radius:var(--r-pill);background:transparent;color:var(--ink-soft);font:inherit;font-size:14px;
-  font-weight:800;cursor:pointer;transition:background .18s var(--ease),color .18s var(--ease)}
-.film-tab:hover{background:var(--emerald-wash);color:var(--emerald-deep)}
-.film-tab[aria-pressed="true"]{background:var(--ink);color:var(--cream)}
+  border-radius:var(--r-pill);color:var(--ink-soft);font:inherit;font-size:14px;
+  font-weight:800;cursor:pointer}
+.film-tab:hover{--glass-bg:rgba(255,255,255,.84);color:var(--emerald-deep)}
 .film-tab__icon{display:grid;place-items:center;width:20px;height:20px}
 .film-tab__icon svg{width:19px;height:19px}
 .films__frame{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);align-items:center;
@@ -714,14 +770,14 @@ body.is-paying .sticky-cta{display:none!important}
 .tryon__steps b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--emerald-wash);color:var(--emerald-deep);font-size:12.5px}
 .tryon__lines{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}
 .tryon__line{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 14px;min-height:78px;
-  border-radius:var(--r-md);border:1.5px solid var(--line);background:var(--paper);color:var(--ink);font:inherit;
-  cursor:pointer;text-align:start;transition:border-color .16s var(--ease),background .16s var(--ease),transform .16s var(--ease)}
-.tryon__line:hover{border-color:var(--emerald-soft);transform:translateY(-1px)}
+  border-radius:var(--r-md);border:1.5px solid var(--line);color:var(--ink);font:inherit;
+  cursor:pointer;text-align:start}
+.tryon__line:hover{--glass-bg:rgba(255,255,255,.84);border-color:var(--emerald-soft)}
 .tryon__line b{font-size:15px;font-weight:800}
 .tryon__line small{font-size:12px;color:var(--muted);font-weight:600}
 .tryon__line-ico{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:var(--emerald-wash);color:var(--emerald-deep);margin-bottom:4px}
 .tryon__line-ico svg{width:17px;height:17px}
-.tryon__line[aria-pressed="true"]{border-color:var(--emerald);background:var(--emerald-wash);box-shadow:0 0 0 3px rgba(6,143,108,.1)}
+.tryon__line[aria-pressed="true"]{--glass-bg:rgba(228,244,238,.92);border-color:var(--emerald);box-shadow:0 0 0 3px rgba(6,143,108,.1),var(--glass-lift-l),var(--glass-shadow-l)}
 .tryon__frame{border-radius:var(--r-xl);overflow:hidden;background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow-md)}
 .tryon__meta{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:13px 18px;border-bottom:1px solid var(--line);background:var(--cream)}
 .tryon__meta b{font-size:15px;font-weight:800}
@@ -779,10 +835,13 @@ body.is-paying .sticky-cta{display:none!important}
 .play-screen{position:relative;overflow:hidden;flex:none;width:100%;height:var(--screen-h);min-height:0;border-radius:var(--r-xl) var(--r-xl) 0 0;
   background:radial-gradient(120% 90% at 50% 30%,#F1F4F1,#DDE5E2)}
 .play-screen::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 1px rgba(10,32,42,.07)}
-.play-screen::before{content:"";position:absolute;z-index:2;inset:-25% -55%;pointer-events:none;opacity:0;background:linear-gradient(108deg,transparent 40%,rgba(255,255,255,.52) 49%,rgba(255,255,255,.08) 54%,transparent 62%);transform:translateX(-55%)}
+/* the shine sweeps in the reading direction: from the start edge towards the end edge */
+.play-screen::before{content:"";position:absolute;z-index:2;inset:-25% -55%;pointer-events:none;opacity:0;background:linear-gradient(252deg,transparent 40%,rgba(255,255,255,.52) 49%,rgba(255,255,255,.08) 54%,transparent 62%);transform:translateX(55%)}
 .play-screen.is-replaying::before{animation:mirrorReplay 1.05s ease-out both}
-@keyframes mirrorReplay{0%{opacity:0;transform:translateX(-55%)}15%{opacity:.8}100%{opacity:0;transform:translateX(55%)}}
-.play-plate{position:absolute;left:0;top:0;width:1376px;height:768px;transform-origin:50% 45%}
+@keyframes mirrorReplay{0%{opacity:0;transform:translateX(55%)}15%{opacity:.8}100%{opacity:0;transform:translateX(-55%)}}
+/* The stage plate is framed by play.js in pixels inside the screen, so it keeps physical edges:
+   a logical edge next to a scripted physical one makes the browser drop the scripted offset. */
+.play-plate{position:absolute;top:0;left:0;width:1376px;height:768px;transform-origin:50% 45%}
 .play-plate img,.play-plate canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .play-front{position:absolute;inset:0}
 .glass{background:rgba(252,243,235,.9);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
@@ -812,25 +871,28 @@ body.is-paying .sticky-cta{display:none!important}
 .play-ring{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0}
 .play-card[aria-checked="true"] .play-ring,.play-sw[aria-checked="true"] .play-ring{opacity:1}
 .play-ring circle{fill:none;stroke:var(--emerald);stroke-width:2;vector-effect:non-scaling-stroke;stroke-dasharray:12 88}
-.play-palette{position:absolute;z-index:6;left:14px;top:calc(var(--screen-h) / 2);transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;
+.play-palette{position:absolute;z-index:6;inset-inline-start:14px;top:calc(var(--screen-h) / 2);transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;gap:5px;
   width:88px;border-radius:999px;padding:12px 7px;background:rgba(252,243,235,.9)}
 .play-palette h3{margin:0;font-size:11.5px;font-weight:900;color:var(--ink);white-space:nowrap}
 .play-swatches{display:flex;flex-direction:column;align-items:center;flex-wrap:nowrap;min-width:0;gap:3px}
 .play-swatches::-webkit-scrollbar{display:none}
 .play-sw{position:relative;display:grid;grid-template-rows:27px auto;justify-items:center;gap:2px;width:70px;height:42px;padding:0;border:0;border-radius:12px;
   background:transparent;cursor:pointer;flex:0 0 auto}
+/* A colour swatch has to show ITS OWN colour, so it is the one control that is not glass.
+   It is still a solid bead, not a flat disc: the same highlight above and shade below
+   that the clay tiles use, so it reads as a dome of that colour. */
 .play-sw__dot{display:grid;place-items:center;width:27px;height:27px;border-radius:50%;border:2px solid #fff;
-  box-shadow:0 0 0 1px rgba(10,32,42,.16)}
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.7),inset 0 -2px 3px rgba(10,32,42,.18),0 0 0 1px rgba(10,32,42,.16)}
 .play-sw__dot i{display:block;width:100%;height:100%;border-radius:50%}
 .play-sw__nm{display:block;max-width:100%;overflow:hidden;color:var(--ink-2);font-size:9px;line-height:1.2;font-weight:700;white-space:nowrap;text-overflow:ellipsis}
 .play-sw[aria-checked="true"]{outline:2px solid var(--emerald);outline-offset:1px;border-radius:50%}
 .nav-btn{position:absolute;top:50%;transform:translateY(-50%);z-index:2;display:grid;place-items:center;
-  width:30px;height:30px;border-radius:50%;border:1px solid var(--line-2);background:rgba(255,255,255,.95);
-  color:var(--ink);cursor:pointer;box-shadow:var(--shadow-sm)}
+  width:30px;height:30px;border-radius:50%;border:1px solid var(--line-2);
+  color:var(--ink);cursor:pointer}
 .nav-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .nav-btn:disabled{opacity:.35;cursor:default}
 .nav-r{inset-inline-start:-4px}.nav-l{inset-inline-end:-4px}
-.play__side{display:flex;flex-direction:column;align-self:center;min-width:0;gap:clamp(12px,1.8vw,20px);padding:clamp(4px,1vw,12px) 0;text-align:right}
+.play__side{display:flex;flex-direction:column;align-self:center;min-width:0;gap:clamp(12px,1.8vw,20px);padding:clamp(4px,1vw,12px) 0;text-align:start}
 .play__eyebrow{display:block;color:var(--emerald-deep);font-size:13px;font-weight:800}
 .play__side .h2{margin:0;font-size:clamp(30px,3.3vw,46px);line-height:1.35}
 .play__side .sub{margin:0;max-width:43ch;font-size:clamp(14px,1.2vw,16px);line-height:1.9;color:var(--ink-soft)}
@@ -848,11 +910,11 @@ body.is-paying .sticky-cta{display:none!important}
 .play-picked b{font-size:13px;font-weight:900;color:var(--ink);line-height:1.45}
 .play-picked a{font-size:11px;font-weight:800;color:var(--emerald-deep);text-decoration:underline;text-underline-offset:3px;white-space:nowrap;min-height:24px;display:inline-flex;align-items:center}
 .play:not(.has-choice) .play-picked a{visibility:hidden}
-.play-hint{position:absolute;z-index:6;top:14px;left:14px;padding:7px 14px;border:1px solid var(--line-2);border-radius:var(--r-pill);
+.play-hint{position:absolute;z-index:6;top:14px;inset-inline-end:14px;padding:7px 14px;border:1px solid var(--line-2);border-radius:var(--r-pill);
   background:rgba(252,243,235,.9);color:var(--ink-soft);font-size:11.5px;font-weight:700;box-shadow:var(--shadow-sm);transition:opacity .3s}
 .play.has-choice .play-hint{opacity:0;pointer-events:none}
-.play-replay{position:absolute;z-index:7;left:12px;bottom:12px;min-height:40px;padding:0 14px;border:1px solid var(--line-2);border-radius:var(--r-pill);
-  background:rgba(252,243,235,.9);color:var(--ink-2);font:inherit;font-size:11px;font-weight:800;cursor:pointer;box-shadow:var(--shadow-sm)}
+.play-replay{position:absolute;z-index:7;inset-inline-end:12px;bottom:12px;min-height:40px;padding:0 14px;border:1px solid var(--line-2);border-radius:var(--r-pill);
+  color:var(--ink-2);font:inherit;font-size:11px;font-weight:800;cursor:pointer}
 @media(max-width:980px){
   .play__frame{grid-template-columns:minmax(0,1fr)}
   .play__side{order:0;padding:0 0 18px}
@@ -868,14 +930,15 @@ body.is-paying .sticky-cta{display:none!important}
      floating in a short letterbox. The colour rail moves under the stage, where the thumb is. */
   .mirror{--screen-h:min(124vw,520px)}
   .play-card{flex-basis:62px}
-  .play-palette{position:relative;left:auto;top:auto;transform:none;flex-direction:row;justify-content:space-between;align-items:center;
+  .play-palette{position:relative;inset:auto;transform:none;flex-direction:row;justify-content:space-between;align-items:center;
     width:auto;margin:0;padding:9px 10px;border-radius:0;border:0;border-top:1px solid var(--line);background:var(--cream);box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
   .play-swatches{flex-direction:row;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;max-width:calc(100% - 60px);padding:3px 2px}
   .play-swatches::-webkit-scrollbar{display:none}
   .play-sw{grid-template-rows:26px auto;width:48px;height:44px}.play-sw__dot{width:26px;height:26px}
   .play-sw__nm{font-size:8.5px}
   .play-dock{border-radius:0 0 var(--r-xl) var(--r-xl)}
-  .play-hint{left:50%;transform:translateX(-50%);top:10px;font-size:10.5px;padding:6px 12px;white-space:nowrap}
+  /* centred on the stage without a physical offset, so it reads the same in either direction */
+  .play-hint{inset-inline:0;margin-inline:auto;width:max-content;max-width:calc(100% - 28px);top:10px;font-size:10.5px;padding:6px 12px;white-space:nowrap}
   .play-replay{display:none}
 }
 
@@ -1134,26 +1197,284 @@ body.is-paying .sticky-cta{display:none!important}
   }
 }
 
-/* Soft 3D icon tiles echo the original mirror's dimensional, polished look. The
-   glyph stays crisp and accessible; the light-catching bevel is purely decorative. */
-:is(.svc__icon,.step__icon,.why__icon,.proof-stat__icon,.hero-benefits__icon){
+/* ============================================================================
+   Clay icons — every icon on the public pages is the same soft, glossy 3D tile:
+   a radial highlight over an emerald-to-cream body (the clay), an inset rim light
+   and an inset shade for the bevel, a hard foot and an emerald drop shadow so the
+   tile sits above the page, a specular ellipse on the shoulder, and a white
+   embossed glyph. Purely decorative: the glyph itself keeps its own contrast.
+   ========================================================================== */
+:is(.why__icon,.setup__icon,.step__icon,.svc__icon,.proof-stat__icon,.hero-benefits__icon,
+    .film-tab__icon,.tryon__line-ico,.tryon__curtain-ico,.pay-done__tick,.compare__knob,
+    .foot-social a){
   position:relative;
+  isolation:isolate;
   overflow:hidden;
-  border:1px solid rgba(255,255,255,.96);
-  background:radial-gradient(ellipse at 28% 18%,#fff 0 8%,transparent 44%),
-             linear-gradient(145deg,#fff 0%,#EAF7F1 48%,#C8E8DA 100%);
-  box-shadow:inset 2px 2px 4px rgba(255,255,255,.94),
-             inset -2px -3px 5px rgba(10,107,84,.16),
-             0 3px 0 #B9D9CC,0 7px 14px rgba(10,32,42,.12);
+  border:1px solid rgba(255,255,255,.92);
+  color:var(--emerald-deep);
+  /* the glossy coat, the radial highlight, then the emerald-to-cream body */
+  background:
+    linear-gradient(151deg,rgba(255,255,255,.62),rgba(255,255,255,.06) 46%,rgba(7,66,55,.05)),
+    radial-gradient(120% 92% at 26% 10%,rgba(255,255,255,.98) 0 10%,rgba(255,255,255,.34) 42%,rgba(255,255,255,0) 66%),
+    linear-gradient(151deg,#FFFFFF 0%,#F2FBF7 32%,#D3EDDF 68%,#A9DBC8 100%);
+  box-shadow:
+    inset 2px 2px 3px var(--clay-hi),
+    inset -2px -3px 5px var(--clay-shade),
+    0 2px 0 var(--clay-foot),
+    0 8px 16px var(--clay-glow);
   transform-style:preserve-3d;
 }
-:is(.svc__icon,.step__icon,.why__icon,.proof-stat__icon,.hero-benefits__icon)::before{
-  content:"";position:absolute;inset:1px;border-radius:inherit;pointer-events:none;
-  background:linear-gradient(145deg,rgba(255,255,255,.56),transparent 54%,rgba(10,107,84,.06));
+/* the specular ellipse: the wet-looking highlight of glazed clay */
+:is(.why__icon,.setup__icon,.step__icon,.svc__icon,.proof-stat__icon,.hero-benefits__icon,
+    .film-tab__icon,.tryon__line-ico,.tryon__curtain-ico,.pay-done__tick,.compare__knob,
+    .foot-social a)::after{
+  content:"";position:absolute;z-index:1;pointer-events:none;
+  inset-inline-start:14%;top:7%;width:60%;height:34%;border-radius:50%;
+  background:radial-gradient(closest-side,rgba(255,255,255,.92),rgba(255,255,255,0) 76%);
+  filter:blur(.5px);
 }
-:is(.svc__icon,.step__icon,.why__icon,.proof-stat__icon,.hero-benefits__icon) svg{
-  position:relative;z-index:1;
-  filter:drop-shadow(0 1px 0 rgba(255,255,255,.92)) drop-shadow(0 2px 1px rgba(11,59,50,.24));
+/* the white embossed stroke: a highlight under the glyph, a shadow over it */
+:is(.why__icon,.setup__icon,.step__icon,.svc__icon,.proof-stat__icon,.hero-benefits__icon,
+    .film-tab__icon,.tryon__line-ico,.tryon__curtain-ico,.pay-done__tick,.compare__knob,
+    .foot-social a) svg{
+  position:relative;z-index:2;
+  filter:drop-shadow(0 1px 0 rgba(255,255,255,.95)) drop-shadow(0 -1px 0 rgba(7,66,55,.22)) drop-shadow(0 2px 2px rgba(11,59,50,.20));
+}
+/* the tab icon is small: a touch more room so the clay rim reads around the glyph */
+.film-tab__icon{width:22px;height:22px;border-radius:7px}
+.film-tab__icon svg{width:18px;height:18px}
+/* The confirmation tick keeps the deep-emerald body (a white tick has to stay AA),
+   so it is the same clay in the accent colour. */
+.pay-done__tick{
+  border-color:rgba(255,255,255,.42);
+  color:#fff;
+  background:
+    linear-gradient(151deg,rgba(255,255,255,.4),rgba(255,255,255,.04) 48%,rgba(3,45,36,.16)),
+    radial-gradient(120% 92% at 26% 10%,rgba(255,255,255,.55) 0 8%,rgba(255,255,255,.12) 40%,rgba(255,255,255,0) 64%),
+    linear-gradient(151deg,#17A98A 0%,#0A6B54 52%,#054B3C 100%);
+  box-shadow:
+    inset 2px 2px 4px rgba(255,255,255,.42),
+    inset -2px -3px 6px rgba(3,45,36,.45),
+    0 3px 0 #04402F,
+    0 10px 22px rgba(6,143,108,.34);
+}
+.pay-done__tick svg{filter:drop-shadow(0 1px 1px rgba(3,45,36,.5))}
+/* The compare knob rides on a photo, so it keeps the light clay and a dark glyph. */
+.compare__knob{box-shadow:inset 2px 2px 3px var(--clay-hi),inset -2px -3px 5px var(--clay-shade),0 2px 0 var(--clay-foot),0 8px 18px rgba(10,32,42,.34)}
+/* A glyph with no tile of its own (a plan tick, a badge crown, a card's heading mark) still
+   gets the same emboss: a highlight under the stroke and a shade over it. */
+:where(.plan li,.plan__badge,.plan__months,.hero-points,.foot-col h3,.pay-card-box__label,
+       .svc__foot,.cta-chips,.benefits__list) svg{
+  filter:drop-shadow(0 1px 0 rgba(255,255,255,.95)) drop-shadow(0 -1px 0 rgba(7,66,55,.22));
+}
+/* An icon inside a button is only a shadow: the button itself is already the material. */
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .chip,.menu-toggle,.quote-nav,.salon-strip,.mini__try,.tryon__line,.plan__buy,.sb-add,
+       .sb-upload__btn,.wiz-next,.wiz-prev,.wiz-skip,.sb-build,.sb-activate,.sb-close,.close)
+  svg{filter:drop-shadow(0 1px 1px rgba(3,45,36,.3))}
+/* ---- the small 3D icon: an arrow or a tick, on its own glazed clay disc ----
+   Same clay as the big icon tiles, in miniature: the glyph is a stroke, so the disc
+   is drawn around it with padding rather than wrapping it in another element. */
+:where(.hero-link,.salon-strip,.faq-call,.hero-back,.wiz-ready__plans,.tryon__buy,.play-cta,
+       .step__go,.next-line__go) .arrow,
+:where(.hero-link,.salon-strip,.faq-call,.hero-back,.wiz-ready__plans,.tryon__buy,.play-cta)
+  span[aria-hidden="true"],
+.plan li svg,.plan-how li>span,.pay-done__tick svg{
+  display:inline-grid;place-items:center;flex:none;
+  width:1.55em;height:1.55em;padding:.22em;border-radius:50%;
+  border:1px solid rgba(255,255,255,.92);
+  color:var(--emerald-deep);
+  background:
+    linear-gradient(151deg,rgba(255,255,255,.62),rgba(255,255,255,.06) 46%,rgba(7,66,55,.05)),
+    radial-gradient(120% 92% at 26% 10%,rgba(255,255,255,.98) 0 10%,rgba(255,255,255,.34) 42%,rgba(255,255,255,0) 66%),
+    linear-gradient(151deg,#FFFFFF 0%,#F2FBF7 32%,#D3EDDF 68%,#A9DBC8 100%);
+  box-shadow:
+    inset 1px 1px 2px var(--clay-hi),
+    inset -1px -2px 3px var(--clay-shade),
+    0 1px 0 var(--clay-foot),
+    0 3px 7px var(--clay-glow);
+  line-height:1;font-size:inherit;
+}
+/* the tick inside a plan feature is a stroke on that disc, so it gets the emboss too */
+.plan li svg{
+  filter:drop-shadow(0 1px 0 rgba(255,255,255,.95)) drop-shadow(0 -1px 0 rgba(7,66,55,.22));
+  font-size:15px;
+}
+/* an arrow points the way it travels: ← forward, → back (this whole site is RTL) */
+/* The footer's social tiles are clay on a dark ground, so their hover lifts the tile rather
+   than repainting its body. */
+.foot-social a:hover{transform:translateY(-1px);filter:brightness(1.05)}
+.foot-social a:active{transform:translateY(1px)}
+
+/* ============================================================================
+   Clay cards — the icon clay softened for a whole box, so it reads as depth and
+   not as a button: a glossy coat over the body, a specular pool in the top-start
+   corner, a bright rim along the top lip, a shade under the bottom one, and a
+   soft cast shadow resting on a clay foot.
+
+   ONE recipe, every card listed inside :where(). A card joins by being listed, and
+   it is the recipe — not the component — that paints the body, so no listed card
+   carries a background of its own. A card tints the body by overriding --card-a/b/c
+   at its own specificity («پیشنهاد آینه» does, in emerald).
+   ========================================================================== */
+:where(.plan,.why,.step,.setup__step,.svc,.quote,.faq-item,.pbar,.sample-card,.choose-card,
+       .pay-card,.glance__card,.form-card,.plan-note,.wiz-ready,.sb-work,.sb-details,.req-mini,
+       .sb-steps li,.benefits__list li,.tryhead__steps li,.pay-figure,.mini__services span,
+       .site-footer){
+  position:relative;
+  isolation:isolate;
+  background:
+    linear-gradient(168deg,var(--card-gloss),rgba(255,255,255,.08) 46%,rgba(7,66,55,.04)),
+    radial-gradient(124% 74% at 20% 2%,var(--card-spec) 0 12%,rgba(255,255,255,.2) 46%,rgba(255,255,255,0) 72%),
+    linear-gradient(168deg,var(--card-a) 0%,var(--card-b) 48%,var(--card-c) 100%);
+  border:1px solid var(--card-edge);
+  box-shadow:
+    inset 0 1px 0 var(--clay-hi),
+    inset 0 -2px 5px var(--card-shade),
+    0 2px 0 var(--clay-foot),
+    0 10px 24px var(--card-drop);
+}
+/* the recommended card keeps its gold seal and wears the emerald-tinted body */
+.plan--lead{--card-a:#FFFFFF;--card-b:#F3FBF7;--card-c:#E3F3EB}
+
+/* ============================================================================
+   Glass controls — ONE iPhone-style material for every button, pill, chip and tab
+   on the public pages. Two bodies (light and emerald) drawn from one recipe: a
+   translucent fill that blurs what is behind it, a glossy top edge, a soft outer
+   shadow and a diagonal sheen.
+
+   Every selector here sits inside :where(), so the shared recipe never out-specifies
+   a component's own rule. A control joins the system by being listed, and it picks a
+   body by also being listed in the light or the emerald group below — the groups are
+   the same shape, so adding a control is one line, never a copy of the recipe. The
+   four states (hover, active, focus, disabled) and the two fallbacks (no blur, no
+   transparency) are written once, for all of them.
+   ========================================================================== */
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try){
+  /* the light body is the default; the emerald group below overrides these five */
+  --glass-bg:var(--glass-bg-l);
+  --glass-top:var(--glass-top-l);
+  --glass-edge:var(--glass-edge-l);
+  --glass-sheen:var(--glass-sheen-l);
+  --glass-shadow:var(--glass-shadow-l);
+  position:relative;
+  isolation:isolate;
+  background-color:var(--glass-bg);
+  /* the top gloss: a bright lip along the top edge, a shade under the bottom one */
+  background-image:linear-gradient(180deg,var(--glass-top) 0%,rgba(255,255,255,0) 48%,rgba(10,32,42,.05) 100%);
+  border:1px solid var(--glass-edge);
+  -webkit-backdrop-filter:var(--glass-blur);
+  backdrop-filter:var(--glass-blur);
+  box-shadow:var(--glass-lift-l),var(--glass-shadow);
+  transition:transform .18s var(--ease),box-shadow .18s var(--ease),background-color .18s var(--ease),
+             border-color .18s var(--ease),color .18s var(--ease),filter .18s var(--ease);
+}
+/* the glossy sheen; border-radius:inherit keeps it inside the pill without clipping */
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try)::after{
+  content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;pointer-events:none;
+  background:var(--glass-sheen);
+}
+/* ---- body 1: the emerald body. Every primary action, at rest and not on hover. ----
+   .btn and .sticky-cta are primary by default; a plan card, a selected tab and the
+   studio's own two calls join them. The label is white and the sheen is weak, so the
+   fill never lifts out from under it. */
+:where(.btn,.sticky-cta,.sb-build,.sb-activate,.mini__try,
+       .ptabs__row button[aria-selected="true"],.try-switch button[aria-selected="true"],
+       .film-tab[aria-pressed="true"]){
+  --glass-bg:var(--glass-bg-p);
+  --glass-top:var(--glass-top-p);
+  --glass-edge:var(--glass-edge-p);
+  --glass-sheen:var(--glass-sheen-p);
+  --glass-shadow:var(--glass-shadow-p);
+  color:#fff;
+  text-shadow:0 1px 1px rgba(3,45,36,.35);
+  box-shadow:var(--glass-lift-p),var(--glass-shadow-p);
+}
+/* ---- body 2: the light body, restated for the controls that are not primary ----
+   (a second, later :where() list, so it wins over the emerald one above). */
+:where(.btn--ghost,.btn--quiet,.btn--login,.nav-btn,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,
+       .plan .btn){
+  --glass-bg:var(--glass-bg-l);
+  --glass-top:var(--glass-top-l);
+  --glass-edge:var(--glass-edge-l);
+  --glass-sheen:var(--glass-sheen-l);
+  --glass-shadow:var(--glass-shadow-l);
+  color:var(--ink-2);
+  text-shadow:none;
+  box-shadow:var(--glass-lift-l),var(--glass-shadow-l);
+}
+/* The label colour sits at the control's own specificity: .btn sets a white label, so the
+   light body has to answer it here or a ghost button would be invisible at rest. */
+.btn--ghost,.btn--quiet,.btn--login,.nav-btn,.film-tab,.ptabs__row button,.try-switch button,
+.tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,
+.plan .btn{color:var(--ink-2);text-shadow:none}
+/* The recommended card («پیشنهاد آینه», and «بهترین» on «پنل آرایشگاه») is the only
+   green button in the row, so it takes the emerald body after the light group. It is written after the
+   light group and after the ink-label rule, so its white label is the one that sticks. */
+.plan--lead .btn{
+  --glass-bg:var(--glass-bg-p);
+  --glass-top:var(--glass-top-p);
+  --glass-edge:var(--glass-edge-p);
+  --glass-sheen:var(--glass-sheen-p);
+  --glass-shadow:var(--glass-shadow-p);
+  color:#fff;text-shadow:0 1px 1px rgba(3,45,36,.35);
+  box-shadow:var(--glass-lift-p),var(--glass-shadow-p);
+}
+/* Quiet is quieter: the same material, less fill. */
+.btn--quiet{--glass-bg:rgba(255,255,255,.34)}
+/* a control that is a dashed pill (the studio's file button) keeps its dashed edge */
+.sb-upload__btn{border-style:dashed;border-color:var(--line-strong)}
+/* ---- the four states, written once for every control ---- */
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try):hover:not([disabled]):not(:disabled):not([aria-pressed="true"]):not([aria-selected="true"]){
+  transform:translateY(-1px);
+  /* hover only brightens: the body never changes colour, so the rest state is the real one */
+  filter:saturate(1.06) brightness(1.05);
+  box-shadow:var(--glass-lift-l),var(--glass-shadow-hl);
+}
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try):active:not([disabled]):not(:disabled){
+  transform:translateY(1px) scale(.98);
+  filter:brightness(.96);
+  box-shadow:inset 0 2px 6px rgba(10,32,42,.16),0 2px 6px rgba(10,32,42,.12);
+}
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try):focus-visible{
+  outline:3px solid var(--emerald-soft);
+  outline-offset:3px;
+  box-shadow:var(--glass-lift-l),var(--glass-shadow-hl),0 0 0 6px rgba(6,143,108,.3);
+}
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try):disabled,
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try)[disabled],
+:where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try)[aria-disabled="true"]{
+  opacity:.55;cursor:not-allowed;transform:none;filter:grayscale(.3);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 2px 6px rgba(10,32,42,.08);
+}
+/* ---- the two fallbacks: the same shapes and the same AA labels, solid ---- */
+/* Where the blur is not supported the material falls back to a solid body. */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  :where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+         .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try){
+    --glass-bg:#fff;background-image:none;color:var(--ink-2);text-shadow:none}
+  :where(.btn,.sticky-cta,.sb-build,.sb-activate,.mini__try,.plan--lead .btn,
+         .ptabs__row button[aria-selected="true"],.try-switch button[aria-selected="true"],
+         .film-tab[aria-pressed="true"]){--glass-bg:var(--emerald-deep);color:#fff}
+  :where(.btn--ghost,.btn--quiet,.btn--login,.nav-btn,.film-tab,.ptabs__row button,.try-switch button,
+         .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,
+         .plan .btn){--glass-bg:#fff;color:var(--ink-2)}
+  :where(.plan--lead .btn){--glass-bg:var(--emerald-deep);color:#fff}
+}
+/* And where the visitor asked for no transparency at all, the same, without the blur. */
+@media (prefers-reduced-transparency:reduce){
+  :where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
+         .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try){
+    background-image:none;-webkit-backdrop-filter:none;backdrop-filter:none}
 }
 
 /* ============================================================================
@@ -1177,16 +1498,17 @@ body{background:transparent}
 .story__page.is-turning.is-back{transform-origin:0% 50%;animation-name:storyTurnBack}
 /* the turning page catches light, then falls into shadow as it goes over */
 .story__page::after{content:"";position:absolute;inset:0;opacity:0;
-  background:linear-gradient(90deg,rgba(10,32,42,.10),rgba(252,243,235,.0) 40%,rgba(252,243,235,.55) 100%)}
+  /* the shadow falls on the spine, which in a Persian book is the end edge */
+  background:linear-gradient(270deg,rgba(10,32,42,.10),rgba(252,243,235,.0) 40%,rgba(252,243,235,.55) 100%)}
 .story__page.is-turning::after{animation:storyShade 1s ease-in-out forwards}
 @keyframes storyTurn{0%{transform:rotateY(0)}100%{transform:rotateY(-105deg);opacity:.15}}
 @keyframes storyTurnBack{0%{transform:rotateY(0)}100%{transform:rotateY(105deg);opacity:.15}}
 @keyframes storyShade{0%{opacity:0}45%{opacity:1}100%{opacity:.6}}
 .story__art{position:absolute;top:50%;height:min(100vh,1040px);width:auto;max-width:none;transform:translateY(-50%);opacity:.5}
-.story__art--l{left:0}
-.story__art--r{right:0}
+.story__art--l{inset-inline-start:0}
+.story__art--r{inset-inline-end:0}
 /* the folio: which chapter of the day this is */
-.story__folio{position:absolute;left:clamp(14px,2vw,28px);bottom:clamp(14px,2.4vh,26px);display:grid;gap:1px;
+.story__folio{position:absolute;inset-inline-start:clamp(14px,2vw,28px);bottom:clamp(14px,2.4vh,26px);display:grid;gap:1px;
   padding:7px 13px;border-radius:var(--r-pill);background:rgba(252,243,235,.86);border:1px solid var(--line-2);
   box-shadow:var(--shadow-sm);font-size:11px;line-height:1.6;color:var(--ink-soft)}
 .story__num{font-weight:800;color:var(--emerald-deep);letter-spacing:.01em}
@@ -1221,7 +1543,7 @@ body{background:transparent}
 /* the testimonial dots were 7px wide targets: now 32px buttons that draw the same dot */
 .quote-dots{gap:0}
 .quote-dots button{position:relative;width:32px;height:32px;background:transparent!important;border-radius:50%}
-.quote-dots button::after{content:"";position:absolute;top:50%;left:50%;width:7px;height:7px;border-radius:50%;transform:translate(-50%,-50%);
+.quote-dots button::after{content:"";position:absolute;inset:0;margin:auto;width:7px;height:7px;border-radius:50%;
   background:var(--line-2);transition:width .2s var(--ease),background .2s var(--ease)}
 .quote-dots button[aria-selected="true"]{width:32px}
 .quote-dots button[aria-selected="true"]::after{width:20px;border-radius:4px;background:var(--emerald)}
@@ -1287,17 +1609,14 @@ body{background:transparent}
 .play-sw__nm,.sample{font-size:12px}
 @media(max-width:520px){.play-sw__nm{font-size:11.5px}}
 .nav a{padding-inline:8px}
-/* The colour rail owns the left wall; the hint and the replay pill take the right wall. */
-@media(min-width:521px){
-  .play-hint{left:auto;right:14px}
-  .play-replay{left:auto;right:12px}
-}
+/* The colour rail rides the start wall of the stage; the hint and the replay pill sit on the
+   end wall, so the two never meet on a narrow screen. Both are placed with logical edges. */
 
 /* ============================================================================
    Home · sample work and the three service doors
    ============================================================================ */
 .samples__grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(10px,1.4vw,18px)}
-.sample-card{display:grid;gap:0;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-sm)}
+.sample-card{display:grid;gap:0;border-radius:var(--r-lg);overflow:hidden;}
 .sample-card .compare{border-radius:0;aspect-ratio:3/4}
 .sample-card__foot{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;min-height:52px}
 .sample-card__foot b{font-size:15px;font-weight:800;color:var(--ink)}
@@ -1308,8 +1627,8 @@ body{background:transparent}
 
 .choose{background:transparent}
 .choose__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,1.6vw,20px)}
-.choose-card{display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--line);border-radius:var(--r-xl);
-  overflow:hidden;box-shadow:var(--shadow-sm);color:inherit;transition:box-shadow .2s var(--ease),transform .2s var(--ease),border-color .2s var(--ease)}
+.choose-card{display:flex;flex-direction:column;border-radius:var(--r-xl);
+  overflow:hidden;color:inherit;transition:box-shadow .2s var(--ease),transform .2s var(--ease),border-color .2s var(--ease)}
 .choose-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);border-color:var(--emerald-soft)}
 .choose-card__media{display:block;aspect-ratio:16/10;overflow:hidden;background:var(--cream-3)}
 .choose-card__media img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
@@ -1340,25 +1659,35 @@ body{background:transparent}
 .plan__price{display:grid;gap:6px;justify-items:stretch}
 .plan__was{margin:0;min-height:24px;font-size:15px;font-weight:700;color:var(--muted)}
 .plan__was s{text-decoration-color:#C0392B;text-decoration-thickness:2px}
-.plan__amount{display:block;margin:0;padding:14px 12px;border-radius:16px;background:var(--emerald-deep);color:#fff;
+/* the amount itself: the emerald glass body from the shared recipe, so «پیشنهاد آینه»
+   and the price read as the same material instead of a flat slab */
+.plan__amount{display:block;margin:0;padding:14px 12px;border-radius:16px;
+  background-color:var(--glass-bg-p);
+  background-image:linear-gradient(180deg,var(--glass-top-p) 0%,rgba(255,255,255,0) 48%,rgba(10,32,42,.05) 100%);
+  border:1px solid var(--glass-edge-p);
+  -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  box-shadow:var(--glass-lift-p),var(--glass-shadow-p);
+  color:#fff;text-shadow:0 1px 1px rgba(3,45,36,.35);
   font-size:clamp(19px,1.9vw,23px);font-weight:900;line-height:1.4;text-align:center}
 .plan__amount b{font-size:1.25em}
 .plan ul{text-align:start}
 .plan ul li{padding-block:6px;border-bottom:1px solid var(--line)}
 .plan ul li:last-child{border-bottom:0}
 .plan li small{display:block;font-size:11.5px;line-height:1.7;font-weight:400;color:var(--muted)}
-.plan--lead{border:2px solid #D8B46A;background:linear-gradient(180deg,#F1F8F4,#fff 40%)}
-.plan__badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#C9A15A,#E6C989);color:#3B2A0B;
-  inset-inline-start:50%;transform:translateX(50%);white-space:nowrap}
-.plan__badge svg{width:15px;height:15px}
+.plan--lead{border:2px solid #D8B46A}
+/* Only the recommended card carries a badge («پیشنهاد آینه», «بهترین»), and its seal is the
+   gold one, centred on the top edge. Any other plan's badge keeps the emerald start-corner
+   rule in section 5 — which is why this is scoped to .plan--lead and not to .plan__badge. */
+.plan--lead .plan__badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#C9A15A,#E6C989);color:#3B2A0B;
+  inset-inline:0;width:fit-content;margin-inline:auto;white-space:nowrap}/* centred like .step__num */
+.plan--lead .plan__badge svg{width:15px;height:15px}
 .plan-note{justify-content:center;text-align:center;font-weight:800;color:var(--ink)}
 @media(max-width:860px){.plan__was[aria-hidden="true"]{display:none}}
 
 /* /hair: one try block, two tabs */
 .try-switch{display:flex;gap:6px;justify-content:center;margin:clamp(24px,4vw,40px) auto 0;padding:5px;max-width:560px;border-radius:18px;background:var(--paper);border:1px solid var(--line);scroll-margin-top:84px}
 .try-switch[hidden]{display:none}
-.try-switch button{flex:1;min-height:52px;border:0;border-radius:14px;background:transparent;font:inherit;font-size:14px;font-weight:800;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;line-height:1.4;padding:6px 10px}
+.try-switch button{flex:1;min-height:52px;border-radius:14px;font:inherit;font-size:14px;font-weight:800;color:var(--ink-2);cursor:pointer;display:grid;place-items:center;line-height:1.4;padding:6px 10px}
 .try-switch button small{font-size:11.5px;font-weight:500;color:var(--muted)}
-.try-switch button[aria-selected="true"]{background:var(--emerald-deep);color:#fff}
 .try-switch button[aria-selected="true"] small{color:#d6efe6}
 #play[hidden],#try-on[hidden]{display:none!important}

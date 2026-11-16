@@ -38,7 +38,7 @@ async function webhookPay(e,ref,amount){const key=(await call(e,'/api/owner/paym
 test('/try: the regular customer page carries the owner\'s copy and embeds the real try-on of the direct salon',async()=>{
  const e=fixture();
  const res=await app.fetch(new Request(origin+'/try'),e);assert.equal(res.status,200);const html=await res.text();
- for(const t of ['مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید.','یک نمونهٔ رایگان. بدون نصب.','نمونهٔ رایگانتان استفاده شد.','ثبت‌نام کنید و حسابتان را شارژ کنید.','آرایشگر یا آرایشگاه‌دار می‌شناسید؟ لینک شما را به او بدهید؛ اگر پلن آینه بگیرد، ۱۰ تصویر هدیه می‌گیرید.','نتیجه تقریبی است. عکس شما فقط برای ساخت نمونه استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.','تعداد بیشتر می‌خواهم','تصاویر به حساب شما اضافه شد.'])
+ for(const t of ['مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید.','یک نمونهٔ رایگان. بدون نصب.','نمونهٔ رایگانتان استفاده شد.','ثبت‌نام کنید و حسابتان را شارژ کنید.','آرایشگر یا آرایشگاه‌دار می‌شناسید؟ لینک شما را به او بدهید؛ اگر پلن آینه بگیرد، ۱۰ تصویر هدیه می‌گیرید.','یک نمونه است؛ برای انتخاب قبل از نوبت. عکس شما فقط برای ساخت نمونه استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.','تعداد بیشتر می‌خواهم','تصاویر به حساب شما اضافه شد.'])
   assert.ok(html.includes(t),'copy: '+t);
  assert.match(html,/<iframe id="trFrame" src="\/s\/try\?embed=1"/);
  // what a salon buys is a «پلن» (AGENTS.md); the photo line says where the photo goes, honestly

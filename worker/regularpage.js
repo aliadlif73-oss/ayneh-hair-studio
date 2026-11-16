@@ -14,7 +14,7 @@ import {REFERRAL_IMAGES} from './customerprices.js';
 const packsCSS = String.raw`
 .ap{display:grid;gap:12px}
 .ap-packs{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
-.ap-pack{display:grid;gap:2px;justify-items:start;text-align:right;padding:14px 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;min-height:var(--tap)}
+.ap-pack{display:grid;gap:2px;justify-items:start;text-align:start;padding:14px 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;min-height:var(--tap)}
 .ap-pack b{font-family:var(--display);font-size:18px;font-weight:800}
 .ap-pack span{font-size:13px;color:var(--muted)}
 .ap-pack:hover,.ap-pack:focus-visible{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-ring)}
@@ -25,7 +25,7 @@ const packsCSS = String.raw`
 .ap-pay{display:grid;gap:10px;padding:16px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line-2)}
 .ap-row{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:space-between;font-size:14px}
 .ap-row b{font-weight:800}
-.ap-card{direction:ltr;text-align:left;font:700 18px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.08em;word-break:break-all}
+.ap-card{direction:ltr;text-align:start;font:700 18px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.08em;word-break:break-all}
 .ap-note{font-size:12.5px;color:var(--muted);line-height:1.9}
 .ap-sheet{position:fixed;inset:0;z-index:80;display:grid;align-items:end;justify-items:center;background:rgba(35,23,15,.45)}
 .ap-sheet__panel{width:min(560px,100%);max-height:92vh;overflow:auto;background:var(--glass);border-radius:var(--r-lg) var(--r-lg) 0 0;padding:18px 16px calc(18px + var(--safe-b));display:grid;gap:12px}
@@ -33,6 +33,35 @@ const packsCSS = String.raw`
 .ap-sheet__head h2{font-family:var(--display);font-size:18px}
 .ap-x{border:0;background:transparent;font-size:26px;line-height:1;color:var(--ink);cursor:pointer;min-width:var(--tap);min-height:var(--tap)}
 .ap [hidden]{display:none!important}
+/* The same glass material as the rest of the site, for every control in the sheet: two
+   bodies (light and emerald) drawn from one recipe — translucent fill, the blur, the
+   glossy top edge, the soft shadow and the diagonal sheen. */
+:root{
+  --glass-blur:blur(14px) saturate(160%);
+  --glass-bg-l:rgba(255,255,255,.55);--glass-top-l:rgba(255,255,255,.34);--glass-edge-l:rgba(255,255,255,.78);
+  --glass-sheen-l:linear-gradient(105deg,rgba(255,255,255,0) 6%,rgba(255,255,255,.55) 30%,rgba(255,255,255,0) 56%,rgba(255,255,255,.22) 100%);
+  --glass-bg-p:rgba(4,54,42,.86);--glass-top-p:rgba(255,255,255,.1);--glass-edge-p:rgba(255,255,255,.42);
+  --glass-sheen-p:linear-gradient(105deg,rgba(255,255,255,0) 4%,rgba(255,255,255,.12) 26%,rgba(255,255,255,0) 50%,rgba(255,255,255,.06) 100%);
+}
+.btn,.ap-pack,.ap-x{
+  --glass-bg:var(--glass-bg-l);--glass-top:var(--glass-top-l);--glass-edge:var(--glass-edge-l);--glass-sheen:var(--glass-sheen-l);
+  position:relative;isolation:isolate;background-color:var(--glass-bg);
+  background-image:linear-gradient(180deg,var(--glass-top) 0%,rgba(255,255,255,0) 48%,rgba(10,32,42,.05) 100%);
+  border:1px solid var(--glass-edge);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(10,32,42,.06),0 6px 16px rgba(10,32,42,.13);
+}
+.btn::after,.ap-pack::after,.ap-x::after{content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;pointer-events:none;background:var(--glass-sheen)}
+/* the primary action, at rest: emerald glass with a white label */
+.btn--primary,.btn--build{--glass-bg:var(--glass-bg-p);--glass-top:var(--glass-top-p);--glass-edge:var(--glass-edge-p);--glass-sheen:var(--glass-sheen-p);color:#fff;text-shadow:0 1px 1px rgba(3,45,36,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -1px 0 rgba(3,45,36,.3),0 8px 20px rgba(6,143,108,.26)}
+.btn--soft{--glass-bg:rgba(211,233,230,.9);color:var(--accent-ink)}
+.btn:hover,.ap-pack:hover,.ap-x:hover{filter:brightness(1.05)}
+.btn:active,.ap-pack:active,.ap-x:active{transform:translateY(1px) scale(.98);filter:brightness(.96)}
+.btn[disabled],.ap-pack[disabled]{opacity:.5;cursor:not-allowed;transform:none;filter:grayscale(.3)}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .btn,.ap-pack,.ap-x{background-image:none;background-color:#fff;color:var(--ink-2);text-shadow:none}
+  .btn--primary,.btn--build{background-color:var(--accent);color:#fff}
+  .btn--soft{background-color:var(--accent-soft);color:var(--accent-ink)}
+}
 `;
 
 // window.AynehPacks: mount(box,{referral,onCredited}), open(), out(), button(). Inside the /try
@@ -116,7 +145,7 @@ const tryCSS = String.raw`
 .tr-card p{color:var(--ink-2)}
 .tr-ref{background:var(--surface-2)}
 .tr-ref .tr-link{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.tr-ref code{direction:ltr;text-align:left;flex:1 1 220px;background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 12px;font:13px ui-monospace,Menlo,monospace;word-break:break-all;color:var(--ink)}
+.tr-ref code{direction:ltr;text-align:start;flex:1 1 220px;background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 12px;font:13px ui-monospace,Menlo,monospace;word-break:break-all;color:var(--ink)}
 .tr-more{justify-self:start}
 .tr-foot{max-width:760px;margin:0 auto;padding:0 16px 32px;font-size:12.5px;color:var(--muted);line-height:1.9}
 .tr [hidden]{display:none!important}
@@ -164,6 +193,6 @@ export function tryHTML(slug) {
     + '<section id="trPacks" class="tr-card" hidden><h2 id="trOutTitle">نمونهٔ رایگانتان استفاده شد.</h2><p>برای نمونه‌های بیشتر، ثبت‌نام کنید و حسابتان را شارژ کنید.</p><div id="trPackBox"></div></section>'
     + '<section id="trRef" class="tr-card tr-ref" hidden><p>آرایشگر یا آرایشگاه‌دار می‌شناسید؟ لینک شما را به او بدهید؛ اگر پلن آینه بگیرد، ' + REFERRAL_IMAGES.toLocaleString('fa-IR') + ' تصویر هدیه می‌گیرید.</p><div class="tr-link"><code id="trRefLink"></code><button id="trCopy" class="btn btn--soft btn--sm" type="button">کپی لینک</button></div></section>'
     + '</main>'
-    + '<footer class="tr-foot">نتیجه تقریبی است. عکس شما فقط برای ساخت نمونه استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.</footer>'
+    + '<footer class="tr-foot">یک نمونه است؛ برای انتخاب قبل از نوبت. عکس شما فقط برای ساخت نمونه استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.</footer>'
     + '<script>' + packsJS + tryJS + '</script></body></html>';
 }

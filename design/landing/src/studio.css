@@ -15,7 +15,7 @@
 .sb-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 auto clamp(20px,2.6vw,28px);
   max-width:900px;counter-reset:sb}
 .sb-steps li{position:relative;display:grid;gap:2px;padding-block:14px;padding-inline:46px 14px;border-radius:var(--r-md);
-  background:var(--paper);border:1px solid var(--line);font-size:13px;color:var(--ink-soft);line-height:1.75}
+  font-size:13px;color:var(--ink-soft);line-height:1.75}
 .sb-steps li::before{counter-increment:sb;content:counter(sb,persian);position:absolute;inset-inline-start:12px;top:14px;
   display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--emerald-wash);
   color:var(--emerald-deep);font-size:12px;font-weight:800}
@@ -33,7 +33,7 @@
 .sb-badge::before{content:"";width:6px;height:6px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.28);animation:sb-pulse 2.4s var(--ease) infinite}
 @keyframes sb-pulse{0%,100%{opacity:1}50%{opacity:.35}}
 .sb-browser b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;font-weight:600;color:var(--ink-soft);direction:ltr;text-align:left}
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;font-weight:600;color:var(--ink-soft);direction:ltr;text-align:start}
 .sb-live{position:relative;border-radius:var(--r-lg);overflow:hidden;background:var(--cream-3);border:1px solid var(--line)}
 .sb-live:focus-visible{outline:3px solid var(--emerald);outline-offset:2px}
 
@@ -56,12 +56,14 @@
 .mini__chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .mini__chips span{display:inline-flex;align-items:center;min-height:22px;padding:0 8px;border-radius:var(--r-pill);
   background:var(--emerald-wash);color:var(--teal-ink);font-size:10.5px;font-weight:700}
+/* «شروع با عکس خودم» is a primary action on the salon's own mini site: it wears the shared
+   emerald glass (site.css), so only its shape and type are set here. */
 .mini__try{display:inline-flex;align-items:center;gap:6px;margin-top:10px;min-height:36px;padding:0 14px;border-radius:var(--r-pill);
-  background:var(--brand-action,var(--brand));color:#fff;font-size:12px;font-weight:800}
+  font-size:12px;font-weight:800}
 .mini__try svg{width:14px;height:14px}
 .mini__services{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}
-.mini__services span{display:grid;place-items:center;gap:4px;padding:8px 4px;border-radius:12px;background:var(--cream-2);
-  border:1px solid var(--line);font-size:10.5px;font-weight:700;color:var(--ink-2);text-align:center}
+.mini__services span{display:grid;place-items:center;gap:4px;padding:8px 4px;border-radius:12px;
+  font-size:10.5px;font-weight:700;color:var(--ink-2);text-align:center}
 .mini__services svg{width:16px;height:16px;color:var(--brand-action,var(--brand))}
 .mini__detail{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
 .mini__detail h4{font-size:11.5px;font-weight:800;color:var(--ink);margin-bottom:6px}
@@ -109,19 +111,20 @@
 .wiz-step input:focus{border-color:var(--emerald);outline:3px solid rgba(6,143,108,.16);outline-offset:0}
 .wiz-url{display:flex;align-items:center;min-height:50px;border-radius:12px;border:1.5px solid var(--line-2);background:var(--paper);overflow:hidden}
 .wiz-url>span{padding:0 10px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--muted);background:var(--cream-2);align-self:stretch;display:flex;align-items:center;direction:ltr}
-.wiz-url input{flex:1;min-height:48px;border:0;border-radius:0;background:transparent;direction:ltr;text-align:left}
+.wiz-url input{flex:1;min-height:48px;border:0;border-radius:0;background:transparent;direction:ltr;text-align:start}
 .wiz-url input:focus{outline:none;box-shadow:inset 0 0 0 2px var(--emerald)}
-.wiz-ready{margin:0;padding:10px 12px;border-radius:11px;background:var(--emerald-wash);color:var(--teal-ink);
+.wiz-ready{margin:0;padding:10px 12px;border-radius:11px;color:var(--teal-ink);
   font-size:12.5px;font-weight:700;line-height:1.8}
 .wiz-ready[hidden]{display:none}
 .wiz-err{margin:0;min-height:1.5em;font-size:12.5px;font-weight:700;color:#9C3A2A}
 .wiz-actions{display:flex;gap:8px;margin-top:2px}
 .wiz-actions .btn{flex:1;min-height:48px}
-.wiz-next{background:var(--emerald-deep)}
-.wiz-skip{background:transparent;color:var(--ink-soft);border-color:var(--line-2);box-shadow:none}
+/* the wizard's «ادامه» is the primary glass; «رد کردن» is the quiet one */
+.wiz-next{--glass-bg:var(--glass-bg-p);--glass-top:var(--glass-top-p);--glass-edge:var(--glass-edge-p);--glass-sheen:var(--glass-sheen-p);--glass-shadow:var(--glass-shadow-p);color:#fff;text-shadow:0 1px 1px rgba(3,45,36,.35);box-shadow:var(--glass-lift-p),var(--glass-shadow-p)}
+.wiz-skip{--glass-bg:rgba(255,255,255,.28);--glass-top:rgba(255,255,255,.2);--glass-shadow:0 2px 8px rgba(10,32,42,.06);color:var(--ink-soft);border-color:var(--line-2);box-shadow:var(--glass-lift-l),0 2px 8px rgba(10,32,42,.06)}
 .reassure-inline{margin:0;font-size:12px;color:var(--muted)}
 
-.sb-details{border:1px dashed var(--line-strong);border-radius:var(--r-md);background:var(--cream);overflow:hidden}
+.sb-details{border:1px dashed var(--line-strong);border-radius:var(--r-md);overflow:hidden}
 .sb-details[open]{background:var(--paper);border-style:solid;border-color:var(--line)}
 .sb-details>summary{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:50px;padding:10px 14px;
   cursor:pointer;font-size:13.5px;font-weight:700;color:var(--ink-2);list-style:none}
@@ -145,18 +148,24 @@
 .sb-color input[type=color]{width:52px;height:40px;padding:2px;border-radius:10px;border:1.5px solid var(--line-2);background:var(--paper);cursor:pointer}
 .sb-color output{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--muted);direction:ltr}
 .sb-upload{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.sb-upload__btn{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border-radius:var(--r-pill);
-  border:1.5px dashed var(--line-strong);background:var(--cream);font-size:12.5px;font-weight:700;color:var(--ink-2);cursor:pointer}
+/* the upload pill is the same glass material as every other button (site.css); only its
+   dashed edge and its quieter fill are its own. */
+.sb-upload__btn{--glass-bg:rgba(255,255,255,.45);border-style:dashed;border-color:var(--line-strong)}
 .sb-upload input[type=file]{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .sb-upload__name{font-size:11.5px;color:var(--muted);max-width:22ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sb-works{display:grid;gap:8px}
-.sb-work{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;border-radius:12px;background:var(--cream);border:1px solid var(--line)}
+.sb-work{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;border-radius:12px;}
 .sb-work legend{font-size:12px;font-weight:800;color:var(--ink-2);padding:0 4px}
 .sb-work .wide{grid-column:1/-1}
-.sb-remove{justify-self:start;min-height:34px;padding:0 12px;border-radius:var(--r-pill);border:1px solid var(--line-2);
-  background:var(--paper);font-size:11.5px;font-weight:700;color:#8C3B2A;cursor:pointer}
-.sb-add{justify-self:start;min-height:38px;padding:0 14px;border-radius:var(--r-pill);border:1.5px solid var(--emerald);
-  background:var(--emerald-wash);color:var(--emerald-deep);font-size:12.5px;font-weight:800;cursor:pointer}
+/* «حذف نمونه‌کار» wears the shared light glass like every other control; only its rust
+   label says what it does (7.6:1 on the glass). This file is loaded after the recipe,
+   so the label here is the one that sticks. */
+.sb-remove{justify-self:start;min-height:34px;padding:0 12px;border-radius:var(--r-pill);
+  font-size:11.5px;font-weight:700;color:#8C3B2A;cursor:pointer}
+/* The studio's own two calls («افزودن نمونه‌کار» and «آماده‌کردن پیش‌نمایش») wear the shared
+   glass material: this file only sizes them, because it is loaded after the recipe. */
+.sb-add{--glass-bg:rgba(228,244,238,.92);justify-self:start;min-height:38px;padding:0 14px;border-radius:var(--r-pill);
+  border:1.5px solid var(--emerald);color:var(--emerald-deep);font-size:12.5px;font-weight:800;cursor:pointer}
 
 .sb-error{margin:0;min-height:1.4em;font-size:12.5px;font-weight:700;color:#9C3A2A}
 .sb-note--form{margin:0;font-size:11.5px;line-height:1.8;color:var(--muted)}
