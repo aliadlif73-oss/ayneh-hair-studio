@@ -1,0 +1,75 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>بازبینی بصری آینه — حالت عادی، بدون hover و focus</title>
+<style>
+ :root{--ink:#0A202A;--line:#E3DDD3;--bg:#F6F1EA}
+ *{box-sizing:border-box}
+ body{margin:0;padding:0 0 60px;background:var(--bg);color:var(--ink);
+  font:14px/1.8 "Vazirmatn","Estedad",system-ui,sans-serif}
+ header{padding:26px 24px 18px;border-bottom:1px solid var(--line);background:#fff}
+ h1{margin:0 0 6px;font-size:20px;font-weight:900}
+ header p{margin:0;color:#5D6B68;font-size:13.5px;max-width:78ch}
+ .note{margin:12px 0 0;padding:10px 14px;border-radius:12px;background:#EAF3EF;
+  border:1px solid #CFE6DD;font-size:13px;color:#0A6B54}
+ .note.err{background:#FBECEA;border-color:#F0CFC9;color:#8C3B2A}
+ ul{margin:14px 0 0;padding:0;list-style:none;display:grid;gap:6px}
+ li{display:grid;grid-template-columns:16em 1fr;gap:12px;align-items:start;
+  padding:7px 12px;background:#fff;border:1px solid var(--line);border-radius:10px}
+ li b{font-weight:800} li span{color:#4A5C5C}
+ .cols{display:flex;gap:26px;align-items:flex-start;padding:22px 24px;overflow-x:auto}
+ .dev{flex:0 0 auto}
+ .dev__bar{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+  margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+ .dev__bar b{font-size:15px} .dev__bar span{font:12px ui-monospace,monospace;color:#5D6B68}
+ .dev__stack{display:grid;gap:18px}
+ section h4{margin:0 0 5px;font-size:12.5px;font-weight:800;color:#5D6B68}
+ .shot{position:relative;border:1px solid var(--line);border-radius:14px;overflow:hidden;
+  background:#fff;box-shadow:0 4px 16px rgba(10,32,42,.08)}
+ /* The point of this page: the pointer can never enter a frame, so nothing inside is
+    ever hovered or focused. Every control you see is in its resting state. */
+ iframe{display:block;border:0;pointer-events:none;transform-origin:0 0}
+</style></head><body>
+<header>
+ <h1>بازبینی بصری — حالت عادی، بدون hover و بدون focus</h1>
+ <p>پنج نما در دو عرض، همان‌طور که بدون حرکتِ موس دیده می‌شوند. اشاره‌گر روی قاب‌ها غیرفعال
+ است، پس هیچ کنترلی در حالت hover یا focus نیست — دقیقاً همان حالتی که bug ۱ می‌خواست.</p>
+ <div class="note" id="note">در حال اتصال…</div>
+ <ul><li><b>صفحهٔ اصلی — بالا</b><span>«نمونه بساز» و «روی عکس خودم امتحان کن» در حالت عادی سبزِ زمردی‌اند</span></li>
+<li><b>بخش تعرفه‌ها</b><span>فقط کارتِ «پیشنهاد آینه» دکمهٔ سبز دارد؛ بقیه شیشهٔ روشن با متنِ جوهری</span></li>
+<li><b>مدل مو</b><span>تب‌های خدمت، اسلایدر قبل/بعد و «بساز» یک جنس‌اند</span></li>
+<li><b>ناخن</b><span>همان سیستمِ شیشه در همهٔ دکمه‌ها و آیکون‌ها</span></li>
+<li><b>امتحان روی عکس خودتان</b><span>تب‌های خدمت: انتخاب‌شده سبز، بقیه روشن؛ «بساز» سبز</span></li></ul>
+</header>
+<div class="cols">
+<div class="dev w1366">
+<div class="dev__bar"><b>دسکتاپ</b><span>1366×900</span></div>
+<div class="dev__stack">
+<section><h4>صفحهٔ اصلی — بالا</h4><div class="shot" style="width:1366px;height:900px"><iframe loading="lazy" width="1366" height="900" data-src="/" style="transform:none"></iframe></div></section>
+<section><h4>بخش تعرفه‌ها</h4><div class="shot" style="width:1366px;height:900px"><iframe loading="lazy" width="1366" height="900" data-src="/#h-plans" style="transform:none"></iframe></div></section>
+<section><h4>مدل مو</h4><div class="shot" style="width:1366px;height:900px"><iframe loading="lazy" width="1366" height="900" data-src="/hair" style="transform:none"></iframe></div></section>
+<section><h4>ناخن</h4><div class="shot" style="width:1366px;height:900px"><iframe loading="lazy" width="1366" height="900" data-src="/nails" style="transform:none"></iframe></div></section>
+<section><h4>امتحان روی عکس خودتان</h4><div class="shot" style="width:1366px;height:900px"><iframe loading="lazy" width="1366" height="900" data-src="/try" style="transform:none"></iframe></div></section>
+</div></div>
+<div class="dev w390">
+<div class="dev__bar"><b>موبایل</b><span>390×844</span></div>
+<div class="dev__stack">
+<section><h4>صفحهٔ اصلی — بالا</h4><div class="shot" style="width:390px;height:844px"><iframe loading="lazy" width="1366" height="2956" data-src="/" style="transform:scale(0.2855)"></iframe></div></section>
+<section><h4>بخش تعرفه‌ها</h4><div class="shot" style="width:390px;height:844px"><iframe loading="lazy" width="1366" height="2956" data-src="/#h-plans" style="transform:scale(0.2855)"></iframe></div></section>
+<section><h4>مدل مو</h4><div class="shot" style="width:390px;height:844px"><iframe loading="lazy" width="1366" height="2956" data-src="/hair" style="transform:scale(0.2855)"></iframe></div></section>
+<section><h4>ناخن</h4><div class="shot" style="width:390px;height:844px"><iframe loading="lazy" width="1366" height="2956" data-src="/nails" style="transform:scale(0.2855)"></iframe></div></section>
+<section><h4>امتحان روی عکس خودتان</h4><div class="shot" style="width:390px;height:844px"><iframe loading="lazy" width="1366" height="2956" data-src="/try" style="transform:scale(0.2855)"></iframe></div></section>
+</div></div>
+</div>
+<script>
+/* The sandbox host changes every time the workspace is restored. If this file is opened
+   from the preview itself, use that origin; otherwise fall back to the last known one. */
+var FALLBACK='https://4173-ieqi86u4j4s4g3w9zmmgz.e2b.app';
+var BASE=/^https?:\/\/\d+-[a-z0-9]+\.e2b\.app$/.test(location.origin)?location.origin:FALLBACK;
+var note=document.getElementById('note');
+document.querySelectorAll('iframe[data-src]').forEach(function(f){f.src=BASE+f.dataset.src});
+fetch(BASE+'/hair',{mode:'no-cors'}).then(function(){note.textContent='متصل به '+BASE;})
+ .catch(function(){note.className='note err';
+  note.innerHTML='پیش‌نمایش در دسترس نیست. سرور باید روی پورت ۴۱۷۳ در حال اجرا باشد. '
+   +'آدرسِ فعلی: <span dir="ltr">'+BASE+'</span>';});
+</script>
+</body></html>
