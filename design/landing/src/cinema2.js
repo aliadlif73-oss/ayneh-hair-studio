@@ -17,7 +17,8 @@
 
   /* ── tunables ── */
   const ENTER = 1.0;       // a section starts moving the moment its top enters the screen
-  const FULL  = 0.72;      // …and is fully home while it is still in the lower third, so nothing you can read is half-faded
+  /* On a phone a card that is already on screen must not wait half a scroll to become readable. */
+  const FULL  = matchMedia('(max-width: 768px)').matches ? 0.9 : 0.72;      // …and is fully home while it is still in the lower third, so nothing you can read is half-faded
   const GOLD  = new Set(['آینه', 'شما', 'خودش', 'سالن', 'آینه،', 'رشد', 'حرفه‌ای', 'مجموعه', 'زیبایی', 'مشتری']);
 
   const clamp = (v, a = 0, b = 1) => v < a ? a : v > b ? b : v;
