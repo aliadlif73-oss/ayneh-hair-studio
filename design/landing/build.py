@@ -16,7 +16,7 @@ W = lambda p, s: open(p, 'w', encoding='utf8').write(s)
 # Everything the new page references, synced into public/landing/ so the worker
 # and the static preview read the same bytes.
 DEMOS = ['demo-%s-%s.webp' % (s, k) for s in ('style', 'color', 'lashes', 'nails') for k in ('before', 'after')]
-SYNC = re.compile(r'(hero\.webp|salon-film-0[1-5]\.webp|(?:hair|lashes|nails)-end\.webp|%s|estedad\.woff2|look-s\d\d\.webp|(?:hero|look-s\d\d)-hd\.webp|story-\d[lr]\.webp|sample-(?:hair|color|nails|lashes)-(?:before|after)\.webp|ayneh-logo-lg\.webp)$' % '|'.join(re.escape(d) for d in DEMOS))
+SYNC = re.compile(r'(hero\.webp|salon-film-0[1-5]\.webp|(?:hair|lashes|nails)-end\.webp|%s|estedad\.woff2|look-s\d\d\.webp|(?:hero|look-s\d\d)-hd\.webp|story-\d[lr]\.webp|sample-(?:hair|color|nails|lashes)-(?:before|after)\.webp|ayneh-logo-lg\.webp|hero-mix-[0-3]\.webp|salon-cover\.webp)$' % '|'.join(re.escape(d) for d in DEMOS))
 for asset in os.listdir('assets'):
     if SYNC.match(asset):
         shutil.copyfile('assets/' + asset, '../../public/landing/' + asset)
@@ -469,10 +469,25 @@ def make_pages(full):
                 '<span><b>%s</b><small>%s</small></span></a>') % (s['path'], s['pair'], s['label'], s['label'], s['card'])
 
     # ---- home ----
+    # The home hero shows one woman in three combined looks (hairstyle + colour + lashes + nails),
+    # so a visitor sees at once that every service is covered (owner's decision). 5 frames, 15 s.
+    def mix(h):
+        f1 = re.search(r'<figure class="loop__f loop__f--1">[\s\S]*?</figure>', h).group(0)
+        f2 = re.search(r'<figure class="loop__f loop__f--2">[\s\S]*?</figure>', h).group(0)
+        f3 = re.search(r'<figure class="loop__f loop__f--3">', h).group(0)
+        cap1 = re.search(r'<figcaption>[\s\S]*?</figcaption>', f1).group(0)
+        new1 = ('<figure class="loop__f loop__f--1">\n                <img src="assets/hero-mix-0.webp" width="450" height="600" fetchpriority="high" decoding="async" alt="نمونهٔ نمایشی از عکس مشتری">\n                ' + cap1 + '\n              </figure>')
+        looks = ['مدل مو، رنگ، مژه و ناخن', 'مدل و رنگ دیگر، مژه و ناخن دیگر', 'یک ترکیب دیگر']
+        new2 = ''.join(
+            '\n              <figure class="loop__f loop__f--m%d">\n                <img src="assets/hero-mix-%d.webp" width="450" height="600" decoding="async" alt="نمونهٔ نمایشی: ترکیب مدل مو، رنگ مو، مژه و ناخن روی عکس مشتری">\n                <figcaption>%s%s</figcaption>\n              </figure>' % (i, i, SPARK, looks[i - 1])
+            for i in (1, 2, 3))
+        h = h.replace(f1, new1).replace(f2, new2.strip()).replace(f3, '<figure class="loop__f loop__f--3 loop__f--m4">')
+        h = h.replace('hero-stage loop"', 'hero-stage loop loop--mix"').replace('سه قاب پشت‌سرهم', 'پنج قاب پشت‌سرهم')
+        return h.replace('<li></li><li></li><li></li>', '<li></li><li></li><li></li><li></li><li></li>')
     home_main = (
-        hero('style', '', '«این مدل بهم می‌اد؟» را', 'دیگر حدسی جواب ندهید.',
+        mix(hero('style', '', '«این مدل بهم می‌اد؟» را', 'دیگر حدسی جواب ندهید.',
              'مشتری مدل مو، رنگ، ناخن و مژه را روی عکس خودش می‌بیند و با خیال راحت نوبت می‌گیرد.',
-             'مدل را می‌بیند', 'درخواست مدل مو', HOME_NOTE)
+             'مدل را می‌بیند', 'درخواست مدل مو', HOME_NOTE))
         + demo(list(LINE_TITLE), 'خودتان <em>امتحان کنید.</em>', 'عکس خودتان را بگذارید و مدل را ببینید.', 'hair')
         + section(home_src, 'how') + studio
         + section(home_src, 'get').replace('{{CHAT}}', chat('style', 'درخواست مدل مو'))

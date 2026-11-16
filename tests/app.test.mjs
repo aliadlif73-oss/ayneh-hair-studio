@@ -842,7 +842,7 @@ test('landing carries an absolute share image and revalidates instead of going s
  assert.match(html,/<meta name="ayneh-build" content="[a-f0-9]{12}">/,'the page names its build');
  assert.match(html,new RegExp('og:image" content="'+origin+'/landing/og.jpg"'));assert.doesNotMatch(html,/__ORIGIN__/);assert.ok(readFileSync(new URL('../public/landing/og.jpg',import.meta.url)).length>10000)});
 
-test('demo salon behind the landing: no sign-up, 2 images per visitor, a coarse network cap, no 360 view, look handed over by the landing',async()=>{
+test('demo salon behind the landing: no sign-up, 1 image per visitor, a coarse network cap, no 360 view, look handed over by the landing',async()=>{
  const e=tgEnv(fixture());e.KIE_API_KEY='mock';const s={slug:'demo'};
  // Even with SMS configured, the visitor demo asks for no mobile (owner's decision).
  smsEnv(e);
@@ -855,14 +855,17 @@ test('demo salon behind the landing: no sign-up, 2 images per visitor, a coarse 
  globalThis.fetch=async(url,opts)=>{const u=String(url);if(u.includes('createTask'))prompts.push(JSON.parse(opts.body).input.prompt);if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(u.includes('createTask'))return Response.json({code:200,data:{taskId:'t'+crypto.randomUUID()}});return net(url,opts)};
  try{
   const first=await gen({apply_color:true,color:'شرابی'});assert.equal(first.status,200,JSON.stringify(first));assert.match(prompts[0],/burgundy/i);
-  assert.equal((await gen()).status,200);assert.match(prompts[1],/original.*colou?r|colou?r.*original/i);
-  const third=await gen();assert.equal(third.status,429);assert.match(third.data.error,/پنل آینه را بگیرید/);
+  const second=await gen();assert.equal(second.status,429,'one free try per visitor');assert.match(second.data.error,/ثبت‌نام کنید و حسابتان را شارژ کنید/);
   // A new session in the same browser is the same visitor.
   const g2=await guest(e,s),img2=await upload(e,s,g2);
-  assert.equal((await gen({},g2,img2)).status,429,'same browser id, same 2 images');
+  assert.equal((await gen({},g2,img2)).status,429,'same browser id, same one image');
   // A failed image does not count.
   e.DB.sql.prepare("UPDATE generations SET state='fail' WHERE id=?").run(first.data.id);
   assert.equal((await gen()).status,200,'the failed image gave its turn back');
+  {const gc=await guest(e,s),ic=await upload(e,s,gc),n=prompts.length;
+   const r=await call(e,'/api/s/demo/generate',{image_consent:true,idem:crypto.randomUUID(),original_id:ic,custom:'مدل موی پیکسی کوتاه با چتری',v:'cf'.repeat(16)},{...gc,headers:{'cf-connecting-ip':'198.51.100.99'}});
+   assert.equal(r.status,200,'a look she typed herself is made');assert.ok(prompts[n]&&prompts[n].includes('مدل موی پیکسی کوتاه با چتری'),'her own words reach the prompt')}
+  const pubd=await call(e,'/api/s/demo/public');assert.equal(pubd.data.salon.name,'سالن آینه');assert.equal(pubd.data.salon.profile.cover_url,'/landing/salon-cover.webp');
   const views=await call(e,'/api/s/demo/views',{idem:crypto.randomUUID(),parent:'x'},g);assert.equal(views.status,400,'no 360 view in the demo');
   // Fresh browsers on one network: the hashed-IP counter stops them after DEMO_IP_DAILY images.
   const {DEMO_IP_DAILY}=await import('../worker/demo.js');let stopped=null;
@@ -1088,8 +1091,8 @@ test('copy plan: the home page opens with one hero, the approved headline, one m
  assert.match(hero,/class="btn btn--lg" href="#demo">روی عکس خودم امتحان کنم</,'it opens the live demo');
  assert.match(hero,/class="hero-link" href="#services">قیمت پلن‌ها/,'the price link is a text link');
  assert.doesNotMatch(hero,/ساخت صفحهٔ من|خرید پلن/,'no second sales button in the hero');
- assert.equal((hero.match(/<figure class="loop__f /g)||[]).length,3,'three frames');
- for(const f of ['مشتری عکس می‌گذارد','مدل را می‌بیند','درخواست به شما می‌رسد'])assert.ok(hero.includes(f),'frame '+f);
+ assert.equal((hero.match(/<figure class="loop__f /g)||[]).length,5,'before, three combined looks, the request');assert.ok(hero.includes('hero-mix-1.webp')&&hero.includes('loop--mix'),'mixed looks of every service');
+ for(const f of ['مشتری عکس می‌گذارد','مدل مو، رنگ، مژه و ناخن','درخواست به شما می‌رسد'])assert.ok(hero.includes(f),'frame '+f);
  assert.ok(hero.includes('نمونهٔ نمایشی؛ شبیه‌سازی تقریبی است'),'the loop is labelled a sample and approximate');
  assert.match(landingHTML,/\.loop__f\{[^}]*animation:loopFrame 8s linear infinite/,'a self-running 8-second loop, no scroll and no sound');
  assert.doesNotMatch(hero,/<video|<audio/,'no sound');
@@ -1333,7 +1336,7 @@ test('step 24 budget: payload and markup stay inside the review envelope',()=>{
  assert.ok(landingHTML.length<250000,'landing under 250k ('+landingHTML.length+')');
  assert.ok(landingHTML.length>60000,'the page still carries its content');
  assert.match(landingHTML,/og:image" content="__ORIGIN__\/landing\/og\.jpg"/,'the share image is origin-relative in source');
- assert.equal((landingHTML.match(/__ORIGIN__/g)||[]).length,4,'signup links and the share image carry the origin token');
+ assert.equal((landingHTML.match(/__ORIGIN__/g)||[]).length,12,'signup links, the share image, the canonical and the organisation data carry the origin token');
  assert.equal((landingHTML.match(/<h1[\s>]/g)||[]).length,1);
  // The retired engine is the NAVY one (cinema.css / cinema.js with .sec-head, .kicker,
  // .film-player, #transform). The redesigned page has its own scroll-scrubbed entrances in
@@ -2664,4 +2667,19 @@ test('result: Instagram story keeps the result untouched and signs it with the r
  assert.ok(js.includes("g.filter='none';rr(dx,dy,dw,dh,rad);g.clip();g.drawImage(img,dx,dy,dw,dh)"),'the result itself is drawn whole and unfiltered');
  assert.match(js,/\(state\.pub\.direct\|\|state\.pub\.demo\)\?\{name:'آینه',logo:'\/landing\/ayneh-logo-lg\.webp'/,'Ayneh pages sign with Ayneh');
  assert.match(js,/logo:p\.logo\?media\(p\.logo\):''/,'salon pages sign with the salon logo');
+});
+test('search engines: canonical per page, robots.txt, sitemap.xml and organisation data',async()=>{
+ const e=fixture();
+ for(const p of ['/','/hair','/color','/nails','/lashes','/salon-panel','/sample']){
+  const html=await (await app.fetch(new Request(origin+p),e)).text();
+  assert.ok(html.includes('<link rel="canonical" href="'+origin+p+'">'),'canonical '+p);
+  assert.doesNotMatch(html,/__CANON__|__ORIGIN__/,'no placeholder left on '+p);
+  assert.ok(html.includes('"@type":"Organization"'),'organisation data on '+p);
+ }
+ assert.doesNotMatch(await (await app.fetch(new Request(origin+'/pay'),e)).text(),/__CANON__/);
+ const robots=await (await app.fetch(new Request(origin+'/robots.txt'),e)).text();
+ assert.match(robots,/Disallow: \/admin/);assert.match(robots,/Disallow: \/api\//);assert.ok(robots.includes('Sitemap: '+origin+'/sitemap.xml'));
+ const map=await (await app.fetch(new Request(origin+'/sitemap.xml'),e)).text();
+ for(const p of ['/hair','/salon-panel','/try'])assert.ok(map.includes('<loc>'+origin+p+'</loc>'),'sitemap '+p);
+ assert.doesNotMatch(map,/admin|example\/panel|\/s\//);
 });

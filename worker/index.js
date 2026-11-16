@@ -45,23 +45,26 @@ export default {
   // /pay is the checkout's own address (shared links and the QR on a receipt); the landing
   // page carries the same sheet inline, so both land on the same server-side order.
   if(/^\/panel\/?$/.test(u.pathname))return new Response(panelHTML,{headers:{...htmlHeaders,'X-Robots-Tag':'noindex'}});
-  if(/^\/pay\/?$/.test(u.pathname))return new Response(servicePages.hair.replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-store','X-Robots-Tag':'noindex'}});
+  if(/^\/pay\/?$/.test(u.pathname))return new Response(servicePages.hair.replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin).replaceAll('__CANON__','/hair'),{headers:{...htmlHeaders,'Cache-Control':'no-store','X-Robots-Tag':'noindex'}});
   if(u.pathname==='/salon-preview')return new Response(customerHTML,{headers:{...htmlHeaders,'X-Frame-Options':'SAMEORIGIN','X-Robots-Tag':'noindex','Content-Security-Policy':htmlHeaders['Content-Security-Policy'].replace("frame-ancestors 'none'","frame-ancestors 'self'")}});
   /* The landing page is the one thing the owner keeps reloading while we work on it, and a
      five-minute max-age with an hour of stale-while-revalidate meant a phone could show a
      build from an hour ago while the server was already serving the new one. The page is not
      an asset: let the browser revalidate it every time, cheaply (304 via ETag below). */
   /* ?ref=CODE on a public page keeps the referral in a first-party cookie (worker/rewards.js). */
-  if(u.pathname==='/')return new Response(landingHTML.replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-cache',...refCookie(u,request)}});
+  // Search engines: the public pages only; panels, the owner console, the API and salon pages stay out.
+  if(u.pathname==='/robots.txt')return new Response('User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /admin\nDisallow: /panel\nDisallow: /pay\nDisallow: /new\nDisallow: /s/\n\nSitemap: '+(env.APP_ORIGIN||u.origin)+'/sitemap.xml\n',{headers:{'Content-Type':'text/plain; charset=utf-8','Cache-Control':'public,max-age=3600'}});
+  if(u.pathname==='/sitemap.xml'){const o=env.APP_ORIGIN||u.origin;return new Response('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'+['/','/hair','/color','/nails','/lashes','/salon-panel','/sample','/try'].map(p=>'<url><loc>'+o+p+'</loc></url>').join('\n')+'\n</urlset>\n',{headers:{'Content-Type':'application/xml; charset=utf-8','Cache-Control':'public,max-age=3600'}})}
+  if(u.pathname==='/')return new Response(landingHTML.replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin).replaceAll('__CANON__','/'),{headers:{...htmlHeaders,'Cache-Control':'no-cache',...refCookie(u,request)}});
   /* One page per service: /hair (style and colour), /nails, /lashes. Same headers as the home page. */
   const svc=u.pathname.match(/^\/(hair|color|nails|lashes|salon-panel|sample)\/?$/);
-  if(svc)return new Response(servicePages[svc[1]==='salon-panel'?'salon':svc[1]].replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-cache',...refCookie(u,request)}});
+  if(svc)return new Response(servicePages[svc[1]==='salon-panel'?'salon':svc[1]].replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin).replaceAll('__CANON__','/'+svc[1]),{headers:{...htmlHeaders,'Cache-Control':'no-cache',...refCookie(u,request)}});
   /* The regular customer's page: no salon link, 3 free images, then her own packs. */
   if(/^\/try\/?$/.test(u.pathname)){must(env.DB,'پایگاه داده هنوز آماده نیست',503);const d=await directSalon(env.DB);return new Response(tryHTML(d.slug),{headers:{...htmlHeaders,...refCookie(u,request)}});}
   /* Hit when a preview is holding an old copy and no amount of reloading helps: a URL that
      has never existed cannot be cached, so /new serves the current build under a fresh path.
      It carries no robots policy change — it is the same page, just honest about being new. */
-  if(u.pathname==='/new')return new Response(landingHTML.replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin),{headers:{...htmlHeaders,'Cache-Control':'no-store','X-Robots-Tag':'noindex'}});
+  if(u.pathname==='/new')return new Response(landingHTML.replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin).replaceAll('__CANON__','/'),{headers:{...htmlHeaders,'Cache-Control':'no-store','X-Robots-Tag':'noindex'}});
   if(!pages.some(r=>r.test(u.pathname)))return new Response(notFound,{status:404,headers:htmlHeaders});
   if(/^\/i\/[a-z0-9-]{1,64}\/?$/.test(u.pathname)){const html=await sharePage(u,env);return new Response(html||notFound,{status:html?200:404,headers:htmlHeaders});}
   if(/^\/s\/[a-z0-9-]{1,64}\/?$/.test(u.pathname)){const html=await salonPage(u,env);return html?new Response(html,{headers:{...htmlHeaders,'X-Frame-Options':'SAMEORIGIN','Content-Security-Policy':htmlHeaders['Content-Security-Policy'].replace("frame-ancestors 'none'","frame-ancestors 'self'")}}):new Response(notFound,{status:404,headers:htmlHeaders});}

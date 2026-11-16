@@ -154,14 +154,14 @@ const attr = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': 
 /* The page for one direct salon slug; the slug is only ever the system salon's own. */
 export function tryHTML(slug) {
   return '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#e8edeb"><link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest">'
-    + '<title>امتحان روی عکس خودتان | آینه</title><meta name="description" content="مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید. ۳ نمونهٔ رایگان. بدون نصب.">'
+    + '<title>امتحان روی عکس خودتان | آینه</title><meta name="description" content="مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید. یک نمونهٔ رایگان. بدون نصب.">'
     + '<style>' + baseCSS + packsCSS + tryCSS + '</style></head><body>'
     + '<main class="tr">'
     + '<div class="tr-bar"><a class="tr-brand" href="/"><span aria-hidden="true">' + markSVG + '</span>آینه</a></div>'
-    + '<section class="tr-hero"><h1>مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید.</h1><p>۳ نمونهٔ رایگان. بدون نصب.</p><p id="trLeft" class="tr-left" aria-live="polite"></p></section>'
+    + '<section class="tr-hero"><h1>مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید.</h1><p>یک نمونهٔ رایگان. بدون نصب.</p><p id="trLeft" class="tr-left" aria-live="polite"></p></section>'
     + '<div class="tr-frame"><iframe id="trFrame" src="/s/' + attr(slug) + '?embed=1" title="امتحان روی عکس خودتان" allow="camera"></iframe></div>'
     + '<button id="trMore" class="btn btn--ghost btn--sm tr-more" type="button" hidden>نمونهٔ بیشتر می‌خواهید؟</button>'
-    + '<section id="trPacks" class="tr-card" hidden><h2 id="trOutTitle">۳ نمونهٔ رایگانتان تمام شد.</h2><p>نمونهٔ بیشتر می‌خواهید؟ یک بسته انتخاب کنید.</p><div id="trPackBox"></div></section>'
+    + '<section id="trPacks" class="tr-card" hidden><h2 id="trOutTitle">نمونهٔ رایگانتان استفاده شد.</h2><p>برای نمونه‌های بیشتر، ثبت‌نام کنید و حسابتان را شارژ کنید.</p><div id="trPackBox"></div></section>'
     + '<section id="trRef" class="tr-card tr-ref" hidden><p>آرایشگر یا آرایشگاه‌دار می‌شناسید؟ لینک شما را به او بدهید؛ اگر پلن آینه بگیرد، ' + REFERRAL_IMAGES.toLocaleString('fa-IR') + ' تصویر هدیه می‌گیرید.</p><div class="tr-link"><code id="trRefLink"></code><button id="trCopy" class="btn btn--soft btn--sm" type="button">کپی لینک</button></div></section>'
     + '</main>'
     + '<footer class="tr-foot">نتیجه تقریبی است. عکس شما فقط برای ساخت نمونه استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.</footer>'

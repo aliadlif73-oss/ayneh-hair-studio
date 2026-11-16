@@ -38,7 +38,7 @@ async function webhookPay(e,ref,amount){const key=(await call(e,'/api/owner/paym
 test('/try: the regular customer page carries the owner\'s copy and embeds the real try-on of the direct salon',async()=>{
  const e=fixture();
  const res=await app.fetch(new Request(origin+'/try'),e);assert.equal(res.status,200);const html=await res.text();
- for(const t of ['مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید.','۳ نمونهٔ رایگان. بدون نصب.','۳ نمونهٔ رایگانتان تمام شد.','نمونهٔ بیشتر می‌خواهید؟ یک بسته انتخاب کنید.','آرایشگر یا آرایشگاه‌دار می‌شناسید؟ لینک شما را به او بدهید؛ اگر پلن آینه بگیرد، ۱۰ تصویر هدیه می‌گیرید.','نتیجه تقریبی است. عکس شما فقط برای ساخت نمونه استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.','تعداد بیشتر می‌خواهم','تصاویر به حساب شما اضافه شد.'])
+ for(const t of ['مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید.','یک نمونهٔ رایگان. بدون نصب.','نمونهٔ رایگانتان استفاده شد.','ثبت‌نام کنید و حسابتان را شارژ کنید.','آرایشگر یا آرایشگاه‌دار می‌شناسید؟ لینک شما را به او بدهید؛ اگر پلن آینه بگیرد، ۱۰ تصویر هدیه می‌گیرید.','نتیجه تقریبی است. عکس شما فقط برای ساخت نمونه استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.','تعداد بیشتر می‌خواهم','تصاویر به حساب شما اضافه شد.'])
   assert.ok(html.includes(t),'copy: '+t);
  assert.match(html,/<iframe id="trFrame" src="\/s\/try\?embed=1"/);
  // what a salon buys is a «پلن» (AGENTS.md); the photo line says where the photo goes, honestly
@@ -53,14 +53,14 @@ test('/try: the regular customer page carries the owner\'s copy and embeds the r
  const plan=await planSalon(e,'essential','09125550001','Try');assert.notEqual(plan.slug,'try');
 });
 
-test('regular customer: 3 free images in all, then packs priced only by the server, confirmed by the webhook, never from a salon credit',async()=>{
+test('regular customer: 1 free image in all, then packs priced only by the server, confirmed by the webhook, never from a salon credit',async()=>{
  const e=fixture(),p=mockProvider();
  try{
   await app.fetch(new Request(origin+'/try'),e);
   const g=await guest(e,'try'),original=await upload(e,'try',g),v='cd'.repeat(16);
-  for(const line of ['hair','nails','lashes'])assert.equal((await gen(e,'try',g,original,v,line)).status,200,line);
+  assert.equal((await gen(e,'try',g,original,v,'hair')).status,200,'the one free try');
   const out=await gen(e,'try',g,original,v,'color',{color:'شرابی',style:undefined});
-  assert.equal(out.status,429);assert.match(out.data.error,/۳ نمونهٔ رایگانتان تمام شد/);
+  assert.equal(out.status,429);assert.match(out.data.error,/نمونهٔ رایگانتان استفاده شد/);
   let sess=await call(e,'/api/s/try/session?v='+v,undefined,g);assert.equal(sess.data.quota.free,0);assert.deepEqual(Object.values(sess.data.quota.left),[0,0,0,0]);
   let me=await call(e,'/api/c/me?v='+v,undefined,g);
   assert.equal(me.data.free.left,0);assert.equal(me.data.own.left,0);assert.equal(me.data.price,30000);assert.equal(me.data.custom_default,13);
