@@ -304,9 +304,10 @@ ul,ol{padding:0;list-style:none}
 .step{position:relative;display:flex;flex-direction:column;gap:10px;padding:clamp(13px,1.6vw,18px);
   padding-top:clamp(26px,3vw,32px);background:var(--paper);border:1px solid var(--line);border-radius:var(--r-xl);
   box-shadow:var(--shadow-sm)}
-/* centred on the start edge: inset-inline-start puts the badge's start edge on the middle
-   line, and the physical translateX(50%) pulls it back by half its width in either direction. */
-.step__num{position:absolute;top:-15px;inset-inline-start:50%;transform:translateX(50%);display:grid;place-items:center;
+/* Centred on the middle line whatever the writing direction is: the abspos box is stretched
+   edge to edge and auto inline margins centre it, so there is no physical translate to get
+   wrong when the direction flips. (A translateX(50%) here only centres in RTL.) */
+.step__num{position:absolute;top:-15px;inset-inline:0;margin-inline:auto;display:grid;place-items:center;
   width:34px;height:34px;border-radius:50%;background:var(--emerald-deep);color:#fff;font-size:14px;font-weight:900;
   box-shadow:0 4px 12px rgba(6,143,108,.3);border:3px solid var(--cream)}
 .section--soft .step__num{border-color:var(--cream-2)}
@@ -1583,9 +1584,12 @@ body{background:transparent}
 .plan ul li:last-child{border-bottom:0}
 .plan li small{display:block;font-size:11.5px;line-height:1.7;font-weight:400;color:var(--muted)}
 .plan--lead{border:2px solid #D8B46A;background:linear-gradient(180deg,#F1F8F4,#fff 40%)}
-.plan__badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#C9A15A,#E6C989);color:#3B2A0B;
-  inset-inline-start:50%;transform:translateX(50%);white-space:nowrap}/* centred like .step__num */
-.plan__badge svg{width:15px;height:15px}
+/* Only the recommended card carries a badge («پیشنهاد آینه», «بهترین»), and its seal is the
+   gold one, centred on the top edge. Any other plan's badge keeps the emerald start-corner
+   rule in section 5 — which is why this is scoped to .plan--lead and not to .plan__badge. */
+.plan--lead .plan__badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#C9A15A,#E6C989);color:#3B2A0B;
+  inset-inline:0;width:fit-content;margin-inline:auto;white-space:nowrap}/* centred like .step__num */
+.plan--lead .plan__badge svg{width:15px;height:15px}
 .plan-note{justify-content:center;text-align:center;font-weight:800;color:var(--ink)}
 @media(max-width:860px){.plan__was[aria-hidden="true"]{display:none}}
 

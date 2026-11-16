@@ -1964,6 +1964,37 @@ test('before/after follows the finger in RTL, plays itself first, and step label
  // RTL: the step number sits at the inline start, so the padding that clears it must too
  assert.match(servicePages.hair,/\.sb-steps li\{[^}]*padding-inline:46px 14px/,'studio step titles are not under their numbers');
  assert.doesNotMatch(servicePages.hair,/\.nav\{[^}]*margin-inline-start:auto/,'the header menu sits beside the logo, not pushed to the left');
+ // «قبل» on the right, «بعد» on the left: the tags are placed with logical edges, so they
+ // follow the writing direction rather than sitting on a hard-coded side.
+ assert.match(servicePages.hair,/\.compare__tag--before\{inset-inline-start:10px\}/,'«قبل» is on the start (right) edge');
+ assert.match(servicePages.hair,/\.compare__tag--after\{inset-inline-end:10px/,'«بعد» is on the end (left) edge');
+ // The 2px divider has to sit ON the split: it is pulled back with a logical margin. A
+ // physical translateX(-1px) would push it off the split in one writing direction.
+ assert.match(servicePages.hair,/\.compare__divider\{[^}]*inset-inline-start:var\(--split,50%\);width:2px[^}]*margin-inline-start:-1px\}/,'the divider is centred on the split logically');
+ assert.match(servicePages.hair,/\.compare__knob\{[^}]*margin-inline-start:-20px;/,'and so is its handle');
+ // Keyboard: the range runs right-to-left, so the native thumb sits where the divider is and
+ // each arrow key moves it the way it points. aria-valuenow is the range's own value.
+ assert.match(servicePages.hair,/range\.value=v;box\.style\.setProperty\('--split',v\+'%'\)/,'the value and the split can never disagree');
+ assert.match(servicePages.hair,/if\(still\)\{set\(50\);return\}/,'with no motion the slider just sits in the middle');
+ // A centred badge must not depend on the writing direction: stretching the abspos box and
+ // letting auto inline margins centre it works in either one; translateX(50%) only works in RTL.
+ const rtlSource=['site.css','studio.css','copy.css'].map(f=>readFileSync(new URL('../design/landing/src/'+f,import.meta.url),'utf8')).join('\n');
+ for(const [name,sel] of [['the step number','\\.step__num'],['the setup number','\\.setup__num'],['the recommended card\'s badge','\\.plan--lead \\.plan__badge']]){
+  // anchored to the start of a line, so a compound rule like .section--soft .step__num
+  // is not mistaken for the .step__num rule itself
+  const all=[...rtlSource.matchAll(new RegExp('^'+sel+'\\{[^}]*\\}','gm'))].map(m=>m[0]);
+  assert.ok(all.length,name+' rule exists');
+  const win=all[all.length-1];   // the last one is the one that sticks
+  assert.match(win,/inset-inline:0/,'inset-inline:0 stretches the box of '+name);
+  assert.match(win,/margin-inline:auto/,'margin-inline:auto centres the box of '+name);
+  assert.doesNotMatch(win,/translateX/,'no physical translate centres the box of '+name);
+ }
+ // The only physical edges left are the ones that must stay physical, each with its reason.
+ const ship=['site.css','studio.css','copy.css'].map(f=>readFileSync(new URL('../design/landing/src/'+f,import.meta.url),'utf8')).join('\n');
+ const physical=[...ship.replace(/\/\*[\s\S]*?\*\//g,'').matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+  .filter(m=>/(^|;|\s)(left|right|margin-left|margin-right|padding-left|padding-right):/.test(m[2]));
+ for(const m of physical)
+  assert.ok(/play-plate|^\s*\.quote\s*$|^\s*\.quote,/m.test(m[1]),'an unexpected physical edge on '+m[1].trim().slice(0,50));
 });
 
 test('payment: concurrent confirmations make one salon; a webhook amount must match; an expired order can be reopened',async()=>{

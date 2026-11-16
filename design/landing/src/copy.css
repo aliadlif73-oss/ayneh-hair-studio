@@ -97,8 +97,8 @@
 .setup{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,1.6vw,22px);counter-reset:none}
 .setup__step{position:relative;display:grid;justify-items:center;gap:12px;text-align:center;padding:clamp(22px,2.6vw,32px) 16px clamp(18px,2.2vw,26px);
   background:var(--paper);border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:var(--shadow-sm)}
-/* centred the same way as .step__num: start edge on the middle line, then half back. */
-.setup__num{position:absolute;top:-15px;inset-inline-start:50%;transform:translateX(50%);display:grid;place-items:center;width:34px;height:34px;
+/* centred the same way as .step__num: stretched, then centred by auto inline margins */
+.setup__num{position:absolute;top:-15px;inset-inline:0;margin-inline:auto;display:grid;place-items:center;width:34px;height:34px;
   border-radius:50%;background:var(--emerald-deep);color:#fff;font-size:14px;font-weight:900;border:3px solid var(--cream)}
 /* the clay body lives with the other icons in site.css */
 .setup__icon{display:grid;place-items:center;width:64px;height:64px;border-radius:20px;color:var(--emerald-deep)}
