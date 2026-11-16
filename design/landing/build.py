@@ -479,14 +479,9 @@ def make_pages(full):
             for kind, cap in (('before', 'عکس مشتری'), ('after', 'نتیجهٔ نمایشی')):
                 n = len(figs)
                 pri = ' fetchpriority="high"' if n == 0 else ''
-                figs.append('<figure class="loop__f loop__s%d">
-                <img src="assets/demo-%s-%s.webp" width="450" height="600"%s decoding="async" alt="نمونهٔ نمایشی: %s، %s">
-                <figcaption>%s: %s</figcaption>
-              </figure>' % (n, pair, kind, pri, names[pair], cap, names[pair], cap))
-        h = re.sub(r'(<div class="loop__screen">)[\s\S]*?(</div>\s*<ol class="loop__dots")', lambda m: m.group(1) + '
-              ' + '
-              '.join(figs) + '
-            ' + m.group(2), h, count=1)
+                figs.append(('<figure class="loop__f loop__s%d"><img src="assets/demo-%s-%s.webp" width="450" height="600"%s decoding="async" alt="نمونهٔ نمایشی: %s، %s">'
+                             '<figcaption>%s: %s</figcaption></figure>') % (n, pair, kind, pri, names[pair], cap, names[pair], cap))
+        h = re.sub(r'(<div class="loop__screen">)[\s\S]*?(</div>\s*<ol class="loop__dots")', lambda m: m.group(1) + ''.join(figs) + m.group(2), h, count=1)
         h = h.replace('hero-stage loop"', 'hero-stage loop loop--svc"').replace('سه قاب پشت‌سرهم', 'هشت قاب پشت‌سرهم')
         return h.replace('<li></li><li></li><li></li>', '<li></li>' * 8)
     def mix(h):
