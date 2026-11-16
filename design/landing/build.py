@@ -149,7 +149,7 @@ def salon_card(p):
     return (
         '<article class="plan plan--salon' + (' plan--lead' if badge else '') + '" data-plan="' + p['key'] + '">'
         + (('<span class="plan__badge">' + CROWN + badge + '</span>') if badge else '')
-        + '<h3>پنل آرایشگاه</h3>'
+        + '<h3>پنل آرایشگاه ' + fa_int(p['months']) + ' ماهه</h3>'
         + '<p class="plan__months">' + CAL + fa_int(p['months']) + ' ماهه</p>'
         + '<div class="plan__price" data-price-box="' + p['key'] + '">'
         + '<p class="plan__amount" data-price="' + p['key'] + '"><b>' + millions(p['amount']) + '</b> میلیون تومان</p>'
@@ -169,7 +169,7 @@ SERVICE_TITLES = {'hair': 'مدل مو', 'color': 'رنگ مو', 'nails': 'نا�
 ORDINAL = {2: 'دوم', 3: 'سوم', 4: 'چهارم', 5: 'پنجم'}
 # Badges on the salon tab. The whole tab is «به‌صرفه‌ترین برای ۲ نفر به بعد»: it is true only
 # while every salon plan costs less than two single-service plans of the same length (asserted).
-SALON_BADGES = {'salon6': 'بهترین'}
+SALON_BADGES = {'salon6': 'پیشنهاد آینه'}
 SALON_VALUE = 'به‌صرفه‌ترین برای ۲ نفر به بعد'
 for _p in SALON_PLANS:
     _single = next(x for x in PLANS if x['months'] == _p['months'])
@@ -280,7 +280,7 @@ SERVICES = {
         'card': 'رنگ را قبل از رنگ کردن می‌بیند.',
         'ben_title': 'آینه برای رنگ مو چه می‌کند؟', 'ben_sub': 'بحث «این نبود» قبل از شروع تمام می‌شود.',
         'benefits': ['رنگ را قبل از شروع روی عکس خودش می‌بیند.',
-                     'رنگ را با هم و با تصویر انتخاب می‌کنید، نه با حدس.',
+                     'رنگ را با هم روی تصویر انتخاب می‌کنید.',
                      'درخواست با رنگ انتخاب‌شده به شما می‌رسد.'],
         'sample_title': 'یک رنگ مو قبل و بعد',
         'cta_title': 'رنگ مو را همین الان روی عکس خودتان ببینید.',
@@ -290,7 +290,7 @@ SERVICES = {
         'title': 'برای متخصصان ناخن',
         'desc': 'مشتری طرح ناخن را روی دست خودش می‌بیند و مطمئن‌تر درخواست می‌دهد. نمونه، پلن‌ها و روش کار.',
         'eyebrow': 'برای متخصصان ناخن',
-        'h1': 'مشتری طرح اینستاگرام را نشان می‌دهد و مطمئن نیست.', 'accent': '',
+        'h1': 'مشتری عکس طرحی را از اینستاگرام نشانتان می‌دهد، ولی مطمئن نیست به دستش بیاید.', 'accent': '',
         'lead': 'آینه طرح را روی دست خودش نشان می‌دهد.',
         'f2': 'طرح را می‌بیند', 'req': 'درخواست طرح ناخن',
         'demo_title': 'طرح ناخن را روی دست خودتان امتحان کنید.',
@@ -338,7 +338,7 @@ SALON_HERO = {
     'title': 'پنل آرایشگاه',
     'desc': 'پنل آرایشگاه: هر چهار خدمت، تا ۳ کاربر، لینک اختصاصی برای هر همکار. نمونه، پلن‌ها و روش کار.',
     'eyebrow': 'پنل آرایشگاه',
-    'h1': 'هر همکار مشتری را به روش خودش قانع می‌کند.',
+    'h1': 'هر همکار، مشتری‌های خودش؛ همه روی یک تصویر.',
     'lead': 'با آینه همه همان تصویری را می‌بینند که مشتری دیده.',
 }
 CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.4 2.6 2.6L16 9.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -367,8 +367,8 @@ def nav(items):
 
 
 def mobile(items):
-    return (''.join('<a href="%s">%s<span aria-hidden="true">↙</span></a>' % (h_, t) for h_, t in items)
-            + '<a href="__ORIGIN__/panel">ورود اعضا به پنل<span aria-hidden="true">↙</span></a>'
+    return (''.join('<a href="%s">%s<span aria-hidden="true">←</span></a>' % (h_, t) for h_, t in items)
+            + '<a href="__ORIGIN__/panel">ورود<span aria-hidden="true">←</span></a>'
             + '<a class="btn" href="#demo">نمونه بساز</a>')
 
 
@@ -434,6 +434,8 @@ def make_pages(full):
 
     def demo(lines, title, sub, first):
         d = R('src/tryon.html')
+        if first in ('nails', 'lashes'):
+            d = d.replace('با عکس روبه‌رو و پرنور', 'با عکس واضح و پرنور')
         if len(lines) == 1:
             d = keep_buttons(d, 'data-line', lines)
             d = d.replace('<div class="tryon__lines"', '<div class="tryon__lines" hidden', 1)
@@ -445,7 +447,7 @@ def make_pages(full):
 
     def cta(title):
         return (section(home_src, 'cta').replace('{{CTA_TITLE}}', title)
-                .replace('{{CTA_SUB}}', 'چند لحظه طول می‌کشد؛ بدون نصب.'))
+                .replace('{{CTA_SUB}}', 'بدون نصب، روی گوشی.'))
 
     def card(key, s):
         p, lab = s['pair'], s['label']
@@ -479,9 +481,9 @@ def make_pages(full):
             for kind, cap in (('before', 'عکس مشتری'), ('after', 'نتیجهٔ نمایشی')):
                 n = len(figs)
                 pri = ' fetchpriority="high"' if n == 0 else ''
-                figs.append(('<figure class="loop__f loop__s%d"><img src="assets/demo-%s-%s.webp" width="450" height="600"%s decoding="async" alt="نمونهٔ نمایشی: %s، %s">'
+                figs.append(('<figure class="loop__f loop__s%d"><img src="assets/demo-%s-%s.webp" width="450" height="600" loading="eager"%s decoding="async" alt="نمونهٔ نمایشی: %s، %s">'
                              '<figcaption>%s: %s</figcaption></figure>') % (n, pair, kind, pri, names[pair], cap, names[pair], cap))
-        h = re.sub(r'(<div class="loop__screen">)[\s\S]*?(</div>\s*<ol class="loop__dots")', lambda m: m.group(1) + ''.join(figs) + m.group(2), h, count=1)
+        h = re.sub(r'(<div class="loop__screen">)[\s\S]*?(</div>\s*<button class="loop__toggle"[\s\S]*?</button>\s*<ol class="loop__dots")', lambda m: m.group(1) + ''.join(figs) + m.group(2), h, count=1)
         h = h.replace('hero-stage loop"', 'hero-stage loop loop--svc"').replace('سه قاب پشت‌سرهم', 'هشت قاب پشت‌سرهم')
         return h.replace('<li></li><li></li><li></li>', '<li></li>' * 8)
     def mix(h):
@@ -527,7 +529,7 @@ def make_pages(full):
                     '<button type="button" role="tab" data-try="play" aria-selected="true">روی چهرهٔ نمونه <small>بدون عکس</small></button>'
                     '<button type="button" role="tab" data-try="demo" aria-selected="false">روی عکس خودتان <small>با عکس شما</small></button></div>\n') + R('src/play.html')
         main = (hero(s['pair'], back, s['h1'], s['accent'], s['lead'], s['f2'], s['req'], SERVICE_NOTE, ' hero--service')
-                + play + demo([s['line']], s['demo_title'], 'چند لحظه طول می‌کشد؛ بدون نصب.', s['line'])
+                + play + demo([s['line']], s['demo_title'], 'بدون نصب، روی گوشی.', s['line'])
                 + sample + ben + studio + pricing_for(PLAN_TABS + ['salon'], key) + R('src/pay.html') + cta(s['cta_title']))
         pages[key] = shell(full, main, other_nav, service=key, title=s['title'], desc=s['desc'], tab=key)
 
@@ -535,10 +537,10 @@ def make_pages(full):
     S = SALON_HERO
     back = '          <a class="hero-back" href="/"><span aria-hidden="true">→</span> آینه · همهٔ خدمات</a>\n          <span class="eyebrow">' + S['eyebrow'] + '</span>\n'
     salon_pricing = pricing_for(['salon'], 'salon')
-    salon_pricing = re.sub(r'<!--SINGLE-->[\s\S]*?<!--/SINGLE-->\s*', '', salon_pricing).replace('پلن خدمت خودتان را <em>انتخاب کنید.</em>', 'پلن آرایشگاه را <em>انتخاب کنید.</em>', 1)
+    salon_pricing = re.sub(r'<!--SINGLE-->[\s\S]*?<!--/SINGLE-->\s*', '', salon_pricing).replace('پلن خدمت خودتان را <em>انتخاب کنید.</em>', 'پنل آرایشگاه را <em>انتخاب کنید.</em>', 1)
     assert 'pbar' not in salon_pricing and 'data-ptabs hidden' in salon_pricing
     salon_main = (
-        hero('style', back, S['h1'], '', S['lead'], 'مدل را می‌بیند', 'درخواست تازه', HOME_NOTE, ' hero--service')
+        hero('style', back, S['h1'], '', S['lead'], 'مدل را می‌بیند', 'درخواست مدل مو', HOME_NOTE, ' hero--service')
         + section(salon_src, 'glance').replace('{{GLANCE}}', NL.join(glance_card(k, s) for k, s in SERVICES.items()))
         + section(salon_src, 'team')
         + demo(list(LINE_TITLE), 'خودتان <em>امتحان کنید.</em>', 'عکس خودتان را بگذارید و مدل را ببینید.', 'hair')

@@ -43,3 +43,17 @@
   const first = tabs.find(t => t.getAttribute('aria-selected') === 'true') || tabs[0];
   show(tabs.some(t => t.dataset.tab === want) ? want : first.dataset.tab);
 })();
+
+/* Do not advance past an image that has not been decoded. */
+(()=>{if(!document.querySelectorAll)return;document.querySelectorAll('.loop').forEach(loop=>{
+ const img=loop.querySelector('.loop__f img'),button=loop.querySelector('.loop__toggle');
+ if(!img||!button)return;
+ const motion=matchMedia('(prefers-reduced-motion: reduce)');
+ let paused=motion.matches;
+ function render(){loop.classList.toggle('is-paused',paused);button.setAttribute('aria-pressed',String(paused));button.textContent=paused?'پخش نمایش':'توقف نمایش'}
+ button.addEventListener('click',()=>{paused=!paused;render()});
+ motion.addEventListener?.('change',e=>{if(e.matches){paused=true;render()}});
+ render();
+ const loaded=img.decode?img.decode():new Promise((resolve,reject)=>{if(img.complete)return img.naturalWidth?resolve():reject();img.addEventListener('load',resolve,{once:true});img.addEventListener('error',reject,{once:true})});
+ loaded.then(()=>loop.classList.add('is-ready')).catch(()=>{});
+})})();

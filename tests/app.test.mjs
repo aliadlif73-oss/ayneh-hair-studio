@@ -619,7 +619,7 @@ test('transfer consent through the bot: the manager button asks, an unlinked mem
 test('result sharing: three actions, approximate note, friend share with the same link, Ayneh mark on the saved image, privacy text is the true one',()=>{
  for(const x of ['درخواست نوبت می‌دهم','از دوستم نظر بپرسم','ذخیره تصویر','یک نمونه است؛ برای انتخاب قبل از نوبت.','کدوم مدل بیشتر بهم میاد؟','function openAsk','fillText(\'آینه\''])assert(customerJS.includes(x),x);
  assert(customerJS.includes('openAsk')&&/var url=shareUrl\(\),both=ASK_TEXT/.test(customerJS),'the friend link is the visitor tag link of this salon');
- const PRIV='عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.';
+ const PRIV='عکس شما فقط برای ساخت نمونه و دیدنِ سالن استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.';
  assert(customerJS.includes(PRIV)&&customerHTML.includes(PRIV),'one agreed privacy sentence');
  assert(!customerJS.includes('عکس فقط برای همین سالن استفاده می‌شود')&&!customerHTML.includes('عکس‌ها فقط برای همین سالن'),'the old inaccurate sentence is gone');
  assert(!/عکس‌ها خصوصی‌اند و برای کسی/.test(customerJS));
@@ -1172,7 +1172,7 @@ test('copy plan: home sections come in the approved order and every page has one
  assert.deepEqual(ids(servicePages.sample),['intro','demo'],'the demo page');
  for(const html of [landingHTML,...Object.values(servicePages)])assert.equal((html.match(/<h1[\s>]/g)||[]).length,1,'one h1');
  for(const title of ['خودتان <em>امتحان کنید.</em>','راه‌اندازی در <em>۳ گام</em>','دیگر «یک عکس بفرست ببینم» <em>نمی‌خواهد.</em>',
-  'خدمت شما <em>کدام است؟</em>','چیزی <em>پنهان نیست.</em>','سؤال‌های <em>پرتکرار</em>','اولین نمونه را همین الان روی عکس خودتان بسازید.'])
+  'خدمت شما <em>کدام است؟</em>','قبل از خرید بدانید','سؤال‌های <em>پرتکرار</em>','اولین نمونه را همین الان روی عکس خودتان بسازید.'])
   assert.ok(landingHTML.includes(title),'home title '+title);
  assert.ok(landingHTML.includes('عکس، مدل و شمارهٔ مشتری یک‌جا می‌رسد.')&&landingHTML.includes('وضعیت را با یک لمس ثبت کنید؛ مشتری هم همان را می‌بیند.'));
  // the services section is the sample work and the door in one: four cards, four prices pages
@@ -1189,7 +1189,7 @@ test('copy plan: the four service pages share one template with their own lines,
  for(const [k,h1,lead,benefit] of [
   ['hair','مشتری می‌پرسد «این مدل به من می‌آید؟»','آینه جواب را روی عکس خودش نشان می‌دهد.','مشتری قبل از آمدن مدل را روی عکس خودش می‌بیند.'],
   ['color','مشتری می‌گوید «این نبود که فکر می‌کردم.»','آینه رنگ را قبل از شروع، روی عکس خودش نشان می‌دهد.','رنگ را قبل از شروع روی عکس خودش می‌بیند.'],
-  ['nails','مشتری طرح اینستاگرام را نشان می‌دهد و مطمئن نیست.','آینه طرح را روی دست خودش نشان می‌دهد.','طرح را روی دست خودش می‌بیند.'],
+  ['nails','مشتری عکس طرحی را از اینستاگرام نشانتان می‌دهد، ولی مطمئن نیست به دستش بیاید.','آینه طرح را روی دست خودش نشان می‌دهد.','طرح را روی دست خودش می‌بیند.'],
   ['lashes','مشتری از حجم و فرم مژه می‌ترسد.','آینه حالت را قبل از نوبت نشان می‌دهد.','حالت مژه را قبل از نوبت می‌بیند.']]){
   const html=servicePages[k];
   assert.ok(html.includes('<h1 id="h1" class="h1">'+h1),k+' hero line');assert.ok(html.includes(lead),k+' solution line');assert.ok(html.includes(benefit),k+' benefit');
@@ -1205,16 +1205,16 @@ test('copy plan: the four service pages share one template with their own lines,
 });
 test('copy plan: salon-panel page and the demo page',()=>{
  const salon=servicePages.salon;
- assert.ok(salon.includes('هر همکار مشتری را به روش خودش قانع می‌کند.'),'pain of the salon owner');
+ assert.ok(salon.includes('هر همکار، مشتری‌های خودش؛ همه روی یک تصویر.'),'pain of the salon owner');
  assert.equal((salon.match(/class="glance__card"/g)||[]).length,4,'four services at a glance');
  assert.equal((salon.match(/<article class="why">/g)||[]).length,3,'teamwork in three cards');
  assert.ok(salon.includes('لینک اختصاصی')&&salon.includes('درخواست‌ها فقط پیش خودش می‌رسد.'));
- assert.ok(salon.includes('سه پنل جدا یا <em>یک پنل آرایشگاه؟</em>')&&salon.includes('همه در سالن، روی یک تصویر با مشتری هماهنگ می‌شوند.'));
+ assert.ok(salon.includes('سه پلن جدا یا <em>یک پنل آرایشگاه؟</em>')&&salon.includes('همه در سالن، روی یک تصویر با مشتری هماهنگ می‌شوند.'));
  assert.doesNotMatch(salon,/class="pbar"|class="pcompare" id="compare"/,'the single-service bar and table are not on the salon page');
  const demo=servicePages.sample;
  for(const step of ['خدمت را انتخاب کنید.','عکس روبه‌رو و روشن بگذارید.','مدل و نتیجه را ببینید.'])assert.ok(demo.includes(step),'step '+step);
  assert.equal((demo.match(/data-line="/g)||[]).length,4,'the demo page offers all four services');
- assert.ok(demo.includes('عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود.'),'the short privacy line near the upload');
+ assert.ok(demo.includes('عکس شما فقط برای ساخت نمونه و دیدنِ سالن استفاده می‌شود.'),'the short privacy line near the upload');
  assert.doesNotMatch(demo,/فقط برای ساخت همین نمونه/);
 });
 test('copy plan: hard claims that are not built never appear on any page',()=>{
@@ -1227,7 +1227,7 @@ test('copy plan: hard claims that are not built never appear on any page',()=>{
  }
  assert.ok(landingHTML.includes('عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود.'),'the true privacy sentence');
  assert.ok(landingHTML.includes('عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.'),'the image service is named honestly, in the one long sentence');
- assert.ok(landingHTML.includes('چند لحظه طول می‌کشد؛ بدون نصب.'));
+ assert.ok(landingHTML.includes('بدون نصب، روی گوشی.'));
 });
 test('honesty: no fake proof, no promises the product does not keep, plan is never called panel',()=>{
  // The owner's standing rule: no invented clients, quotes, ratings or totals. Placeholder
@@ -1314,18 +1314,12 @@ test('step 27 material: one glass recipe for every control, one clay recipe for 
  assert.match(siteCSS,/--glass-blur:blur\(14px\) saturate\(160%\)/,'the same blur everywhere');
  assert.match(siteCSS,/:where\(\.btn,\.sticky-cta,\.sb-build,\.sb-activate,[\s\S]*?--glass-bg:var\(--glass-bg-p\)/,'the primary action is the emerald body at rest');
  assert.match(siteCSS,/\.plan \.btn\{width:100%[^}]*\}/,'every plan button shares the plan rule');
- // «پیشنهاد آینه» is the emerald one. It is written AFTER the light group and after the
- // ink-label rule — at the same specificity — or the ink rule would win and the featured
- // card's button would be ink letters on emerald.
- const lead=siteCSS.indexOf('.plan--lead .btn{'),inkRule=siteCSS.indexOf('\n.plan .btn{color:var(--ink-2)');
- assert.ok(lead>0&&inkRule>0,'the featured card and the ink label are both defined');
- assert.ok(lead>inkRule,'«پیشنهاد آینه» is written after the ink-label rule, so its white label wins');
- assert.match(siteCSS,/\.plan--lead \.btn\{[\s\S]*?--glass-bg:var\(--glass-bg-p\)[\s\S]*?color:#fff/,'the featured card is the emerald body');
- assert.ok(!/\.plan--lead \.btn\{[^}]*color:var\(--ink/.test(siteCSS),'the featured card never answers with an ink label');
+ // All plan purchase buttons now use the primary glass body, not just the featured card.
+ assert.match(siteCSS,/\.plan \.btn\{[\s\S]*?--glass-bg:var\(--glass-bg-p\)[\s\S]*?color:#fff/);
  // The four states are written once, for the whole list.
  for(const state of [':hover:not\\(\\[disabled\\]\\)',':active:not\\(\\[disabled\\]\\)',':focus-visible','\\[aria-disabled="true"\\]'])
   assert.match(siteCSS,new RegExp(L+'[\\s\\S]*?\\)'+state+'[\\s\\S]{0,420}?(box-shadow|cursor:not-allowed)'),'the '+state+' state is drawn on the same body');
- assert.match(siteCSS,new RegExp(L+'[\\s\\S]*?\\):focus-visible\\{[\\s\\S]*?outline:3px solid var\\(--emerald-soft\\)'),'a visible 3px focus ring');
+ assert.match(siteCSS,new RegExp(L+'[\\s\\S]*?\\):focus-visible\\{[\\s\\S]*?outline:3px solid var\\(--emerald-deep\\)'),'a visible 3px focus ring');
  assert.match(siteCSS,new RegExp(L+'[\\s\\S]*?\\):active:not[\\s\\S]*?scale\\(\\.98\\)'),'pressing down presses the control');
  // Nothing may repaint a control's own body: the recipe is the only place that does it.
  const controls=['.btn','.btn--login','.nav-btn','.sticky-cta','.film-tab','.ptabs__row button','.try-switch button',
@@ -1928,7 +1922,7 @@ test('step 28 demo: the demo salon is on the page as «خودتان امتحان
    assert.equal(own.includes('data-line="'+line+'"'),lines.includes(line),page+' page offers '+line+': '+lines.includes(line));
  }
  assert.equal((section.match(/data-line="/g)||[]).length,4,'home: four service chips');
- assert.ok(section.includes('عکس خودم را انتخاب کنم')&&section.includes('عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود.')&&section.includes('یک نمونه است؛ برای انتخاب قبل از نوبت.'));
+ assert.ok(section.includes('عکس خودم را انتخاب کنم')&&section.includes('عکس شما فقط برای ساخت نمونه و دیدنِ سالن استفاده می‌شود.')&&section.includes('یک نمونه است؛ برای انتخاب قبل از نوبت.'));
  assert.ok(section.includes('id="demoCompare"'),'the interactive mirror lives here, not in the hero');
  assert.ok(section.includes('صفحهٔ سالن من همین را داشته باشد')&&section.includes('این را برای مشتریان خودم می‌خواهم'),'what to do after a result');
  // The frame is not fetched until the visitor asks for it.
@@ -2069,8 +2063,9 @@ test('before/after follows the finger in RTL, plays itself first, and step label
   const all=[...rtlSource.matchAll(new RegExp('^'+sel+'\\{[^}]*\\}','gm'))].map(m=>m[0]);
   assert.ok(all.length,name+' rule exists');
   const win=all[all.length-1];   // the last one is the one that sticks
-  assert.match(win,/inset-inline:0/,'inset-inline:0 stretches the box of '+name);
-  assert.match(win,/margin-inline:auto/,'margin-inline:auto centres the box of '+name);
+  if(name==='the setup number'){assert.match(win,/inset-inline-start:14px/);assert.match(win,/inset-inline-end:auto/)}else{
+   assert.match(win,/inset-inline:0/,'inset-inline:0 stretches the box of '+name);
+   assert.match(win,/margin-inline:auto/,'margin-inline:auto centres the box of '+name);}
   assert.doesNotMatch(win,/translateX/,'no physical translate centres the box of '+name);
  }
  // The only physical edges left are the ones that must stay physical, each with its reason.
@@ -2776,7 +2771,7 @@ test('pricing tabs: five visible tabs, each service page opens its own, /salon-p
   assert.ok(card.includes('نفر چهارم به بعد: هر نفر '+mil(p.seat_amount)+' میلیون تومان برای کل دوره'),k+' extra-user line');
   assert.ok(card.includes('اعتبار هدیه '+String(p.credits).replace(/[0-9]/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d])+' عکس'),k+' gift images');
   assert.match(card,new RegExp('data-buy="'+k+'" data-service="all" data-title="آرایشگاه" data-months="'+p.months+'" data-state="open" data-amount="'+p.amount+'" data-seats="3" data-seat-amount="'+p.seat_amount+'"'));
-  assert.equal(/class="plan__badge"[\s\S]*?بهترین/.test(card),k==='salon6',k+' «بهترین» only on 6 months');
+  assert.equal(/class="plan__badge"[\s\S]*?پیشنهاد آینه/.test(card),k==='salon6',k+' «پیشنهاد آینه» only on 6 months');
  }
  for(const k of ['salon1','salon3','salon6'])assert.ok(panelOf(landingHTML,'salon').includes('data-buy="'+k+'"'),'the home salon tab sells '+k);
  // amounts enter only through build.py: no partial carries a price
@@ -2823,11 +2818,11 @@ test('honest copy: no stale plan claims, no SMS step for the visitor demo, no un
   assert.doesNotMatch(html,/فقط برای ساخت همین نمونه/,'the old privacy line is gone');
  }
  for(const t of [/معمولاً حدود یک دقیقه/,/۲ تا ۳ دقیقه/,/در یک دقیقه نشانت/])assert.doesNotMatch(customerJS,t,'customer page: '+t);
- assert.match(customerJS,/چند لحظه طول می‌کشد/);
+ assert.doesNotMatch(customerJS,/چند لحظه طول می‌کشد/);
  assert.doesNotMatch(customerJS,/state\.pub\.demo\?'شمارهٔ موبایلت را وارد کن/,'the demo never asks for a mobile, and its host text does not say so');
  const faq=landingHTML.match(/<section id="faq"[\s\S]*?<\/section>/)[0];
  assert.ok(faq.includes('عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.'));
- for(const html of pages)if(html.includes('id="tryonStart"'))assert.ok(html.includes('<small>عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود.</small>'),'the short line near the upload');
+ for(const html of pages)if(html.includes('id="tryonStart"'))assert.ok(html.includes('<small>عکس شما فقط برای ساخت نمونه و دیدنِ سالن استفاده می‌شود.</small>'),'the short line near the upload');
 });
 test('sample links: every public page sends the sample builder to /sample; /try is only the regular-customer page',()=>{
  for(const [k,html] of [['home',landingHTML],...Object.entries(servicePages)]){
@@ -2934,4 +2929,15 @@ test('no page calls the simulation «تقریبی»: the sample label stays, the
  for(const k of Object.keys(servicePages))assert.ok(servicePages[k].includes('نمونهٔ نمایشی'),k+' keeps the sample label');
  assert.ok(landingHTML.includes('نمونهٔ نمایشی'),'the home page keeps the sample label');
  assert.ok(customerJS.includes('نمونهٔ نمایشی'),'the shared story image keeps the sample label');
+});
+
+test('audit: hero loads eagerly and waits for decoding; hairstyle mirror excludes colour',()=>{
+ const hero=landingHTML.match(/<div class="hero-stage loop loop--svc"[\s\S]*?<\/ol>/)[0];
+ const frames=[...hero.matchAll(/<figure class="loop__f[^>]*><img[^>]+>/g)].map(m=>m[0]);
+ assert.equal(frames.length,8);for(const frame of frames)assert.match(frame,/loading="eager"/);
+ assert.match(frames[0],/fetchpriority="high"/);assert.match(hero,/class="loop__toggle"/);
+ const js=readFileSync(new URL('../design/landing/src/copy.js',import.meta.url),'utf8');
+ assert.match(js,/img\.decode\(\)/);assert.match(js,/prefers-reduced-motion/);
+ assert.match(servicePages.hair,/id="playColors" hidden/);
+ assert.ok(servicePages.nails.includes('با عکس واضح و پرنور'));assert.ok(servicePages.lashes.includes('با عکس واضح و پرنور'));
 });
