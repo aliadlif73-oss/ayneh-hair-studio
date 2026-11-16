@@ -854,8 +854,11 @@ body.is-paying .sticky-cta{display:none!important}
 .play-swatches::-webkit-scrollbar{display:none}
 .play-sw{position:relative;display:grid;grid-template-rows:27px auto;justify-items:center;gap:2px;width:70px;height:42px;padding:0;border:0;border-radius:12px;
   background:transparent;cursor:pointer;flex:0 0 auto}
+/* A colour swatch has to show ITS OWN colour, so it is the one control that is not glass.
+   It is still a solid bead, not a flat disc: the same highlight above and shade below
+   that the clay tiles use, so it reads as a dome of that colour. */
 .play-sw__dot{display:grid;place-items:center;width:27px;height:27px;border-radius:50%;border:2px solid #fff;
-  box-shadow:0 0 0 1px rgba(10,32,42,.16)}
+  box-shadow:inset 0 1px 1px rgba(255,255,255,.7),inset 0 -2px 3px rgba(10,32,42,.18),0 0 0 1px rgba(10,32,42,.16)}
 .play-sw__dot i{display:block;width:100%;height:100%;border-radius:50%}
 .play-sw__nm{display:block;max-width:100%;overflow:hidden;color:var(--ink-2);font-size:9px;line-height:1.2;font-weight:700;white-space:nowrap;text-overflow:ellipsis}
 .play-sw[aria-checked="true"]{outline:2px solid var(--emerald);outline-offset:1px;border-radius:50%}
@@ -1264,7 +1267,7 @@ body.is-paying .sticky-cta{display:none!important}
    transparency) are written once, for all of them.
    ========================================================================== */
 :where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
-       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try){
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try){
   /* the light body is the default; the emerald group below overrides these five */
   --glass-bg:var(--glass-bg-l);
   --glass-top:var(--glass-top-l);
@@ -1285,7 +1288,7 @@ body.is-paying .sticky-cta{display:none!important}
 }
 /* the glossy sheen; border-radius:inherit keeps it inside the pill without clipping */
 :where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
-       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try)::after{
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try)::after{
   content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;pointer-events:none;
   background:var(--glass-sheen);
 }
@@ -1308,7 +1311,7 @@ body.is-paying .sticky-cta{display:none!important}
 /* ---- body 2: the light body, restated for the controls that are not primary ----
    (a second, later :where() list, so it wins over the emerald one above). */
 :where(.btn--ghost,.btn--quiet,.btn--login,.nav-btn,.film-tab,.ptabs__row button,.try-switch button,
-       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,
        .plan .btn){
   --glass-bg:var(--glass-bg-l);
   --glass-top:var(--glass-top-l);
@@ -1322,7 +1325,7 @@ body.is-paying .sticky-cta{display:none!important}
 /* The label colour sits at the control's own specificity: .btn sets a white label, so the
    light body has to answer it here or a ghost button would be invisible at rest. */
 .btn--ghost,.btn--quiet,.btn--login,.nav-btn,.film-tab,.ptabs__row button,.try-switch button,
-.tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,
+.tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,
 .plan .btn{color:var(--ink-2);text-shadow:none}
 /* The recommended card («پیشنهاد آینه», and «بهترین» on «پنل آرایشگاه») is the only
    green button in the row, so it takes the emerald body after the light group. It is written after the
@@ -1342,30 +1345,30 @@ body.is-paying .sticky-cta{display:none!important}
 .sb-upload__btn{border-style:dashed;border-color:var(--line-strong)}
 /* ---- the four states, written once for every control ---- */
 :where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
-       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try):hover:not([disabled]):not(:disabled):not([aria-pressed="true"]):not([aria-selected="true"]){
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try):hover:not([disabled]):not(:disabled):not([aria-pressed="true"]):not([aria-selected="true"]){
   transform:translateY(-1px);
   /* hover only brightens: the body never changes colour, so the rest state is the real one */
   filter:saturate(1.06) brightness(1.05);
   box-shadow:var(--glass-lift-l),var(--glass-shadow-hl);
 }
 :where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
-       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try):active:not([disabled]):not(:disabled){
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try):active:not([disabled]):not(:disabled){
   transform:translateY(1px) scale(.98);
   filter:brightness(.96);
   box-shadow:inset 0 2px 6px rgba(10,32,42,.16),0 2px 6px rgba(10,32,42,.12);
 }
 :where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
-       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try):focus-visible{
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try):focus-visible{
   outline:3px solid var(--emerald-soft);
   outline-offset:3px;
   box-shadow:var(--glass-lift-l),var(--glass-shadow-hl),0 0 0 6px rgba(6,143,108,.3);
 }
 :where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
-       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try):disabled,
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try):disabled,
 :where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
-       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try)[disabled],
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try)[disabled],
 :where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
-       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try)[aria-disabled="true"]{
+       .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try)[aria-disabled="true"]{
   opacity:.55;cursor:not-allowed;transform:none;filter:grayscale(.3);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 2px 6px rgba(10,32,42,.08);
 }
@@ -1373,20 +1376,20 @@ body.is-paying .sticky-cta{display:none!important}
 /* Where the blur is not supported the material falls back to a solid body. */
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
   :where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
-         .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try){
+         .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try){
     --glass-bg:#fff;background-image:none;color:var(--ink-2);text-shadow:none}
   :where(.btn,.sticky-cta,.sb-build,.sb-activate,.mini__try,.plan--lead .btn,
          .ptabs__row button[aria-selected="true"],.try-switch button[aria-selected="true"],
          .film-tab[aria-pressed="true"]){--glass-bg:var(--emerald-deep);color:#fff}
   :where(.btn--ghost,.btn--quiet,.btn--login,.nav-btn,.film-tab,.ptabs__row button,.try-switch button,
-         .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,
+         .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,
          .plan .btn){--glass-bg:#fff;color:var(--ink-2)}
   :where(.plan--lead .btn){--glass-bg:var(--emerald-deep);color:#fff}
 }
 /* And where the visitor asked for no transparency at all, the same, without the blur. */
 @media (prefers-reduced-transparency:reduce){
   :where(.btn,.btn--login,.nav-btn,.sticky-cta,.film-tab,.ptabs__row button,.try-switch button,
-         .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.mini__try){
+         .tryon__line,.sb-upload__btn,.sb-add,.chip,.menu-toggle,.salon-strip,.play-replay,.quote-nav,.sb-remove,.mini__try){
     background-image:none;-webkit-backdrop-filter:none;backdrop-filter:none}
 }
 

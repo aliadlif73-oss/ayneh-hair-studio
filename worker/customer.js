@@ -106,7 +106,7 @@ a.hchip,button.hchip{cursor:pointer}a.hchip:hover,button.hchip:hover{border-colo
 .linesw__btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:6px 8px;white-space:nowrap;border:0;border-radius:999px;background:transparent;color:var(--ink-2);font:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s var(--ease),color .2s var(--ease),box-shadow .2s var(--ease)}
 .linesw__btn svg{width:18px;height:18px}
 .linesw__btn:hover{color:var(--ink)}
-.linesw__btn.is-on{background:var(--surface);color:var(--accent-ink);box-shadow:0 2px 8px -3px rgba(0,0,0,.25)}
+.linesw__btn.is-on{color:#fff}
 .linesw__btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .opt{margin-top:16px}.opt .lbl{margin-bottom:6px}
 .opt-row{flex-wrap:wrap}
@@ -128,8 +128,8 @@ a.hchip,button.hchip{cursor:pointer}a.hchip:hover,button.hchip:hover{border-colo
 .share__prev img,.share__prev .share__logo{width:46px;height:46px;border-radius:12px;object-fit:cover;flex:none;background:var(--accent);display:grid;place-items:center;color:#fff;font-weight:800}
 .share__prev div{display:grid;gap:2px;min-width:0}.share__prev b{font-size:14.5px}.share__prev span{font-size:12px;color:var(--muted);direction:ltr;text-align:end;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .share__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.share__opt{display:grid;justify-items:center;gap:8px;padding:14px 6px;border:1px solid var(--line,#dfe6e3);border-radius:16px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;transition:background .15s var(--ease),transform .15s var(--ease)}
-.share__opt:hover{background:var(--surface-2,#f1f5f4);transform:translateY(-1px)}
+.share__opt{display:grid;justify-items:center;gap:8px;padding:14px 6px;border-radius:16px;color:var(--ink);font:inherit;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer;transition:background .15s var(--ease),transform .15s var(--ease)}
+.share__opt:hover{filter:brightness(1.04)}
 .share__ic{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff}.share__ic svg{width:24px;height:24px}
 .share__note{margin-top:14px;font-size:12.5px;color:var(--muted);line-height:1.9;text-align:center}
 @media (prefers-reduced-motion:reduce){.invite,.share__opt{transition:none}.invite:hover,.share__opt:hover{transform:none}}
@@ -249,7 +249,7 @@ a.hchip,button.hchip{cursor:pointer}a.hchip:hover,button.hchip:hover{border-colo
   --glass-bg-p:rgba(4,54,42,.86);--glass-top-p:rgba(255,255,255,.1);--glass-edge-p:rgba(255,255,255,.42);
   --glass-sheen-p:linear-gradient(105deg,rgba(255,255,255,0) 4%,rgba(255,255,255,.12) 26%,rgba(255,255,255,0) 50%,rgba(255,255,255,.06) 100%);
 }
-.btn,.chip,.icon-btn,button.hchip,a.hchip{
+.btn,.chip,.linesw__btn,.share__opt,.base__opt,.icon-btn,button.hchip,a.hchip{
   --glass-bg:var(--glass-bg-l);--glass-top:var(--glass-top-l);--glass-edge:var(--glass-edge-l);--glass-sheen:var(--glass-sheen-l);
   position:relative;isolation:isolate;
   background-color:var(--glass-bg);
@@ -258,24 +258,25 @@ a.hchip,button.hchip{cursor:pointer}a.hchip:hover,button.hchip:hover{border-colo
   -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(10,32,42,.06),0 6px 16px rgba(10,32,42,.13);
 }
-.btn::after,.chip::after,.icon-btn::after,button.hchip::after,a.hchip::after{
+.btn::after,.chip::after,.linesw__btn::after,.share__opt::after,.base__opt::after,.icon-btn::after,
+  button.hchip::after,a.hchip::after{
   content:"";position:absolute;z-index:-1;inset:0;border-radius:inherit;pointer-events:none;background:var(--glass-sheen);
 }
 /* the primary action, at rest: emerald glass with a white label */
-.btn--primary,.btn--build,.chip[aria-pressed="true"],.chip.is-on{
+.btn--primary,.btn--build,.chip[aria-pressed="true"],.chip.is-on,.linesw__btn.is-on{
   --glass-bg:var(--glass-bg-p);--glass-top:var(--glass-top-p);--glass-edge:var(--glass-edge-p);--glass-sheen:var(--glass-sheen-p);
   color:#fff;text-shadow:0 1px 1px rgba(3,45,36,.35);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -1px 0 rgba(3,45,36,.3),0 8px 20px rgba(6,143,108,.26);
 }
-.btn:hover,.chip:hover,.icon-btn:hover{filter:brightness(1.05)}
-.btn:active,.chip:active,.icon-btn:active{transform:translateY(1px) scale(.98);filter:brightness(.96)}
-.btn[disabled],.chip[disabled]{opacity:.5;cursor:not-allowed;transform:none;filter:grayscale(.3)}
+.btn:hover,.chip:hover,.linesw__btn:hover,.share__opt:hover,.base__opt:hover,.icon-btn:hover{filter:brightness(1.05)}
+.btn:active,.chip:active,.linesw__btn:active,.share__opt:active,.base__opt:active,.icon-btn:active{transform:translateY(1px) scale(.98);filter:brightness(.96)}
+.btn[disabled],.chip[disabled],.linesw__btn[disabled],.share__opt[disabled],.base__opt[disabled]{opacity:.5;cursor:not-allowed;transform:none;filter:grayscale(.3)}
 /* the dock is a dark bar, so its controls wear the material over the dark, not over the cream */
 .dock .btn--ghost{--glass-bg:rgba(255,255,255,.08);--glass-top:rgba(255,255,255,.06);--glass-edge:rgba(255,255,255,.22);color:#fff}
 .dock .btn--ghost:hover{border-color:rgba(255,255,255,.4)}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
-  .btn,.chip,.icon-btn,button.hchip,a.hchip{background-image:none;background-color:#fff;color:var(--ink-2);text-shadow:none}
-  .btn--primary,.btn--build,.chip[aria-pressed="true"],.chip.is-on{background-color:var(--accent);color:#fff}
+  .btn,.chip,.linesw__btn,.share__opt,.base__opt,.icon-btn,button.hchip,a.hchip{background-image:none;background-color:#fff;color:var(--ink-2);text-shadow:none}
+  .btn--primary,.btn--build,.chip[aria-pressed="true"],.chip.is-on,.linesw__btn.is-on{background-color:var(--accent);color:#fff}
   .dock .btn--ghost{background-color:transparent;color:#fff}
 }
 @media(min-width:960px){.dock{display:none}}
@@ -435,9 +436,9 @@ body.is-touring{overflow:hidden}
 .steps__top{padding:10px 0 10px}
 .steps__topin{display:flex;justify-content:center}
 .linesw{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0;background:transparent;box-shadow:none;border-radius:0;width:min(100%,520px)}
-.linesw__btn{min-height:46px;border:1.5px solid var(--line-2);border-radius:14px;background:var(--surface);color:var(--muted);box-shadow:0 1px 2px rgba(35,23,15,.05)}
+.linesw__btn{min-height:46px;border-radius:14px;color:var(--ink-2)}
 .linesw__btn:hover{color:var(--ink);border-color:var(--line)}
-.linesw__btn.is-on{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 8px 16px -10px rgba(7,76,77,.9)}
+.linesw__btn.is-on{color:#fff}
 .linesw__btn.is-on svg{color:#fff}
 .steps__bottom{background:var(--surface);border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
 .steps__list{display:flex;align-items:center;gap:8px;padding:6px 18px;grid-template-columns:none;max-width:560px;margin-inline:auto}
@@ -476,10 +477,10 @@ img[loading="lazy"].is-in{opacity:1}
 /* ---------- hair colour: on the new hairstyle or the original photo ---------- */
 .base-wrap{margin:0 0 16px}
 .base{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
-.base__opt{display:flex;align-items:center;gap:10px;padding:8px;border:1.5px solid var(--line-2);border-radius:16px;background:var(--surface-2);text-align:start;font:inherit;color:var(--ink);cursor:pointer;min-width:0}
+.base__opt{display:flex;align-items:center;gap:10px;padding:8px;border-radius:16px;text-align:start;font:inherit;color:var(--ink);cursor:pointer;min-width:0}
 .base__opt img{width:46px;height:58px;object-fit:cover;border-radius:22px 22px 8px 8px;flex:none}
 .base__opt span{display:grid;gap:2px;min-width:0}.base__opt b{font-size:13px;line-height:1.5}.base__opt small{font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.base__opt.is-on{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-ring)}
+.base__opt.is-on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-ring)}
 .basehint{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;margin:0 0 16px;border-radius:16px;background:var(--honey-soft);font-size:12.5px;line-height:1.8;color:var(--ink-2)}
 .basehint>span:first-child{display:inline-grid;color:var(--honey)}.basehint svg{width:20px;height:20px}
 .basehint>span:nth-child(2){flex:1;min-width:180px}

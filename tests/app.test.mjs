@@ -1356,6 +1356,23 @@ test('step 27 material: one glass recipe for every control, one clay recipe for 
    const mine=siteCSS.match(new RegExp(tok+':([^;}]+)'));assert.ok(mine,'site.css defines '+tok);
    assert.ok(src.includes(tok+':'+mine[1]),name+' uses the same '+tok);
   }
+ // The customer page (/try, and the embedded try-on on every salon page) lists every one of
+ // its own controls on the recipe, and none of them paints a body of its own afterwards.
+ const cust=readFileSync(new URL('../worker/customer.js',import.meta.url),'utf8');
+ const CUST='\.btn,\.chip,\.linesw__btn,\.share__opt,\.base__opt,\.icon-btn,button\.hchip,a\.hchip';
+ assert.match(cust,new RegExp(CUST+'\\{[\\s\\S]*?background-color:var\\(--glass-bg\\)[\\s\\S]*?backdrop-filter:var\\(--glass-blur\\)'),'the customer page shares the one recipe');
+ assert.match(cust,new RegExp('\\.btn::after[\\s\\S]*?\\{[^}]*background:var\\(--glass-sheen\\)'),'with the same sheen on every one of them');
+ for(const c of ['.chip','.linesw__btn','.share__opt','.base__opt','.icon-btn','button.hchip','a.hchip'])
+  assert.ok(cust.includes(c+'::after'),'the sheen covers '+c);
+ assert.match(cust,/\.btn--primary,\.btn--build,\.chip\[aria-pressed="true"\],\.chip\.is-on,\.linesw__btn\.is-on\{/,'the selected line tab and «بساز» are the emerald body');
+ const custStrip=cust.replace(/\/\*[\s\S]*?\*\//g,'').replace(/@supports not \([\s\S]*?\n\}\n/g,'');
+ for(const [sel,rule] of [['the line tab','\.linesw__btn\{'],['the selected line tab','\.linesw__btn\.is-on\{'],
+                          ['the share tile','\.share__opt\{'],['the base option','\.base__opt\{']]){
+  const m=custStrip.match(new RegExp(rule+'([^}]*)\}'));
+  assert.ok(m,sel+' is defined');
+  assert.ok(!/(^|;)background(-color)?:\s*(var\(--surface|var\(--accent\)|#)/.test(m[1]),
+   sel+' no longer paints its own body: '+m[1].slice(0,60));
+ }
 });
 
 test('step 24 layout: the grids collapse cleanly at 1120 / 900 / 600',()=>{

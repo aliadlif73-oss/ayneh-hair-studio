@@ -157,8 +157,11 @@
 .sb-work{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;border-radius:12px;background:var(--cream);border:1px solid var(--line)}
 .sb-work legend{font-size:12px;font-weight:800;color:var(--ink-2);padding:0 4px}
 .sb-work .wide{grid-column:1/-1}
-.sb-remove{justify-self:start;min-height:34px;padding:0 12px;border-radius:var(--r-pill);border:1px solid var(--line-2);
-  background:var(--paper);font-size:11.5px;font-weight:700;color:#8C3B2A;cursor:pointer}
+/* «حذف نمونه‌کار» wears the shared light glass like every other control; only its rust
+   label says what it does (7.6:1 on the glass). This file is loaded after the recipe,
+   so the label here is the one that sticks. */
+.sb-remove{justify-self:start;min-height:34px;padding:0 12px;border-radius:var(--r-pill);
+  font-size:11.5px;font-weight:700;color:#8C3B2A;cursor:pointer}
 /* The studio's own two calls («افزودن نمونه‌کار» and «آماده‌کردن پیش‌نمایش») wear the shared
    glass material: this file only sizes them, because it is loaded after the recipe. */
 .sb-add{--glass-bg:rgba(228,244,238,.92);justify-self:start;min-height:38px;padding:0 14px;border-radius:var(--r-pill);
