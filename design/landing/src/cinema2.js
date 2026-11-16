@@ -111,10 +111,14 @@
   heads.forEach(head => {
     const h2 = head.querySelector('h2');
     const kicker = head.querySelector('.eyebrow');
+    /* The subtitle's own animation-delay reads --sp; an inherited change does not restart a paused
+       animation in Chrome, so the value is written on the subtitle itself (else it stays hidden). */
+    const lead = head.querySelector('.sub');
     const say = h2 ? words(h2) : () => {};
     add(head, () => enter(head), p => {
       head.style.setProperty('--hp', p.toFixed(3));
       head.style.setProperty('--sp', sub(p, .22, .86).toFixed(3));
+      if (lead) lead.style.setProperty('--sp', sub(p, .22, .86).toFixed(3));
       if (kicker) kicker.style.setProperty('--kp', sub(p, 0, .46).toFixed(3));
       say(sub(p, .10, .92));
     });
