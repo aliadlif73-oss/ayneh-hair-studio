@@ -75,7 +75,6 @@
     catch (_) { alert('باز کردن عکس ممکن نشد. دوباره انتخاب کنید.'); return; }
     if(selectedLine!==line||photo!==file)return;
     const q = new URLSearchParams({ l: selectedLine, draft: '1', embed: '1' });
-    if (selectedLine === 'hair') { q.set('s', selection.styleIdx ?? 0); if (selection.color) q.set('c', selection.color); }
     ready(q);
   }
 

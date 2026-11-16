@@ -86,7 +86,7 @@ export async function directUsed(db, s, visitor) {
   return Number(r?.n || 0);
 }
 
-export const DIRECT_OUT = '۳ نمونهٔ رایگانتان تمام شد. نمونهٔ بیشتر می‌خواهید؟ یک بسته انتخاب کنید.';
+export const DIRECT_OUT = 'نمونهٔ رایگانتان استفاده شد. برای نمونه‌های بیشتر، ثبت‌نام کنید و حسابتان را شارژ کنید.';
 
 /* Who pays for the next image. Returns null when it is free (her quota, or the salon's credit
    decides after this), or her account id when it comes from the images she bought. Throws the

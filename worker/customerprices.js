@@ -4,7 +4,7 @@
 //
 // amount: TOMAN on the page; orders store RIALS (×10), like every other order.
 export const CUSTOMER_IMAGE_PRICE = 30000;          // toman per image, no discount on any pack
-export const CUSTOMER_FREE_IMAGES = 3;              // free images on /try, per person
+export const CUSTOMER_FREE_IMAGES = 1;              // free images on /try, per person
 export const CUSTOMER_PACKS = [6, 9, 12];           // 180,000 / 270,000 / 360,000 toman
 export const CUSTOMER_CUSTOM_DEFAULT = 13;          // «تعداد بیشتر می‌خواهم» starts here
 export const CUSTOMER_MAX_IMAGES = 500;             // one order may not ask for more

@@ -83,7 +83,11 @@ async function teamView(db,env,salon,origin){return Promise.all((await teamOf(db
 // Anonymous usage events for the dashboard. The visitor id is random and made by the browser.
 export const TRACK_KINDS=['view','tour_start','tour_done','tour_skip','about','photo','look','color','generate','result','gen_fail','view360','send_open','sent','follow','rating','demo','share_open','share','line','color_on_hair','save'];
 export async function logEvent(db,salonId,kind,visitor='',meta=''){await run(db,'INSERT INTO events_log(id,salon_id,visitor,kind,meta,created_at) VALUES(?,?,?,?,?,?)',uid(),salonId,/^[a-f0-9]{16,32}$/.test(visitor)?visitor:'',kind,String(meta||'').slice(0,80),Date.now())}
-function publicSalon(s){return {id:s.id,slug:s.slug,name:s.name,profile:parse(s.profile)};}
+// Ayneh's own pages (the visitor demo and the /try direct salon) show as «سالن آینه» with the site's
+// logo and cover (owner's decision); the URLs are static assets, never a customer upload.
+function publicSalon(s){const own=s.owner_id==='system'||s.owner_id==='direct';const profile=parse(s.profile);
+ if(own)Object.assign(profile,{logo_url:'/landing/ayneh-logo-lg.webp',cover_url:'/landing/salon-cover.webp',bio:profile.bio||'مدل مو، رنگ مو، ناخن و مژه را روی عکس خودتان ببینید.'});
+ return {id:s.id,slug:s.slug,name:own?'سالن آینه':s.name,profile};}
 // A salon that bought a single-service plan offers that service only (hair = hairstyle, color =
 // hair colour; a salon that bought «مدل و رنگ مو» before the split keeps both). «پنل آرایشگاه»,
 // salons without a plan, or with no recorded service keep all four lines (worker/plans.js linesOf).
@@ -414,7 +418,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   return J({id,delivered,waiting,follow:followLinks(env,follow)});
  }
  if(route==='views'&&req.method==='POST'){
-  const b=await req.json();must(!demo,'نمای ۳۶۰ در نسخهٔ نمونه نیست');must(env.KIE_API_KEY&&cfg.generation_enabled,'تولید فعال نیست',503);must(/^[a-f0-9-]{36}$/.test(b.idem));const existing=await one(db,'SELECT id,state FROM generations WHERE session_id=? AND idem=?',s.id,b.idem);if(existing)return J(existing);const base=await one(db,"SELECT * FROM generations WHERE id=? AND session_id=? AND salon_id=? AND state='success'",b.parent,s.id,salon.id);must(base?.result_id,'عکس پایه معتبر نیست');must((base.line||'hair')==='hair','نمای ۳۶۰ فقط برای مو است');const m=await ownMedia(db,s,base.result_id),id=uid(),now=Date.now();const visitor=visitorOf(b),free=await unlimited(db,s);const paidBy=!trial&&!free?await payForImage(db,env,{salon,s,visitor,quota:()=>spendQuota(db,salon,s,visitor,'hair')}):null;if(!trial&&!free&&!paidBy)await spendCredit(db,env,salon);if(dailyLimit(cfg)>0&&!free&&!paidBy)await limited(db,'views:'+salon.id,Math.min(20,dailyLimit(cfg)));await spendTrialImage(db,trial);await run(db,"INSERT INTO generations(id,salon_id,session_id,idem,kind,state,original_id,created_at,updated_at,visitor,paid_by) VALUES(?,?,?,?,'views','creating',?,?,?,?,?)",id,salon.id,s.id,b.idem,base.original_id,now,now,visitor,paidBy||null);
+  const b=await req.json();must(!demo,'نمای ۳۶۰ در سالن آینه فعال نیست');must(env.KIE_API_KEY&&cfg.generation_enabled,'تولید فعال نیست',503);must(/^[a-f0-9-]{36}$/.test(b.idem));const existing=await one(db,'SELECT id,state FROM generations WHERE session_id=? AND idem=?',s.id,b.idem);if(existing)return J(existing);const base=await one(db,"SELECT * FROM generations WHERE id=? AND session_id=? AND salon_id=? AND state='success'",b.parent,s.id,salon.id);must(base?.result_id,'عکس پایه معتبر نیست');must((base.line||'hair')==='hair','نمای ۳۶۰ فقط برای مو است');const m=await ownMedia(db,s,base.result_id),id=uid(),now=Date.now();const visitor=visitorOf(b),free=await unlimited(db,s);const paidBy=!trial&&!free?await payForImage(db,env,{salon,s,visitor,quota:()=>spendQuota(db,salon,s,visitor,'hair')}):null;if(!trial&&!free&&!paidBy)await spendCredit(db,env,salon);if(dailyLimit(cfg)>0&&!free&&!paidBy)await limited(db,'views:'+salon.id,Math.min(20,dailyLimit(cfg)));await spendTrialImage(db,trial);await run(db,"INSERT INTO generations(id,salon_id,session_id,idem,kind,state,original_id,created_at,updated_at,visitor,paid_by) VALUES(?,?,?,?,'views','creating',?,?,?,?,?)",id,salon.id,s.id,b.idem,base.original_id,now,now,visitor,paidBy||null);
   try{const img=await uploadProvider(env,m);const task=await createImageTask(env,cfg,{prompt:VIEWS_PROMPT,image_input:[img],aspect_ratio:'16:9',resolution:'2K',output_format:'jpg'});await run(db,"UPDATE generations SET state='waiting',task_id=? WHERE id=?",task.taskId,id);return J({id,state:'waiting'});}catch{await run(db,"UPDATE generations SET state='unknown' WHERE id=?",id);throw new Problem(502,'ارسال نامشخص؛ بدون بازتولید خودکار');}
  }
  if(route==='generate'&&req.method==='POST'){
@@ -435,6 +439,8 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
    look=(await one(db,"SELECT look FROM portfolio WHERE salon_id=? AND published=1 AND line=? AND look<>'' AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)",salon.id,line,b.reference_id))?.look||'';
    if(!look){must(refOn(cfg),'انتقال عکس مرجع برای این سالن خاموش است',503);reference=await ownMedia(db,s,b.reference_id);}
   }
+  // A look she searched for and typed herself (not in the catalog) is tried on from her words alone.
+  else if(typeof b.custom==='string'&&b.custom.trim().length>=2)look=text(b.custom.trim().slice(0,120),120);
   else if(line==='color'&&!Number.isInteger(b.style))must(color.length>=2,'یک رنگ انتخاب کن یا اسمش را بنویس');
   else must(Number.isInteger(b.style)&&(line==='hair'?styles:lineStyles(line))[b.style],'مدل معتبر انتخاب کنید');
   // Hair colour can be tried on her new hairstyle: a hair result of this session made from the same photo.

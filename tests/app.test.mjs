@@ -842,7 +842,7 @@ test('landing carries an absolute share image and revalidates instead of going s
  assert.match(html,/<meta name="ayneh-build" content="[a-f0-9]{12}">/,'the page names its build');
  assert.match(html,new RegExp('og:image" content="'+origin+'/landing/og.jpg"'));assert.doesNotMatch(html,/__ORIGIN__/);assert.ok(readFileSync(new URL('../public/landing/og.jpg',import.meta.url)).length>10000)});
 
-test('demo salon behind the landing: no sign-up, 2 images per visitor, a coarse network cap, no 360 view, look handed over by the landing',async()=>{
+test('demo salon behind the landing: no sign-up, 1 image per visitor, a coarse network cap, no 360 view, look handed over by the landing',async()=>{
  const e=tgEnv(fixture());e.KIE_API_KEY='mock';const s={slug:'demo'};
  // Even with SMS configured, the visitor demo asks for no mobile (owner's decision).
  smsEnv(e);
@@ -855,11 +855,10 @@ test('demo salon behind the landing: no sign-up, 2 images per visitor, a coarse 
  globalThis.fetch=async(url,opts)=>{const u=String(url);if(u.includes('createTask'))prompts.push(JSON.parse(opts.body).input.prompt);if(u.includes('file-base64-upload'))return Response.json({success:true,data:{downloadUrl:'https://provider.example/'+crypto.randomUUID()+'.jpg'}});if(u.includes('createTask'))return Response.json({code:200,data:{taskId:'t'+crypto.randomUUID()}});return net(url,opts)};
  try{
   const first=await gen({apply_color:true,color:'شرابی'});assert.equal(first.status,200,JSON.stringify(first));assert.match(prompts[0],/burgundy/i);
-  assert.equal((await gen()).status,200);assert.match(prompts[1],/original.*colou?r|colou?r.*original/i);
-  const third=await gen();assert.equal(third.status,429);assert.match(third.data.error,/پنل آینه را بگیرید/);
+  const second=await gen();assert.equal(second.status,429,'one free try per visitor');assert.match(second.data.error,/ثبت‌نام کنید و حسابتان را شارژ کنید/);
   // A new session in the same browser is the same visitor.
   const g2=await guest(e,s),img2=await upload(e,s,g2);
-  assert.equal((await gen({},g2,img2)).status,429,'same browser id, same 2 images');
+  assert.equal((await gen({},g2,img2)).status,429,'same browser id, same one image');
   // A failed image does not count.
   e.DB.sql.prepare("UPDATE generations SET state='fail' WHERE id=?").run(first.data.id);
   assert.equal((await gen()).status,200,'the failed image gave its turn back');
