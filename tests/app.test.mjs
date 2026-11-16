@@ -190,7 +190,7 @@ test('unknown pages and APIs return 404; old access links are gone; HEAD and fav
  const missing=await app.fetch(new Request(origin+'/whatever'),e);assert.equal(missing.status,404);assert.match(await missing.text(),/پیدا نشد/);
  assert.equal((await app.fetch(new Request(origin+'/api/nope'),e)).status,404);
  assert.equal((await app.fetch(new Request(origin+'/',{method:'HEAD'}),e)).status,200);
- assert.equal((await app.fetch(new Request(origin+'/favicon.ico'),e)).status,204);
+ {const fs=await import('node:fs');for(const f of ['favicon.ico','favicon-32.png','apple-touch-icon.png','icon-192.png','icon-512.png','site.webmanifest'])assert.ok(fs.existsSync(new URL('../public/'+f,import.meta.url)),'static icon '+f)}
  assert.equal((await app.fetch(new Request(origin+'/s/salon-a'),e)).status,404,'a salon that does not exist is a real 404');
  assert.equal((await app.fetch(new Request(origin+'/s/salon-a/access'),e)).status,404);
  assert.equal((await app.fetch(new Request(origin+'/s/Bad Slug'),e)).status,404);
