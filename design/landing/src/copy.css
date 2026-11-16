@@ -29,7 +29,7 @@
 .loop__f figcaption svg{width:16px;height:16px;flex:0 0 16px}
 .loop__f--3{display:grid;place-items:center;padding:60px 18px 18px;background:linear-gradient(160deg,#EAF3EF,#FCF3EB)}
 .loop__f--3 figcaption{background:var(--emerald-deep)}
-@keyframes loopFrame{0%{opacity:0}4%{opacity:1}33%{opacity:1}37%,100%{opacity:0}}
+@keyframes loopFrame{0%{opacity:1}4%{opacity:1}33%{opacity:1}37%,100%{opacity:0}}
 .loop__dots{display:flex;justify-content:center;gap:7px;margin-top:11px}
 .loop__dots li{width:26px;height:5px;border-radius:5px;background:var(--line-2);animation:loopDot 8s linear infinite}
 .loop__dots li:nth-child(2){animation-delay:2.667s}
@@ -39,16 +39,8 @@
 .loop--mix .loop__f--m1{animation-delay:3s}.loop--mix .loop__f--m2{animation-delay:6s}.loop--mix .loop__f--m3{animation-delay:9s}.loop--mix .loop__f--m4{animation-delay:12s}
 .loop--mix .loop__dots li{animation:loopMixDot 15s linear infinite}
 .loop--mix .loop__dots li:nth-child(2){animation-delay:3s}.loop--mix .loop__dots li:nth-child(3){animation-delay:6s}.loop--mix .loop__dots li:nth-child(4){animation-delay:9s}.loop--mix .loop__dots li:nth-child(5){animation-delay:12s}
-@keyframes loopMix{0%{opacity:0}3%{opacity:1}20%{opacity:1}23%,100%{opacity:0}}
+@keyframes loopMix{0%{opacity:1}3%{opacity:1}20%{opacity:1}23%,100%{opacity:0}}
 @keyframes loopMixDot{0%{background:var(--line-2)}2%,20%{background:var(--emerald)}23%,100%{background:var(--line-2)}}
-@media(prefers-reduced-motion:reduce){
-  .loop__f,.loop__dots li{animation:none}
-  .loop--mix .loop__f--m1{opacity:1}
-  .loop__f--2{opacity:1}
-  /* the eight-frame hero: the first frame («قبل») is the one that stays */
-  .loop--svc .loop__s0{opacity:1}
-  .loop__dots{display:none}
-}
 @media(max-width:600px){.loop__screen{aspect-ratio:1/1.08}.loop__f figcaption{font-size:12.5px;min-height:32px;padding:0 12px}}
 
 /* ---------- the chat mock (hero frame three, and «چه به دست شما می‌رسد») ---------- */
@@ -56,7 +48,7 @@
 .chat__top{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--emerald-deep);color:#fff}
 .chat__av{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.2);font-weight:900}
 .chat__top b{display:block;font-size:14px;line-height:1.4}
-.chat__top small{display:block;font-size:11.5px;opacity:.85;line-height:1.4}
+.chat__top small{display:block;font-size:12px;opacity:.85;line-height:1.4}
 .chat__msg{display:flex;gap:11px;align-items:flex-start;padding:14px}
 .chat__msg img{flex:0 0 62px;width:62px;height:78px;border-radius:12px;object-fit:cover;object-position:50% 30%}
 .chat__body b{display:block;font-size:14px;font-weight:800;margin-bottom:3px}
@@ -122,7 +114,7 @@
 
 /* ---------- home services: sample + door in one card ---------- */
 .samples .head{margin-bottom:clamp(20px,3vw,34px)}
-.sample-card .compare__badge{top:8px;inset-inline-start:8px;inset-inline-end:auto;min-height:24px;padding:0 9px;font-size:10.5px}
+.sample-card .compare__badge{top:8px;inset-inline-start:8px;inset-inline-end:auto;min-height:24px;padding:0 9px;font-size:12px}
 .sample-card__body{display:grid;gap:8px;padding:14px}
 .sample-card__body b{font-size:17px;font-weight:900;color:var(--ink)}
 .sample-card__body p{margin:0;font-size:13.5px;line-height:1.8;color:var(--ink-soft);min-height:2.4em}
@@ -218,7 +210,7 @@
 .loop--svc .loop__s5{animation-delay:15s}.loop--svc .loop__dots li:nth-child(6){animation-delay:15s}
 .loop--svc .loop__s6{animation-delay:18s}.loop--svc .loop__dots li:nth-child(7){animation-delay:18s}
 .loop--svc .loop__s7{animation-delay:21s}.loop--svc .loop__dots li:nth-child(8){animation-delay:21s}
-@keyframes loopSvc{0%{opacity:0}1.5%{opacity:1}12%{opacity:1}13.5%,100%{opacity:0}}
+@keyframes loopSvc{0%{opacity:1}1.5%{opacity:1}12%{opacity:1}13.5%,100%{opacity:0}}
 @keyframes loopSvcDot{0%{background:var(--line-2)}1%,12%{background:var(--emerald)}13.5%,100%{background:var(--line-2)}}
 .loop--svc .loop__screen{aspect-ratio:3/3.4;background:linear-gradient(160deg,#F6EDE0,#EAF3EF)}
 .loop--svc .loop__f img{width:100%;height:100%;object-fit:contain;object-position:center}
@@ -242,3 +234,12 @@
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
   .ptabs__row button[aria-selected="true"]{--glass-bg:var(--emerald-deep);color:#fff}
 }
+/* Keep the first frame visible while it loads; start the clock only after decoding. */
+.loop:not(.is-ready) .loop__f,.loop:not(.is-ready) .loop__dots li{animation:none}
+.loop:not(.is-ready) .loop__f:first-child{opacity:1}
+.loop.is-paused .loop__f,.loop.is-paused .loop__dots li{animation-play-state:paused}
+.loop__toggle{display:block;min-height:44px;margin:4px auto 0;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--emerald-deep);font:inherit;font-weight:700;cursor:pointer}
+@media(prefers-reduced-motion:reduce){.loop:not(.is-playing) .loop__f,.loop:not(.is-playing) .loop__dots li{animation:none}.loop:not(.is-playing) .loop__f{opacity:0}.loop:not(.is-playing) .loop__f:first-child{opacity:1}.loop:not(.is-playing) .loop__dots{display:none}.loop.is-playing .loop__f,.loop.is-playing li{animation-duration:var(--loop-duration,8s)!important}.loop--mix{--loop-duration:15s}.loop--svc{--loop-duration:24s}}
+.setup__num{inset-inline-start:14px;inset-inline-end:auto;margin:0}
+@media(max-width:700px){.setup__num{inset-inline-start:14px;inset-inline-end:auto}}
+.btn--login{min-height:44px}

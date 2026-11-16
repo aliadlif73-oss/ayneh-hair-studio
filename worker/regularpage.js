@@ -17,7 +17,8 @@ const packsCSS = String.raw`
 .ap-pack{display:grid;gap:2px;justify-items:start;text-align:start;padding:14px 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;min-height:var(--tap)}
 .ap-pack b{font-family:var(--display);font-size:18px;font-weight:800}
 .ap-pack span{font-size:13px;color:var(--muted)}
-.ap-pack:hover,.ap-pack:focus-visible{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-ring)}
+.ap-pack:hover{border-color:var(--accent)}
+.ap-pack:focus-visible{outline:3px solid #054b3c;outline-offset:3px}
 .ap-more{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 14px;border-radius:var(--r);border:1px dashed var(--line);background:var(--surface-2)}
 .ap-more label{display:flex;gap:8px;align-items:center;font-size:14px}
 .ap-more input{width:84px;min-height:44px;border:1px solid var(--line);border-radius:var(--r-sm);padding:0 10px;font:inherit;text-align:center;background:#fff;color:var(--ink)}
@@ -148,6 +149,8 @@ const tryCSS = String.raw`
 .tr-ref code{direction:ltr;text-align:start;flex:1 1 220px;background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 12px;font:13px ui-monospace,Menlo,monospace;word-break:break-all;color:var(--ink)}
 .tr-more{justify-self:start}
 .tr-foot{max-width:760px;margin:0 auto;padding:0 16px 32px;font-size:12.5px;color:var(--muted);line-height:1.9}
+.tr .btn--sm{min-height:44px}
+.tr :focus-visible{outline:3px solid #054b3c;outline-offset:3px}
 .tr [hidden]{display:none!important}
 `;
 
@@ -166,7 +169,7 @@ const tryJS = String.raw`
   if(!force&&Date.now()-last<4000)return;last=Date.now();
   AynehPacks.me(true).then(function(d){
    var free=d.free.left,own=d.own.left;
-   $('#trLeft').textContent=(free>0?fa(free)+' نمونهٔ رایگان مانده':'نمونه‌های رایگان استفاده شد')+(own>0?' · '+fa(own)+' تصویر در حساب شما':'');
+   $('#trLeft').textContent=(free>0?'بدون نصب. '+fa(free)+' نمونهٔ رایگان دارید.':'نمونه‌های رایگان استفاده شد')+(own>0?' · '+fa(own)+' تصویر در حساب شما':'');
    if(free+own<=0)showPacks(true);else if(!mounted)$('#trMore').hidden=false;
    if(d.referral){$('#trRef').hidden=false;$('#trRefLink').textContent=d.referral.link}
   }).catch(function(){});
@@ -183,14 +186,14 @@ const attr = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': 
 /* The page for one direct salon slug; the slug is only ever the system salon's own. */
 export function tryHTML(slug) {
   return '<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#e8edeb"><link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest">'
-    + '<title>امتحان روی عکس خودتان | آینه</title><meta name="description" content="مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید. یک نمونهٔ رایگان. بدون نصب.">'
+    + '<title>امتحان روی عکس خودتان | آینه</title><meta name="description" content="مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید. بدون نصب. ۱ نمونهٔ رایگان دارید.">'
     + '<style>' + baseCSS + packsCSS + tryCSS + '</style></head><body>'
     + '<main class="tr">'
     + '<div class="tr-bar"><a class="tr-brand" href="/"><span aria-hidden="true">' + markSVG + '</span>آینه</a></div>'
-    + '<section class="tr-hero"><h1>مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید.</h1><p>یک نمونهٔ رایگان. بدون نصب.</p><p id="trLeft" class="tr-left" aria-live="polite"></p></section>'
+    + '<section class="tr-hero"><h1>مدل مو، رنگ، ناخن و مژه را روی عکس خودتان ببینید.</h1><p id="trLeft" class="tr-left" aria-live="polite"></p></section>'
     + '<div class="tr-frame"><iframe id="trFrame" src="/s/' + attr(slug) + '?embed=1" title="امتحان روی عکس خودتان" allow="camera"></iframe></div>'
     + '<button id="trMore" class="btn btn--ghost btn--sm tr-more" type="button" hidden>نمونهٔ بیشتر می‌خواهید؟</button>'
-    + '<section id="trPacks" class="tr-card" hidden><h2 id="trOutTitle">نمونهٔ رایگانتان استفاده شد.</h2><p>برای نمونه‌های بیشتر، ثبت‌نام کنید و حسابتان را شارژ کنید.</p><div id="trPackBox"></div></section>'
+    + '<section id="trPacks" class="tr-card" hidden><h2 id="trOutTitle">نمونهٔ رایگانت استفاده شد.</h2><p>برای نمونه‌های بیشتر، ثبت‌نام کن و حسابت را شارژ کن.</p><div id="trPackBox"></div></section>'
     + '<section id="trRef" class="tr-card tr-ref" hidden><p>آرایشگر یا آرایشگاه‌دار می‌شناسید؟ لینک شما را به او بدهید؛ اگر پلن آینه بگیرد، ' + REFERRAL_IMAGES.toLocaleString('fa-IR') + ' تصویر هدیه می‌گیرید.</p><div class="tr-link"><code id="trRefLink"></code><button id="trCopy" class="btn btn--soft btn--sm" type="button">کپی لینک</button></div></section>'
     + '</main>'
     + '<footer class="tr-foot">یک نمونه است؛ برای انتخاب قبل از نوبت. عکس شما فقط برای ساخت نمونه استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود.</footer>'

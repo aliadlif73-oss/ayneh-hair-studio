@@ -100,11 +100,11 @@ a.hchip,button.hchip{cursor:pointer}a.hchip:hover,button.hchip:hover{border-colo
 .selfie img{width:40px;height:52px;object-fit:cover;border-radius:20px 20px 6px 6px;flex:none}
 .selfie div{display:grid;gap:2px}.selfie b{display:flex;align-items:center;gap:5px;font-size:13.5px}.selfie b svg{width:16px;height:16px;color:var(--ok)}.selfie span{font-size:12px;color:var(--muted)}
 .selfie .btn{margin-inline-start:auto}
-.pc-by{display:block;font-size:11.5px;color:var(--muted);margin-top:2px}
+.pc-by{display:block;font-size:12px;color:var(--muted);margin-top:2px}
 .steps__top{display:flex;justify-content:center;padding-top:10px}
 .linesw{display:inline-grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border-radius:999px;background:var(--glass);box-shadow:inset 0 1px 2px rgba(0,0,0,.06);width:min(100%,500px)}
-.linesw__btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:6px 8px;white-space:nowrap;border:0;border-radius:999px;background:transparent;color:var(--ink-2);font:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s var(--ease),color .2s var(--ease),box-shadow .2s var(--ease)}
-.linesw__btn svg{width:18px;height:18px}
+.linesw__btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:6px 8px;white-space:nowrap;border:0;border-radius:999px;background:transparent;color:var(--ink-2);font:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s var(--ease),color .2s var(--ease),box-shadow .2s var(--ease)}
+.linesw__btn svg{width:22px;height:22px;padding:3px;border-radius:50%;background:linear-gradient(145deg,#fff8ed,#e5cda4);color:#165d4b;box-shadow:inset 0 1px 2px #fff,0 3px 6px rgba(66,45,22,.25)}
 .linesw__btn:hover{color:var(--ink)}
 .linesw__btn.is-on{color:#fff}
 .linesw__btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -120,7 +120,7 @@ a.hchip,button.hchip{cursor:pointer}a.hchip:hover,button.hchip:hover{border-colo
 .invite__pics :nth-child(1){inset-inline-start:6px;transform:rotate(8deg)}.invite__pics :nth-child(2){inset-inline-start:30px;bottom:14px;z-index:1;width:56px;height:74px}.invite__pics :nth-child(3){inset-inline-start:56px;transform:rotate(-8deg)}
 .invite__txt{display:grid;gap:6px;position:relative;z-index:1}
 .invite__txt b{font-family:var(--display);font-weight:800;font-size:19px;line-height:1.5}
-.invite__txt span{font-size:13.5px;line-height:1.9;color:rgba(255,255,255,.85)}
+.invite__txt > span{font-size:13.5px;line-height:1.9;color:rgba(255,255,255,.85)}
 .invite__cta{justify-self:start;display:inline-flex;align-items:center;gap:8px;margin-top:6px;padding:10px 16px;border-radius:999px;background:var(--honey);color:#2a1a08;font-weight:800;font-size:14px}
 .invite__cta svg{width:18px;height:18px}
 @media (max-width:420px){.invite{grid-template-columns:1fr;justify-items:start}.invite__pics{height:84px}}
@@ -163,7 +163,7 @@ a.hchip,button.hchip{cursor:pointer}a.hchip:hover,button.hchip:hover{border-colo
 .style-card:hover{border-color:var(--line)}
 .style-card.is-on{border-color:var(--ink);background:#fff;box-shadow:0 0 0 3px rgba(35,23,15,.08)}
 .style-card__name{font-family:var(--display);font-weight:800;font-size:19px;color:var(--ink);line-height:1.35}
-.style-card__en{font-size:11.5px;color:var(--muted);direction:ltr;text-align:end}
+.style-card__en{font-size:12px;color:var(--muted);direction:ltr;text-align:end}
 .style-card__tag{font-size:12px;color:var(--accent-ink);font-weight:600;margin-top:4px}
 .rail{display:grid;grid-auto-flow:column;grid-auto-columns:138px;gap:12px;overflow-x:auto;padding:4px 2px 10px;scroll-snap-type:x mandatory;scrollbar-width:thin}
 .port-card{scroll-snap-align:start;border:0;background:transparent;padding:0;text-align:start}
@@ -327,7 +327,7 @@ body.is-touring{overflow:hidden}
 .compare--demo{cursor:default;pointer-events:none}
 .demo{flex:none}
 .demo--small{width:118px;padding:4px}
-.demo .compare__tag{font-size:10.5px;padding:1px 8px;bottom:8px}
+.demo .compare__tag{font-size:12px;padding:1px 8px;bottom:8px}
 .demo .compare__tag--before{inset-inline-start:8px}.demo .compare__tag--after{inset-inline-end:8px}
 .demo-row{display:flex;gap:14px;align-items:center;margin:0 0 18px;padding:10px 14px 10px 10px;border-radius:20px;background:var(--glass)}
 .demo-row__text{display:grid;gap:3px;font-size:13px;line-height:1.85;color:var(--ink-2)}
@@ -442,9 +442,9 @@ body.is-touring{overflow:hidden}
 .linesw__btn.is-on svg{color:#fff}
 .steps__bottom{background:var(--surface);border-top:1px solid var(--line-2);border-bottom:1px solid var(--line-2)}
 .steps__list{display:flex;align-items:center;gap:8px;padding:6px 18px;grid-template-columns:none;max-width:560px;margin-inline:auto}
-.steps__item{flex:none;min-height:34px;padding:0 2px;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted);border-radius:10px}
+.steps__item{flex:none;min-height:44px;padding:0 2px;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted);border-radius:10px}
 .steps__item::after{display:none}
-.steps__num{width:22px;height:22px;font-size:11.5px;border-width:1.5px}
+.steps__num{width:22px;height:22px;font-size:12px;border-width:1.5px}
 .steps__line{flex:1;height:2px;min-width:14px;border-radius:2px;background:var(--line)}
 .steps__line.is-done{background:var(--accent)}
 .steps__label{overflow:visible;white-space:nowrap}
@@ -479,7 +479,7 @@ img[loading="lazy"].is-in{opacity:1}
 .base{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
 .base__opt{display:flex;align-items:center;gap:10px;padding:8px;border-radius:16px;text-align:start;font:inherit;color:var(--ink);cursor:pointer;min-width:0}
 .base__opt img{width:46px;height:58px;object-fit:cover;border-radius:22px 22px 8px 8px;flex:none}
-.base__opt span{display:grid;gap:2px;min-width:0}.base__opt b{font-size:13px;line-height:1.5}.base__opt small{font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.base__opt span{display:grid;gap:2px;min-width:0}.base__opt b{font-size:13px;line-height:1.5}.base__opt small{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .base__opt.is-on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-ring)}
 .basehint{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 12px;margin:0 0 16px;border-radius:16px;background:var(--honey-soft);font-size:12.5px;line-height:1.8;color:var(--ink-2)}
 .basehint>span:first-child{display:inline-grid;color:var(--honey)}.basehint svg{width:20px;height:20px}
@@ -547,6 +547,18 @@ img[loading="lazy"].is-in{opacity:1}
  .build__photo,.build__scan,.build__spark,.fx,.fx__b1,.fx__b2,.fx__bit,.fx__wash,.fx__lid,.fx__lash path,.build__steps li.is-on span,.selfie--fresh,.selfie--fresh img{animation:none}
  .fx__wash{clip-path:inset(0 0 40% 0)}.fx__lash path{stroke-dashoffset:0}.fx__bit{display:none}
 }
+/* Shared clay finish for customer-page service and action icons. */
+:is(.upload__icon,.custom-look__ico,.next-line__ico,.linesw__btn svg){
+ color:#054b3c;border:1px solid rgba(255,255,255,.92);
+ background:linear-gradient(151deg,rgba(255,255,255,.62),rgba(255,255,255,.06) 46%,rgba(7,66,55,.05)),radial-gradient(120% 92% at 26% 10%,#fff 0 10%,rgba(255,255,255,.34) 42%,transparent 66%),linear-gradient(151deg,#fff 0%,#f2fbf7 32%,#d3eddf 68%,#a9dbc8 100%);
+ box-shadow:inset 2px 2px 3px rgba(255,255,255,.9),inset -2px -3px 5px rgba(7,66,55,.16),0 2px 0 #8dbca9,0 8px 16px rgba(6,90,70,.18);
+}
+:is(.upload__icon,.custom-look__ico,.next-line__ico) svg,.linesw__btn svg{filter:drop-shadow(0 1px 0 rgba(255,255,255,.95)) drop-shadow(0 2px 2px rgba(11,59,50,.2))}
+.linesw__btn.is-on svg{color:#054b3c}
+.btn--sm,.picked .btn,a.hchip,button.hchip{min-height:44px}
+:focus-visible{outline:3px solid #054b3c;outline-offset:3px}
+.linesw__btn:focus-visible,.compare:has(.compare__range:focus-visible),.spin:focus-visible{outline:3px solid #054b3c;outline-offset:3px}
+
 `;
 
 const clientJS=String.raw`
@@ -588,7 +600,7 @@ var ICO={
  sun:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.8v2.4M12 18.8v2.4M2.8 12h2.4M18.8 12h2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/></svg>',
  gallery:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="15" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="m20.5 15-4.6-4.4L7 19.5"/></svg>',
  orbit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="9" ry="3.6"/><path d="M12 3.5c2 1.6 3.2 4.7 3.2 8.5s-1.2 6.9-3.2 8.5"/><path d="m18.6 13.8 2 1.6-2.3 1"/></svg>',
- drop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2c3.2 3.7 5.6 6.9 5.6 10a5.6 5.6 0 0 1-11.2 0c0-3.1 2.4-6.3 5.6-10Z"/><path d="M9.2 14.2a2.9 2.9 0 0 0 2.6 2.6"/></svg>',
+ drop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5C9.7 6.2 6 9.8 6 13.5a6 6 0 0 0 12 0c0-3.7-3.7-7.3-6-11Z"/><circle cx="9.4" cy="13.8" r="1" fill="currentColor" stroke="none"/></svg>',
  nails:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21v-9.5a4 4 0 0 1 8 0V21"/><path d="M10 11.5V9a2 2 0 0 1 4 0v2.5"/></svg>',
  lashes:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13c2.5-3.2 5.5-4.8 9-4.8s6.5 1.6 9 4.8"/><path d="M3 13c2.5 3 5.5 4.5 9 4.5s6.5-1.5 9-4.5"/><circle cx="12" cy="13" r="2.4"/><path d="M6 9.6 4.8 7.6M9 8.5l-.6-2.2M12 8.2V6M15 8.5l.6-2.2M18 9.6l1.2-2"/></svg>',
  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H4M10 6l-6 6 6 6"/></svg>',};
@@ -902,7 +914,7 @@ function stepPhoto(){
    ]),
    el('details',{class:'collapse'},[
     el('summary',{html:ICO.lock+'<span>عکسم کجا نگه‌داری می‌شود؟</span>'}),
-    h('p','عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود. عکس دسترسی عمومی ندارد و در سابقهٔ سالن نگه داشته می‌شود تا آرایشگرت بعداً هم آن را ببیند. نتیجه را فقط وقتی خودت دکمهٔ «از دوستم نظر بپرسم» را بزنی برای کسی می‌فرستی.')
+    h('p','عکس شما فقط برای ساخت نمونه و دیدنِ سالن استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود. عکس دسترسی عمومی ندارد و در سابقهٔ سالن نگه داشته می‌شود تا آرایشگرت بعداً هم آن را ببیند. نتیجه را فقط وقتی خودت دکمهٔ «از دوستم نظر بپرسم» را بزنی برای کسی می‌فرستی.')
    ])
   ]);
   box.append(input,el('div',{class:'demo-row'},[demoCompare('demo--small'),el('div',{class:'demo-row__text'},[h('b','این‌طوری می‌شود'),h('span',LP().demo)])]),el('div',{class:'shoot'},[drop,side]));
@@ -1274,7 +1286,7 @@ function washColor(){
 }
 // Real builds take about 50–80 seconds: the curve reaches ~80% at a minute and keeps moving after.
 function buildPct(){var t=Date.now()-(state.genT0||Date.now());return state.result?100:Math.min(97,Math.round(3+94*(1-Math.exp(-t/38000))))}
-function buildNote(){var t=Date.now()-(state.genT0||Date.now());return t>85000?'هنوز در حال ساخت است؛ صفحه را نبند.':t>45000?'هنوز در حال ساخت است… چند لحظهٔ دیگر صبر کن.':'این صفحه را نبند؛ چند لحظه طول می‌کشد.'}
+function buildNote(){var t=Date.now()-(state.genT0||Date.now());return t>85000?'هنوز در حال ساخت است؛ صفحه را نبند.':t>45000?'هنوز در حال ساخت است… چند لحظهٔ دیگر صبر کن.':'این صفحه را نبند؛ بدون نصب، روی گوشی.'}
 function buildStage(){
  var L=state.line,B=BUILD[L]||BUILD.hair,pct=buildPct(),src=state.genBase?media(state.genBase):(state.original?media(state.original):'');
  var stage=el('div',{class:'stage mirror build build--'+L,style:'--wash:'+washColor()},[el('div',{class:'mirror__glass'},[
@@ -1636,7 +1648,7 @@ function openViews(){
  panel.append(el('div',{class:'sheet__head'},[h('h2','از همهٔ زاویه‌ها'),el('button',{class:'sheet__x',type:'button','aria-label':'بستن',text:'×',onclick:closeSheet})]));
  var a=el('div',{class:'spin__layer'}),b=el('div',{class:'spin__layer'});
  var stage=el('div',{class:'spin',tabindex:'0',role:'img','aria-label':'نمای چرخشی مدل مو؛ برای چرخاندن بکش یا از کلیدهای جهت استفاده کن'},[a,b]);
- var tip=el('p',{class:'spin__tip',text:'دارم زاویه‌های دیگر را می‌سازم… چند لحظه طول می‌کشد.'}),bar=el('span',{class:'spin__bar'});
+ var tip=el('p',{class:'spin__tip',text:'دارم زاویه‌های دیگر را می‌سازم… بدون نصب، روی گوشی.'}),bar=el('span',{class:'spin__bar'});
  var loading=el('div',{class:'spin__loading'},[el('div',{class:'spin__orbit'},[el('img',{src:media(state.result),alt:''})]),el('span',{class:'spin__ring'}),tip,el('span',{class:'spin__track'},[bar])]);
  stage.append(loading);
  var angle=el('span',{class:'spin__angle',text:''});
@@ -2030,7 +2042,7 @@ function renderInvite(){
  var b=el('button',{class:'invite',type:'button',onclick:function(){track('share_open');openShare()}},[
   pics,
   el('span',{class:'invite__txt'},[
-   h('b','دوستات هم مدل بعدی‌شان را ببینند'),
+   h('b','دوستانت هم مدل بعدی‌شان را ببینند'),
    h('span','لینک صفحهٔ «'+state.pub.salon.name+'» را برایشان بفرست؛ رایگان و بدون نصب، روی عکس خودشان امتحان می‌کنند.'),
    el('span',{class:'invite__cta',html:SHARE_IC.share+'<span>فرستادن برای دوستان</span>'})
   ])
@@ -2124,7 +2136,7 @@ export const customerHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><h
 <link rel="preload" href="/fonts/vazirmatn-arabic.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/estedad-arabic.woff2" as="font" type="font/woff2" crossorigin>
 <title>آینه | مشاورهٔ مو</title>
-<style>__CSS__.trialbar{position:sticky;top:0;z-index:30;padding:8px 14px;text-align:center;font-size:13px;font-weight:700;background:var(--accent-ink);color:#fff}.trialbar.is-over{background:var(--danger)}.trialbar.owner-return{display:flex;align-items:center;justify-content:center;gap:8px 14px;flex-wrap:wrap;background:#102c3b;padding:9px 14px;text-align:center}.owner-return__note{font-size:12.5px;font-weight:500;line-height:1.7;opacity:.95}.owner-return__cta{flex:none;background:#fff;color:#102c3b;border-radius:999px;padding:6px 15px;font-size:12.5px;font-weight:800;text-decoration:none}.owner-return__cta:hover{background:#f0dcae}.owner-return__cta:focus-visible{outline:2px solid #fff;outline-offset:2px}</style>
+<style>__CSS__.trialbar{position:sticky;top:0;z-index:30;padding:8px 14px;text-align:center;font-size:13px;font-weight:700;background:var(--accent-ink);color:#fff}.trialbar.is-over{background:var(--danger)}.trialbar.owner-return{display:flex;align-items:center;justify-content:center;gap:8px 14px;flex-wrap:wrap;background:#102c3b;padding:9px 14px;text-align:center}.owner-return__note{font-size:12.5px;font-weight:500;line-height:1.7;opacity:.95}.owner-return__cta{display:inline-flex;align-items:center;min-height:44px;flex:none;background:#fff;color:#102c3b;border-radius:999px;padding:6px 15px;font-size:12.5px;font-weight:800;text-decoration:none}.owner-return__cta:hover{background:#f0dcae}.owner-return__cta:focus-visible{outline:2px solid #fff;outline-offset:2px}</style>
 </head><body>
 <a class="skip" href="#main">پرش به محتوای اصلی</a>
 <header class="hero" id="head"><div class="wrap"><div class="hero__bar"><div class="skel" style="width:70px;height:22px"></div></div><div class="skel cover"></div><div class="hero__body"><div><div class="skel" style="width:70%;height:38px"></div><div class="skel" style="width:52%;height:14px;margin-top:14px"></div></div></div></div></header>
@@ -2136,7 +2148,7 @@ export const customerHTML=String.raw`<!doctype html><html lang="fa" dir="rtl"><h
   <aside class="side" id="side" hidden></aside>
  </div>
  <section id="invite" aria-label="معرفی به دوستان" hidden></section>
- <footer class="foot" id="foot" style="padding-bottom:130px">شبیه‌سازی پیشنهادی است و اجرای دقیق را تضمین نمی‌کند. عکس فقط برای ساخت نمونه و دیدن سالن شما استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود. نمایش عمومی ندارد.</footer>
+ <footer class="foot" id="foot" style="padding-bottom:130px">شبیه‌سازی پیشنهادی است و اجرای دقیق را تضمین نمی‌کند. عکس شما فقط برای ساخت نمونه و دیدنِ سالن استفاده می‌شود؛ نسخهٔ فشردهٔ آن برای ساخت تصویر به سرویس تصویر ارسال می‌شود. نمایش عمومی ندارد.</footer>
 </main>
 <div class="dock" id="dock" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>

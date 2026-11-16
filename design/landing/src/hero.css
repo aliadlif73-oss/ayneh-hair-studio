@@ -73,7 +73,7 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
 .sw .dot i{display:block;width:100%;height:100%;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(235,242,250,.45)}
 .sw:hover .dot{transform:scale(1.08)}
 .sw[aria-checked="true"] .dot{transform:scale(1.1);box-shadow:0 0 0 3px #e8edf3,0 0 0 4.5px #7c8998,0 6px 12px rgba(21,33,57,.18)}
-@media (max-height:760px) and (min-width:901px){.sw>span:not(.dot){font-size:11px}.sw .dot{width:34px;height:34px}.sw{padding:4px}}
+@media (max-height:760px) and (min-width:901px){.sw>span:not(.dot){font-size:12px}.sw .dot{width:34px;height:34px}.sw{padding:4px}}
 
 /* reference card for the chosen style */
 .reference{position:absolute;z-index:4;right:clamp(14px,2.4vw,40px);top:clamp(14px,4vh,40px);width:min(230px,26%);display:flex;gap:10px;align-items:center;padding:8px;border-radius:18px;opacity:0;transform:translateY(10px);transition:opacity 380ms var(--ease),transform 380ms var(--ease);pointer-events:none}
@@ -135,7 +135,7 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
   .palette.mobile{position:relative;left:auto;top:auto;transform:none;width:auto;margin:10px 12px 0;border-radius:22px;padding:8px 6px 6px}
   .palette.mobile .col-list{flex-direction:row;overflow-x:auto;scrollbar-width:none;gap:2px}
   .palette.mobile .col-list::-webkit-scrollbar{display:none}
-  .palette.mobile .sw{flex:0 0 74px;font-size:11.5px}.palette.mobile .sw .dot{width:38px;height:38px}
+  .palette.mobile .sw{flex:0 0 74px;font-size:12px}.palette.mobile .sw .dot{width:38px;height:38px}
   .reference{display:none}
   .result{bottom:auto;top:10px;font-size:13px;padding:4px 4px 4px 12px}.result .btn{min-height:36px;padding:0 12px;font-size:13px}
   .dock.mobile{position:relative;left:auto;top:auto;width:auto;transform:none;margin:10px 12px 6px;--u:1.05}
@@ -170,11 +170,11 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
 .dock{z-index:4}
 .d-item .ic{height:calc(62px * var(--u));overflow:hidden;border-radius:9px;width:calc(46px * var(--u))}
 .d-item img{position:static;width:100%;height:100%;max-width:none;object-fit:cover;filter:none;border-radius:9px}
-.preview-kind{display:block;font-size:11px;font-weight:500;margin-top:4px;color:#3b4559}
+.preview-kind{display:block;font-size:12px;font-weight:500;margin-top:4px;color:#3b4559}
 .demo-file{position:absolute;z-index:11;width:100px;padding:6px;border:1px solid #7c8998;border-radius:14px;background:#f7f9fb;box-shadow:0 14px 28px #080d1530;opacity:0;pointer-events:none;transform:rotate(-8deg) scale(.9);transition:opacity 250ms,transform 250ms}
 .demo-file.visible{opacity:1;transform:rotate(-8deg) scale(1)}
 .demo-file img{display:block;width:88px;height:74px;object-fit:cover;object-position:50% 40%;border-radius:8px}
-.demo-file span{display:block;font-size:11px;text-align:center;white-space:nowrap;color:#1c2331;padding-top:4px}
+.demo-file span{display:block;font-size:12px;text-align:center;white-space:nowrap;color:#1c2331;padding-top:4px}
 .demo-hand{position:absolute;z-index:12;width:34px;height:40px;fill:#fff;stroke:#0e141f;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 4px 5px #080d1540);opacity:0;pointer-events:none;transform-origin:25% 15%;transition:opacity 200ms,transform 180ms}
 .demo-hand.visible{opacity:1}.demo-hand.press{transform:scale(.78)}
 .demo-caption{position:absolute;z-index:7;left:12%;top:18px;max-width:43%;padding:8px 16px;border:1px solid #7c899860;background:#f7f9fbdd;backdrop-filter:blur(8px);border-radius:24px;font-size:13px;line-height:1.8;text-align:center;color:#253047;pointer-events:none}
@@ -183,7 +183,7 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
 .demo-controls button[hidden]{display:none}
 .demo-highlight{outline:2px solid #5c6b7d;outline-offset:3px}
 .stage[data-demo="playing"] .reference,.stage[data-demo="playing"] .result{opacity:0;pointer-events:none}
-@media(min-width:901px) and (max-height:700px){.copy .lead{display:block;font-size:14px;line-height:1.8;margin-bottom:14px}.copy h1{font-size:30px}.copy .fineprint{display:block;font-size:11px}.copy .cta-row{gap:8px}.copy .cta-row .btn{font-size:13px;min-height:44px}}
+@media(min-width:901px) and (max-height:700px){.copy .lead{display:block;font-size:14px;line-height:1.8;margin-bottom:14px}.copy h1{font-size:30px}.copy .fineprint{display:block;font-size:12px}.copy .cta-row{gap:8px}.copy .cta-row .btn{font-size:13px;min-height:44px}}
 @media(max-width:900px){
  .demo-caption{position:relative;left:auto;top:auto;max-width:none;margin:8px 20px 0;order:4;font-size:12px;min-height:40px}
  .palette.mobile{order:5}.dock.mobile{order:6}.lead{order:7}.cta-row{order:8}.fineprint{order:9}
@@ -222,10 +222,10 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
  .hero-playground{order:3;display:flex;flex-direction:column;margin:0 12px 16px;border:1px solid #7c899845;border-radius:20px;overflow:clip;background:#dee5eb;height:min(76svh,610px);min-height:470px}
  .hero-playground .studio{order:0;flex:1;height:auto;min-height:210px;max-height:340px;width:100%;position:relative}
  .hero-playground .palette.mobile{order:1;flex:none;margin:0;border:0;border-top:1px solid #7c899840;border-radius:0;padding:5px 6px;box-shadow:none;backdrop-filter:none}
- .hero-playground .palette h2{font-size:11px;margin:0 0 3px}.hero-playground .col-list{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));overflow:visible;gap:0}
- .hero-playground .palette.mobile .sw{width:auto;min-width:0;min-height:50px;flex:none;font-size:8px;padding:3px 0;gap:3px}.hero-playground .palette.mobile .sw .dot{width:30px;height:30px}
+ .hero-playground .palette h2{font-size:12px;margin:0 0 3px}.hero-playground .col-list{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));overflow:visible;gap:0}
+ .hero-playground .palette.mobile .sw{width:auto;min-width:0;min-height:50px;flex:none;font-size:12px;padding:3px 0;gap:3px}.hero-playground .palette.mobile .sw .dot{width:30px;height:30px}
  .hero-playground .dock.mobile{order:2;flex:none;margin:0;width:100%;border:0;border-top:1px solid #7c899840;border-radius:0;padding:7px 12px;--u:.8;box-shadow:none;backdrop-filter:none}
- .hero-playground .dock h2{font-size:11px;margin-bottom:3px}.hero-playground .dock.mobile .d-item{flex:0 0 28%;font-size:10px}.hero-playground .more{min-height:34px;font-size:10px}
+ .hero-playground .dock h2{font-size:12px;margin-bottom:3px}.hero-playground .dock.mobile .d-item{flex:0 0 28%;font-size:12px}.hero-playground .more{min-height:34px;font-size:12px}
  .demo-caption,.demo-controls{display:none}.result{display:none}.eyebrow{font-size:12px;padding-top:14px}h1{font-size:25px;line-height:1.5}.lead{font-size:14px}.copy .cta-row .btn{font-size:14px}
 }
 /* The result action must never cover the model picker. */
@@ -233,7 +233,7 @@ svg.frame{position:absolute;inset:0;width:100%;height:100%;overflow:visible;poin
 
 html.try-open{overflow:hidden}.personal-try{padding:0;border:1px solid #a2aab3;border-radius:24px;background:#eaeef3;color:#18202e;width:min(900px,calc(100% - 24px));height:min(880px,calc(100svh - 32px));max-height:calc(100svh - 32px);overflow:hidden;box-shadow:0 30px 100px #0006}.personal-try::backdrop{background:#0f1216c9;backdrop-filter:blur(8px)}.personal-head{height:64px;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #a2aab355;direction:rtl}.personal-head button{width:42px;height:42px;border:1px solid #7c8998;border-radius:50%;font:inherit;font-size:25px;cursor:pointer;background:transparent;color:inherit}.personal-try iframe{display:block;width:100%;height:calc(100% - 64px);border:0;background:#eaeef3}@media(max-width:600px){.personal-try{width:calc(100% - 12px);height:calc(100svh - 12px);max-height:calc(100svh - 12px);border-radius:18px}}
 
-.site-header .btn{max-width:280px;white-space:normal;text-align:center;line-height:1.6}@media(max-width:600px){.site-header .btn{max-width:185px;font-size:10px;padding:8px 14px;min-height:44px}}
+.site-header .btn{max-width:280px;white-space:normal;text-align:center;line-height:1.6}@media(max-width:600px){.site-header .btn{max-width:185px;font-size:12px;padding:8px 14px;min-height:44px}}
 .copy .fineprint a{text-decoration:underline;text-underline-offset:4px;display:inline-flex;align-items:center;min-height:44px}
 @media(max-width:900px){
  .stage .copy .lead{order:3}.stage .copy .cta-row{order:4}.stage .copy .fineprint{order:5;padding-bottom:8px}
