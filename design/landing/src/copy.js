@@ -50,7 +50,7 @@
  if(!img||!button)return;
  const motion=matchMedia('(prefers-reduced-motion: reduce)');
  let paused=motion.matches;
- function render(){loop.classList.toggle('is-paused',paused);button.setAttribute('aria-pressed',String(paused));button.textContent=paused?'پخش نمایش':'توقف نمایش'}
+ function render(){loop.classList.toggle('is-paused',paused);loop.classList.toggle('is-playing',motion.matches&&!paused);button.setAttribute('aria-pressed',String(paused));button.textContent=paused?'پخش نمایش':'توقف نمایش'}
  button.addEventListener('click',()=>{paused=!paused;render()});
  motion.addEventListener?.('change',e=>{if(e.matches){paused=true;render()}});
  render();

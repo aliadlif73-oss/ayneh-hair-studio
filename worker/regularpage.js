@@ -17,7 +17,8 @@ const packsCSS = String.raw`
 .ap-pack{display:grid;gap:2px;justify-items:start;text-align:start;padding:14px 16px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;min-height:var(--tap)}
 .ap-pack b{font-family:var(--display);font-size:18px;font-weight:800}
 .ap-pack span{font-size:13px;color:var(--muted)}
-.ap-pack:hover,.ap-pack:focus-visible{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-ring)}
+.ap-pack:hover{border-color:var(--accent)}
+.ap-pack:focus-visible{outline:3px solid #054b3c;outline-offset:3px}
 .ap-more{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 14px;border-radius:var(--r);border:1px dashed var(--line);background:var(--surface-2)}
 .ap-more label{display:flex;gap:8px;align-items:center;font-size:14px}
 .ap-more input{width:84px;min-height:44px;border:1px solid var(--line);border-radius:var(--r-sm);padding:0 10px;font:inherit;text-align:center;background:#fff;color:var(--ink)}
@@ -148,6 +149,8 @@ const tryCSS = String.raw`
 .tr-ref code{direction:ltr;text-align:start;flex:1 1 220px;background:#fff;border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 12px;font:13px ui-monospace,Menlo,monospace;word-break:break-all;color:var(--ink)}
 .tr-more{justify-self:start}
 .tr-foot{max-width:760px;margin:0 auto;padding:0 16px 32px;font-size:12.5px;color:var(--muted);line-height:1.9}
+.tr .btn--sm{min-height:44px}
+.tr :focus-visible{outline:3px solid #054b3c;outline-offset:3px}
 .tr [hidden]{display:none!important}
 `;
 

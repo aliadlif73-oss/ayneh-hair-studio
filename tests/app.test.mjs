@@ -1463,7 +1463,7 @@ test('step 24 layout: the grids collapse cleanly at 1120 / 900 / 600',()=>{
   /@media\(max-width:900px\)\{\.plans\{grid-template-columns:1fr/,
   /@media\(max-width:940px\)\{\.foot-grid\{grid-template-columns:1fr 1fr\}\}/])
   assert.match(landingHTML,rule);
- assert.match(landingHTML,/:focus-visible\{outline:3px solid var\(--emerald\)/,'focus ring everywhere');
+ assert.match(landingHTML,/:focus-visible\{outline:3px solid var\(--emerald-deep\)/,'focus ring everywhere');
  assert.match(landingHTML,/@media\(prefers-reduced-motion:reduce\)/,'motion is opt-out');
  assert.match(landingHTML,/\[hidden\]\{display:none!important\}/,'hidden always wins over a display rule');
 });
@@ -2940,4 +2940,17 @@ test('audit: hero loads eagerly and waits for decoding; hairstyle mirror exclude
  assert.match(js,/img\.decode\(\)/);assert.match(js,/prefers-reduced-motion/);
  assert.match(servicePages.hair,/id="playColors" hidden/);
  assert.ok(servicePages.nails.includes('با عکس واضح و پرنور'));assert.ok(servicePages.lashes.includes('با عکس واضح و پرنور'));
+});
+
+test('audit follow-up: mobile controls and reduced-motion playback',()=>{
+ const css=readFileSync(new URL('../design/landing/src/copy.css',import.meta.url),'utf8');
+ const site=readFileSync(new URL('../design/landing/src/site.css',import.meta.url),'utf8');
+ const studio=readFileSync(new URL('../design/landing/src/studio.css',import.meta.url),'utf8');
+ const js=readFileSync(new URL('../design/landing/src/copy.js',import.meta.url),'utf8');
+ assert.match(studio,/\.sb-add\{[^}]*min-height:44px/);
+ assert.match(site,/\.plan \.btn\.plan__buy\{min-height:48px\}/);
+ assert.match(css,/\.loop:not\(\.is-playing\) \.loop__f/);
+ assert.match(css,/animation-duration:var\(--loop-duration,8s\)!important/);
+ assert.match(js,/classList\.toggle\('is-playing',motion\.matches&&!paused\)/);
+ assert.match(customerHTML,/\.btn--sm,\.picked \.btn,a\.hchip,button\.hchip\{min-height:44px\}/);
 });

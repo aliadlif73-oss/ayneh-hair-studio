@@ -601,7 +601,7 @@ ul,ol{padding:0;list-style:none}
 .pay-form input,.pay-coupon input{min-height:48px;padding:0 14px;border:1px solid var(--line-2);
   border-radius:var(--r-sm);background:var(--cream-2);font:inherit;font-size:14px;color:var(--ink);width:100%}
 .pay-form input:focus-visible,.pay-coupon input:focus-visible{
-  outline:2px solid var(--emerald);outline-offset:1px;background:var(--paper)}
+  outline:3px solid var(--emerald-deep);outline-offset:1px;background:var(--paper)}
 .pay-consent{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--ink-soft);line-height:1.8}
 .pay-consent input{width:20px;height:20px;margin-top:3px;accent-color:var(--emerald);flex:none}
 .pay-err{margin:0;font-size:13.5px;font-weight:600;color:#A3342B;background:#FBEAE7;border-radius:var(--r-sm);padding:10px 12px}
@@ -1604,7 +1604,7 @@ body{background:transparent}
 /* Header: the menu item for the section on screen is the one underlined. */
 .nav a:not([aria-current="page"])::after{transform:scaleX(0)}
 .nav a:hover::after{transform:scaleX(1)}
-.play-replay{font-size:12.5px;min-height:44px}
+.play-replay{font-size:12.5px;min-height:48px}
 .quote-nav{flex-basis:44px;width:44px;height:44px}
 .play-sw__nm,.sample{font-size:12px}
 @media(max-width:520px){.play-sw__nm{font-size:12px}}
@@ -1694,11 +1694,11 @@ body{background:transparent}
 /* Audit: clear price hierarchy, reachable controls and visible keyboard focus. */
 .plan__amount{padding:4px 0;background:none;border:0;box-shadow:none;backdrop-filter:none;color:var(--ink);text-shadow:none}
 .plan__was{min-height:28px;line-height:1.8}
-.plan__buy{min-height:48px}
+.plan .btn.plan__buy{min-height:48px}
 :focus-visible{outline-color:var(--emerald-deep)}
 :is(.tryon__line,.chip,.sb-add,.play-replay,.nav-btn):focus-visible{outline:3px solid var(--emerald-deep);outline-offset:3px}
-#playPrev,#playNext{width:44px;height:44px}
-.play-track{padding-inline:48px}
+#playPrev,#playNext{width:48px;height:48px}
+.play-track{padding-inline:52px}
 .sb-add,.faq-item summary,.site-footer a{min-height:44px}
 .site-footer a{display:inline-flex;align-items:center}
 @media(max-width:900px){.play-swatches{flex-wrap:wrap;overflow:visible;max-width:none;justify-content:center}}

@@ -547,6 +547,18 @@ img[loading="lazy"].is-in{opacity:1}
  .build__photo,.build__scan,.build__spark,.fx,.fx__b1,.fx__b2,.fx__bit,.fx__wash,.fx__lid,.fx__lash path,.build__steps li.is-on span,.selfie--fresh,.selfie--fresh img{animation:none}
  .fx__wash{clip-path:inset(0 0 40% 0)}.fx__lash path{stroke-dashoffset:0}.fx__bit{display:none}
 }
+/* Shared clay finish for customer-page service and action icons. */
+:is(.upload__icon,.custom-look__ico,.next-line__ico,.linesw__btn svg){
+ color:#054b3c;border:1px solid rgba(255,255,255,.92);
+ background:linear-gradient(151deg,rgba(255,255,255,.62),rgba(255,255,255,.06) 46%,rgba(7,66,55,.05)),radial-gradient(120% 92% at 26% 10%,#fff 0 10%,rgba(255,255,255,.34) 42%,transparent 66%),linear-gradient(151deg,#fff 0%,#f2fbf7 32%,#d3eddf 68%,#a9dbc8 100%);
+ box-shadow:inset 2px 2px 3px rgba(255,255,255,.9),inset -2px -3px 5px rgba(7,66,55,.16),0 2px 0 #8dbca9,0 8px 16px rgba(6,90,70,.18);
+}
+:is(.upload__icon,.custom-look__ico,.next-line__ico) svg,.linesw__btn svg{filter:drop-shadow(0 1px 0 rgba(255,255,255,.95)) drop-shadow(0 2px 2px rgba(11,59,50,.2))}
+.linesw__btn.is-on svg{color:#054b3c}
+.btn--sm,.picked .btn,a.hchip,button.hchip{min-height:44px}
+:focus-visible{outline:3px solid #054b3c;outline-offset:3px}
+.linesw__btn:focus-visible,.compare:has(.compare__range:focus-visible),.spin:focus-visible{outline:3px solid #054b3c;outline-offset:3px}
+
 `;
 
 const clientJS=String.raw`

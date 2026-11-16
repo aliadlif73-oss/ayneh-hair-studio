@@ -35,7 +35,7 @@
 .sb-browser b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;font-weight:600;color:var(--ink-soft);direction:ltr;text-align:start}
 .sb-live{position:relative;border-radius:var(--r-lg);overflow:hidden;background:var(--cream-3);border:1px solid var(--line)}
-.sb-live:focus-visible{outline:3px solid var(--emerald);outline-offset:2px}
+.sb-live:focus-visible{outline:3px solid var(--emerald-deep);outline-offset:2px}
 
 /* the mini salon page inside the frame */
 .mini{--brand:#068F6C;display:grid;gap:0;background:var(--paper)}
@@ -160,11 +160,11 @@
 /* «حذف نمونه‌کار» wears the shared light glass like every other control; only its rust
    label says what it does (7.6:1 on the glass). This file is loaded after the recipe,
    so the label here is the one that sticks. */
-.sb-remove{justify-self:start;min-height:34px;padding:0 12px;border-radius:var(--r-pill);
+.sb-remove{justify-self:start;min-height:44px;padding:0 12px;border-radius:var(--r-pill);
   font-size:12px;font-weight:700;color:#8C3B2A;cursor:pointer}
 /* The studio's own two calls («افزودن نمونه‌کار» and «آماده‌کردن پیش‌نمایش») wear the shared
    glass material: this file only sizes them, because it is loaded after the recipe. */
-.sb-add{--glass-bg:rgba(228,244,238,.92);justify-self:start;min-height:38px;padding:0 14px;border-radius:var(--r-pill);
+.sb-add{--glass-bg:rgba(228,244,238,.92);justify-self:start;min-height:44px;padding:0 14px;border-radius:var(--r-pill);
   border:1.5px solid var(--emerald);color:var(--emerald-deep);font-size:12.5px;font-weight:800;cursor:pointer}
 
 .sb-error{margin:0;min-height:1.4em;font-size:12.5px;font-weight:700;color:#9C3A2A}
