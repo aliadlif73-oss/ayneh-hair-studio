@@ -1403,6 +1403,62 @@ test('step 27 material: one glass recipe for every control, one clay recipe for 
  }
 });
 
+test('step 28 depth: one clay recipe for every box, glass price panels, 3D arrows and ticks',()=>{
+ const siteCSS=readFileSync(new URL('../design/landing/src/site.css',import.meta.url),'utf8');
+ const copyCSS=readFileSync(new URL('../design/landing/src/copy.css',import.meta.url),'utf8');
+ const studioCSS=readFileSync(new URL('../design/landing/src/studio.css',import.meta.url),'utf8');
+ const all=siteCSS+'\n'+copyCSS+'\n'+studioCSS;
+ // ONE card recipe: every box listed inside :where(), the recipe (not the component) paints
+ // the body, and the depth comes from the inset rim, the cast shadow and the clay foot.
+ const CARD=':where\\(\\.plan,\\.why,\\.step,\\.setup__step,\\.svc,\\.quote,\\.faq-item,\\.pbar,\\.sample-card,\\.choose-card,';
+ assert.match(siteCSS,new RegExp(CARD+'[\\s\\S]*?\\)\\{[\\s\\S]*?background:[\\s\\S]*?radial-gradient[\\s\\S]*?linear-gradient[\\s\\S]*?--card-c[\\s\\S]*?\\)'),'one recipe: gloss, specular pool and body');
+ assert.match(siteCSS,new RegExp(CARD+'[\\s\\S]*?\\)\\{[\\s\\S]*?box-shadow:[\\s\\S]*?inset 0 1px 0 var\\(--clay-hi\\)[\\s\\S]*?inset 0 -2px 5px var\\(--card-shade\\)[\\s\\S]*?0 2px 0 var\\(--clay-foot\\)[\\s\\S]*?0 10px 24px var\\(--card-drop\\)'),'with a rim on top, a shade below, a foot and a cast shadow');
+ // A listed box must not paint its own body or carry a flat shadow of its own, or the
+ // recipe's depth would be silently overridden at component specificity.
+ const boxes=['.plan','.why','.step','.setup__step','.svc','.quote','.faq-item','.sample-card','.choose-card',
+  '.pay-card','.form-card','.plan-note','.req-mini','.wiz-ready','.sb-work','.sb-details','.sb-steps li',
+  '.mini__services span','.setup__step','.pbar','.glance__card','.benefits__list li','.tryhead__steps li'];
+ const strip=css=>css.replace(/\/\*[\s\S]*?\*\//g,'');
+ for(const [name,css] of [['site.css',siteCSS],['copy.css',copyCSS],['studio.css',studioCSS]]){
+  for(const m of strip(css).matchAll(/([^{}@]+)\{([^{}]*)\}/g)){
+   const sel=' '+m[1].trim().replace(/\s+/g,' ')+' ',body=m[2];
+   if(sel.trim().startsWith(':where('))continue;          // the recipe itself
+   if(!/(^|\)|:|\s)box-shadow:/.test(body)&&!/(^|;)background(-color)?:/.test(body))continue;
+   const hit=boxes.find(b=>sel.includes(' '+b+'{')||sel.endsWith(' '+b+' ')||sel.includes(' '+b+','));
+   if(!hit)continue;
+   if(sel.includes(':hover')||sel.includes('[open]')||sel.includes('[aria-'))continue;
+   assert.fail(name+' still paints or flattens '+hit+' outside the recipe: '+sel.trim().slice(0,50));
+  }
+ }
+ // The customer and try-on pages carry their own CSS, so the treatment has to live there too
+ // (design.js baseCSS is shared by customer.js and regularpage.js).
+ const baseCSS=readFileSync(new URL('../worker/design.js',import.meta.url),'utf8');
+ assert.match(baseCSS,/--card-a:#FFFFFF;--card-b:#FAFBFA;--card-c:#EDF1F0/,'the try-on surface has its own card tokens');
+ assert.match(baseCSS,/:where\(\.panel\)\{[\s\S]*?radial-gradient[\s\S]*?--card-c\)[\s\S]*?0 2px 0 var\(--card-foot\)/,'and the shared card body');
+ assert.ok(!/\.panel\{background:var\(--surface\)/.test(baseCSS),'the panel no longer paints a flat fill of its own');
+ // The recommended card keeps its gold seal but tints the shared body emerald.
+ assert.match(siteCSS,/\.plan--lead\{--card-a:#FFFFFF;--card-b:#F3FBF7;--card-c:#E3F3EB\}/,'«پیشنهاد آینه» tints the shared body');
+ assert.match(siteCSS,/\.plan--lead\{border:2px solid #D8B46A\}/,'and keeps its gold seal');
+ assert.ok(!/\.plan--lead\{[^}]*background:/.test(siteCSS),'without painting a body of its own');
+ // The price box is glass, and the amount on it is the emerald glass body.
+ assert.match(siteCSS,/\.plan__price\{[\s\S]*?background-color:rgba\(255,255,255,\.42\)[\s\S]*?backdrop-filter/,'the price panel is glass');
+ assert.match(siteCSS,/\.plan__amount\{[\s\S]*?background-color:var\(--glass-bg-p\)[\s\S]*?box-shadow:var\(--glass-lift-p\)/,'the amount is the emerald glass body');
+ // Arrows and the plan ticks sit on their own miniature clay disc.
+ assert.match(siteCSS,/plan li svg,\.plan-how li>span,\.pay-done__tick svg\{/,'the tick shares the small clay disc');
+ assert.match(siteCSS,/width:1\.55em;height:1\.55em;padding:\.22em;border-radius:50%/,'the disc is drawn with padding, no wrapper element');
+ assert.match(siteCSS,/span\[aria-hidden="true"\]/,'every arrow glyph is on it too');
+ // The footer was the one dark slab; it is the shared card now, with the page's own ink.
+ assert.ok(!/background:#0B3B32/.test(all),'the footer is no longer a dark slab');
+ assert.match(siteCSS,/\.site-footer\{[\s\S]*?--card-a:#FFFFFF;--card-b:#F4FBF8;--card-c:#E4F3EC/,'the footer wears the shared card, tinted emerald');
+ assert.match(siteCSS,/\.foot-col a,\.foot-col span\{[\s\S]*?color:var\(--ink-soft\)\}/,'footer links carry the page ink, not cream');
+ assert.ok(!/rgba\(252,243,235,\.\d+\)/.test(siteCSS.match(/\.foot-[^{]*\{[^}]*\}/g)?.join('\n')||''),'nothing in the footer is cream-on-dark any more');
+ // AA on the footer's DARKEST body stop, which is the worst case for the small legal type.
+ const lum=c=>{const x=c.map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4});return .2126*x[0]+.7152*x[1]+.0722*x[2]};
+ const ratio=(a,b)=>{const x=lum(a),y=lum(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+ for(const [n,c] of [['brand',[10,32,42]],['links',[74,92,92]],['legal',[93,107,104]]])
+  assert.ok(ratio(c,[228,243,236])>=4.5,'footer '+n+' passes on the darkest stop ('+ratio(c,[228,243,236]).toFixed(2)+')');
+});
+
 test('step 24 layout: the grids collapse cleanly at 1120 / 900 / 600',()=>{
  for(const rule of [
   /@media\(max-width:1120px\)\{[\s\S]{0,80}\.nav\{display:none\}/,

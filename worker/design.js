@@ -20,6 +20,10 @@ export const baseCSS=fontFaces+String.raw`
  --r-lg:26px;--r:18px;--r-sm:12px;--pill:999px;
  --arch:999px 999px var(--r) var(--r);
  --lift:0 1px 0 rgba(255,255,255,.7) inset,0 18px 40px -26px rgba(35,23,15,.45);
+ --card-a:#FFFFFF;--card-b:#FAFBFA;--card-c:#EDF1F0;
+ --card-gloss:rgba(255,255,255,.72);--card-spec:rgba(255,255,255,.88);--card-edge:rgba(255,255,255,.9);
+ --card-shade:rgba(35,23,15,.06);--card-drop:rgba(35,23,15,.10);
+ --card-hi:rgba(255,255,255,.95);--card-foot:rgba(178,199,193,.8);
  --float:0 30px 70px -30px rgba(35,23,15,.55);
  --ease:cubic-bezier(.2,.7,.2,1);--tap:48px;
  --display:"Estedad","Vazirmatn",system-ui,sans-serif;
@@ -70,7 +74,17 @@ img{display:block;max-width:100%}
 .btn--sm{min-height:40px;padding:0 14px;font-size:13px;border-radius:12px}
 .btn[disabled]{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
 
-.panel{background:var(--surface);border-radius:var(--r-lg);box-shadow:var(--lift)}
+/* One body for the cards on this surface, the same three layers the landing wears,
+   in the cool palette this page is built on: a lit top edge, a specular pool, a shaded foot. */
+:where(.panel){
+  background:
+    linear-gradient(168deg,var(--card-gloss),rgba(255,255,255,.08) 46%,rgba(35,23,15,.03)),
+    radial-gradient(124% 74% at 20% 2%,var(--card-spec) 0 12%,rgba(255,255,255,0) 46%),
+    linear-gradient(168deg,var(--card-a),var(--card-b) 48%,var(--card-c));
+  border:1px solid var(--card-edge);
+  box-shadow:inset 0 1px 0 var(--card-hi),inset 0 -2px 5px var(--card-shade),
+    0 2px 0 var(--card-foot),0 10px 24px var(--card-drop)}
+.panel{border-radius:var(--r-lg)}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .chip{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 15px;border-radius:var(--pill);border:1px solid var(--line);background:transparent;color:var(--ink-2);font-size:13.5px;font-weight:600;transition:background-color .14s var(--ease),border-color .14s var(--ease),color .14s var(--ease)}
 .chip:hover{border-color:#b3c0bb;background:var(--surface)}
