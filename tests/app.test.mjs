@@ -1087,8 +1087,8 @@ test('copy plan: the home page opens with one hero, the approved headline, one m
  assert.match(hero,/class="btn btn--lg" href="#demo">روی عکس خودم امتحان کنم</,'it opens the live demo');
  assert.match(hero,/class="hero-link" href="#services">قیمت پلن‌ها/,'the price link is a text link');
  assert.doesNotMatch(hero,/ساخت صفحهٔ من|خرید پلن/,'no second sales button in the hero');
- assert.equal((hero.match(/<figure class="loop__f /g)||[]).length,3,'three frames');
- for(const f of ['مشتری عکس می‌گذارد','مدل را می‌بیند','درخواست به شما می‌رسد'])assert.ok(hero.includes(f),'frame '+f);
+ assert.equal((hero.match(/<figure class="loop__f /g)||[]).length,5,'before, three combined looks, the request');assert.ok(hero.includes('hero-mix-1.webp')&&hero.includes('loop--mix'),'mixed looks of every service');
+ for(const f of ['مشتری عکس می‌گذارد','مدل مو، رنگ، مژه و ناخن','درخواست به شما می‌رسد'])assert.ok(hero.includes(f),'frame '+f);
  assert.ok(hero.includes('نمونهٔ نمایشی؛ شبیه‌سازی تقریبی است'),'the loop is labelled a sample and approximate');
  assert.match(landingHTML,/\.loop__f\{[^}]*animation:loopFrame 8s linear infinite/,'a self-running 8-second loop, no scroll and no sound');
  assert.doesNotMatch(hero,/<video|<audio/,'no sound');

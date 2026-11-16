@@ -84,11 +84,7 @@
   prev.addEventListener('click', () => scrollFwd(-track.clientWidth * .7));
   next.addEventListener('click', () => scrollFwd(track.clientWidth * .7));
   track.addEventListener('scroll', sync, {passive: true});
-  track.addEventListener('wheel', e => {
-    if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-    const r = room(track); if ((e.deltaY > 0 && !r.fwd) || (e.deltaY < 0 && !r.back)) return;
-    e.preventDefault(); track.scrollLeft += (rtl(track) ? -1 : 1) * e.deltaY;
-  }, {passive: false});
+  /* No wheel hijack: the vertical wheel always scrolls the page (it used to stick on the rail). */
   let drag = null;
   track.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button !== 0) return; drag = {x: e.clientX, s: track.scrollLeft}; track.classList.add('dragging'); });
   addEventListener('pointermove', e => { if (drag) track.scrollLeft = drag.s - (e.clientX - drag.x); });

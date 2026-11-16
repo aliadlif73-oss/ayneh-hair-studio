@@ -81,7 +81,7 @@
   /* The demo reports how tall its screen really is. The frame follows, between a floor and a
      ceiling, so the visitor never has to scroll inside a scroll — and a short step (the
      upload) does not leave a screen of empty white below it. */
-  const MIN = 420, MAX = 1240;
+  const MIN = 420, MAX = 4000; /* no inner scroll: a scroll inside a scroll traps the thumb on phones */
   addEventListener('message', e => {
     if (e.source !== obj.contentWindow || e.origin !== location.origin || !e.data || typeof e.data.aynehDemoHeight !== 'number') return;
     const h = Math.max(MIN, Math.min(MAX, Math.round(e.data.aynehDemoHeight)));
