@@ -1,0 +1,8 @@
+# Do not publish operational or development files as static assets.
+worker.js
+preview-worker.js
+check.mjs
+wrangler.toml
+README.md
+.assetsignore
+_headers
