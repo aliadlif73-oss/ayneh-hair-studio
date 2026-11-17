@@ -27,7 +27,8 @@ test('review Site serves the real customer flow, restricts its proxy, and labels
   // script limit; this is a self-imposed bloat guard, not a platform limit.
   // Raised from 250k: step 26 gave every button the glass material and every icon the
   // clay material, ~8k of design-system CSS in the same payload (255.3k shipped).
-  assert((await landing.text()).length<265_000,'review serves the lightweight production HTML');
+  // Raised from 265k: the home stop-motion (#process) markup, CSS and controller, ~10.5k.
+  assert((await landing.text()).length<277_000,'review serves the lightweight production HTML');
   assert.equal((await app.fetch(new Request('https://review.example/api/s/demo/otp/send',{method:'POST'}))).status,403);
   const video=await app.fetch(new Request('https://review.example/assets/video/hair.mp4'));assert.equal(video.headers.get('Content-Type'),'video/mp4');assert.match(calls[0].url,/raw\.githubusercontent\.com.*\/public\/landing\/video\/hair.mp4$/);
   assert.equal((await app.fetch(new Request('https://review.example/api/login',{method:'POST'}))).status,404);

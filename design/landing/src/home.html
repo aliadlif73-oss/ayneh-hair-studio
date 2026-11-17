@@ -1,3 +1,23 @@
+  <!-- ============ Home · the real process, stop-motion ============ -->
+  <!-- Real screenshots of the «سالن آینه» demo page (/s/demo), one real generation per service:
+       photo → pick → «بساز» → result. build.py fills {{PROC_FRAMES}} and {{PROC_SVC}}; proc.css
+       runs the 12-second loop, proc.js starts it in view and owns the pause button. -->
+  <section id="process" class="section proc" aria-labelledby="h-proc">
+    <div class="band proc__band">
+      <div class="proc__copy">
+        <h2 id="h-proc" class="h2">از عکس تا نتیجه، <em>همین‌قدر ساده.</em></h2>
+        <p class="sub">قاب‌های واقعی از صفحهٔ «سالن آینه»؛ برای مدل مو، رنگ مو، مژه و ناخن.</p>
+        <ol class="proc__svc" aria-hidden="true">{{PROC_SVC}}</ol>
+        <a class="btn proc__cta" href="/s/demo?from=landing">صفحهٔ «سالن آینه» را ببینید <span aria-hidden="true">←</span></a>
+      </div>
+      <div class="proc__stage" role="group" aria-label="نمونهٔ نمایشی: ساخت نمونه در صفحهٔ سالن آینه، قاب‌به‌قاب">
+        <span class="proc__badge">نمونهٔ نمایشی</span>
+        <div class="proc__phone">{{PROC_FRAMES}}</div>
+        <button class="proc__toggle" type="button" aria-pressed="false" aria-label="توقف نمایش">توقف نمایش</button>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ Home · setup in three steps ============ -->
   <section id="how" class="section" aria-labelledby="h-how">
     <div class="band">
