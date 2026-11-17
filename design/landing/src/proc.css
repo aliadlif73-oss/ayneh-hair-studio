@@ -1,0 +1,55 @@
+/* ============ Home · #process: stop-motion of the real «سالن آینه» demo page ============
+   16 real screenshots, 4 per service; 12 s loop (build.py PROC_LOOP). A frame is "a" (0.5 s) or
+   "b" (1 s); --d is its negative delay, --t its tilt. steps(1) = hard cuts with a two-step "pop". */
+.proc{position:relative;overflow:hidden;background:radial-gradient(60% 70% at 18% 40%,var(--emerald-wash),transparent 70%),linear-gradient(180deg,var(--cream),var(--cream-2))}
+.proc__band{display:grid;grid-template-columns:minmax(0,560px) auto;justify-content:center;align-items:center;gap:clamp(28px,7vw,120px)}
+.proc__copy .h2{margin:0}
+.proc__copy .h2 em{font-style:normal;color:var(--emerald-deep)}
+.proc__copy .sub{max-width:52ch}
+.proc__svc{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0;padding:0;list-style:none}
+.proc__svc li{min-height:34px;display:inline-flex;align-items:center;padding:0 14px;border-radius:var(--r-pill);
+  border:1px solid var(--line-2);background:rgba(255,255,255,.6);color:var(--ink-soft);font-size:13.5px;font-weight:800;
+  animation:procSvc 12s steps(1,end) infinite;animation-delay:var(--d)}
+.proc__cta{margin-top:24px}
+.proc__stage{position:relative;display:grid;justify-items:center;padding-top:6px}
+.proc__badge{position:absolute;z-index:4;top:-4px;inset-inline-start:-10px;display:inline-flex;align-items:center;min-height:30px;padding:0 13px;
+  border-radius:var(--r-pill);background:var(--glass-bg-l);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-edge-l);box-shadow:var(--glass-shadow-l),var(--glass-lift-l);color:var(--emerald-deep);font-size:12.5px;font-weight:800}
+.proc__phone{position:relative;width:clamp(232px,30vw,300px);aspect-ratio:300/633;margin-bottom:34px}
+.proc__f{position:absolute;inset:0;margin:0;opacity:0;transform:rotate(var(--t));animation:procA 12s steps(1,end) infinite;animation-delay:var(--d)}
+.proc__f--b{animation-name:procB}
+.proc__shot{display:block;height:100%;padding:7px;border-radius:38px;background:linear-gradient(150deg,#1A3640,var(--ink));
+  box-shadow:0 22px 50px rgba(10,32,42,.22),inset 0 1px 0 rgba(255,255,255,.18)}
+.proc__shot img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 0;border-radius:31px;background:var(--cream-3)}
+.proc__f figcaption{position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:7px;white-space:nowrap;
+  min-height:34px;padding:0 14px;border-radius:var(--r-pill);background:var(--glass-bg-p);-webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
+  border:1px solid var(--glass-edge-p);box-shadow:var(--glass-shadow-p),var(--glass-lift-p);color:#fff;font-size:13px;font-weight:700}
+.proc__f figcaption b{font-weight:900;color:var(--emerald-soft)}
+.proc__f figcaption i{display:inline-grid;place-items:center;width:21px;height:21px;margin-inline-start:3px;border-radius:50%;background:rgba(255,255,255,.16);font-style:normal;font-size:12px;font-weight:800}
+.proc__toggle{display:block;min-height:44px;margin:6px auto 0;padding:0 14px;border:0;border-radius:999px;background:transparent;color:var(--emerald-deep);font:inherit;font-weight:700;cursor:pointer}
+.proc__toggle:focus-visible{outline:3px solid var(--emerald);outline-offset:2px}
+@keyframes procA{0%{opacity:1;transform:rotate(var(--t)) scale(1.035)}.5%{opacity:1;transform:rotate(var(--t)) scale(1)}4.1667%,100%{opacity:0;transform:rotate(var(--t)) scale(1)}}
+@keyframes procB{0%{opacity:1;transform:rotate(var(--t)) scale(1.035)}.5%{opacity:1;transform:rotate(var(--t)) scale(1)}8.3333%,100%{opacity:0;transform:rotate(var(--t)) scale(1)}}
+@keyframes procSvc{0%{background:var(--emerald-deep);border-color:var(--emerald-deep);color:#fff}25%,100%{background:rgba(255,255,255,.6);border-color:var(--line-2);color:var(--ink-soft)}}
+/* Not started (out of view, images not decoded) or paused: hold still. Before the first start the
+   colour result is the one frame shown, and the same frame is the still for reduced motion. */
+.proc:not(.is-on) .proc__f,.proc:not(.is-on) .proc__svc li,.proc.is-paused .proc__f,.proc.is-paused .proc__svc li{animation-play-state:paused}
+.proc:not(.is-started) .proc__f{animation:none;opacity:0}
+.proc:not(.is-started) .proc__f--still{opacity:1}
+.proc:not(.is-started) .proc__svc li{animation:none}
+@media(prefers-reduced-motion:reduce){
+  .proc:not(.is-playing) .proc__f,.proc:not(.is-playing) .proc__svc li{animation:none}
+  .proc:not(.is-playing) .proc__f{opacity:0}
+  .proc:not(.is-playing) .proc__f--still{opacity:1}
+}
+/* Phone: title, sub, service chips, the phone, then the button (the copy box dissolves into the column). */
+@media(max-width:860px){
+  .proc__band{display:flex;flex-direction:column;align-items:center;gap:0;text-align:center}
+  .proc__copy{display:contents}
+  .proc__copy .sub{margin-inline:auto}
+  .proc__svc{justify-content:center;margin-top:16px}
+  .proc__stage{order:4;margin-top:22px}
+  .proc__cta{order:5;margin-top:6px}
+  .proc__badge{inset-inline-start:-14px}
+}
+@media(max-width:380px){.proc__f figcaption{font-size:12px;padding:0 11px}}

@@ -16,7 +16,7 @@ W = lambda p, s: open(p, 'w', encoding='utf8').write(s)
 # Everything the new page references, synced into public/landing/ so the worker
 # and the static preview read the same bytes.
 DEMOS = ['demo-%s-%s.webp' % (s, k) for s in ('style', 'color', 'lashes', 'nails') for k in ('before', 'after')]
-SYNC = re.compile(r'(hero\.webp|salon-film-0[1-5]\.webp|(?:hair|lashes|nails)-end\.webp|%s|estedad\.woff2|look-s\d\d\.webp|(?:hero|look-s\d\d)-hd\.webp|story-\d[lr]\.webp|sample-(?:hair|color|nails|lashes)-(?:before|after)\.webp|ayneh-logo-lg\.webp|hero-mix-[0-3]\.webp|salon-cover\.webp)$' % '|'.join(re.escape(d) for d in DEMOS))
+SYNC = re.compile(r'(hero\.webp|salon-film-0[1-5]\.webp|(?:hair|lashes|nails)-end\.webp|%s|estedad\.woff2|look-s\d\d\.webp|(?:hero|look-s\d\d)-hd\.webp|story-\d[lr]\.webp|sample-(?:hair|color|nails|lashes)-(?:before|after)\.webp|ayneh-logo-lg\.webp|hero-mix-[0-3]\.webp|salon-cover\.webp|proc-(?:style|color|nails|lashes)-[1-4]\.webp)$' % '|'.join(re.escape(d) for d in DEMOS))
 for asset in os.listdir('assets'):
     if SYNC.match(asset):
         shutil.copyfile('assets/' + asset, '../../public/landing/' + asset)
@@ -28,7 +28,7 @@ shutil.copyfile('assets/ayneh-favicon.svg', '../../public/favicon.svg')
 # ---------------- styles ----------------
 # site.css is the new visual system and owns every base rule. trial.css is scoped
 # to the studio block only (see the guard below), so no legacy selector can leak.
-css = R('src/site.css') + NL + R('src/studio.css') + NL + R('src/copy.css')
+css = R('src/site.css') + NL + R('src/studio.css') + NL + R('src/copy.css') + NL + R('src/proc.css')
 assert '.site-header{' in css, 'site.css must own the header'
 
 # ---------------- plans (the owner's price sheet) ----------------
@@ -348,6 +348,11 @@ PICKS = ('<span class="loop__picks" aria-hidden="true">'
 SPARK = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 3 2.4 5.4L20 10.5l-5.6 2.1L12 18l-2.4-5.4L4 10.5l5.6-2.1Z"/></svg>'
 
 
+# The home stop-motion (#process): seconds each of a service's four frames stays (photo, pick + «بساز»,
+# making, result) and the whole loop. proc.css holds the same 12 s and the two window lengths.
+PROC_LEN, PROC_LOOP = (0.5, 1.0, 0.5, 1.0), 12.0
+
+
 def section(src, sid):
     """One <section id=…>…</section> from a source with no nested sections."""
     m = re.search(r'[ \t]*(?:<!--[^\n]*-->\s*)*<section id="' + re.escape(sid) + r'"[\s\S]*?</section>\n?', src)
@@ -499,10 +504,32 @@ def make_pages(full):
         h = h.replace(f1, new1).replace(f2, new2.strip()).replace(f3, '<figure class="loop__f loop__f--3 loop__f--m4">')
         h = h.replace('hero-stage loop"', 'hero-stage loop loop--mix"').replace('سه قاب پشت‌سرهم', 'پنج قاب پشت‌سرهم')
         return h.replace('<li></li><li></li><li></li>', '<li></li><li></li><li></li><li></li><li></li>')
+    def proc(h):
+        # Stop-motion of the real demo page: per service 4 real screenshots (assets/proc-<pair>-<n>.webp,
+        # captured from /s/demo with the service's own demo-<pair>-before.webp as the upload and one real
+        # generation each). 3 s per service, 12 s in all; frame n shows for PROC_LEN[n] s. Negative delays
+        # put every frame at its place in the loop from the first paint.
+        names = [('style', 'مدل مو'), ('color', 'رنگ مو'), ('lashes', 'مژه'), ('nails', 'ناخن')]
+        steps = ['<i>۱</i>عکس', '<i>۲</i>انتخاب و «بساز»', '<i>۳</i>در حال ساخت', '<i>۴</i>نتیجه']
+        tilt = ['-1.4deg', '.9deg', '-.6deg', '1.2deg']
+        figs, t = [], 0.0
+        for si, (pair, name) in enumerate(names):
+            for n in range(4):
+                ln = PROC_LEN[n]
+                still = ' proc__f--still' if (pair, n) == ('color', 3) else ''
+                figs.append(('<figure class="proc__f proc__f--%s%s" style="--d:%ss;--t:%s">'
+                             '<span class="proc__shot"><img src="assets/proc-%s-%d.webp" width="640" height="1385" loading="lazy" decoding="async" alt=""></span>'
+                             '<figcaption><b>%s</b>%s</figcaption></figure>')
+                            % ('a' if ln == 0.5 else 'b', still, ('%g' % (t - PROC_LOOP)), tilt[(si + n) % 4], pair, n + 1, name, steps[n]))
+                t += ln
+        assert t == PROC_LOOP and len(figs) == 16
+        chips = ''.join('<li style="--d:%gs">%s</li>' % (i * PROC_LOOP / 4 - PROC_LOOP, nm) for i, (_, nm) in enumerate(names))
+        return h.replace('{{PROC_FRAMES}}', ''.join(figs)).replace('{{PROC_SVC}}', chips)
     home_main = (
         svc(hero('style', '', '«این مدل بهم می‌اد؟» را', 'دیگر حدسی جواب ندهید.',
              'مشتری مدل مو، رنگ، ناخن و مژه را روی عکس خودش می‌بیند و با خیال راحت نوبت می‌گیرد.',
              'مدل را می‌بیند', 'درخواست مدل مو', HOME_NOTE))
+        + proc(section(home_src, 'process'))
         + demo(list(LINE_TITLE), 'خودتان <em>امتحان کنید.</em>', 'عکس خودتان را بگذارید و مدل را ببینید.', 'hair')
         + section(home_src, 'how') + studio
         + section(home_src, 'get').replace('{{CHAT}}', chat('style', 'درخواست مدل مو'))
@@ -602,15 +629,17 @@ def finish(h):
     # follow-up message to show.
     SCRIPTS = ['funnel.js', 'story.js', 'tryon.js', 'play.js', 'draft.js', 'portrait.js',
                'hair-color.js', 'try.js', 'reveal.js', 'cinema2.js',
-               'builder.js', 'refine.js', 'pay.js', 'cta.js', 'try-switch.js', 'copy.js']
+               'builder.js', 'refine.js', 'pay.js', 'cta.js', 'try-switch.js', 'copy.js', 'proc.js']
     # Hair-colour maths and the photo handoff are used by the studio. hero.js, scenes.js,
     # and cinema.js drove the retired film sections. cta.js owns the mobile sticky action,
     # keeping it clear of the film, the salon-page builder, duplicate CTAs, and open dialogs.
     for name in SCRIPTS:
         assert os.path.exists('src/' + name), name
-    # play.js / try-switch.js drive the sample-face mirror, which only the hairstyle page carries.
+    # play.js / try-switch.js drive the sample-face mirror, which only the hairstyle page carries;
+    # proc.js drives the home stop-motion (#process).
     scripts = ''.join('<script>' + NL + R('src/' + n) + NL + '</script>' + NL for n in SCRIPTS
-                      if 'id="play"' in h or n not in ('play.js', 'try-switch.js'))
+                      if ('id="play"' in h or n not in ('play.js', 'try-switch.js'))
+                      and ('id="process"' in h or n != 'proc.js'))
     h = h.replace('</body>', scripts + '</body>')
 
     return h, STAMP

@@ -1165,7 +1165,7 @@ test('copy plan: header has the logo, three links, one fixed «نمونه بسا
 });
 test('copy plan: home sections come in the approved order and every page has one h1',()=>{
  const ids=html=>[...html.matchAll(/<main id="main">[\s\S]*?<\/main>/g)][0][0].match(/<section id="[\w-]+"/g).map(s=>s.slice(13,-1));
- assert.deepEqual(ids(landingHTML),['intro','demo','how','salon-example','get','choose','why','services','pay','faq','cta'],'home');
+ assert.deepEqual(ids(landingHTML),['intro','process','demo','how','salon-example','get','choose','why','services','pay','faq','cta'],'home');
  assert.deepEqual(ids(servicePages.hair),['intro','play','demo','sample','benefits','salon-example','services','pay','cta'],'hairstyle page (with the sample-face mirror)');
  for(const k of ['color','nails','lashes'])assert.deepEqual(ids(servicePages[k]),['intro','demo','sample','benefits','salon-example','services','pay','cta'],k+' page: one template with its illustrative sample');
  assert.deepEqual(ids(servicePages.salon),['intro','glance','team','demo','salon-example','bundle','services','pay','cta'],'salon panel page');
@@ -1540,7 +1540,9 @@ test('step 24 budget: payload and markup stay inside the review envelope',()=>{
  // Step 26 gave every button the glass material (blur, sheen, four states and a solid
  // fallback) and every icon the clay material: ~8k of design-system CSS on top of the
  // page (255.3k shipped). Still far below the Worker script limit.
- assert.ok(landingHTML.length<260000,'landing under 260k ('+landingHTML.length+')');
+ // Raised from 260k: the home stop-motion (#process) adds its section, stylesheet and controller,
+ // ~10.5k (270.5k shipped); its 16 frames are lazy WebP files, not markup.
+ assert.ok(landingHTML.length<272000,'landing under 272k ('+landingHTML.length+')');
  assert.ok(landingHTML.length>60000,'the page still carries its content');
  assert.match(landingHTML,/og:image" content="__ORIGIN__\/landing\/og\.jpg"/,'the share image is origin-relative in source');
  assert.equal((landingHTML.match(/__ORIGIN__/g)||[]).length,12,'signup links, the share image, the canonical and the organisation data carry the origin token');
