@@ -423,7 +423,7 @@ function payCard(){
      h('small','اپ اندروید «آینه‌پی» (پیامک بلو را خودش می‌فرستد)'),
      el('div',{class:'row'},[
       el('a',{class:'btn btn--ghost btn--sm',href:'/app',target:'_blank',rel:'noopener',text:'صفحهٔ دانلود اپ'}),
-      el('button',{class:'btn btn--primary btn--sm',type:'button',text:'ساخت کد اتصال اپ',onclick:act(function(){return api('/api/owner/app-code',{}).then(function(d){appCode.hidden=false;appCode.replaceChildren(el('b',{dir:'ltr',style:'letter-spacing:.18em;font-size:26px;font-family:ui-monospace,Menlo,monospace',text:d.code}),el('div',{style:'font-size:13px;margin-top:4px',text:'این کد را در اپ آینه‌پی بنویسید · '+Number(d.minutes).toLocaleString('fa-IR')+' دقیقه اعتبار دارد و یک بار کار می‌کند'}))})})})
+      el('button',{class:'btn btn--primary btn--sm',type:'button',text:'ساخت کد اتصال اپ',onclick:act(function(){return api('/api/owner/app-code',{}).then(function(d){appCode.hidden=false;appCode.replaceChildren(el('b',{dir:'ltr',style:'letter-spacing:.18em;font-size:26px;font-family:ui-monospace,Menlo,monospace',text:d.code}),el('div',{style:'font-size:13px;margin-top:6px;letter-spacing:normal;font-family:var(--font,system-ui),system-ui,sans-serif;direction:rtl',text:'این کد را در اپ آینه‌پی بنویسید · '+Number(d.minutes).toLocaleString('fa-IR')+' دقیقه اعتبار دارد و یک بار کار می‌کند'}))})})})
      ]),
      appCode,
      el('div',{class:'row'},[el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'ساخت توکن تازه',onclick:act(function(){if(!confirm('توکن قبلی از کار می‌افتد؛ سرویس سایت پرداخت را هم به‌روز کنید. ادامه؟'))return;return api('/api/owner/payment',{rotate:true}).then(load)})})])
