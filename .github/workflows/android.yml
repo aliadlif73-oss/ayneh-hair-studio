@@ -18,7 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # The Aliadlif73 account that holds the worker and its KV (an id, not a secret).
+      CLOUDFLARE_ACCOUNT_ID: efc73da564d597b277d0a3beb00eda72
       KV_NS: ded9d8ee91da4d3ebb2a5f220ef90df2
       VERSION_CODE: ${{ github.run_number }}
     steps:
