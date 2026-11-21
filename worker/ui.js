@@ -408,7 +408,7 @@ function payCard(){
    cardEl.value=p.card||'';(function(){if(!ownerEl.value)ownerEl.value=p.owner||''})();
    out.hidden=true;
    var row=el('div',{class:'pay-admin__row'},[el('label',{class:'field'},[h('span','شمارهٔ کارت','lbl'),cardEl]),el('label',{class:'field'},[h('span','صاحب کارت','lbl'),ownerEl]),saveBtn]);
-   var appCode=el('div',{class:'pay-admin__card',hidden:true,style:'letter-spacing:.12em;font-size:20px;direction:ltr'});
+   var appCode=el('div',{class:'pay-admin__card',hidden:true,style:'text-align:center'});
    body.replaceChildren(
     h('p','مشتری بعد از انتخاب پنل، همین کارت را می‌بیند و مبلغ را واریز می‌کند. تا این کارت پر نشود، صفحهٔ پرداخت جای آن را خالی می‌گذارد و هیچ شماره‌ای از خودش نمی‌سازد.','lead'),
     el('div',{class:'pay-admin__card'+(p.valid?'':' is-empty'),text:p.valid?p.card:'شمارهٔ کارت هنوز ذخیره نشده'}),
@@ -423,7 +423,7 @@ function payCard(){
      h('small','اپ اندروید «آینه‌پی» (پیامک بلو را خودش می‌فرستد)'),
      el('div',{class:'row'},[
       el('a',{class:'btn btn--ghost btn--sm',href:'/app',target:'_blank',rel:'noopener',text:'صفحهٔ دانلود اپ'}),
-      el('button',{class:'btn btn--sm',type:'button',text:'ساخت کد اتصال اپ',onclick:act(function(){return api('/api/owner/app-code',{}).then(function(d){appCode.hidden=false;appCode.textContent='کد اتصال: '+d.code+' · تا '+d.minutes+' دقیقه، یک بار'})})})
+      el('button',{class:'btn btn--primary btn--sm',type:'button',text:'ساخت کد اتصال اپ',onclick:act(function(){return api('/api/owner/app-code',{}).then(function(d){appCode.hidden=false;appCode.replaceChildren(el('b',{dir:'ltr',style:'letter-spacing:.18em;font-size:26px;font-family:ui-monospace,Menlo,monospace',text:d.code}),el('div',{style:'font-size:13px;margin-top:4px',text:'این کد را در اپ آینه‌پی بنویسید · '+Number(d.minutes).toLocaleString('fa-IR')+' دقیقه اعتبار دارد و یک بار کار می‌کند'}))})})})
      ]),
      appCode,
      el('div',{class:'row'},[el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'ساخت توکن تازه',onclick:act(function(){if(!confirm('توکن قبلی از کار می‌افتد؛ سرویس سایت پرداخت را هم به‌روز کنید. ادامه؟'))return;return api('/api/owner/payment',{rotate:true}).then(load)})})])
