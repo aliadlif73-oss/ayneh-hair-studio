@@ -3,7 +3,8 @@
    best-effort (keepalive) and never block or break the visitor's journey. */
 (()=>{
  const KINDS=['cta_click','demo_open','wizard_start','wizard_step_complete','wizard_skip',
-  'preview_ready','activation_available','otp_sent','otp_verified','lead_submit','lead_submit_failed'];
+  'preview_ready','activation_available','otp_sent','otp_verified','lead_submit','lead_submit_failed',
+  'order_intent','order_open','order_paid','buy_unpriced'];
  let session='';
  try{
   session=sessionStorage.getItem('ayneh_funnel')||'';
@@ -20,7 +21,7 @@
   referrer:ref.slice(0,120),landing:location.pathname.slice(0,60),host:location.hostname.slice(0,80)};
  const send=(kind,extra)=>{
   if(!KINDS.includes(kind))return;
-  const e=extra&&typeof extra==='object'?extra:{};
+  const e=extra&&typeof extra==='object'?extra:(extra!==undefined?{value:String(extra).slice(0,80)}:{});
   const meta=JSON.stringify(e).slice(0,300);
   const step=Number.isInteger(e.step)&&e.step>=0&&e.step<=20?e.step:null;
   const body=JSON.stringify({session,kind,step,meta,attribution});
@@ -38,10 +39,10 @@
   if(href.startsWith('/s/')||/ayneh-salon\.site\/s\//.test(href)){
    send('demo_open',{label,href:href.slice(0,120)});return
   }
-  if(href==='#salon-example'||a.id==='builderActivate'||
+  if(href==='#salon-example'||href==='#services'||a.id==='builderActivate'||
      a.classList.contains('sticky-cta')||a.id==='leadFallbackToggle'){
    send('cta_click',{label,href:href.slice(0,60),
-    where:a.classList.contains('sticky-cta')?'sticky':(a.closest('header')?'header':'page')});
+    where:a.closest('#stickyCta')?'sticky':(a.closest('#tryonPost')?'post-demo':(a.closest('.faq-cta')?'faq':(a.closest('header')?'header':'page')))});
   }
  },{capture:true,passive:true});
 })();

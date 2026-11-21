@@ -41,11 +41,7 @@
       <a href="#faq">سؤالات</a>
     </nav>
     <div class="header-cta">
-      <a class="btn--login" href="__ORIGIN__/panel" aria-label="ورود اعضا به پنل">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7 8v-1a6 6 0 0 0-6-6h-2a6 6 0 0 0-6 6v1" stroke-linecap="round"/></svg>
-        <span>ورود</span>
-      </a>
-      <a class="btn" href="#demo">نمونه بساز</a>
+      <a class="btn" href="#choose">مشاهده خدمات</a>
       <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mobile-menu" aria-label="باز کردن فهرست">
         <span class="menu-bars" aria-hidden="true"><i></i><i></i></span>
       </button>
@@ -54,11 +50,32 @@
       <a href="#choose">خدمات<span aria-hidden="true">←</span></a>
       <a href="#services">تعرفه‌ها<span aria-hidden="true">←</span></a>
       <a href="#faq">سؤالات<span aria-hidden="true">←</span></a>
-      <a href="__ORIGIN__/panel">ورود<span aria-hidden="true">←</span></a>
       <a class="btn" href="#demo">نمونه بساز</a>
     </nav>
   </div>
 </header>
+<div id="aynehLoader" class="ayneh-loader" role="status" aria-live="polite" aria-label="در حال بارگذاری آینه">
+  <div class="ayneh-loader__glow" aria-hidden="true"></div>
+  <div class="ayneh-loader__lines" aria-hidden="true"><i></i><i></i></div>
+  <div class="ayneh-loader__stage">
+    <div class="ayneh-loader__emblem">
+      <span class="ayneh-loader__ring" aria-hidden="true"></span>
+      <svg class="ayneh-loader__arch" viewBox="0 0 116 156" fill="none" aria-hidden="true">
+        <path class="ayneh-loader__stroke" d="M12 146V60C12 31.3 32.6 10 58 10s46 21.3 46 50v86H12Z"/>
+        <path class="ayneh-loader__stroke ayneh-loader__stroke--in" d="M21 138V61c0-23.5 16.6-41 37-41s37 17.5 37 41v77H21Z"/>
+      </svg>
+      <span class="ayneh-loader__glass" aria-hidden="true">
+        <svg class="ayneh-loader__logo" viewBox="-2 -2 80 116" aria-hidden="true"><use href="#aynMarkImg"/></svg>
+        <i class="ayneh-loader__sheen"></i>
+      </span>
+    </div>
+    <div class="ayneh-loader__word"><span>آینه</span></div>
+    <p class="ayneh-loader__tag">قبل از تغییر، روی چهرهٔ خودتون ببینید</p>
+    <div class="ayneh-loader__track" aria-hidden="true"><i></i></div>
+  </div>
+</div>
+<noscript><style>#aynehLoader{display:none!important}</style></noscript>
+<script>(()=>{const l=document.getElementById('aynehLoader');if(!l)return;const nav=performance.getEntriesByType?.('navigation')?.[0];if(nav&&nav.type==='back_forward'){l.remove();return}const rm=matchMedia('(prefers-reduced-motion:reduce)').matches;const min=rm?900:2850;let t0=0,gone=false,loaded=document.readyState==='complete';const start=()=>{t0=performance.now();if(loaded)out()};const out=()=>{if(gone||!t0)return;gone=true;const wait=Math.max(0,min-(performance.now()-t0));setTimeout(()=>{l.classList.add('is-done');setTimeout(()=>l.remove(),920)},wait)};requestAnimationFrame(()=>requestAnimationFrame(start));if(!loaded)addEventListener('load',()=>{loaded=true;out()},{once:true});setTimeout(()=>{loaded=true;if(!t0)t0=performance.now();out()},rm?1400:4500);})();</script>
 
 <main id="main">
   <!-- ============ Pricing: one question, five tabs ============ -->
@@ -69,11 +86,14 @@
     <div class="band">
       <div class="head">
         <span class="eyebrow">تعرفه‌ها</span>
-        <h2 id="h-plans" class="h2">پلن خدمت خودتان را <em>انتخاب کنید.</em></h2>
-        <p class="sub">پرداخت کارت‌به‌کارت است و تمدید خودکار ندارد.</p>
+        <h2 id="h-plans" class="h2">پلن مناسب کارتون رو <em>انتخاب کنید</em></h2>
+        <p class="sub">پرداخت کارت‌به‌کارته و تمدید خودکار نداره.</p>
+      </div>
+      <div class="pricing-activate" id="servicesActivateNote">
+        <p>برای فعال‌سازی صفحه‌تون یکی از پلن‌های زیر رو انتخاب کنید؛ بعد از تکمیل خرید، صفحهٔ اختصاصی‌تون فوراً فعال می‌شه.</p>
       </div>
       <div class="ptabs" data-ptabs hidden>
-        <p class="ptabs__q" id="ptabsQ">خدمت شما کدام است؟</p>
+        <p class="ptabs__q" id="ptabsQ">خدمت شما کدومه؟</p>
         <div class="ptabs__row" role="tablist" aria-labelledby="ptabsQ">
           <button type="button" role="tab" id="ptab-hair" aria-controls="plans-hair" data-tab="hair" aria-selected="false" tabindex="-1">مدل مو</button>
           <button type="button" role="tab" id="ptab-color" aria-controls="plans-color" data-tab="color" aria-selected="false" tabindex="-1">رنگ مو</button>
@@ -86,8 +106,8 @@
       <!--SINGLE-->
       <div class="pbar" data-for="single">
         <div class="pbar__copy">
-          <b>دو نفرید یا بیشتر؟</b>
-          <span>پنل آرایشگاه: هر چهار خدمت برای تا ۳ نفر، با هزینهٔ تقریباً نصف برای هر نفر.</span>
+          <b>دو نفر یا بیشتر هستید؟</b>
+          <span>پنل آرایشگاه هر چهار خدمت رو برای تا ۳ نفر داره، با هزینهٔ خیلی به‌صرفه‌تر برای هر نفر.</span>
         </div>
         <span class="pbar__actions">
           <a class="btn" href="#services" data-open-tab="salon">پنل آرایشگاه</a>
@@ -99,20 +119,20 @@
           <caption class="sr-only">مقایسهٔ پلن یک خدمت و پنل آرایشگاه</caption>
           <thead><tr><th scope="col"></th><th scope="col">پلن یک خدمت</th><th scope="col" class="is-lead">پنل آرایشگاه</th></tr></thead>
           <tbody>
-            <tr><th scope="row">خدمت‌ها</th><td>یک خدمت</td><td class="is-lead">هر چهار خدمت</td></tr>
-            <tr><th scope="row">تعداد کاربر</th><td>یک کاربر</td><td class="is-lead">تا ۳ کاربر؛ نفر چهارم به بعد جدا</td></tr>
-            <tr><th scope="row">لینک اختصاصی</th><td>یک لینک</td><td class="is-lead">یک لینک برای هر همکار</td></tr>
-            <tr><th scope="row">درخواست مشتری</th><td>در پنل شما</td><td class="is-lead">هر درخواست فقط به همکار خودش می‌رسد</td></tr>
+            <tr><th scope="row">خدمت‌ها</th><td>یه خدمت</td><td class="is-lead">هر چهار خدمت</td></tr>
+            <tr><th scope="row">تعداد کاربر</th><td>یه کاربر</td><td class="is-lead">تا ۳ کاربر؛ نفر چهارم به بعد جدا</td></tr>
+            <tr><th scope="row">لینک اختصاصی</th><td>یه لینک</td><td class="is-lead">یه لینک برای هر همکار</td></tr>
+            <tr><th scope="row">درخواست مشتری</th><td>توی پنل شما</td><td class="is-lead">هر درخواست فقط به همکار خودش می‌رسه</td></tr>
           </tbody>
         </table>
       </div>
       <!--/SINGLE-->
       <div class="plan-how">
-        <h3>بعد از پرداخت چه می‌شود؟</h3>
+        <h3>بعد از پرداخت چی می‌شه؟</h3>
         <ol>
-          <li><span>۱</span><div><b>کارت‌به‌کارت می‌کنید</b><p>مبلغ و شمارهٔ کارت همین‌جا نمایش داده می‌شود و ۱۰ دقیقه برای واریز وقت دارید.</p></div></li>
-          <li><span>۲</span><div><b>پرداخت خودکار تأیید می‌شود</b><p>لازم نیست چیزی بفرستید یا منتظر تأیید کسی بمانید.</p></div></li>
-          <li><span>۳</span><div><b>پنل‌تان باز می‌شود</b><p>کلید ورود همین‌جا نمایش داده می‌شود و پنل شما باز می‌شود. اعتبار از همین لحظه شروع می‌شود.</p></div></li>
+          <li><span>۱</span><div><b>کارت‌به‌کارت می‌کنید</b><p>مبلغ و شمارهٔ کارت همین‌جا نشون داده می‌شه و ۱۰ دقیقه برای واریز وقت دارید.</p></div></li>
+          <li><span>۲</span><div><b>پرداخت خودکار تأیید می‌شه</b><p>نیازی به ارسال فیش یا منتظر موندن برای تأیید نیست.</p></div></li>
+          <li><span>۳</span><div><b>پنلتون باز می‌شه</b><p>کلید ورود همین‌جا نمایش داده می‌شه و صفحه‌تون آماده‌ست. اعتبار هم از همین لحظه شروع می‌شه.</p></div></li>
         </ol>
       </div>
     </div>
@@ -165,6 +185,10 @@
     </div>
   </div>
 </footer>
+<div id="stickyCta" class="sticky-bar" role="region" aria-label="اقدام سریع" hidden>
+  <a class="btn sticky-cta" href="#salon-example">ساخت پیش‌نمایش رایگان</a>
+  <a class="btn btn--ghost sticky-bar__sec" href="#services">تعرفه‌ها</a>
+</div>
 
 <script>
 (()=>{

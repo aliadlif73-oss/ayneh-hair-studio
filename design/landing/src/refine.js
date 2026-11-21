@@ -89,8 +89,8 @@
   /* Once the preview is ready the confirm button stays in place but stops acting:
      hiding it left a single full-width button in an otherwise two-button row. */
   next.hidden=false;
-  next.disabled=Boolean(last&&ready);
-  next.textContent=last&&ready?'پیشنمایش آماده است':(last?'تأیید پیشنمایش':'ادامه');
+  next.disabled=false;
+  next.textContent=last?'مشاهده پیش‌نمایش':'ادامه';
   err.textContent='';
   /* No scrollIntoView: the console is already a single screen. A page jump on
      every "ادامه" was the main reason working with the studio felt awkward. */
@@ -121,17 +121,24 @@
   if(!validate(steps[i]))return;
   window.__AYN_TRACK?.('wizard_step_complete',{step:i+1,key:steps[i].dataset.key});
   if(i<steps.length-1){show(i+1);return}
-  if(ready)return;
-  ready=true;
-  const note=$('wizardReady');if(note)note.hidden=false;
-  wizard.classList.add('is-complete');
-  show(i,false);
-  /* builder.js packages the request from the CURRENT form values at click time,
-     so optional details added afterwards are never lost. */
-  dispatchEvent(new CustomEvent('ayneh:wizard-ready'));
+  if(!validate(steps[0])){const msg=err.textContent;show(0);err.textContent=msg;return}
+  for(const el of form.querySelectorAll('#builderDetails input, #builderDetails textarea, #builderDetails select')){
+   if(!el.checkValidity()){const det=$('builderDetails');if(det)det.open=true;el.reportValidity();return}
+  }
+  if(!ready){
+   ready=true;
+   const note=$('wizardReady');if(note)note.hidden=false;
+   wizard.classList.add('is-complete');
+   show(i,false);
+   dispatchEvent(new CustomEvent('ayneh:wizard-ready'));
+  }
+  dispatchEvent(new CustomEvent('ayneh:preview-open'));
  });
  skip.addEventListener('click',()=>{window.__AYN_TRACK?.('wizard_skip',{step:i+1,key:steps[i].dataset.key});show(i+1)});
  prev.addEventListener('click',()=>show(i-1));
+ wizard.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&e.target&&e.target.tagName==='INPUT'){e.preventDefault();next.click()}
+ });
 
  /* ---- 3. Every answered field is visibly acknowledged in the live preview ---- */
  const flashFor={

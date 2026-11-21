@@ -16,7 +16,7 @@ W = lambda p, s: open(p, 'w', encoding='utf8').write(s)
 # Everything the new page references, synced into public/landing/ so the worker
 # and the static preview read the same bytes.
 DEMOS = ['demo-%s-%s.webp' % (s, k) for s in ('style', 'color', 'lashes', 'nails') for k in ('before', 'after')]
-SYNC = re.compile(r'(hero\.webp|salon-film-0[1-5]\.webp|(?:hair|lashes|nails)-end\.webp|%s|estedad\.woff2|look-s\d\d\.webp|(?:hero|look-s\d\d)-hd\.webp|story-\d[lr]\.webp|sample-(?:hair|color|nails|lashes)-(?:before|after)\.webp|ayneh-logo-lg\.webp|hero-mix-[0-3]\.webp|salon-cover\.webp)$' % '|'.join(re.escape(d) for d in DEMOS))
+SYNC = re.compile(r'(hero\.webp|hero-stopmotion-poster\.webp|salon-film-0[1-5]\.webp|(?:hair|lashes|nails)-end\.webp|%s|estedad\.woff2|look-s\d\d\.webp|(?:hero|look-s\d\d)-hd\.webp|story-\d[lr]\.webp|sample-(?:hair|color|nails|lashes)-(?:before|after)\.webp|ayneh-logo-lg\.webp|hero-mix-[0-3]\.webp|salon-cover\.webp)$' % '|'.join(re.escape(d) for d in DEMOS))
 for asset in os.listdir('assets'):
     if SYNC.match(asset):
         shutil.copyfile('assets/' + asset, '../../public/landing/' + asset)
@@ -85,17 +85,17 @@ def millions(toman):
 # Plain-words notes under the owner's bullet wording (the wording itself stays exactly as on
 # the price sheet). Keyed by the bullet; a gift-credit bullet matches by prefix.
 PLAN_NOTES = {
-    'صفحهٔ اختصاصی شما': 'یک لینک به اسم شما برای بیو اینستاگرام',
-    'گالری نمونه‌کار': 'نمونه‌کارهایتان را خودتان از پنل اضافه می‌کنید',
-    'امتحان مدل با عکس دلخواه مشتری': 'مشتری می‌تواند عکس مدلی را که پسندیده هم بگذارد',
-    'دریافت درخواست مشتری': 'با عکس و انتخاب مشتری، داخل پنل شما',
-    'اعتبار هدیه': 'با هر عکسی که برای مشتری ساخته شود یکی کم می‌شود؛ عکس‌های ناموفق حساب نمی‌شوند',
-    'اتصال پیام‌رسان': 'درخواست‌ها در تلگرام یا بله هم می‌رسد',
-    'نوبت‌دهی و پیگیری': 'نوبت را شما ثبت می‌کنید؛ تأیید و یادآوری در تلگرام یا بله برای مشتری می‌رود',
-    'گزارش عملکرد ساده': 'بازدید، امتحان، درخواست و نوبت‌های هر ماه',
-    'گزارش عملکرد کامل': 'به‌همراه مدل‌های پرطرفدار، آمار هر همکار و سرعت پاسخ',
-    'آرشیو مشتریان': 'فهرست مشتری‌ها با جستجو و خروجی اکسل',
-    'پشتیبانی ویژه': 'پیام از داخل پنل، با پاسخ سریع‌تر',
+    'صفحهٔ اختصاصی شما': 'یه لینک به اسم خودتون برای بیو اینستاگرام',
+    'گالری نمونه‌کار': 'نمونه‌کارهاتون رو هر وقت بخواید از پنل اضافه می‌کنید',
+    'امتحان مدل با عکس دلخواه مشتری': 'مشتری می‌تونه عکس مدلی که جای دیگه پسندیده رو هم بذاره',
+    'دریافت درخواست مشتری': 'همراه با عکس و مدل انتخابی مشتری، مستقیم توی پنلتون',
+    'اعتبار هدیه': 'با هر عکسی که برای مشتری ساخته می‌شه یکی کم می‌شه؛ عکس‌های ناموفق حساب نمی‌شن',
+    'اتصال پیام‌رسان': 'درخواست‌ها مستقیم توی تلگرام یا بله هم براتون میاد',
+    'نوبت‌دهی و پیگیری': 'نوبت رو شما ثبت می‌کنید؛ تأیید و یادآوری توی تلگرام یا بله برای مشتری می‌ره',
+    'گزارش عملکرد ساده': 'آمار بازدید، امتحان مدل، درخواست و نوبت‌های هر ماه',
+    'گزارش عملکرد کامل': 'به‌همراه مدل‌های پرطرفدار، آمار هر همکار و سرعت پاسخ‌گویی',
+    'آرشیو مشتریان': 'فهرست کامل مشتری‌ها با جستجو و خروجی اکسل',
+    'پشتیبانی ویژه': 'پیام مستقیم از داخل پنل، با پاسخ‌گویی سریع‌تر',
 }
 
 
@@ -121,13 +121,20 @@ def plan_card(p, service):
     lead = ' plan--lead' if p['badge'] else ''
     badge = ('<span class="plan__badge">' + CROWN + p['badge'] + '</span>') if p['badge'] else ''
     was = ('<p class="plan__was"><s>' + millions(p['was']) + ' میلیون تومان</s></p>') if p['was'] else '<p class="plan__was" aria-hidden="true">&nbsp;</p>'
+    meta_parts = []
+    if p['months'] > 1:
+        pm, exact = per_person(p['amount'], p['months'])
+        meta_parts.append(('ماهی ' if exact else 'حدود ماهی ') + pm + ' میلیون')
+    if p['was'] > p['amount']:
+        meta_parts.append(millions(p['was'] - p['amount']) + ' میلیون صرفه‌جویی')
+    meta = ('<p class="plan__meta">' + ' <b>·</b> '.join(meta_parts) + '</p>') if meta_parts else ''
     feats = ''.join('<li>' + TICK + plan_note(f) + '</li>' for f in p['features'])
     return (
         '<article class="plan' + lead + '" data-plan="' + p['key'] + '">' + badge
         + '<h3 lang="en" dir="ltr">' + p['name'] + '</h3>'
         + '<p class="plan__months">' + CAL + fa_int(p['months']) + ' ماهه</p>'
         + '<div class="plan__price" data-price-box="' + p['key'] + '">' + was
-        + '<p class="plan__amount" data-price="' + p['key'] + '"><b>' + millions(p['amount']) + '</b> میلیون تومان</p></div>'
+        + '<p class="plan__amount" data-price="' + p['key'] + '"><b>' + millions(p['amount']) + '</b> میلیون تومان</p>' + meta + '</div>'
         + '<ul>' + feats + '</ul>'
         + '<a class="btn plan__buy" href="#pay" data-buy="' + p['key'] + '" data-service="' + service + '" data-title="' + SERVICE_TITLES[service]
         + '" data-months="' + str(p['months']) + '" data-state="open" data-amount="' + str(p['amount']) + '">خرید</a>'
@@ -141,6 +148,10 @@ def salon_card(p):
     badge = SALON_BADGES.get(p['key'], '')
     each, exact = per_person(p['amount'], p['seats'])
     tier = next(x['name'] for x in PLANS if x['key'] == p['tier'])
+    smeta = ''
+    if p['months'] > 1:
+        pm, pexact = per_person(p['amount'], p['months'])
+        smeta = '<p class="plan__meta">' + ('ماهی ' if pexact else 'حدود ماهی ') + pm + ' میلیون برای کل سالن</p>'
     feats = ['هر چهار خدمت: مدل مو، رنگ مو، ناخن و مژه',
              'تا ' + fa_int(p['seats']) + ' کاربر؛ مدیر هم یکی از آن‌هاست',
              'لینک اختصاصی برای هر همکار',
@@ -153,7 +164,7 @@ def salon_card(p):
         + '<p class="plan__months">' + CAL + fa_int(p['months']) + ' ماهه</p>'
         + '<div class="plan__price" data-price-box="' + p['key'] + '">'
         + '<p class="plan__amount" data-price="' + p['key'] + '"><b>' + millions(p['amount']) + '</b> میلیون تومان</p>'
-        + '<p class="plan__each">برای ' + fa_int(p['seats']) + ' نفر: نفری ' + ('' if exact else 'حدود ') + each + ' میلیون تومان</p></div>'
+        + '<p class="plan__each">برای ' + fa_int(p['seats']) + ' نفر: نفری ' + ('' if exact else 'حدود ') + each + ' میلیون تومان</p>' + smeta + '</div>'
         + '<ul>' + ''.join('<li>' + TICK + '<span>' + f + '</span></li>' for f in feats) + '</ul>'
         + '<a class="btn plan__buy" href="#pay" data-buy="' + p['key'] + '" data-service="all" data-title="' + SERVICE_TITLES['all']
         + '" data-months="' + str(p['months']) + '" data-state="open" data-amount="' + str(p['amount'])
@@ -199,7 +210,7 @@ def plans_panel(tabs, selected):
 
 
 PLAN_NOTE = ('<p class="plan-note" id="plan-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v.01M12 11v5" stroke-linecap="round"/></svg>'
-             + '<span>بعد از تمام شدن عکس‌های هدیه، هر ' + fa_int(TOPUP_IMAGES) + ' عکس ' + fa_int(TOPUP_AMOUNT // 1000) + ' هزار تومان</span></p>')
+             + '<span>بعد از تموم شدن عکس‌های هدیه، هر ' + fa_int(TOPUP_IMAGES) + ' عکس ' + fa_int(TOPUP_AMOUNT // 1000) + ' هزار تومانه</span></p>')
 
 
 def plans_block(tabs, selected):
@@ -254,70 +265,70 @@ SERVICES = {
     'hair': {
         'label': 'مدل مو', 'path': '/hair', 'pair': 'style', 'line': 'hair',
         'title': 'برای متخصصان مدل مو',
-        'desc': 'مشتری مدل مو را روی عکس خودش می‌بیند و مطمئن‌تر درخواست می‌دهد. نمونه، پلن‌ها و روش کار.',
+        'desc': 'مشتری مدل مو رو روی عکس خودش می‌بینه و مطمئن‌تر درخواست می‌ده. نمونه، پلن‌ها و روش کار.',
         'eyebrow': 'برای متخصصان مدل مو',
-        'h1': 'مشتری می‌پرسد «این مدل به من می‌آید؟»', 'accent': '',
-        'lead': 'آینه جواب را روی عکس خودش نشان می‌دهد.',
-        'f2': 'مدل را می‌بیند', 'req': 'درخواست مدل مو',
-        'demo_title': 'مدل مو را روی عکس خودتان امتحان کنید.',
-        'card': 'مدل را قبل از کوتاهی می‌بیند.',
-        'ben_title': 'آینه برای مدل مو چه می‌کند؟', 'ben_sub': 'مشتری با انتخاب مشخص سراغ شما می‌آید.',
-        'benefits': ['مشتری قبل از آمدن مدل را روی عکس خودش می‌بیند.',
-                     'درخواست با مدل انتخاب‌شده به پنل یا ربات شما می‌رسد.',
-                     'بدون توضیح طولانی، مدل از قبل مشخص است.'],
-        'sample_title': 'یک مدل مو قبل و بعد',
-        'cta_title': 'مدل مو را همین الان روی عکس خودتان ببینید.',
+        'h1': 'مشتری می‌پرسه «این مدل بهم میاد؟»', 'accent': '',
+        'lead': 'با آینه جوابش رو قبل از کوتاهی، روی عکس خودش می‌بینه و با خیال راحت وقت می‌گیره.',
+        'f2': 'مدل رو می‌بینه', 'req': 'درخواست مدل مو',
+        'demo_title': 'مدل مو رو روی عکس خودتون امتحان کنید.',
+        'card': 'مدل مو رو قبل از کوتاهی روی چهرهٔ خودش می‌بینه.',
+        'ben_title': 'آینه برای کار مدل مو چه کمکی می‌کنه؟', 'ben_sub': 'مشتری با انتخاب مشخص و بدون تردید سراغتون میاد.',
+        'benefits': ['مشتری قبل از اومدن، مدل مو رو روی چهرهٔ خودش می‌بینه.',
+                     'درخواستش با مدل انتخاب‌شده مستقیم به پنل یا ربات شما می‌رسه.',
+                     'دیگه نیاز به توضیح طولانی نیست؛ مدل از قبل مشخصه.'],
+        'sample_title': 'یه نمونهٔ قبل و بعد مدل مو',
+        'cta_title': 'مدل مو رو همین الان روی عکس خودتون ببینید.',
     },
     'color': {
         'label': 'رنگ مو', 'path': '/color', 'pair': 'color', 'line': 'color',
         'title': 'برای متخصصان رنگ مو',
-        'desc': 'مشتری رنگ مو را قبل از شروع روی عکس خودش می‌بیند و مطمئن‌تر درخواست می‌دهد. نمونه، پلن‌ها و روش کار.',
+        'desc': 'مشتری رنگ مو رو قبل از شروع روی موهای خودش می‌بینه و مطمئن‌تر درخواست می‌ده. نمونه، پلن‌ها و روش کار.',
         'eyebrow': 'برای متخصصان رنگ مو',
-        'h1': 'مشتری می‌گوید «این نبود که فکر می‌کردم.»', 'accent': '',
-        'lead': 'آینه رنگ را قبل از شروع، روی عکس خودش نشان می‌دهد.',
-        'f2': 'رنگ را می‌بیند', 'req': 'درخواست رنگ مو',
-        'demo_title': 'رنگ مو را روی عکس خودتان امتحان کنید.',
-        'card': 'رنگ را قبل از رنگ کردن می‌بیند.',
-        'ben_title': 'آینه برای رنگ مو چه می‌کند؟', 'ben_sub': 'بحث «این نبود» قبل از شروع تمام می‌شود.',
-        'benefits': ['رنگ را قبل از شروع روی عکس خودش می‌بیند.',
-                     'رنگ را با هم روی تصویر انتخاب می‌کنید.',
-                     'درخواست با رنگ انتخاب‌شده به شما می‌رسد.'],
-        'sample_title': 'یک رنگ مو قبل و بعد',
-        'cta_title': 'رنگ مو را همین الان روی عکس خودتان ببینید.',
+        'h1': 'دیگه نمی‌شنوید «این اون رنگی نبود که فکر می‌کردم!»', 'accent': '',
+        'lead': 'با آینه مشتری قبل از رنگ کردن، نتیجه رو روی موهای خودش می‌بینه و مطمئن انتخاب می‌کنه.',
+        'f2': 'رنگ رو می‌بینه', 'req': 'درخواست رنگ مو',
+        'demo_title': 'رنگ مو رو روی عکس خودتون امتحان کنید.',
+        'card': 'رنگ مو رو قبل از رنگ کردن روی موهای خودش می‌بینه.',
+        'ben_title': 'آینه برای کار رنگ مو چه کمکی می‌کنه؟', 'ben_sub': 'تردید و بحث «این نبود» قبل از شروع کار تموم می‌شه.',
+        'benefits': ['مشتری رنگ دلخواهش رو قبل از شروع روی موهای خودش می‌بینه.',
+                     'رنگ نهایی رو با هم روی تصویر دقیق انتخاب می‌کنید.',
+                     'درخواست مشتری همراه با رنگ انتخاب‌شده مستقیم براتون می‌رسه.'],
+        'sample_title': 'یه نمونهٔ قبل و بعد رنگ مو',
+        'cta_title': 'رنگ مو رو همین الان روی عکس خودتون ببینید.',
     },
     'nails': {
         'label': 'ناخن', 'path': '/nails', 'pair': 'nails', 'line': 'nails',
         'title': 'برای متخصصان ناخن',
-        'desc': 'مشتری طرح ناخن را روی دست خودش می‌بیند و مطمئن‌تر درخواست می‌دهد. نمونه، پلن‌ها و روش کار.',
+        'desc': 'مشتری طرح ناخن رو روی دست خودش می‌بینه و مطمئن‌تر درخواست می‌ده. نمونه، پلن‌ها و روش کار.',
         'eyebrow': 'برای متخصصان ناخن',
-        'h1': 'مشتری عکس طرحی را از اینستاگرام نشانتان می‌دهد، ولی مطمئن نیست به دستش بیاید.', 'accent': '',
-        'lead': 'آینه طرح را روی دست خودش نشان می‌دهد.',
-        'f2': 'طرح را می‌بیند', 'req': 'درخواست طرح ناخن',
-        'demo_title': 'طرح ناخن را روی دست خودتان امتحان کنید.',
-        'card': 'طرح را روی دست خودش می‌بیند.',
-        'ben_title': 'آینه برای ناخن چه می‌کند؟', 'ben_sub': 'انتخاب طرح دیگر حدسی نیست.',
-        'benefits': ['طرح را روی دست خودش می‌بیند.',
-                     'مشتری زودتر تصمیم می‌گیرد.',
-                     'درخواست با طرح انتخاب‌شده می‌رسد.'],
-        'sample_title': 'یک طرح ناخن قبل و بعد',
-        'cta_title': 'طرح ناخن را همین الان روی دست خودتان ببینید.',
+        'h1': 'مشتری عکس یه طرح از اینستاگرام نشونتون می‌ده ولی مطمئن نیست به دستش بیاد؟', 'accent': '',
+        'lead': 'با آینه طرح رو قبل از کار روی دست خودش می‌بینه و بدون شک انتخاب می‌کنه.',
+        'f2': 'طرح رو می‌بینه', 'req': 'درخواست طرح ناخن',
+        'demo_title': 'طرح ناخن رو روی دست خودتون امتحان کنید.',
+        'card': 'طرح ناخن رو قبل از کار روی دست خودش می‌بینه.',
+        'ben_title': 'آینه برای کار ناخن چه کمکی می‌کنه؟', 'ben_sub': 'انتخاب طرح دیگه حدسی و زمان‌بر نیست.',
+        'benefits': ['طرح ناخن رو قبل از کار روی دست خودش می‌بینه.',
+                     'خیلی سریع‌تر و مطمئن‌تر تصمیم می‌گیره.',
+                     'درخواستش همراه با طرح انتخاب‌شده مستقیم براتون می‌رسه.'],
+        'sample_title': 'یه نمونهٔ قبل و بعد طرح ناخن',
+        'cta_title': 'طرح ناخن رو همین الان روی دست خودتون ببینید.',
     },
     'lashes': {
         'label': 'مژه', 'path': '/lashes', 'pair': 'lashes', 'line': 'lashes',
         'title': 'برای متخصصان مژه',
-        'desc': 'مشتری حالت مژه را قبل از نوبت روی عکس خودش می‌بیند و مطمئن‌تر درخواست می‌دهد. نمونه، پلن‌ها و روش کار.',
+        'desc': 'مشتری حالت مژه رو قبل از نوبت روی چشم خودش می‌بینه و مطمئن‌تر درخواست می‌ده. نمونه، پلن‌ها و روش کار.',
         'eyebrow': 'برای متخصصان مژه',
-        'h1': 'مشتری از حجم و فرم مژه می‌ترسد.', 'accent': '',
-        'lead': 'آینه حالت را قبل از نوبت نشان می‌دهد.',
-        'f2': 'حالت را می‌بیند', 'req': 'درخواست حالت مژه',
-        'demo_title': 'حالت مژه را روی عکس خودتان امتحان کنید.',
-        'card': 'حجم مژه را روی چشم خودش می‌بیند.',
-        'ben_title': 'آینه برای مژه چه می‌کند؟', 'ben_sub': 'مشتری با خیال راحت نوبت می‌گیرد.',
-        'benefits': ['حالت مژه را قبل از نوبت می‌بیند.',
-                     'نگرانی از حجم و فرم، قبل از نوبت برطرف می‌شود.',
-                     'درخواست با حالت انتخاب‌شده می‌رسد.'],
-        'sample_title': 'یک حالت مژه قبل و بعد',
-        'cta_title': 'حالت مژه را همین الان روی عکس خودتان ببینید.',
+        'h1': 'مشتری از حجم و فرم مژه می‌ترسه و نمی‌تونه تصمیم بگیره؟', 'accent': '',
+        'lead': 'با آینه حالت مژه رو قبل از نوبت روی چشم خودش می‌بینه و با خیال راحت وقت می‌گیره.',
+        'f2': 'حالت رو می‌بینه', 'req': 'درخواست حالت مژه',
+        'demo_title': 'حالت مژه رو روی عکس خودتون امتحان کنید.',
+        'card': 'فرم و حجم مژه رو قبل از نوبت روی چشم خودش می‌بینه.',
+        'ben_title': 'آینه برای کار مژه چه کمکی می‌کنه؟', 'ben_sub': 'نگرانی مشتری قبل از نوبت کاملاً برطرف می‌شه.',
+        'benefits': ['حالت و حجم مژه رو قبل از نوبت روی چشم خودش می‌بینه.',
+                     'تردید دربارهٔ فرم و پرپشتی مژه قبل از کار از بین می‌ره.',
+                     'درخواستش با حالت انتخاب‌شده مستقیم براتون می‌رسه.'],
+        'sample_title': 'یه نمونهٔ قبل و بعد مژه',
+        'cta_title': 'حالت مژه رو همین الان روی عکس خودتون ببینید.',
     },
 }
 # The REAL before/after of each service ("نمونهٔ ساخته‌شده با آینه"). Filled only with a real,
@@ -325,10 +336,10 @@ SERVICES = {
 # entry its page simply has no sample section; nothing is invented to fill the gap.
 REAL_SAMPLES = {k: {'before': f'assets/sample-{k}-before.webp', 'after': f'assets/sample-{k}-after.webp'} for k in ('hair', 'color', 'nails', 'lashes')}  # owner's illustrative pairs, labelled «نمونهٔ نمایشی»
 HINTS = {  # the first-chip hint under the demo's title; tryon.js writes the same texts on click
-    'hair': 'یک عکس روبه‌رو با صورت کامل، بدون کلاه و عینک آفتابی، در نور طبیعی.',
-    'color': 'عکسی که موهایتان کامل و واضح در آن دیده شود؛ نور زرد لامپ رنگ را عوض می‌کند.',
-    'nails': 'پشت دست، انگشت‌ها کنار هم و همهٔ ناخن‌ها در قاب، در نور روز.',
-    'lashes': 'از نزدیک و روبه‌رو، هر دو چشم باز و کامل در قاب، بدون عینک.',
+    'hair': 'یه عکس روبه‌رو با صورت کامل، بدون کلاه و عینک آفتابی، توی نور طبیعی.',
+    'color': 'عکسی که موهاتون کامل و واضح توش دیده شه؛ نور زرد لامپ رنگ رو عوض می‌کنه.',
+    'nails': 'پشت دست، انگشت‌ها کنار هم و همهٔ ناخن‌ها توی قاب، توی نور روز.',
+    'lashes': 'از نزدیک و روبه‌رو، هر دو چشم باز و کامل توی قاب، بدون عینک.',
 }
 LINE_TITLE = {'hair': 'مدل مو', 'color': 'رنگ مو', 'nails': 'ناخن', 'lashes': 'مژه'}
 LINE_PAIR = {'hair': 'style', 'color': 'color', 'nails': 'nails', 'lashes': 'lashes'}
@@ -338,8 +349,8 @@ SALON_HERO = {
     'title': 'پنل آرایشگاه',
     'desc': 'پنل آرایشگاه: هر چهار خدمت، تا ۳ کاربر، لینک اختصاصی برای هر همکار. نمونه، پلن‌ها و روش کار.',
     'eyebrow': 'پنل آرایشگاه',
-    'h1': 'هر همکار، مشتری‌های خودش؛ همه روی یک تصویر.',
-    'lead': 'با آینه همه همان تصویری را می‌بینند که مشتری دیده.',
+    'h1': 'هر همکار، مشتری‌های خودش؛ همه توی یه صفحهٔ حرفه‌ای.',
+    'lead': 'با آینه، کل تیمتون دقیقاً همون تصویری رو می‌بینه که مشتری انتخاب کرده.',
 }
 CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.4 2.6 2.6L16 9.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'
 # Three of the hairstyle models, shown on the second hero frame of every hairstyle hero.
@@ -368,7 +379,6 @@ def nav(items):
 
 def mobile(items):
     return (''.join('<a href="%s">%s<span aria-hidden="true">←</span></a>' % (h_, t) for h_, t in items)
-            + '<a href="__ORIGIN__/panel">ورود<span aria-hidden="true">←</span></a>'
             + '<a class="btn" href="#demo">نمونه بساز</a>')
 
 
@@ -425,14 +435,15 @@ def make_pages(full):
     chat_tpl = R('src/chat.html')
     chat = lambda pair, req: chat_tpl.replace('{{PAIR}}', pair).replace('{{REQ}}', req)
 
-    def hero(pair, eyebrow, h1, accent, lead, f2, req, note, cls=''):
+    def hero(pair, eyebrow, h1, accent, lead, f2, req, note, cls='', perks=''):
         return (R('src/hero.html').replace('{{HERO_CLASS}}', cls).replace('{{EYEBROW}}', eyebrow)
                 .replace('{{H1}}', h1).replace('{{ACCENT}}', accent).replace('{{LEAD}}', lead)
+                .replace('{{HERO_PERKS}}', perks)
                 .replace('{{MAIN_BTN}}', 'روی عکس خودم امتحان کنم').replace('{{PAIR}}', pair)
                 .replace('{{F2}}', f2).replace('{{NOTE}}', note).replace('{{CHAT}}', chat(pair, req))
                 .replace('{{PICKS}}', PICKS if pair == 'style' else ''))
 
-    def demo(lines, title, sub, first):
+    def demo(lines, title, sub, first, foot=True):
         d = R('src/tryon.html')
         if first in ('nails', 'lashes'):
             d = d.replace('با عکس روبه‌رو و پرنور', 'با عکس واضح و پرنور')
@@ -441,6 +452,9 @@ def make_pages(full):
             d = d.replace('<div class="tryon__lines"', '<div class="tryon__lines" hidden', 1)
         if not title:  # the /try page already opens with its own title and three steps
             d = re.sub(r'\s*<div class="head">[\s\S]*?</div>', '', d, count=1)
+        if not foot:
+            d = re.sub(r'\s*<small>عکس شما فقط برای ساخت نمونه و دیدنِ سالن استفاده می‌شود\.</small>', '', d, count=1)
+            d = re.sub(r'\s*<div class="tryon__foot">[\s\S]*?</div>\s*(?=</div>\s*</div>\s*</section>)', '', d, count=1)
         return (d.replace('{{DEMO_TITLE}}', title).replace('{{DEMO_SUB}}', sub)
                 .replace('{{FIRST_PAIR}}', LINE_PAIR[first]).replace('{{FIRST_LABEL}}', LINE_TITLE[first])
                 .replace('{{FIRST_HINT}}', HINTS[first]))
@@ -499,15 +513,46 @@ def make_pages(full):
         h = h.replace(f1, new1).replace(f2, new2.strip()).replace(f3, '<figure class="loop__f loop__f--3 loop__f--m4">')
         h = h.replace('hero-stage loop"', 'hero-stage loop loop--mix"').replace('سه قاب پشت‌سرهم', 'پنج قاب پشت‌سرهم')
         return h.replace('<li></li><li></li><li></li>', '<li></li><li></li><li></li><li></li><li></li>')
+    def stopmotion_hero(h):
+        stage = (
+            '<div class="hero-stage hero-stage--video" role="group" aria-label="نمایش زندهٔ آینه: امتحان چهار خدمت روی عکس واقعی">'
+            '<div class="hero-stage__bar">'
+            '<div class="hero-stage__chips" role="tablist" aria-label="خدمت‌های داخل نمایش">'
+            '<button type="button" role="tab" class="hero-stage__chip is-active" data-seek="0" data-end="4.28" aria-selected="true">مدل مو</button>'
+            '<button type="button" role="tab" class="hero-stage__chip" data-seek="4.28" data-end="8.64" aria-selected="false">رنگ مو</button>'
+            '<button type="button" role="tab" class="hero-stage__chip" data-seek="8.64" data-end="12.96" aria-selected="false">مژه</button>'
+            '<button type="button" role="tab" class="hero-stage__chip" data-seek="12.96" data-end="19" aria-selected="false">ناخن</button>'
+            '</div>'
+            '</div>'
+            '<div class="phone-showcase">'
+            '<div class="phone-frame">'
+            '<span class="phone-frame__speaker" aria-hidden="true"></span>'
+            '<video class="hero-video" src="/assets/aistudio/stopmotion_2406fb10.mp4" poster="assets/hero-stopmotion-poster.webp" width="640" height="1386" autoplay muted loop playsinline preload="auto"></video>'
+            '</div>'
+            '<div class="hero-stage__prog" aria-hidden="true"><span class="hero-stage__fill"></span></div>'
+            '</div>'
+            '</div>'
+        )
+        out = re.sub(r'<div class="hero-stage loop"[\s\S]*?</p>\s*</div>(?=\s*</div>\s*</div>)', stage, h, count=1)
+        assert 'hero-stage--video' in out, 'hero stage replaced'
+        return out
+    home_studio = re.sub(r'\s*<ol class="sb-steps"[\s\S]*?</ol>', '', studio, count=1)
+    assert 'sb-steps' not in home_studio and 'پیش‌نمایش وب‌سایت خودتون رو ببینید' in home_studio
+    home_perks = (
+        '          <ul class="hero-perks" aria-label="مزایای آینه">\n'
+        '            <li class="hero-perk"><span class="hero-perk__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M3 9h18M7.5 14h5" stroke-linecap="round"/></svg></span><div><b>وب‌سایت اختصاصی و برندینگ حرفه‌ای</b><span>صفحه‌ای با نام، مشخصات و نمونه‌کارهای خودتون.</span></div></li>\n'
+        '            <li class="hero-perk"><span class="hero-perk__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20" stroke-linecap="round"/><circle cx="10" cy="8.5" r="3.5"/><path d="M19 8v6M16 11h6" stroke-linecap="round"/></svg></span><div><b>جذب مشتری جدید با اشتراک‌گذاری</b><span>روی هر تصویر اسم و لوگوی شما ثبت می‌شه؛ با ارسال به دوستانشون، مشتری تازه جذب می‌کنید.</span></div></li>\n'
+        '            <li class="hero-perk"><span class="hero-perk__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3.5V6.5M16 3.5V6.5M8.5 13l2.2 2.2 4.8-4.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>رزرو ساده‌تر و پاسخ‌گویی به مشتری بیشتر</b><span>مشتری با انتخاب مشخص سراغتون میاد و در طول روز به افراد بیشتری می‌رسید.</span></div></li>\n'
+        '          </ul>\n'
+    )
     home_main = (
-        svc(hero('style', '', '«این مدل بهم می‌اد؟» را', 'دیگر حدسی جواب ندهید.',
-             'مشتری مدل مو، رنگ، ناخن و مژه را روی عکس خودش می‌بیند و با خیال راحت نوبت می‌گیرد.',
-             'مدل را می‌بیند', 'درخواست مدل مو', HOME_NOTE))
-        + demo(list(LINE_TITLE), 'خودتان <em>امتحان کنید.</em>', 'عکس خودتان را بگذارید و مدل را ببینید.', 'hair')
-        + section(home_src, 'how') + studio
-        + section(home_src, 'get').replace('{{CHAT}}', chat('style', 'درخواست مدل مو'))
+        stopmotion_hero(hero('style', '', 'با آینه دیگه نیازی به حدس زدن نیست!', 'شما دقیقا میدونید کدوم مدل به مشتریانتون میاد',
+             'توی وب‌سایت اختصاصی خودتون در آینه، مشتری‌هاتون نمونه‌کارهای شما یا هر مدلی که جای دیگه دیدن رو روی چهره و دست خودشون امتحان می‌کنن، مطمئن می‌شن چی بهشون میاد و بدون تردید همون مدل رو برای رزرو وقت براتون می‌فرستن.',
+             'مدل رو می‌بینه', 'درخواست مدل مو', HOME_NOTE, perks=home_perks))
+        + demo(list(LINE_TITLE), 'خودتون <em>امتحان کنید!</em>', 'عکستون رو بذارید و همین الان مدل رو روی چهرهٔ خودتون ببینید.', 'hair', foot=False)
         + section(home_src, 'choose').replace('{{CARDS}}', NL.join(card(k, s) for k, s in SERVICES.items()))
-        + section(home_src, 'why') + pricing + R('src/pay.html') + faq + cta('اولین نمونه را همین الان روی عکس خودتان بسازید.')
+        + home_studio
+        + pricing + R('src/pay.html') + faq
     )
     home_nav = [('#choose', 'خدمات'), ('#services', 'تعرفه‌ها'), ('#faq', 'سؤالات')]
     other_nav = [('/#choose', 'خدمات'), ('#services', 'تعرفه‌ها'), ('/#faq', 'سؤالات')]
@@ -527,7 +572,7 @@ def make_pages(full):
             # The mirror on a sample face stays on the hairstyle page only, as the first of two tabs.
             play = ('<div class="try-switch band" id="trySwitch" role="tablist" aria-label="دو راه امتحان" hidden>'
                     '<button type="button" role="tab" data-try="play" aria-selected="true">روی چهرهٔ نمونه <small>بدون عکس</small></button>'
-                    '<button type="button" role="tab" data-try="demo" aria-selected="false">روی عکس خودتان <small>با عکس شما</small></button></div>\n') + R('src/play.html')
+                    '<button type="button" role="tab" data-try="demo" aria-selected="false">روی عکس خودتون <small>با عکس شما</small></button></div>\n') + R('src/play.html')
         main = (hero(s['pair'], back, s['h1'], s['accent'], s['lead'], s['f2'], s['req'], SERVICE_NOTE, ' hero--service')
                 + play + demo([s['line']], s['demo_title'], 'بدون نصب، روی گوشی.', s['line'])
                 + sample + ben + studio + pricing_for(PLAN_TABS + ['salon'], key) + R('src/pay.html') + cta(s['cta_title']))
@@ -537,15 +582,15 @@ def make_pages(full):
     S = SALON_HERO
     back = '          <a class="hero-back" href="/"><span aria-hidden="true">→</span> آینه · همهٔ خدمات</a>\n          <span class="eyebrow">' + S['eyebrow'] + '</span>\n'
     salon_pricing = pricing_for(['salon'], 'salon')
-    salon_pricing = re.sub(r'<!--SINGLE-->[\s\S]*?<!--/SINGLE-->\s*', '', salon_pricing).replace('پلن خدمت خودتان را <em>انتخاب کنید.</em>', 'پنل آرایشگاه را <em>انتخاب کنید.</em>', 1)
+    salon_pricing = re.sub(r'<!--SINGLE-->[\s\S]*?<!--/SINGLE-->\s*', '', salon_pricing).replace('پلن مناسب کارتون رو <em>انتخاب کنید</em>', 'پنل آرایشگاه رو <em>انتخاب کنید</em>', 1)
     assert 'pbar' not in salon_pricing and 'data-ptabs hidden' in salon_pricing
     salon_main = (
-        hero('style', back, S['h1'], '', S['lead'], 'مدل را می‌بیند', 'درخواست مدل مو', HOME_NOTE, ' hero--service')
+        hero('style', back, S['h1'], '', S['lead'], 'مدل رو می‌بینه', 'درخواست مدل مو', HOME_NOTE, ' hero--service')
         + section(salon_src, 'glance').replace('{{GLANCE}}', NL.join(glance_card(k, s) for k, s in SERVICES.items()))
         + section(salon_src, 'team')
-        + demo(list(LINE_TITLE), 'خودتان <em>امتحان کنید.</em>', 'عکس خودتان را بگذارید و مدل را ببینید.', 'hair')
+        + demo(list(LINE_TITLE), 'خودتون <em>امتحان کنید!</em>', 'عکستون رو بذارید و همین الان مدل رو روی چهرهٔ خودتون ببینید.', 'hair')
         + studio + section(salon_src, 'bundle') + salon_pricing + R('src/pay.html')
-        + cta('همه در سالن، روی یک تصویر با مشتری هماهنگ می‌شوند.')
+        + cta('کل تیمتون روی یه تصویر دقیق با مشتری هماهنگ می‌شه.')
     )
     pages['salon'] = shell(full, salon_main, other_nav, service='salon', title=S['title'], desc=S['desc'], tab='salon')
 
@@ -575,10 +620,13 @@ def finish(h):
     h = re.sub(r'<style>.*?</style>', lambda m: '<style>' + NL + FONT + NL + css + NL + '</style>', h, count=1, flags=re.S)
     assert h.count('<!--AYNEH_MARK-->') == 2
     mark = R('assets/ayneh-mark.svg')
-    # Inline SVG fragment IDs are document-global in browsers. Give the header and footer mark
-    # distinct clipPath names so duplicate IDs cannot make one logo reference the other SVG.
-    h = h.replace('<!--AYNEH_MARK-->', mark.replace('aynDisc', 'aynDiscHeader'), 1)
-    h = h.replace('<!--AYNEH_MARK-->', mark.replace('aynDisc', 'aynDiscFooter'), 1)
+    # Reuse the header's embedded logo image in the footer via SVG <use>, and drop the
+    # redundant duplicate xlink:href copy of the exact same base64 WebP (modern browsers use href).
+    head_mark = re.sub(r'\s+xlink:href="[^"]*"', '', mark.replace(' xmlns:xlink="http://www.w3.org/1999/xlink"', ''))
+    head_mark = head_mark.replace('aynDisc', 'aynDiscHeader').replace('<image ', '<image id="aynMarkImg" ', 1)
+    foot_mark = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 76 112" role="img" aria-label="آینه"><use href="#aynMarkImg"/></svg>'
+    h = h.replace('<!--AYNEH_MARK-->', head_mark, 1)
+    h = h.replace('<!--AYNEH_MARK-->', foot_mark, 1)
     # A build stamp in the <head>, as a meta tag rather than a comment: ship_minify strips
     # comments, and the landing page is cacheable for a few minutes, so without a marker that
     # survives the build neither the owner nor I can tell a stale copy from the deployed one.
@@ -625,7 +673,7 @@ def b64(f, m):
 a = h.replace('__ORIGIN__', '').replace('assets/estedad.woff2', b64('estedad.woff2', 'font/woff2'))
 # Every image the page points at must be inlined, or the single-file preview
 # (opened from disk) shows empty boxes.
-INLINE = ['hero', 'salon-film-01', 'salon-film-03'] + [d[:-5] for d in DEMOS] \
+INLINE = ['hero', 'hero-stopmotion-poster', 'salon-film-01', 'salon-film-03'] + [d[:-5] for d in DEMOS] \
     + [m.group(1) for f in os.listdir('assets')
        for m in [re.match(r'(look-s\d\d)\.webp$', f)] if m]
 for f in INLINE:
@@ -648,8 +696,7 @@ W('out/preview-single.html', _solo)
 
 # ---------------- worker variant ----------------
 def to_worker(h):
-    p = h
-    p = p.replace('assets/', '/landing/')
+    p = re.sub(r'(?<![/a-zA-Z0-9_-])assets/', '/landing/', h)
     p = p.replace('/landing/estedad.woff2', '/fonts/estedad-arabic.woff2')
     faces = ('@font-face{font-family:"Vazirmatn";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/vazirmatn-arabic.woff2) format("woff2");unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+200C-200F,U+2010-2011,U+204F,U+FB50-FDFF,U+FE70-FEFC}' + NL
              + '@font-face{font-family:"Vazirmatn";font-style:normal;font-weight:100 900;font-display:swap;src:url(/fonts/vazirmatn-latin.woff2) format("woff2");unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-200B,U+2012-206F,U+20AC,U+2122,U+2212}' + NL
@@ -666,7 +713,7 @@ def ship_minify(html):
     def css(m):
         c = re.sub(r'/\*.*?\*/', '', m.group(1), flags=re.S)
         c = re.sub(r'\s+', ' ', c)
-        for a_, b_ in (('{ ', '{'), (' }', '}'), (' ;', ';'), ('; ', ';'), (' ,', ','), (', ', ',')):
+        for a_, b_ in (('{ ', '{'), (' {', '{'), (' }', '}'), ('} ', '}'), (' ;', ';'), ('; ', ';'), (': ', ':'), (' ,', ','), (', ', ',')):
             c = c.replace(a_, b_)
         return '<style>' + c.replace(';}', '}').strip() + '</style>'
     def js(m):

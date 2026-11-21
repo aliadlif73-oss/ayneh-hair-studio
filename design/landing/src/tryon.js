@@ -9,10 +9,10 @@
   const name = document.getElementById('tryonLineName'), hint = document.getElementById('tryonLineHint');
   const tabs = [...root.querySelectorAll('[data-line]')];
   const LINES = {
-    hair:   ['مدل مو',   'یک عکس روبه‌رو با صورت کامل، بدون کلاه و عینک آفتابی، در نور طبیعی.'],
-    color:  ['رنگ مو',   'عکسی که موهایتان کامل و واضح در آن دیده شود؛ نور زرد لامپ رنگ را عوض می‌کند.'],
-    nails:  ['ناخن',     'پشت دست، انگشت‌ها کنار هم و همهٔ ناخن‌ها در قاب، در نور روز.'],
-    lashes: ['مژه',      'از نزدیک و روبه‌رو، هر دو چشم باز و کامل در قاب، بدون عینک.'],
+    hair:   ['مدل مو',   'یه عکس روبه‌رو با صورت کامل، بدون کلاه و عینک آفتابی، توی نور طبیعی.'],
+    color:  ['رنگ مو',   'عکسی که موهاتون کامل و واضح توش دیده شه؛ نور زرد لامپ رنگ رو عوض می‌کنه.'],
+    nails:  ['ناخن',     'پشت دست، انگشت‌ها کنار هم و همهٔ ناخن‌ها توی قاب، توی نور روز.'],
+    lashes: ['مژه',      'از نزدیک و روبه‌رو، هر دو چشم باز و کامل توی قاب، بدون عینک.'],
   };
   const PAIR = { hair: 'style', color: 'color', nails: 'nails', lashes: 'lashes' };
   /* where «این را برای مشتریان خودم می‌خواهم» goes: the plans of the service being tried */
@@ -23,8 +23,8 @@
   function select(key) {
     if(loaded && line===key)return;
     line = LINES[key] ? key : 'hair';
-    name.textContent = LINES[line][0];
-    hint.textContent = LINES[line][1];
+    if (name) name.textContent = LINES[line][0];
+    if (hint) hint.textContent = LINES[line][1];
     tabs.forEach(t => t.setAttribute('aria-pressed', String(t.dataset.line === line)));
     /* the mirror shows the sample pair of the chosen service; the buy link follows it */
     if (window.__AYN_PAIR && !loaded) window.__AYN_PAIR(PAIR[line], LINES[line][0]);
@@ -33,7 +33,10 @@
        choice made here is never only cosmetic. */
     if(loaded && photo)openPhoto(photo);
   }
-  tabs.forEach(t => t.addEventListener('click', () => select(t.dataset.line)));
+  tabs.forEach(t => t.addEventListener('click', () => {
+    select(t.dataset.line);
+    window.__AYN_SET_TAB?.(t.dataset.line);
+  }));
 
   /* A photo chosen here is carried the same way the rest of the page carries one: into the
      browser's own handoff store, then into the demo as a draft. It is the demo's own input
@@ -50,6 +53,9 @@
     stage.classList.add('is-open');
     loaded = true;
     curtain.classList.add('is-gone');
+    const post = document.getElementById('tryonPost');
+    if (post) post.hidden = false;
+    dispatchEvent(new CustomEvent('ayneh:pay-state'));
     setTimeout(() => { curtain.hidden = true; obj.focus({ preventScroll: true }); }, 420);
   }
 
@@ -99,7 +105,7 @@
     stage.classList.add('is-broken');
     if (curtain.hidden) curtain.hidden = false;
     curtain.querySelector('strong').textContent = 'باز کردن نمونه ممکن نشد';
-    curtain.querySelector('p').textContent = 'اتصال را بررسی کنید و دوباره امتحان کنید.';
+    curtain.querySelector('p').textContent = 'اتصال اینترنت رو بررسی کنید و دوباره امتحان کنید.';
     start.textContent = 'باز کردن نمونه';
     start.onclick = () => location.assign('/s/demo?l=' + line + '&from=landing');
   });

@@ -42,6 +42,7 @@
   const want = sec.dataset.defaultTab;
   const first = tabs.find(t => t.getAttribute('aria-selected') === 'true') || tabs[0];
   show(tabs.some(t => t.dataset.tab === want) ? want : first.dataset.tab);
+  if (typeof window !== 'undefined') window.__AYN_SET_TAB = key => { if (tabs.some(t => t.dataset.tab === key)) show(key); };
 })();
 
 /* Do not advance past an image that has not been decoded. */
@@ -57,3 +58,27 @@
  const loaded=img.decode?img.decode():new Promise((resolve,reject)=>{if(img.complete)return img.naturalWidth?resolve():reject();img.addEventListener('load',resolve,{once:true});img.addEventListener('error',reject,{once:true})});
  loaded.then(()=>loop.classList.add('is-ready')).catch(()=>{});
 })})();
+
+/* Hero stop-motion showcase: sync service pills & progress, allow direct jump, honour reduced motion. */
+(()=>{if(!document.querySelector)return;
+ const s=document.querySelector('.hero-stage--video');if(!s)return;
+ const v=s.querySelector('.hero-video'),b=s.querySelector('.hero-video__toggle'),f=s.querySelector('.hero-stage__fill'),c=[...s.querySelectorAll('.hero-stage__chip[data-seek]')];
+ if(!v)return;
+ const m=matchMedia('(prefers-reduced-motion: reduce)');
+ let p=m.matches;
+ const st=()=>{if(b){b.setAttribute('aria-pressed',String(v.paused));b.textContent=v.paused?'پخش نمایش':'توقف نمایش'}};
+ const sp=()=>{
+  const t=v.currentTime||0,d=v.duration||18.44;
+  if(f)f.style.width=Math.min(100,Math.max(0,t/d*100)).toFixed(2)+'%';
+  c.forEach(k=>{const on=t>=+k.dataset.seek&&t<+k.dataset.end;k.classList.toggle('is-active',on);k.setAttribute('aria-selected',String(on))});
+ };
+ if(b)b.addEventListener('click',()=>{if(v.paused){p=false;v.play().catch(()=>{})}else{p=true;v.pause()}st()});
+ c.forEach(k=>k.addEventListener('click',()=>{try{v.currentTime=+k.dataset.seek||0}catch{}if(v.paused){p=false;v.play().catch(()=>{})}sp();st()}));
+ ['timeupdate','seeked'].forEach(e=>v.addEventListener(e,sp));
+ ['play','pause'].forEach(e=>v.addEventListener(e,st));
+ v.addEventListener('loadedmetadata',()=>{if(m.matches&&p)v.pause();sp();st()});
+ if(m.matches){v.autoplay=false;v.pause()}else v.play().catch(()=>{});
+ m.addEventListener?.('change',e=>{if(e.matches){p=true;v.pause();st()}});
+ st();
+})();
+

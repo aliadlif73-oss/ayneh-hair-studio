@@ -289,15 +289,22 @@
       state.plan = key;
       state.buy = btn;
       state.service = btn.dataset.service || document.body.dataset.service || '';
+      window.__AYN_BUILDER?.();
       section.hidden = false;
       $('payPlan').textContent = headOf(btn.dataset.title, Number(btn.dataset.months)) || (btn.closest('.plan')?.querySelector('h3')?.textContent || '').trim();
       drawUsers();
       $('paySub').textContent = 'کارت‌به‌کارت واریز کنید؛ پرداخت شما خودکار تأیید می‌شود.';
       show('form');
       section.scrollIntoView({behavior: 'smooth', block: 'start'});
-      /* Details already typed: go straight on, except on «پنل آرایشگاه», whose user count is chosen here. */
-      if (!seatsOf(btn) && $('paySalon').value.trim() && $('payName').value.trim() && $('payPhone').value.trim()) open(key);
-      else setTimeout(() => $('paySalon').focus(), 350);
+      /* Details already typed and consent checked: go straight on, except on «پنل آرایشگاه». */
+      if (!seatsOf(btn) && $('paySalon').value.trim() && $('payName').value.trim() && $('payPhone').value.trim() && $('payConsent').checked) open(key);
+      else setTimeout(() => {
+        const target = !$('paySalon').value.trim() ? $('paySalon')
+          : !$('payName').value.trim() ? $('payName')
+          : !$('payPhone').value.trim() ? $('payPhone')
+          : $('payConsent');
+        target?.focus();
+      }, 350);
       track('order_intent', key);
     });
   }
@@ -306,6 +313,20 @@
     if (state.plan) open(state.plan);
   });
 
+  $('payAmountCopy')?.addEventListener('click', async () => {
+    if (!state.order?.amount) return;
+    try {
+      await navigator.clipboard.writeText(String(state.order.amount));
+      $('payAmountCopy').textContent = 'کپی شد';
+      setTimeout(() => ($('payAmountCopy').textContent = 'کپی مبلغ'), 1800);
+    } catch {}
+  });
+  $('payCouponToggle')?.addEventListener('click', () => {
+    const form = $('payCoupon'), openNow = form.hidden;
+    form.hidden = !openNow;
+    $('payCouponToggle').setAttribute('aria-expanded', String(openNow));
+    if (openNow) $('payCouponCode')?.focus();
+  });
   $('payCopy').addEventListener('click', async () => {
     if (!state.order?.card) return;
     try {

@@ -2,64 +2,70 @@
  <div class="wrap">
   <header class="sb-head">
    <span class="sb-eyebrow">ساخت پیش‌نمایش</span>
-   <h2 id="h-example">با نام خودتان، <em>صفحهٔ مشتری</em> را بسازید</h2>
-   <p class="sub">فقط نام و نشانی صفحه را بنویسید؛ پیش‌نمایش همان لحظه آماده می‌شود.</p>
+   <h2 id="h-example">با چند تا کلیک ساده <em>وب‌سایت اختصاصی خودتون</em> رو بسازید</h2>
+   <p class="sub">همین‌جا می‌تونید اطلاعات رو وارد کنید و در عرض چند ثانیه پیش‌نمایش وب‌سایت خودتون رو ببینید.</p>
   </header>
 
   <ol class="sb-steps" aria-label="مراحل ساخت پیش‌نمایش">
-   <li><strong>نام و نشانی</strong><span>فقط دو خانه؛ بدون پرداخت.</span></li>
-   <li><strong>پیش‌نمایش زنده</strong><span>همان صفحه‌ای را که مشتری می‌بیند، همین‌جا ببینید.</span></li>
-   <li><strong>انتخاب پلن و پرداخت</strong><span>بعد از پرداخت، همین صفحه با نشانی خودتان برای مشتری‌ها باز می‌شود.</span></li>
+   <li><strong>اسم و نشانی</strong><span>فقط دو تا خونه؛ بدون پرداخت.</span></li>
+   <li><strong>پیش‌نمایش زنده</strong><span>همون صفحه‌ای رو که مشتری می‌بینه، همین‌جا ببینید.</span></li>
+   <li><strong>انتخاب پلن و پرداخت</strong><span>بعد از پرداخت، همین صفحه با نشانی خودتون برای مشتری‌هاتون باز می‌شه.</span></li>
   </ol>
 
   <div class="sb-grid">
-   <div class="sb-preview">
-    <div class="sb-browser"><span class="sb-badge">پیش‌نمایش زنده</span><b id="builderAddress">ayneh-salon.site/s/your-salon</b></div>
-    <div class="sb-live" id="builderLive" tabindex="0" role="region" aria-label="پیش‌نمایش زندهٔ صفحهٔ شما">
-     <div class="mini" id="livePage">
-      <div class="mini__cover"><img id="liveCover" alt="" hidden><span>آینهٔ اختصاصی شما</span></div>
-      <div class="mini__body">
-       <div class="mini__logo" id="liveLogoBox"><img id="liveLogo" alt="" hidden><span id="liveInitial">س</span></div>
-       <p class="mini__kicker">استودیو زیبایی</p>
-       <h3 class="mini__name" id="liveName">نام شما</h3>
-       <p class="mini__bio" id="liveBio">مدل دلخواهت را روی عکس خودت ببین و انتخابت را برای آرایشگرت بفرست.</p>
-       <div class="mini__chips"><span id="liveAddress" hidden></span><span id="liveHours" hidden></span></div>
-       <span class="mini__try"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg>شروع با عکس خودم</span>
-       <div class="mini__services" aria-label="خدمات">
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7.5 14.5a3 3 0 1 0 3 3l7-9.5m0 6.5a3 3 0 1 1-3 3L7.5 8.5" stroke-linecap="round"/></svg>مدل مو</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3.5c2.5 2.6 3.6 5.2 3.6 7.8 0 2.7-1.6 4.4-3.6 4.4s-3.6-1.7-3.6-4.4c0-2.6 1.1-5.2 3.6-7.8Z"/><path d="M6 20.5c2-3 3.8-4.5 6-4.5s4 1.5 6 4.5" stroke-linecap="round"/></svg>رنگ مو</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8.5 14.5V9.5a3.5 3.5 0 0 1 7 0v5Z" stroke-linejoin="round"/><path d="M8 17h8" stroke-linecap="round"/></svg>ناخن</span>
-        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 13.5c4.5 4 9.5 4 14 0" stroke-linecap="round"/><path d="M7 17l-1 2m5-1.4-.6 2.2m5.1-2.2.6 2.2M17 17l1 2" stroke-linecap="round"/></svg>مژه</span>
+   <div class="sb-preview" id="previewModal" role="dialog" aria-modal="true" aria-label="پیش‌نمایش زندهٔ صفحهٔ شما" hidden>
+    <div class="sb-preview__card">
+     <div class="sb-preview__bar">
+      <div class="sb-browser"><span class="sb-badge">پیش‌نمایش زنده</span><b id="builderAddress">ayneh-salon.site/s/your-salon</b></div>
+      <button type="button" class="sb-close" id="previewClose" aria-label="بستن پیش‌نمایش">×</button>
+     </div>
+     <div class="sb-live" id="builderLive" tabindex="0" role="region" aria-label="پیش‌نمایش زندهٔ صفحهٔ شما">
+      <div class="mini" id="livePage">
+       <div class="mini__cover"><img id="liveCover" alt="" hidden><span>آینهٔ اختصاصی شما</span></div>
+       <div class="mini__body">
+        <div class="mini__logo" id="liveLogoBox"><img id="liveLogo" alt="" hidden><span id="liveInitial">س</span></div>
+        <p class="mini__kicker">استودیو زیبایی</p>
+        <h3 class="mini__name" id="liveName">نام شما</h3>
+        <p class="mini__bio" id="liveBio">مدل دلخواهت رو روی عکس خودت ببین و بدون تردید همون رو برای رزرو وقت بفرست.</p>
+        <div class="mini__chips"><span id="liveAddress" hidden></span><span id="liveHours" hidden></span></div>
+        <span class="mini__try"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8" stroke-linecap="round"/></svg>شروع با عکس خودم</span>
+        <div class="mini__services" aria-label="خدمات">
+         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7.5 14.5a3 3 0 1 0 3 3l7-9.5m0 6.5a3 3 0 1 1-3 3L7.5 8.5" stroke-linecap="round"/></svg>مدل مو</span>
+         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 3.5c2.5 2.6 3.6 5.2 3.6 7.8 0 2.7-1.6 4.4-3.6 4.4s-3.6-1.7-3.6-4.4c0-2.6 1.1-5.2 3.6-7.8Z"/><path d="M6 20.5c2-3 3.8-4.5 6-4.5s4 1.5 6 4.5" stroke-linecap="round"/></svg>رنگ مو</span>
+         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M8.5 14.5V9.5a3.5 3.5 0 0 1 7 0v5Z" stroke-linejoin="round"/><path d="M8 17h8" stroke-linecap="round"/></svg>ناخن</span>
+         <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M5 13.5c4.5 4 9.5 4 14 0" stroke-linecap="round"/><path d="M7 17l-1 2m5-1.4-.6 2.2m5.1-2.2.6 2.2M17 17l1 2" stroke-linecap="round"/></svg>مژه</span>
+        </div>
+        <section class="mini__detail" id="liveContact" hidden><h4>دربارهٔ من</h4><div class="mini__person"><img id="livePortrait" alt="" hidden><span id="liveManager"></span></div><p class="mini__phone" id="livePhone" dir="ltr"></p><div class="mini__links" id="liveLinks"></div></section>
+        <section class="mini__detail"><h4>نمونه‌کارها</h4><div id="liveWorks" class="mini__works"></div><p class="mini__empty" id="liveEmpty">با اضافه کردن نمونه‌کار، عکس و توضیحاتش اینجا دیده می‌شه.</p></section>
        </div>
-       <section class="mini__detail" id="liveContact" hidden><h4>دربارهٔ من</h4><div class="mini__person"><img id="livePortrait" alt="" hidden><span id="liveManager"></span></div><p class="mini__phone" id="livePhone" dir="ltr"></p><div class="mini__links" id="liveLinks"></div></section>
-       <section class="mini__detail"><h4>نمونه‌کارها</h4><div id="liveWorks" class="mini__works"></div><p class="mini__empty" id="liveEmpty">با افزودن نمونه‌کار، عکس و توضیحات آن اینجا دیده می‌شود.</p></section>
       </div>
      </div>
+     <div class="sb-loading" id="builderLoading" role="status" hidden><span class="sb-spinner" aria-hidden="true"></span><p>در حال آماده‌کردن پیش‌نمایش…</p></div>
+     <a class="btn btn--lg sb-activate" id="builderActivate" href="#services">فعال‌سازی سریع صفحه</a>
+     <p class="sb-trust">فعال‌سازی خودکار پس از پرداخت · بدون تمدید خودکار</p>
+     <p class="sb-note" id="builderHint" aria-live="polite"></p>
     </div>
-    <div class="sb-loading" id="builderLoading" role="status" hidden><span class="sb-spinner" aria-hidden="true"></span><p>در حال آماده‌کردن پیش‌نمایش…</p></div>
-    <a class="btn sb-activate" id="builderActivate" href="#services" hidden>انتخاب پلن و باز کردن صفحه</a>
-    <p class="sb-note" id="builderHint" aria-live="polite"></p>
    </div>
 
    <form id="start" class="sb-form" method="post" aria-describedby="builderAvailability">
-    <p id="builderAvailability" class="sb-availability" role="status">پیش‌نمایش رایگان است؛ برای باز شدن صفحهٔ واقعی، یک پلن بخرید.</p>
-    <noscript><p>برای ساخت پیش‌نمایش، جاوااسکریپت مرورگر را فعال کنید.</p></noscript>
+    <p id="builderAvailability" class="sb-availability" role="status">ساخت پیش‌نمایش کاملاً رایگانه؛ هر وقت آماده بودید با انتخاب یه پلن، صفحه‌تون فعال می‌شه.</p>
+    <noscript><p>برای ساخت پیش‌نمایش، جاوااسکریپت مرورگر رو فعال کنید.</p></noscript>
     <div class="wiz" id="builderWizard">
      <div class="wiz-top"><span class="wiz-track"><i class="wiz-bar" id="wizardBar"></i></span><span class="wiz-count" id="wizardCount">۱ از ۲</span></div>
      <p class="wiz-q" id="wizardQuestion"></p>
      <p class="wiz-hint" id="wizardHintText"></p>
 
      <div class="wiz-step is-active" data-key="name" data-required="1"
-          data-q="نام شما یا آرایشگاه‌تان چیست؟" data-h="همان لحظه که تایپ می‌کنید، همین نام در پیش‌نمایش دیده می‌شود.">
-      <label><span>نام شما یا آرایشگاه</span><input name="name" required minlength="2" maxlength="100" autocomplete="organization" placeholder="مثلاً آرایشگاه آینه"></label>
+          data-q="اسم شما یا آرایشگاهتون چیه؟" data-h="همون لحظه که تایپ می‌کنید، توی پیش‌نمایش زنده می‌بینیدش.">
+      <label><span>اسم شما یا آرایشگاه</span><input name="name" required minlength="2" maxlength="100" autocomplete="organization" placeholder="مثلاً آرایشگاه آینه"></label>
      </div>
 
      <div class="wiz-step" data-key="slug" data-required="1"
-          data-q="نشانی اختصاصی صفحه چه باشد؟" data-h="۳ تا ۴۶ کاراکتر انگلیسی، عدد یا خط تیره. با حرف شروع کنید و با حرف یا عدد تمام کنید.">
-      <label><span>نشانی اختصاصی پیشنهادی</span><span class="wiz-url"><span>ayneh-salon.site/s/</span><input name="slug" id="slugHintInput" aria-describedby="slugHint" dir="ltr" required pattern="[a-z][a-z0-9\-]{1,44}[a-z0-9]" maxlength="46" placeholder="my-salon" autocapitalize="none" spellcheck="false"></span><small id="slugHint">این نشانی، آدرس صفحه‌ای است که مشتری‌ها می‌بینند.</small></label>
+          data-q="نشانی اختصاصی صفحه‌تون چی باشه؟" data-h="۳ تا ۴۶ حرف انگلیسی، عدد یا خط تیره. با حرف شروع شه و با حرف یا عدد تموم شه.">
+      <label><span>نشانی اختصاصی پیشنهادی</span><span class="wiz-url"><span>ayneh-salon.site/s/</span><input name="slug" id="slugHintInput" aria-describedby="slugHint" dir="ltr" required pattern="[a-z][a-z0-9\-]{1,44}[a-z0-9]" maxlength="46" placeholder="my-salon" autocapitalize="none" spellcheck="false"></span><small id="slugHint">این نشانی، آدرس صفحه‌ایه که مشتری‌هاتون باز می‌کنن.</small></label>
      </div>
 
-     <p class="wiz-ready" id="wizardReady" role="status" hidden>پیش‌نمایش آماده است. بقیهٔ جزئیات اختیاری است.
+     <p class="wiz-ready" id="wizardReady" role="status" hidden>پیش‌نمایش آماده‌ست! بقیهٔ جزئیات اختیاریه.
       <a href="#services" class="wiz-ready__plans">دیدن پلن‌ها و قیمت <span class="arrow" aria-hidden="true">←</span></a></p>
      <p class="wiz-err" id="wizardError" role="alert"></p>
      <div class="wiz-actions">
@@ -68,40 +74,40 @@
       <button type="button" class="btn wiz-next" id="wizardNext">ادامه</button>
      </div>
     </div>
-    <p class="reassure-inline">پیش‌نمایش فقط در مرورگر شما ساخته می‌شود و جایی فرستاده نمی‌شود.</p>
+    <p class="reassure-inline">پیش‌نمایش فقط توی مرورگر خودتون ساخته می‌شه و جایی فرستاده نمی‌شه.</p>
 
     <details class="sb-details" id="builderDetails">
      <summary>تکمیل جزئیات صفحه (اختیاری)</summary>
      <div class="sb-details__body">
-      <p class="hint">هرچه بنویسید، همان لحظه در پیش‌نمایش دیده می‌شود. پر کردن این بخش اختیاری است.</p>
+      <p class="hint">هرچی بنویسید همون لحظه توی پیش‌نمایش می‌بینید. پر کردن این بخش اختیاریه.</p>
 
       <div class="sb-group">
-       <h4>رنگ برند خودتان را انتخاب کنید</h4>
-       <p class="hint">رنگ دکمه‌ها و کارت‌های صفحهٔ مشتری با آن هماهنگ می‌شود.</p>
+       <h4>رنگ برند خودتون رو انتخاب کنید</h4>
+       <p class="hint">رنگ دکمه‌ها و کارت‌های صفحهٔ مشتری باهاش هماهنگ می‌شه.</p>
        <label>رنگ برند<span class="sb-color"><input type="color" name="brand" value="#068F6C" aria-label="رنگ برند"><output id="builderBrandHex" dir="ltr">#068F6C</output></span></label>
       </div>
 
       <div class="sb-group">
-       <h4>لوگوی خودتان را اضافه کنید</h4>
+       <h4>لوگوی خودتون رو اضافه کنید</h4>
        <p class="hint">اختیاری · JPG، PNG یا WebP تا ۱۲ مگابایت.</p>
        <label><span>لوگو</span><span class="sb-upload upload-control"><span class="sb-upload__btn">انتخاب لوگو</span><span class="sb-upload__name upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="logo" accept="image/jpeg,image/png,image/webp"></span></label>
       </div>
 
       <div class="sb-group">
-       <h4>عکس کاور صفحه را انتخاب کنید</h4>
-       <p class="hint">اختیاری · بالای صفحهٔ مشتری نمایش داده می‌شود.</p>
+       <h4>عکس کاور صفحه رو انتخاب کنید</h4>
+       <p class="hint">اختیاری · بالای صفحهٔ مشتری نمایش داده می‌شه.</p>
        <label><span>عکس کاور</span><span class="sb-upload upload-control"><span class="sb-upload__btn">انتخاب عکس کاور</span><span class="sb-upload__name upload-name" dir="auto" aria-live="polite">JPG، PNG یا WebP</span><input type="file" name="cover" accept="image/jpeg,image/png,image/webp"></span></label>
       </div>
 
       <div class="sb-group">
-       <h4>خودتان را در یک جمله معرفی کنید</h4>
-       <p class="hint">اختیاری · زیر نام شما در پیش‌نمایش نوشته می‌شود.</p>
-       <label class="wide">دربارهٔ من<textarea name="bio" maxlength="1000" rows="3" placeholder="تخصص ما رنگ و کوپ‌های طبیعی است."></textarea></label>
+       <h4>خودتون رو توی یه جمله معرفی کنید</h4>
+       <p class="hint">اختیاری · زیر اسمتون توی پیش‌نمایش نوشته می‌شه.</p>
+       <label class="wide">دربارهٔ من<textarea name="bio" maxlength="1000" rows="3" placeholder="تخصص ما رنگ و کوپ‌های طبیعیه."></textarea></label>
       </div>
 
       <div class="sb-group">
-       <h4>مشتری چطور با شما تماس بگیرد؟</h4>
-       <p class="hint">اختیاری · هرچه پر کنید، در بخش «دربارهٔ من» نمایش داده می‌شود.</p>
+       <h4>مشتری چطوری باهاتون تماس بگیره؟</h4>
+       <p class="hint">اختیاری · هرچی پر کنید، توی بخش «دربارهٔ من» نمایش داده می‌شه.</p>
        <div class="sb-fields">
         <label>نام مدیر<input type="text" name="manager" maxlength="100"></label>
         <label>تلفن<input type="tel" name="phone" dir="ltr" maxlength="24"></label>
@@ -113,7 +119,7 @@
 
       <div class="sb-group">
        <h4>لینک‌ها و شبکه‌های اجتماعی</h4>
-       <p class="hint">اختیاری · لینک‌ها باید با http:// یا https:// شروع شوند.</p>
+       <p class="hint">اختیاری · لینک‌ها باید با http:// یا https:// شروع شن.</p>
        <div class="sb-fields">
         <label>لینک نقشه<input type="url" name="map" dir="ltr" maxlength="350" placeholder="https://"></label>
         <label>لینک اینستاگرام<input type="url" name="instagram" dir="ltr" maxlength="350" placeholder="https://"></label>
@@ -123,8 +129,8 @@
       </div>
 
       <div class="sb-group">
-       <h4>نمونه‌کارها را اضافه کنید</h4>
-       <p class="hint">اختیاری · تا ۶ مورد؛ عکس و توضیح هرکدام در پیش‌نمایش دیده می‌شود.</p>
+       <h4>نمونه‌کارهاتون رو اضافه کنید</h4>
+       <p class="hint">اختیاری · تا ۶ مورد؛ عکس و توضیح هرکدوم توی پیش‌نمایش دیده می‌شه.</p>
        <div id="builderWorks" class="sb-works"></div>
        <button id="builderAdd" class="sb-add" type="button">افزودن نمونه‌کار +</button>
       </div>
@@ -133,7 +139,7 @@
 
     <p class="sb-error" id="builderError" role="alert" tabindex="-1"></p>
     <button type="submit" class="btn sb-build" id="builderBuild" disabled hidden>آماده‌کردن پیش‌نمایش</button>
-    <p class="sb-note--form">تصویرها و نوشته‌های این پیش‌نمایش فقط در مرورگر شما می‌مانند و جایی فرستاده نمی‌شوند.</p>
+    <p class="sb-note--form">اطلاعات این پیش‌نمایش فقط توی مرورگر خودتون می‌مونه و جایی فرستاده نمی‌شه.</p>
    </form>
   </div>
 

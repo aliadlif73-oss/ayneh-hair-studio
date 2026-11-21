@@ -8,7 +8,7 @@
         <p class="sub">{{DEMO_SUB}}</p>
       </div>
 
-      <div class="tryon__lines" role="group" aria-label="خدمت شما کدام است؟">
+      <div class="tryon__lines" role="group" aria-label="خدمت شما کدومه؟">
         <button type="button" class="tryon__line" data-line="hair" data-pair="style" aria-pressed="true">
           <span class="tryon__line-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7.5 14.5a3 3 0 1 0 3 3l7-9.5m0 6.5a3 3 0 1 1-3 3L7.5 8.5" stroke-linecap="round"/></svg></span>
           <b>مدل مو</b>
@@ -31,7 +31,6 @@
         <div class="tryon__meta">
           <span class="tryon__badge" id="tryonBadge">نمونه</span>
           <b id="tryonLineName">{{FIRST_LABEL}}</b>
-          <p id="tryonLineHint">{{FIRST_HINT}}</p>
         </div>
         <div class="tryon__stage" id="tryonStage">
           <iframe id="tryonFrame" class="tryon__iframe" title="ساخت نمونه روی عکس خودتان" allow="camera; clipboard-write" loading="lazy"></iframe>
@@ -49,18 +48,28 @@
               </div>
             </div>
             <div class="mirror-demo__copy">
-              <strong>عکس خودتان را بگذارید.</strong>
-              <p>با عکس روبه‌رو و پرنور، نتیجه بهتر می‌شود.</p>
-              <button type="button" class="btn btn--lg" id="tryonStart">عکس خودم را انتخاب کنم</button>
+              <strong>عکستون رو بذارید و نتیجه رو ببینید.</strong>
+              <p>با عکس روبه‌رو و پرنور، نتیجه خیلی بهتر می‌شه.</p>
+              <button type="button" class="btn btn--lg" id="tryonStart">عکس خودم رو انتخاب کنم</button>
               <small>عکس شما فقط برای ساخت نمونه و دیدنِ سالن استفاده می‌شود.</small>
             </div>
           </div>
         </div>
+        <div class="tryon__post" id="tryonPost" hidden>
+          <div class="tryon__post-copy">
+            <b>همین تجربه رو با اسم و لوگوی خودتون داشته باشید</b>
+            <span>پیش‌نمایش صفحهٔ اختصاصی‌تون رو رایگان بسازید یا پلن‌ها رو ببینید.</span>
+          </div>
+          <div class="tryon__post-acts">
+            <a class="btn" href="#salon-example">ساخت پیش‌نمایش رایگان</a>
+            <a class="btn btn--ghost" href="#services">مشاهدهٔ تعرفه‌ها</a>
+          </div>
+        </div>
         <div class="tryon__foot">
-          <p>یک نمونه است؛ برای انتخاب قبل از نوبت.</p>
+          <p>این یه نمونهٔ نمایشیه برای اینکه مشتری قبل از نوبت مطمئن‌تر انتخاب کنه.</p>
           <span class="tryon__links">
-            <a href="#salon-example" class="tryon__buy">صفحهٔ سالن من همین را داشته باشد <span aria-hidden="true">←</span></a>
-            <a href="#services" class="tryon__buy js-svc-link">این را برای مشتریان خودم می‌خواهم <span aria-hidden="true">←</span></a>
+            <a href="#salon-example" class="tryon__buy">صفحهٔ سالن من هم همین رو داشته باشه <span aria-hidden="true">←</span></a>
+            <a href="#services" class="tryon__buy js-svc-link">این رو برای مشتری‌های خودم می‌خوام <span aria-hidden="true">←</span></a>
           </span>
         </div>
       </div>
