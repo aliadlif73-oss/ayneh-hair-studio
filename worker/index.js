@@ -20,17 +20,30 @@ const notFound='<!doctype html><html lang="fa" dir="rtl"><head><meta charset="ut
 // Link previews (Telegram, WhatsApp, Instagram, iMessage) read these tags, so each salon page
 // carries its own name, description and cover instead of the generic Ayneh ones.
 const attr=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-async function salonPage(u,env){
- const slug=u.pathname.split('/')[2];let salon=null;
+const RESERVED_SUBS=new Set(['www','api','admin','panel','pay','app','mail','ftp','cdn','static','assets']);
+function subdomainOf(u,env){
+ const host=u.hostname.toLowerCase();
+ const roots=['ayneh-salon.site'];
+ try{const h=new URL(env.APP_ORIGIN||'').hostname.toLowerCase().replace(/^www\./,'');if(h&&!roots.includes(h)&&h!=='localhost'&&!/^\d+\.\d+\.\d+\.\d+$/.test(h)&&!h.endsWith('.run.app'))roots.push(h)}catch{}
+ for(const r of roots){
+  if(host.endsWith('.'+r)){
+   const sub=host.slice(0,-(r.length+1));
+   if(/^[a-z][a-z0-9-]{1,45}[a-z0-9]$/.test(sub)&&!RESERVED_SUBS.has(sub))return sub;
+  }
+ }
+ return '';
+}
+async function salonPage(u,env,forcedSlug=''){
+ const slug=forcedSlug||u.pathname.split('/')[2];let salon=null;
  let failed=!env.DB;try{salon=env.DB?await env.DB.prepare('SELECT slug,name,profile FROM salons WHERE slug=?').bind(slug).first():null}catch{failed=true}
  // A database hiccup still serves the page (it shows its own error); only a missing salon is a 404.
  if(!salon)return failed||slug==='demo'?customerHTML:null;
  let p={};try{p=JSON.parse(salon.profile||'{}')}catch{}
- const origin=env.APP_ORIGIN||u.origin,url=origin+'/s/'+salon.slug;
+ const origin=env.APP_ORIGIN||u.origin,url=forcedSlug?(u.origin+'/'):(origin+'/s/'+salon.slug);
  const title=salon.name+' | مو، ناخن و مژهٔ بعدی‌ات را روی عکس خودت ببین';
  const desc=(p.bio?String(p.bio).slice(0,150)+' ':'')+'مدل مو، طرح ناخن یا مژه را روی عکس خودت امتحان کن و برای سالن بفرست.';
- const img=p.cover||p.logo?origin+'/api/s/'+salon.slug+'/media/'+(p.cover||p.logo):'';
- const tags='<title>'+attr(title)+'</title>\n<meta name="description" content="'+attr(desc)+'">\n<meta property="og:title" content="'+attr(title)+'">\n<meta property="og:description" content="'+attr(desc)+'">\n<meta property="og:type" content="website">\n<meta property="og:url" content="'+attr(url)+'">\n<meta property="og:site_name" content="آینه">\n<meta property="og:locale" content="fa_IR">\n'+(img?'<meta property="og:image" content="'+attr(img)+'">\n<meta property="og:image:alt" content="'+attr(salon.name)+'">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:image" content="'+attr(img)+'">\n':'<meta name="twitter:card" content="summary">\n')+'<link rel="canonical" href="'+attr(url)+'">';
+ const img=p.cover||p.logo?(forcedSlug?u.origin:origin)+'/api/s/'+salon.slug+'/media/'+(p.cover||p.logo):'';
+ const tags='<title>'+attr(title)+'</title>\n<meta name="ayneh-slug" content="'+attr(salon.slug)+'">\n<meta name="description" content="'+attr(desc)+'">\n<meta property="og:title" content="'+attr(title)+'">\n<meta property="og:description" content="'+attr(desc)+'">\n<meta property="og:type" content="website">\n<meta property="og:url" content="'+attr(url)+'">\n<meta property="og:site_name" content="آینه">\n<meta property="og:locale" content="fa_IR">\n'+(img?'<meta property="og:image" content="'+attr(img)+'">\n<meta property="og:image:alt" content="'+attr(salon.name)+'">\n<meta name="twitter:card" content="summary_large_image">\n<meta name="twitter:image" content="'+attr(img)+'">\n':'<meta name="twitter:card" content="summary">\n')+'<link rel="canonical" href="'+attr(url)+'">';
  return customerHTML.replace(/<meta name="description"[^>]*>\n?/,'').replace(/<meta property="og:[a-z:]+"[^>]*>\n?/g,'').replace(/<title>[^<]*<\/title>/,tags).replace('</body>',()=>packsTag+'</body>');
 }
 export default {
@@ -42,6 +55,11 @@ export default {
   if(u.pathname.startsWith('/api/'))return await api(request,env);
   if(u.pathname==='/favicon.svg')return new Response(favicon,{headers:{'Content-Type':'image/svg+xml','Cache-Control':'public,max-age=86400'}});
   if(u.pathname.startsWith('/fonts/')){const f=fontResponse(u.pathname.slice(7));if(f)return f;}
+  const sub=subdomainOf(u,env);
+  if(sub){
+   if(/^\/(?:admin|panel)\/?$/.test(u.pathname))return new Response(panelHTML.replace('</head>','<meta name="ayneh-user" content="'+attr(sub)+'"></head>'),{headers:{...htmlHeaders,'X-Robots-Tag':'noindex'}});
+   if(u.pathname==='/'||u.pathname===''){const html=await salonPage(u,env,sub);return html?new Response(html,{headers:{...htmlHeaders,'X-Frame-Options':'SAMEORIGIN','Content-Security-Policy':htmlHeaders['Content-Security-Policy'].replace("frame-ancestors 'none'","frame-ancestors 'self'")}}):new Response(notFound,{status:404,headers:htmlHeaders});}
+  }
   // /pay is the checkout's own address (shared links and the QR on a receipt); the landing
   // page carries the same sheet inline, so both land on the same server-side order.
   if(/^\/panel\/?$/.test(u.pathname))return new Response(panelHTML,{headers:{...htmlHeaders,'X-Robots-Tag':'noindex'}});

@@ -92,7 +92,6 @@
       s.className = 'cine-word' + (p.accent || p.gold ? ' cine-word--accent' : '');
       s.setAttribute('aria-hidden', 'true');
       s.textContent = p.text;
-      h2.append(document.createTextNode(' '));
       h2.append(s);
       return s;
     }).filter(Boolean);
@@ -202,20 +201,8 @@
       p => li.style.setProperty('--p', p.toFixed(3)));
   });
 
-  /* ── the films: the player lifts out of the page as it arrives ── */
   const filmSection = $('#films');
-  if (filmSection) {
-    const stage = $('.films__frame', filmSection);
-    add(stage, () => enter(filmSection, .95, .40), p => {
-      filmSection.style.setProperty('--p', p.toFixed(3));
-      stage.style.setProperty('--fp', p.toFixed(3));
-    });
-    $$('#films .film-tab').forEach((tab, i) => {
-      tab.style.setProperty('--i', i);
-      add(tab, () => sub(enter($('#films .films__tabs') || filmSection, .95, .48), i * .16, i * .16 + .5),
-        p => tab.style.setProperty('--tp', p.toFixed(3)));
-    });
-  }
+  if (filmSection) { const stage = $('.films__frame', filmSection); add(stage, () => enter(filmSection, .95, .40), p => { filmSection.style.setProperty('--p', p.toFixed(3)); stage.style.setProperty('--fp', p.toFixed(3)); }); $$('#films .film-tab').forEach((tab, i) => { tab.style.setProperty('--i', i); add(tab, () => sub(enter($('#films .films__tabs') || filmSection, .95, .48), i * .16, i * .16 + .5), p => tab.style.setProperty('--tp', p.toFixed(3))); }); }
 
   /* ── the two interactive sections ──
      Only the frame and the copy move; the demo's own iframe is never transformed, because a

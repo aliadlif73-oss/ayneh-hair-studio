@@ -11,6 +11,12 @@
           <p class="sub" id="paySub">کارت‌به‌کارت واریز کنید؛ پرداخت شما خودکار تأیید می‌شود.</p>
         </div>
 
+        <ol class="pay-steps" id="paySteps" aria-label="مراحل خرید">
+          <li data-step="1" class="is-on"><b>۱</b><span>مشخصات</span></li>
+          <li data-step="2"><b>۲</b><span>واریز کارت‌به‌کارت</span></li>
+          <li data-step="3"><b>۳</b><span>فعال‌سازی سایت</span></li>
+        </ol>
+
         <!-- step 1: the customer's details (only when they came here without the form) -->
         <form class="pay-form" id="payForm" novalidate>
           <div class="pay-form__grid">
@@ -25,7 +31,7 @@
             <label class="field"><span>تعداد کاربر <small>با احتساب مدیر</small></span><input id="payUsers" name="users" type="number" inputmode="numeric" dir="ltr" min="1" max="50" step="1" value="3"></label>
             <p class="pay-users__total" id="payUsersTotal" aria-live="polite"></p>
           </div>
-          <label class="pay-consent"><input type="checkbox" id="payConsent" name="consent"><span>موافقم تیم آینه برای راه‌اندازی با من تماس بگیرد.</span></label>
+          <label class="pay-consent"><input type="checkbox" id="payConsent" name="consent"><span>برای پشتیبانی و هماهنگی راه‌اندازی، تیم آینه بتونه باهام تماس بگیره.</span></label>
           <p class="pay-trust">فعال‌سازی خودکار بدون ارسال فیش · بدون تمدید خودکار · پشتیبانی واتس‌اپ و تلگرام</p>
           <p class="pay-err" id="payErr" role="alert" hidden></p>
           <button class="btn btn--lg btn--block" type="submit" id="payStart">نمایش مبلغ و شمارهٔ کارت</button>
@@ -77,18 +83,43 @@
 
         <!-- step 3: confirmed by the webhook -->
         <div class="pay-done" id="payDone" hidden>
-          <div class="pay-done__tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-          <h3 id="payDoneTitle">پرداخت تأیید شد. پنل شما باز شد.</h3>
-          <div class="pay-done__links">
-            <a class="btn btn--lg" id="payPanelLink" href="/panel" hidden>ورود به پنل</a>
-            <a class="btn btn--ghost btn--lg" id="payPageLink" href="#" hidden>دیدن صفحهٔ اختصاصی</a>
+          <div class="pay-act" id="payActivating" hidden>
+            <div class="pay-done__tick pay-act__tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <h3>خرید شما با موفقیت انجام شد</h3>
+            <p class="pay-act__sub">در حال فعال‌سازی سایت اختصاصی شما…</p>
+            <div class="pay-act__bar" aria-hidden="true"><i></i></div>
           </div>
-          <div class="pay-done__key">
-            <span>کلید ورود به پنل؛ آن را برای دفعه‌های بعد نگه دارید</span>
-            <b id="payAccessKey" dir="ltr">—</b>
-            <button class="btn btn--ghost btn--sm" type="button" id="payKeyCopy">کپی کلید</button>
+          <div class="pay-ready" id="payReady">
+            <div class="pay-done__tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="m5 12.5 4.2 4.2L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <h3 id="payDoneTitle">پرداخت تأیید شد. پنل شما باز شد.</h3>
+            <p class="pay-done__sub" id="payDoneSub">خرید شما با موفقیت انجام شد و وب‌سایت اختصاصی شما روی ساب‌دامین فعال شد.</p>
+            <div class="pay-creds" id="payCreds" hidden>
+              <div class="pay-creds__row"><span>لینک اختصاصی سالن شما</span><bdi id="paySubUrl" dir="ltr">—</bdi><button class="btn btn--ghost btn--sm" type="button" data-copy="paySubUrl">کپی</button></div>
+              <div class="pay-creds__row"><span>لینک اختصاصی مدیریت</span><bdi id="payAdminUrl" dir="ltr">—</bdi><button class="btn btn--ghost btn--sm" type="button" data-copy="payAdminUrl">کپی</button></div>
+              <div class="pay-creds__row"><span>نام کاربری</span><bdi id="payUser" dir="ltr">—</bdi><button class="btn btn--ghost btn--sm" type="button" data-copy="payUser">کپی</button></div>
+              <div class="pay-creds__row" id="payPassRow"><span>رمز عبور</span><bdi id="payPass" dir="ltr">—</bdi><button class="btn btn--ghost btn--sm" type="button" data-copy="payPass">کپی</button></div>
+              <button class="btn btn--ghost btn--sm pay-creds__all" type="button" id="payCredsCopy">کپی همهٔ مشخصات</button>
+            </div>
+            <div class="pay-guide" id="payGuide" hidden>
+              <b>کارهایی که الان بهتره انجام بدید:</b>
+              <ol>
+                <li>وارد پنل مدیریت بشید و اطلاعات صفحه رو بررسی یا تکمیل کنید.</li>
+                <li>چند نمونه‌کار اضافه کنید تا مشتری‌ها مدل‌های خودتون رو امتحان کنن.</li>
+                <li>ربات تلگرام یا بله رو وصل کنید تا درخواست‌ها فوری براتون بیاد.</li>
+                <li>لینک اختصاصی سالن رو توی بیو اینستاگرام بذارید.</li>
+              </ol>
+            </div>
+            <div class="pay-done__links">
+              <a class="btn btn--lg" id="payPanelLink" href="/panel" hidden>ورود به پنل مدیریت</a>
+              <a class="btn btn--ghost btn--lg" id="payPageLink" href="#" hidden>مشاهدهٔ سایت اختصاصی</a>
+            </div>
+            <div class="pay-done__key">
+              <span>کلید دسترسی پشتیبان پنل؛ آن را نگه دارید</span>
+              <b id="payAccessKey" dir="ltr">—</b>
+              <button class="btn btn--ghost btn--sm" type="button" id="payKeyCopy">کپی کلید</button>
+            </div>
+            <p class="pay-done__note" id="payDoneNote" hidden>اطلاعات ورود فقط روی مرورگری نمایش داده شد که خرید را با آن شروع کردید. اگر آن را ندارید، از پشتیبانی کلید تازه بخواهید.</p>
           </div>
-          <p class="pay-done__note" id="payDoneNote" hidden>کلید ورود فقط روی مرورگری نمایش داده شد که خرید را با آن شروع کردید. اگر آن را ندارید، از پشتیبانی کلید تازه بخواهید.</p>
         </div>
 
         <!-- step 4: the window closed. A transfer made in time can still arrive late, so the page

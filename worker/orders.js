@@ -68,6 +68,63 @@ export const hashKey = async s => {
   return Array.from(new Uint8Array(d), x => x.toString(16).padStart(2, '0')).join('');
 };
 
+/* Per-salon panel password for subdomain /admin login: cryptographically random, stored only as a salted PBKDF2-SHA256 hash. */
+const PASS_ALPHABET = '23456789abcdefghjkmnpqrstuvwxyz';
+export const newPanelPassword = () => Array.from(crypto.getRandomValues(new Uint8Array(8)), x => PASS_ALPHABET[x % PASS_ALPHABET.length]).join('');
+const toHex = bytes => Array.from(new Uint8Array(bytes), x => x.toString(16).padStart(2, '0')).join('');
+const fromHex = hex => new Uint8Array((String(hex || '').match(/.{2}/g) || []).map(x => parseInt(x, 16)));
+export async function hashPassword(pass) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(String(pass || '')), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits({name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256'}, key, 256);
+  return 'pbkdf2$' + toHex(salt) + '$' + toHex(bits);
+}
+export async function verifyPassword(pass, stored) {
+  const parts = String(stored || '').split('$');
+  if (parts.length !== 3 || parts[0] !== 'pbkdf2' || parts[1].length !== 32 || parts[2].length !== 64) return false;
+  const salt = fromHex(parts[1]), expected = fromHex(parts[2]);
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(String(pass || '')), 'PBKDF2', false, ['deriveBits']);
+  const derived = new Uint8Array(await crypto.subtle.deriveBits({name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256'}, key, 256));
+  if (derived.length !== expected.length) return false;
+  let diff = 0;
+  for (let i = 0; i < derived.length; i++) diff |= derived[i] ^ expected[i];
+  return diff === 0;
+}
+
+const RESERVED_SLUGS = new Set(['www', 'api', 'admin', 'panel', 'pay', 'app', 'demo', 'try', 'sample', 'hair', 'color', 'nails', 'lashes', 'salon-panel', 'new', 's', 'i', 'mail', 'ftp', 'cdn', 'static', 'assets']);
+function cleanHttpUrl(v, max = 300) {
+  const s = String(v || '').trim().slice(0, max);
+  if (!s) return '';
+  try { const u = new URL(s); return (u.protocol === 'https:' || u.protocol === 'http:') ? u.href : ''; } catch { return ''; }
+}
+export function cleanDraft(raw) {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  const out = {};
+  const sl = String(raw.slug || '').trim().toLowerCase();
+  if (/^[a-z][a-z0-9-]{1,44}[a-z0-9]$/.test(sl) && !RESERVED_SLUGS.has(sl)) out.slug = sl;
+  if (/^#[0-9a-fA-F]{6}$/.test(String(raw.brand || ''))) out.brand = String(raw.brand).toLowerCase();
+  for (const [k, max] of [['bio', 500], ['hours', 150], ['address', 250], ['manager', 100]]) {
+    const v = text(String(raw[k] || ''), max);
+    if (v) out[k] = v;
+  }
+  const tel = digits(String(raw.phone || '')).replace(/[^\d+]/g, '').slice(0, 20);
+  if (/^(?:\+?98|0)\d{9,10}$/.test(tel)) out.phone = tel;
+  for (const k of ['instagram', 'telegram', 'website', 'map']) {
+    const u = cleanHttpUrl(raw[k]);
+    if (u) out[k] = u;
+  }
+  return out;
+}
+function rootDomainOf(env, origin) {
+  try {
+    const h = new URL(env.APP_ORIGIN || origin || 'https://ayneh-salon.site').hostname;
+    if (!h || h === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(h) || h.endsWith('.run.app')) return 'ayneh-salon.site';
+    return h.replace(/^www\./, '');
+  } catch {
+    return 'ayneh-salon.site';
+  }
+}
+
 export const planAmount = key => Number(PLANS[key]?.amount || 0);
 /* Users on an order: the «پنل آرایشگاه» plans (sheet seats > 0) take 3 users or more (at most 50);
    every other plan is 0 (no user count). */
@@ -122,10 +179,11 @@ export function orderSummary(row) {
 }
 
 /* What the page needs to draw: the figures, never the internals. */
-export async function publicOrder(db, env, row, {key = '', origin = ''} = {}) {
+export async function publicOrder(db, env, row, {key = '', password = '', origin = ''} = {}) {
   const card = (await one(db, 'SELECT value FROM app_settings WHERE key=?', PAY_CARD))?.value || '';
   const salon = row.salon_id ? await one(db, 'SELECT slug FROM salons WHERE id=?', row.salon_id) : null;
   const base = env.APP_ORIGIN || origin;
+  const root = rootDomainOf(env, origin);
   const paid = row.status === 'paid';
   return {
     id: row.id, ref: row.ref, plan: row.plan, kind: row.kind || 'plan', plan_name: planName(row),
@@ -138,8 +196,13 @@ export async function publicOrder(db, env, row, {key = '', origin = ''} = {}) {
     status: row.status, created_at: row.created_at, expires_at: row.expires_at,
     card: cardDigits(card) || '', card_owner: card ? cardOwner(card) : '',
     access_key: key || '',
+    ...(password ? {panel_password: password} : {}),
     /* A top-up or a renewal from the panel keeps the salon's existing panel key. */
     same_key: row.kind === 'topup' || row.note === 'renewal',
+    slug: paid && salon ? salon.slug : '',
+    panel_username: paid && salon ? salon.slug : '',
+    subdomain_url: paid && salon ? 'https://' + salon.slug + '.' + root + '/' : '',
+    subdomain_admin_url: paid && salon ? 'https://' + salon.slug + '.' + root + '/admin' : '',
     panel_url: paid ? (base ? base + '/panel' : '/panel') : '',
     page_url: paid && salon ? (base ? base : '') + '/s/' + salon.slug : '',
     salon: row.salon_name, contact: row.contact_name,
@@ -220,16 +283,19 @@ export async function createOrder(db, env, b, origin = '') {
   await run(db, "UPDATE orders SET status='cancelled',replaced_by=?,updated_at=? WHERE phone=? AND kind='plan' AND status='open'", id, now, tel);
   const coupon = discountFor(String(b.coupon || ''), amount, await couponTable(db));
   const key = newAccessKey();
+  const panelPass = newPanelPassword();
+  const draftObj = cleanDraft(b.draft);
   const row = {
     id, ref: ref(), plan, kind: 'plan', service, users, credits: Number(PLANS[plan].credits || 0),
     amount: (amount - coupon.toman) * 10, salon_name: salon, contact_name: name, phone: tel,
     city: text(String(b.city || ''), 40), note: text(String(b.note || ''), 300), status: 'open',
     expires_at: now + ORDER_MINUTES * 60000, access_key_hash: await hashKey(key),
+    pass_hash: await hashPassword(panelPass), draft: Object.keys(draftObj).length ? JSON.stringify(draftObj) : '',
     coupon: coupon.code, discount: coupon.toman * 10, created_at: now, updated_at: now,
   };
   await insert(db, row);
   await tell(env, 'سفارش ' + PLANS[plan].name + (service ? ' (' + SERVICE_LABEL[service] + ')' : '') + (users ? ' برای ' + users.toLocaleString('fa-IR') + ' کاربر' : '') + ' برای «' + salon + '» باز شد', row);
-  return publicOrder(db, env, row, {key, origin});
+  return publicOrder(db, env, row, {key, password: panelPass, origin});
 }
 
 /* A top-up from the salon's own panel: n packs of TOPUP.images images. The salon is known
@@ -282,9 +348,9 @@ export async function createRenewal(db, env, {order: panelOrder, salon}, plan, o
 
 async function insert(db, row) {
   await run(db,
-    'INSERT INTO orders(id,ref,plan,kind,service,users,credits,amount,salon_name,contact_name,phone,city,note,status,expires_at,access_key_hash,coupon,discount,salon_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+    'INSERT INTO orders(id,ref,plan,kind,service,users,credits,amount,salon_name,contact_name,phone,city,note,status,expires_at,access_key_hash,pass_hash,draft,coupon,discount,salon_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
     row.id, row.ref, row.plan, row.kind, row.service, Number(row.users || 0), row.credits, row.amount, row.salon_name, row.contact_name, row.phone, row.city, row.note,
-    row.status, row.expires_at, row.access_key_hash, row.coupon, row.discount, row.salon_id || null, row.created_at, row.updated_at);
+    row.status, row.expires_at, row.access_key_hash, row.pass_hash || '', row.draft || '', row.coupon, row.discount, row.salon_id || null, row.created_at, row.updated_at);
 }
 
 /* The owner hears about new orders on the alert channel. The mobile is the buyer's (a salon
@@ -468,30 +534,52 @@ async function provisionSalon(db, row) {
   }
   const prior = await priorSalon(db, row.phone, row.id);
   if (prior) return {id: prior.id, name: prior.name, slug: prior.slug};
+  let draft = {};
+  try { draft = cleanDraft(JSON.parse(row.draft || '{}')); } catch {}
   const latin = String(row.salon_name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 28);
-  const base = latin.length >= 3 ? latin : 'salon-' + String(row.ref).slice(2).toLowerCase();
+  const base = draft.slug || (latin.length >= 3 ? latin : 'salon-' + String(row.ref).slice(2).toLowerCase());
   let slug = base, n = 1;
   while (await one(db, 'SELECT 1 FROM salons WHERE slug=?', slug)) slug = base + '-' + ++n;
   const id = uid(), now = Date.now();
-  /* The buyer's own name and mobile stay on the order (for the Ayneh team) and are never
-     copied onto the public page: the salon writes the page's phone itself in «صفحهٔ من». */
+  /* The buyer's own checkout name and mobile stay on the order and are never copied onto
+     the public page; only explicit public page fields filled in the builder are applied. */
   const profile = {...(row.city ? {address: row.city} : {})};
-  const settings = {generation_enabled: true, reference_verified: true, service: row.service || ''};
+  for (const k of ['bio', 'hours', 'address', 'phone', 'manager', 'instagram', 'telegram', 'website', 'map', 'brand']) {
+    if (draft[k]) profile[k] = draft[k];
+  }
+  const settings = {
+    generation_enabled: true, reference_verified: true, service: row.service || '',
+    panel_user: slug, ...(row.pass_hash ? {panel_pass_hash: row.pass_hash} : {}),
+  };
   await run(db, 'INSERT INTO salons(id,slug,owner_id,name,profile,settings,created_at) VALUES(?,?,?,?,?,?,?)',
     id, slug, 'order:' + row.id, text(row.salon_name, 100), JSON.stringify(profile), JSON.stringify(settings), now);
   return {id, slug, name: row.salon_name};
 }
 
 /* ---------- panel sessions ---------- */
-/* The key is traded once for a random session token; the cookie carries the token and only
-   its hash rests in the database, so neither the key nor a database copy opens a panel. */
-export async function panelLogin(db, key) {
-  const k = String(key || '').trim().toUpperCase().replace(/\s+/g, '');
-  must(/^AY-[2-9A-HJ-NP-Z]{9}$/.test(k), 'کلید ورود معتبر نیست.', 401);
-  const row = await one(db, "SELECT * FROM orders WHERE access_key_hash=? AND kind='plan' AND status='paid' ORDER BY confirmed_at DESC LIMIT 1", await hashKey(k));
-  must(row && row.salon_id, 'این کلید یا تأیید نشده یا عوض شده است.', 401);
-  const salon = await one(db, 'SELECT * FROM salons WHERE id=?', row.salon_id);
-  must(salon, 'سالن پیدا نشد.', 404);
+/* Either the access key (AY-...) or the salon's subdomain username + password is traded once
+   for a random session token; only the token hash rests in the database. */
+export async function panelLogin(db, input) {
+  let row = null, salon = null;
+  if (input && typeof input === 'object' && !input.key && (input.username || input.password)) {
+    const user = String(input.username || '').trim().toLowerCase();
+    const pass = String(input.password || '');
+    must(/^[a-z][a-z0-9-]{1,45}[a-z0-9]$/.test(user) && pass.length >= 4 && pass.length <= 128, 'نام کاربری یا رمز عبور درست نیست.', 401);
+    salon = await one(db, 'SELECT * FROM salons WHERE slug=?', user);
+    let storedHash = '';
+    try { storedHash = JSON.parse(salon?.settings || '{}').panel_pass_hash || ''; } catch {}
+    must(salon && storedHash && await verifyPassword(pass, storedHash), 'نام کاربری یا رمز عبور درست نیست.', 401);
+    row = await one(db, "SELECT * FROM orders WHERE salon_id=? AND kind='plan' AND status='paid' ORDER BY confirmed_at DESC LIMIT 1", salon.id);
+    must(row, 'پلن فعالی برای این سالن پیدا نشد.', 401);
+  } else {
+    const rawKey = typeof input === 'object' && input ? input.key : input;
+    const k = String(rawKey || '').trim().toUpperCase().replace(/\s+/g, '');
+    must(/^AY-[2-9A-HJ-NP-Z]{9}$/.test(k), 'کلید ورود معتبر نیست.', 401);
+    row = await one(db, "SELECT * FROM orders WHERE access_key_hash=? AND kind='plan' AND status='paid' ORDER BY confirmed_at DESC LIMIT 1", await hashKey(k));
+    must(row && row.salon_id, 'این کلید یا تأیید نشده یا عوض شده است.', 401);
+    salon = await one(db, 'SELECT * FROM salons WHERE id=?', row.salon_id);
+    must(salon, 'سالن پیدا نشد.', 404);
+  }
   const token = Array.from(crypto.getRandomValues(new Uint8Array(32)), x => x.toString(16).padStart(2, '0')).join('');
   const now = Date.now();
   await run(db, 'INSERT INTO panel_sessions(id,order_id,salon_id,expires_at,created_at) VALUES(?,?,?,?,?)', await hash('panel:' + token), row.id, salon.id, now + PANEL_DAYS * 86400000, now);
@@ -583,8 +671,9 @@ export async function panelDashboard(db, env, {order, salon}) {
       {key: 'team', label: 'اگر همکار دارید، از ربات اضافه‌شان کنید (اختیاری)', done: team.length > 0},
     ] : []),
   ];
+  const root = rootDomainOf(env, origin);
   return {
-    salon: {name: salon.name, slug: salon.slug, url: origin + '/s/' + salon.slug},
+    salon: {name: salon.name, slug: salon.slug, url: origin + '/s/' + salon.slug, subdomain_url: 'https://' + salon.slug + '.' + root + '/', admin_url: 'https://' + salon.slug + '.' + root + '/admin'},
     plan: credit ? (PLANS[credit.plan]?.name || credit.plan) : (PLANS[order.plan]?.name || order.plan),
     paid_at: order.confirmed_at, ref: order.ref,
     credits: credit, topup: {images: TOPUP.images, amount: TOPUP.amount},

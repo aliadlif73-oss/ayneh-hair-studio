@@ -35,12 +35,12 @@
   };
   const track = (kind, meta) => window.__AYN_TRACK?.(kind, meta);
 
-  const state = {order: null, plan: null, buy: null, service: '', poll: null, tick: null, done: false, key: '', entered: false};
-  /* The order and its panel key are kept in this browser until the panel opens. A customer who
-     switches to the bank app, or reloads, comes back to the same order with the same key;
+  const state = {order: null, plan: null, buy: null, service: '', poll: null, tick: null, done: false, key: '', pass: '', entered: false, activated: false};
+  /* The order and its panel credentials are kept in this browser until the panel opens. A customer who
+     switches to the bank app, or reloads, comes back to the same order with the same credentials;
      another browser (or another person with the same mobile) gets nothing from it. */
   const STORE = 'ayneh-order';
-  const remember = (id, key) => { try { localStorage.setItem(STORE, JSON.stringify({id, key, at: Date.now()})); } catch {} };
+  const remember = (id, key, pass) => { try { localStorage.setItem(STORE, JSON.stringify({id, key, pass: pass || '', at: Date.now()})); } catch {} };
   const recall = () => { try { const v = JSON.parse(localStorage.getItem(STORE) || 'null'); return v && /^[a-f0-9-]{36}$/.test(v.id) ? v : null; } catch { return null; } };
   const view = {
     form: $('payForm'), live: $('payLive'), done: $('payDone'), expired: $('payExpired'),
@@ -114,6 +114,8 @@
       city: $('payCity').value.trim(),
       consent: $('payConsent').checked,
     };
+    const built = window.__AYN_BUILDER?.();
+    if (built && built.draft && Object.keys(built.draft).length) body.draft = built.draft;
     if (body.salon.length < 2) return err($('payErr'), 'نام سالن را بنویسید.');
     if (body.name.length < 2) return err($('payErr'), 'نام و نام خانوادگی را بنویسید.');
     if (seatsOf(state.buy)) {
@@ -125,10 +127,11 @@
     try {
       const order = await call('/api/order', body);
       state.order = order;
-      /* The server hands the panel key out once, here. It is kept in this browser (see
-         remember) so the done screen can open the panel even after a reload. */
+      /* The server hands the panel key and password out once, here. Kept in this browser
+         so the done screen can show them even after a reload. */
       if (order.access_key) state.key = order.access_key;
-      remember(order.id, state.key);
+      if (order.panel_password) state.pass = order.panel_password;
+      remember(order.id, state.key, state.pass);
       track('order_open', plan);
       draw(order);
       view.form.hidden = true;
@@ -152,6 +155,12 @@
     for (const [name, node] of Object.entries(view)) if (node) node.hidden = name !== which;
     section.hidden = false;
     paying(which !== 'form');
+    const step = which === 'form' ? 1 : which === 'done' ? 3 : 2;
+    section.querySelectorAll('#paySteps li').forEach(li => {
+      const n = Number(li.dataset.step);
+      li.classList.toggle('is-on', n === step);
+      li.classList.toggle('is-done', n < step);
+    });
   }
 
   function draw(order) {
@@ -207,29 +216,47 @@
       clearInterval(state.tick);
       clearInterval(state.poll);
       const shown = state.key || order.access_key || '';
+      const pass = state.pass || order.panel_password || '';
       $('payAccessKey').textContent = shown || '—';
       $('payKeyCopy').hidden = !shown;
       $('payDoneNote').hidden = !!shown;
+      const creds = $('payCreds'), guide = $('payGuide'), sub = $('payDoneSub');
       /* A top-up or a renewal from the panel: the salon already has its key and its panel. */
       if (!shown && order.same_key) {
-        $('payDoneNote').textContent = 'با همان کلید قبلی‌تان وارد پنل شوید؛ پلن و اعتبار جدید همان‌جاست.';
+        $('payDoneNote').textContent = 'با همان مشخصات قبلی‌تان وارد پنل شوید؛ پلن و اعتبار جدید همان‌جاست.';
         $('payAccessKey').closest('.pay-done__key').hidden = true;
         $('payDoneTitle').textContent = order.kind === 'topup' ? 'پرداخت تأیید شد. اعتبار عکس به پنل شما اضافه شد.' : 'پرداخت تأیید شد. پنل شما تمدید شد.';
+        if (sub) sub.hidden = true;
+        if (creds) creds.hidden = true;
+        if (guide) guide.hidden = true;
+      } else if (order.subdomain_url) {
+        $('paySubUrl').textContent = order.subdomain_url;
+        $('payAdminUrl').textContent = order.subdomain_admin_url || '';
+        $('payUser').textContent = order.panel_username || order.slug || '—';
+        $('payPass').textContent = pass || '—';
+        const pr = $('payPassRow'); if (pr) pr.hidden = !pass;
+        if (creds) creds.hidden = false;
+        if (guide) guide.hidden = false;
+        if (sub) sub.hidden = false;
       }
       const panel = $('payPanelLink'), page = $('payPageLink');
       panel.href = order.panel_url || '/panel';
       page.href = order.page_url || '#';
       panel.hidden = false;
       page.hidden = !order.page_url;
-      /* The last step has to actually finish: the customer is standing on this page and
-         holds the key in memory, so open her panel door here instead of making her type
-         the key she just copied. The key is still in the URL for the panel to trade for
-         its cookie, then it is scrubbed from the address bar. */
       if (shown && !state.entered) {
         state.entered = true;
         panel.href = '/panel?key=' + encodeURIComponent(shown);
       }
+      const act = $('payActivating'), ready = $('payReady');
       show('done');
+      if (act && ready && !state.activated && !order.same_key) {
+        state.activated = true;
+        act.hidden = false; ready.hidden = true;
+        setTimeout(() => { act.hidden = true; ready.hidden = false; }, 2100);
+      } else if (act && ready) {
+        act.hidden = true; ready.hidden = false;
+      }
       track('order_paid', order.ref);
       return;
     }
@@ -344,6 +371,28 @@
       setTimeout(() => ($('payKeyCopy').textContent = 'کپی کلید'), 1800);
     } catch {}
   });
+  section.querySelectorAll('[data-copy]').forEach(btn => btn.addEventListener('click', async () => {
+    const t = $(btn.dataset.copy)?.textContent?.trim();
+    if (!t || t === '—') return;
+    try {
+      await navigator.clipboard.writeText(t);
+      btn.textContent = 'کپی شد';
+      setTimeout(() => (btn.textContent = 'کپی'), 1600);
+    } catch {}
+  }));
+  $('payCredsCopy')?.addEventListener('click', async () => {
+    const lines = [
+      'لینک اختصاصی سالن شما: ' + ($('paySubUrl')?.textContent || ''),
+      'لینک اختصاصی مدیریت: ' + ($('payAdminUrl')?.textContent || ''),
+      'نام کاربری: ' + ($('payUser')?.textContent || ''),
+      ...($('payPassRow')?.hidden ? [] : ['رمز عبور: ' + ($('payPass')?.textContent || '')]),
+    ].join('\n');
+    try {
+      await navigator.clipboard.writeText(lines);
+      $('payCredsCopy').textContent = 'همهٔ مشخصات کپی شد';
+      setTimeout(() => ($('payCredsCopy').textContent = 'کپی همهٔ مشخصات'), 2000);
+    } catch {}
+  });
 
   $('payCoupon').addEventListener('submit', async e => {
     e.preventDefault();
@@ -380,6 +429,8 @@
         if (order.status === 'cancelled' || (order.status === 'expired' && !asked && Date.now() - Number(order.expires_at) > LATE)) return;
         state.order = order;
         if (kept && kept.id === order.id && kept.key) state.key = kept.key;
+        if (kept && kept.id === order.id && kept.pass) state.pass = kept.pass;
+        if (order.status === 'paid') state.activated = true;
         draw(order);
         if (order.status !== 'open') drawState(order);
         /* Arriving with ?order= (a top-up from the panel, a shared link) means the checkout is

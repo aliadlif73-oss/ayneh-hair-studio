@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>آینه | مشتری مدل را روی عکس خودش می‌بیند</title>
-<meta name="description" content="آینه صفحهٔ اختصاصی سالن شماست: مشتری مو، رنگ، ناخن و مژه را روی عکس خودش می‌بیند و مطمئن‌تر درخواست می‌دهد.">
+<title>آینه | مشتری قبل از نوبت، مدل رو روی عکس خودش می‌بینه</title>
+<meta name="description" content="آینه وب‌سایت اختصاصی سالن شماست؛ مشتری مو، رنگ، ناخن و مژه رو روی عکس خودش امتحان می‌کنه و بدون تردید وقت می‌گیره.">
 <meta name="theme-color" content="#FCF3EB">
-<meta property="og:title" content="آینه | مشتری مدل را روی عکس خودش می‌بیند">
-<meta property="og:description" content="آینه صفحهٔ اختصاصی سالن شماست: مشتری مو، رنگ، ناخن و مژه را روی عکس خودش می‌بیند و مطمئن‌تر درخواست می‌دهد.">
+<meta property="og:title" content="آینه | مشتری قبل از نوبت، مدل رو روی عکس خودش می‌بینه">
+<meta property="og:description" content="آینه وب‌سایت اختصاصی سالن شماست؛ مشتری مو، رنگ، ناخن و مژه رو روی عکس خودش امتحان می‌کنه و بدون تردید وقت می‌گیره.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fa_IR">
 <link rel="canonical" href="__ORIGIN____CANON__">
@@ -50,7 +50,8 @@
       <a href="#choose">خدمات<span aria-hidden="true">←</span></a>
       <a href="#services">تعرفه‌ها<span aria-hidden="true">←</span></a>
       <a href="#faq">سؤالات<span aria-hidden="true">←</span></a>
-      <a class="btn" href="#demo">نمونه بساز</a>
+      <a class="btn" href="#salon-example">ساخت پیش‌نمایش رایگان</a>
+      <a class="mobile-menu__panel" href="/panel">ورود به پنل سالن‌داران<span aria-hidden="true">←</span></a>
     </nav>
   </div>
 </header>
@@ -75,7 +76,7 @@
   </div>
 </div>
 <noscript><style>#aynehLoader{display:none!important}</style></noscript>
-<script>(()=>{const l=document.getElementById('aynehLoader');if(!l)return;const nav=performance.getEntriesByType?.('navigation')?.[0];if(nav&&nav.type==='back_forward'){l.remove();return}const rm=matchMedia('(prefers-reduced-motion:reduce)').matches;const min=rm?900:2850;let t0=0,gone=false,loaded=document.readyState==='complete';const start=()=>{t0=performance.now();if(loaded)out()};const out=()=>{if(gone||!t0)return;gone=true;const wait=Math.max(0,min-(performance.now()-t0));setTimeout(()=>{l.classList.add('is-done');setTimeout(()=>l.remove(),920)},wait)};requestAnimationFrame(()=>requestAnimationFrame(start));if(!loaded)addEventListener('load',()=>{loaded=true;out()},{once:true});setTimeout(()=>{loaded=true;if(!t0)t0=performance.now();out()},rm?1400:4500);})();</script>
+<script>(()=>{const l=document.getElementById('aynehLoader'),nav=performance.getEntriesByType?.('navigation')?.[0],rel=nav&&nav.type==='reload',bf=nav&&nav.type==='back_forward';let fo=0;try{if(document.referrer){const u=new URL(document.referrer);fo=u.origin===location.origin&&u.pathname!==location.pathname}}catch{}if(rel||!location.hash||location.hash==='#salon-example'){try{if('scrollRestoration' in history)history.scrollRestoration='manual'}catch{}if(location.hash==='#salon-example'||(rel&&location.hash)){try{history.replaceState(null,'',location.pathname+location.search)}catch{}}const top=()=>{try{scrollTo({top:0,left:0,behavior:'instant'})}catch{scrollTo(0,0)}};top();addEventListener('DOMContentLoaded',top,{once:true});addEventListener('load',()=>{top();setTimeout(top,40)},{once:true})}const done=()=>{window.__AYN_READY=true;dispatchEvent(new Event('ayneh:ready'))};if(!l){done();return}let s=0;try{s=sessionStorage.getItem('ayneh_intro')==='1'}catch{}if(bf||(s&&fo)){l.remove();done();return}try{sessionStorage.setItem('ayneh_intro','1')}catch{}const rm=matchMedia('(prefers-reduced-motion:reduce)').matches,min=rm?900:2400;let t0=0,g=0,ld=document.readyState==='complete';const st=()=>{t0=performance.now();if(ld)out()},out=()=>{if(g||!t0)return;g=1;setTimeout(()=>{l.classList.add('is-done');setTimeout(done,420);setTimeout(()=>l.remove(),920)},Math.max(0,min-(performance.now()-t0)))};requestAnimationFrame(()=>requestAnimationFrame(st));if(!ld)addEventListener('load',()=>{ld=1;out()},{once:true});setTimeout(()=>{ld=1;if(!t0)t0=performance.now();out()},rm?1400:4000);})();</script>
 
 <main id="main">
   <!-- ============ Pricing: one question, five tabs ============ -->
@@ -99,8 +100,9 @@
           <button type="button" role="tab" id="ptab-color" aria-controls="plans-color" data-tab="color" aria-selected="false" tabindex="-1">رنگ مو</button>
           <button type="button" role="tab" id="ptab-nails" aria-controls="plans-nails" data-tab="nails" aria-selected="false" tabindex="-1">ناخن</button>
           <button type="button" role="tab" id="ptab-lashes" aria-controls="plans-lashes" data-tab="lashes" aria-selected="false" tabindex="-1">مژه</button>
-          <button type="button" role="tab" id="ptab-salon" aria-controls="plans-salon" data-tab="salon" aria-selected="false" tabindex="-1">آرایشگاه</button>
+          <button type="button" role="tab" id="ptab-salon" aria-controls="plans-salon" data-tab="salon" data-badge="همهٔ خدمات · تا ۳ نفر" aria-selected="false" tabindex="-1">آرایشگاه</button>
         </div>
+        <p class="ptabs__active" id="ptabsActive" aria-live="polite">تعرفه‌های اختصاصی <b>مدل مو</b></p>
       </div>
 <!--PLANS-->
       <!--SINGLE-->

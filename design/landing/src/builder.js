@@ -38,7 +38,10 @@
  const synced={};
  function syncCheckout(){
   const f=form.elements;
-  const data={salon:f.name.value.trim(),slug:f.slug.value.trim(),name:f.manager.value.trim(),phone:f.phone.value.trim()};
+  const v=k=>String(f[k]?.value||'').trim();
+  const draft={};
+  for(const k of ['slug','brand','bio','hours','address','phone','manager','instagram','telegram','website','map']){if(v(k))draft[k]=v(k)}
+  const data={salon:v('name'),slug:v('slug'),name:v('manager'),phone:v('phone'),draft};
   for(const [id,val] of [['paySalon',data.salon],['payName',data.name],['payPhone',data.phone]]){
    const el=$(id);
    if(el&&val&&(!el.value.trim()||el.value.trim()===synced[id])){el.value=val;synced[id]=val}

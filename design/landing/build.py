@@ -16,7 +16,7 @@ W = lambda p, s: open(p, 'w', encoding='utf8').write(s)
 # Everything the new page references, synced into public/landing/ so the worker
 # and the static preview read the same bytes.
 DEMOS = ['demo-%s-%s.webp' % (s, k) for s in ('style', 'color', 'lashes', 'nails') for k in ('before', 'after')]
-SYNC = re.compile(r'(hero\.webp|hero-stopmotion-poster\.webp|salon-film-0[1-5]\.webp|(?:hair|lashes|nails)-end\.webp|%s|estedad\.woff2|look-s\d\d\.webp|(?:hero|look-s\d\d)-hd\.webp|story-\d[lr]\.webp|sample-(?:hair|color|nails|lashes)-(?:before|after)\.webp|ayneh-logo-lg\.webp|hero-mix-[0-3]\.webp|salon-cover\.webp)$' % '|'.join(re.escape(d) for d in DEMOS))
+SYNC = re.compile(r'(hero\.webp|hero-stopmotion-poster\.webp|salon-film-0[1-5]\.webp|(?:hair|lashes|nails)-end\.webp|%s|estedad\.woff2|look-s\d\d\.webp|(?:hero|look-s\d\d)-hd\.webp|film-bg-[1-5]\.webp|sample-(?:hair|color|nails|lashes)-(?:before|after)\.webp|ayneh-logo-lg\.webp|hero-mix-[0-3]\.webp|salon-cover\.webp)$' % '|'.join(re.escape(d) for d in DEMOS))
 for asset in os.listdir('assets'):
     if SYNC.match(asset):
         shutil.copyfile('assets/' + asset, '../../public/landing/' + asset)
@@ -379,7 +379,8 @@ def nav(items):
 
 def mobile(items):
     return (''.join('<a href="%s">%s<span aria-hidden="true">←</span></a>' % (h_, t) for h_, t in items)
-            + '<a class="btn" href="#demo">نمونه بساز</a>')
+            + '<a class="btn" href="#salon-example">ساخت پیش‌نمایش رایگان</a>'
+            + '<a class="mobile-menu__panel" href="/panel">ورود به پنل سالن‌داران<span aria-hidden="true">←</span></a>')
 
 
 def shell(h, main, items, home=False, service='', title='', desc='', tab=''):
@@ -540,17 +541,18 @@ def make_pages(full):
     assert 'sb-steps' not in home_studio and 'پیش‌نمایش وب‌سایت خودتون رو ببینید' in home_studio
     home_perks = (
         '          <ul class="hero-perks" aria-label="مزایای آینه">\n'
-        '            <li class="hero-perk"><span class="hero-perk__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M3 9h18M7.5 14h5" stroke-linecap="round"/></svg></span><div><b>وب‌سایت اختصاصی و برندینگ حرفه‌ای</b><span>صفحه‌ای با نام، مشخصات و نمونه‌کارهای خودتون.</span></div></li>\n'
-        '            <li class="hero-perk"><span class="hero-perk__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20" stroke-linecap="round"/><circle cx="10" cy="8.5" r="3.5"/><path d="M19 8v6M16 11h6" stroke-linecap="round"/></svg></span><div><b>جذب مشتری جدید با اشتراک‌گذاری</b><span>روی هر تصویر اسم و لوگوی شما ثبت می‌شه؛ با ارسال به دوستانشون، مشتری تازه جذب می‌کنید.</span></div></li>\n'
-        '            <li class="hero-perk"><span class="hero-perk__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3.5V6.5M16 3.5V6.5M8.5 13l2.2 2.2 4.8-4.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>رزرو ساده‌تر و پاسخ‌گویی به مشتری بیشتر</b><span>مشتری با انتخاب مشخص سراغتون میاد و در طول روز به افراد بیشتری می‌رسید.</span></div></li>\n'
+        '            <li class="hero-perk"><span class="hero-perk__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="4.5" width="18" height="15" rx="3"/><path d="M3 9h18M7.5 14h5" stroke-linecap="round"/></svg></span><div><b>وب‌سایت اختصاصی به نام شما</b><span>با مشخصات و نمونه‌کارهای خودتون.</span></div></li>\n'
+        '            <li class="hero-perk"><span class="hero-perk__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M16 20v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 18.5V20" stroke-linecap="round"/><circle cx="10" cy="8.5" r="3.5"/><path d="M19 8v6M16 11h6" stroke-linecap="round"/></svg></span><div><b>جذب مشتری جدید با هر عکس</b><span>اسم و لوگوی شما روی خروجی ثبت می‌شه.</span></div></li>\n'
+        '            <li class="hero-perk"><span class="hero-perk__ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M8 3.5V6.5M16 3.5V6.5M8.5 13l2.2 2.2 4.8-4.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><b>رزرو راحت‌تر، مشتری بیشتر</b><span>مشتری با انتخاب قطعی سراغتون میاد.</span></div></li>\n'
         '          </ul>\n'
     )
     home_main = (
         stopmotion_hero(hero('style', '', 'با آینه دیگه نیازی به حدس زدن نیست!', 'شما دقیقا میدونید کدوم مدل به مشتریانتون میاد',
-             'توی وب‌سایت اختصاصی خودتون در آینه، مشتری‌هاتون نمونه‌کارهای شما یا هر مدلی که جای دیگه دیدن رو روی چهره و دست خودشون امتحان می‌کنن، مطمئن می‌شن چی بهشون میاد و بدون تردید همون مدل رو برای رزرو وقت براتون می‌فرستن.',
+             'مشتری‌هاتون هر مدلی رو قبل از نوبت روی چهره و دست خودشون می‌بینن و بدون تردید ازتون وقت می‌گیرن.',
              'مدل رو می‌بینه', 'درخواست مدل مو', HOME_NOTE, perks=home_perks))
         + demo(list(LINE_TITLE), 'خودتون <em>امتحان کنید!</em>', 'عکستون رو بذارید و همین الان مدل رو روی چهرهٔ خودتون ببینید.', 'hair', foot=False)
         + section(home_src, 'choose').replace('{{CARDS}}', NL.join(card(k, s) for k, s in SERVICES.items()))
+        + section(home_src, 'flow')
         + home_studio
         + pricing + R('src/pay.html') + faq
     )
@@ -656,9 +658,9 @@ def finish(h):
     # keeping it clear of the film, the salon-page builder, duplicate CTAs, and open dialogs.
     for name in SCRIPTS:
         assert os.path.exists('src/' + name), name
-    # play.js / try-switch.js drive the sample-face mirror, which only the hairstyle page carries.
+    # play.js / try-switch.js / portrait.js / hair-color.js drive the sample-face mirror, which only the hairstyle page carries.
     scripts = ''.join('<script>' + NL + R('src/' + n) + NL + '</script>' + NL for n in SCRIPTS
-                      if 'id="play"' in h or n not in ('play.js', 'try-switch.js'))
+                      if 'id="play"' in h or n not in ('play.js', 'try-switch.js', 'portrait.js', 'hair-color.js'))
     h = h.replace('</body>', scripts + '</body>')
 
     return h, STAMP
@@ -719,7 +721,9 @@ def ship_minify(html):
     def js(m):
         t = re.sub(r'(?m)^[ \t]*/\*.*?\*/[ \t]*\n', '', m.group(1), flags=re.S)
         t = re.sub(r'(?m)^[ \t]*//[^\n]*\n', '', t)
-        return '<script>' + t + '</script>'
+        t = re.sub(r'(?m)^[ \t]+', '', t)
+        t = re.sub(r'\n{2,}', '\n', t)
+        return '<script>' + t.strip() + '</script>'
     html = re.sub(r'<style>(.*?)</style>', css, html, flags=re.S)
     html = re.sub(r'<script>(.*?)</script>', js, html, flags=re.S)
     html = re.sub(r'<!--.*?-->', '', html, flags=re.S)

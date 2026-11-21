@@ -794,7 +794,7 @@ test('without SMS invites the bot offers messenger buttons and /i/ is a send pag
 // ---------- landing page and salon inquiries ----------
 test('landing page is public at / and the owner console stays at /admin',async()=>{const e=tgEnv(fixture());
  const r=await app.fetch(new Request(origin+'/'),e);assert.equal(r.status,200);const html=await r.text();
- assert.match(html,/id="choose"/);assert.match(html,/<title>آینه \| مشتری مدل را روی عکس خودش می‌بیند<\/title>/);assert.doesNotMatch(html,/noindex/);
+ assert.match(html,/id="choose"/);assert.match(html,/<title>آینه \| مشتری قبل از نوبت، مدل رو روی عکس خودش می‌بینه<\/title>/);assert.doesNotMatch(html,/noindex/);
  new Function(html.match(/<script>([\s\S]*?)<\/script>/g).map(s=>s.replace(/<\/?script>/g,'')).join('\n'));
  // one page per service, each with its own studio, plans and checkout, and scripts that parse
  for(const key of ['hair','color','nails','lashes']){
@@ -1130,7 +1130,7 @@ test('landing funnel events are first-party, validated and attributed',async()=>
 test('copy plan: the home page opens with one hero, the approved headline, one main button and the stop-motion showcase',()=>{
  assert.equal((landingHTML.match(/<h1[\s>]/g)||[]).length,1,'exactly one h1');
  assert.match(landingHTML,/با آینه دیگه نیازی به حدس زدن نیست!<span class="h1__accent">شما دقیقا میدونید کدوم مدل به مشتریانتون میاد<\/span>/,'the headline states the real promise');
- assert.ok(landingHTML.includes('توی وب‌سایت اختصاصی خودتون در آینه، مشتری‌هاتون نمونه‌کارهای شما یا هر مدلی که جای دیگه دیدن رو روی چهره و دست خودشون امتحان می‌کنن، مطمئن می‌شن چی بهشون میاد و بدون تردید همون مدل رو برای رزرو وقت براتون می‌فرستن.'),'the approved subtitle');
+ assert.ok(landingHTML.includes('مشتری‌هاتون هر مدلی رو قبل از نوبت روی چهره و دست خودشون می‌بینن و بدون تردید ازتون وقت می‌گیرن.'),'the approved concise subtitle');
  assert.equal((landingHTML.match(/class="hero-perk"/g)||[]).length,3,'three compact benefit boxes below hero lead');
  const hero=(landingHTML.match(/<section id="intro"[\s\S]*?<\/section>/)||[])[0]||'';
  assert.equal((hero.match(/class="btn btn--lg"/g)||[]).length,1,'one main button in the hero');
@@ -1168,7 +1168,7 @@ test('copy plan: header has the logo, three links and one fixed «مشاهده �
 });
 test('copy plan: home sections come in the approved order and every page has one h1',()=>{
  const ids=html=>[...html.matchAll(/<main id="main">[\s\S]*?<\/main>/g)][0][0].match(/<section id="[\w-]+"/g).map(s=>s.slice(13,-1));
- assert.deepEqual(ids(landingHTML),['intro','demo','choose','salon-example','services','pay','faq'],'home');
+ assert.deepEqual(ids(landingHTML),['intro','demo','choose','flow','salon-example','services','pay','faq'],'home');
  assert.deepEqual(ids(servicePages.hair),['intro','play','demo','sample','benefits','salon-example','services','pay','cta'],'hairstyle page (with the sample-face mirror)');
  for(const k of ['color','nails','lashes'])assert.deepEqual(ids(servicePages[k]),['intro','demo','sample','benefits','salon-example','services','pay','cta'],k+' page: one template with its illustrative sample');
  assert.deepEqual(ids(servicePages.salon),['intro','glance','team','demo','salon-example','bundle','services','pay','cta'],'salon panel page');
@@ -2024,15 +2024,15 @@ test('step 30 cinema: every section has a scroll-scrubbed entrance, and none can
  assert.ok(landingHTML.includes('cine-word'),'headlines are split into words at runtime');
 });
 
-test('storybook: six illustrated chapters turn like pages behind the sections, on every page',()=>{
- for(const html of [landingHTML,servicePages.hair,servicePages.nails,servicePages.lashes]){
-  assert.ok(html.includes("className = 'story'")&&html.includes("setAttribute('aria-hidden', 'true')"),'the story layer ships and is decorative');
-  assert.ok(html.includes("document.querySelectorAll('main > section[id]')"),'chapters are cut from the sections the page has');
-  assert.match(html,/\.story\{position:fixed;inset:0;z-index:-1;pointer-events:none/,'the art sits under the content and never takes a click');
-  assert.match(html,/prefers-reduced-motion:reduce\)\{[^}]*\.story__page\.is-turning\{animation:none/,'reduced motion gets a fade, not a turning page');
+test('cinematic film backdrop: scroll-scrubbed brand film frames ship across all pages with reduced-motion support',()=>{
+ for(const html of [landingHTML,servicePages.hair,servicePages.color,servicePages.nails,servicePages.lashes,servicePages.salon,servicePages.sample]){
+  assert.ok(html.includes("className = 'story'")&&html.includes("setAttribute('aria-hidden', 'true')"),'the film layer ships and is decorative');
+  assert.ok(html.includes("document.querySelectorAll('main > section[id]')"),'film shots map to every section the page carries');
+  assert.match(html,/\.story\{position:fixed;inset:0;z-index:-1;pointer-events:none/,'the film sits under the content and never blocks interaction');
+  assert.match(html,/prefers-reduced-motion:reduce\)\{[^}]*\.story__img\{transform:none!important/,'reduced motion disables camera motion cleanly');
  }
- for(let n=1;n<=6;n++)for(const s of ['l','r'])
-  assert.ok(existsSync(new URL('../public/landing/story-'+n+s+'.webp',import.meta.url)),'chapter '+n+s+' art ships');
+ for(let n=1;n<=5;n++)
+  assert.ok(existsSync(new URL('../public/landing/film-bg-'+n+'.webp',import.meta.url)),'film plate '+n+' ships');
 });
 
 test('before/after follows the finger in RTL, plays itself first, and step labels clear their numbers',()=>{
@@ -2957,3 +2957,73 @@ test('audit follow-up: mobile controls and reduced-motion playback',()=>{
  assert.match(js,/classList\.toggle\('is-playing',motion\.matches&&!paused\)/);
  assert.match(customerHTML,/\.btn--sm,\.picked \.btn,a\.hchip,button\.hchip\{min-height:44px\}/);
 });
+
+test('subdomain provisioning: builder draft, one-time random password, username login, and subdomain routing',async()=>{
+ const e=fixture();e.APP_ORIGIN='https://ayneh-salon.site';
+ const o=await call(e,'/api/order',orderBody('pro',{
+  service:'color',phone:'09125559011',name:'خریدار شخصی',salon:'سالن ساناز',
+  draft:{slug:'sanaz',bio:'تخصص ما رنگ و مش حرفه‌ایه',hours:'۱۰ تا ۲۰',address:'تهران، ونک',phone:'02188001122',instagram:'https://instagram.com/sanaz_salon',website:'javascript:alert(1)'}
+ }));
+ assert.equal(o.status,200);
+ assert.match(o.data.panel_password,/^[A-Za-z0-9]{8}$/,'server generates an 8-char random password once on create');
+ assert.notEqual(o.data.panel_password,'12345678','password is never hardcoded');
+ // GET /api/order/:id must never leak panel_password
+ const pollBefore=await call(e,'/api/order/'+o.data.id);
+ assert.equal(pollBefore.data.panel_password,undefined,'password never leaks via GET /api/order/:id');
+ await confirmOwner(e,o.data.id);
+ const paid=await call(e,'/api/order/'+o.data.id);
+ assert.equal(paid.data.status,'paid');
+ assert.equal(paid.data.slug,'sanaz');
+ assert.equal(paid.data.panel_username,'sanaz');
+ assert.equal(paid.data.subdomain_url,'https://sanaz.ayneh-salon.site/');
+ assert.equal(paid.data.subdomain_admin_url,'https://sanaz.ayneh-salon.site/admin');
+ // Builder fields applied, dangerous javascript: URL stripped, buyer personal mobile NOT copied
+ const row=e.DB.sql.prepare('SELECT * FROM salons WHERE slug=?').get('sanaz');
+ assert.ok(row,'salon provisioned on requested slug');
+ const prof=JSON.parse(row.profile),set=JSON.parse(row.settings);
+ assert.equal(prof.bio,'تخصص ما رنگ و مش حرفه‌ایه');
+ assert.equal(prof.phone,'02188001122');
+ assert.equal(prof.instagram,'https://instagram.com/sanaz_salon');
+ assert.equal(prof.website,undefined,'javascript: URL rejected');
+ assert.notEqual(prof.phone,'09125559011','buyer personal mobile not copied');
+ assert.ok(set.panel_pass_hash&&set.panel_pass_hash.startsWith('pbkdf2$'),'password stored only as PBKDF2 hash');
+ // Username + password login works; wrong password rejected
+ const badLogin=await call(e,'/api/panel/login',{username:'sanaz',password:'wrong123'});
+ assert.equal(badLogin.status,401);
+ const goodLogin=await call(e,'/api/panel/login',{username:'sanaz',password:o.data.panel_password});
+ assert.equal(goodLogin.status,200);
+ assert.ok(goodLogin.cookie,'panel session cookie issued');
+ const me=await call(e,'/api/panel/me',undefined,{cookie:goodLogin.cookie});
+ assert.equal(me.data.salon.subdomain_url,'https://sanaz.ayneh-salon.site/');
+ assert.equal(me.data.salon.admin_url,'https://sanaz.ayneh-salon.site/admin');
+ // Subdomain routing: root serves customer page with ayneh-slug, /admin serves salon panel with ayneh-user
+ const subHome=await app.fetch(new Request('https://sanaz.ayneh-salon.site/'),e);
+ assert.equal(subHome.status,200);
+ const subHomeHtml=await subHome.text();
+ assert.ok(subHomeHtml.includes('<meta name="ayneh-slug" content="sanaz">'),'subdomain customer page carries slug meta');
+ const subAdmin=await app.fetch(new Request('https://sanaz.ayneh-salon.site/admin'),e);
+ assert.equal(subAdmin.status,200);
+ const subAdminHtml=await subAdmin.text();
+ assert.ok(subAdminHtml.includes('<meta name="ayneh-user" content="sanaz">'),'subdomain admin page prefills username');
+});
+
+test('hero choreography, scroll cinema backdrop, and UI/UX alignment fixes',()=>{
+ // Post-loader hero typing uses single Text nodes so Persian cursive glyphs join cleanly
+ assert.ok(landingHTML.includes("dispatchEvent(new Event('ayneh:ready'))"),'loader dispatches ayneh:ready');
+ assert.ok(landingHTML.includes('const mainNode=document.createTextNode(\'\'),accNode=document.createTextNode(\'\'),leadNode=document.createTextNode(\'\')'),'single Text nodes preserve Persian ligatures while typing');
+ assert.ok(landingHTML.includes('await w(1000)')&&landingHTML.includes("box.classList.remove('is-stage')"),'headline pauses 1s then glides up');
+ assert.ok(landingHTML.includes('.hero::before')&&landingHTML.includes('.hero::after'),'minimal hero backdrop frames hero typography');
+ // Mobile + desktop scroll-scrubbed cinema progress and per-page scenes
+ assert.ok(landingHTML.includes("bar.className='story__bar'")&&landingHTML.includes("rail.className='story__rail'"),'mobile and desktop cinema progress indicators ship');
+ assert.ok(landingHTML.includes("svc==='color'?[5,"),'color page opens with its own caustic light scene');
+ // UI/UX bug fixes: no double-space in cinema2 headings, clean icon overrides, balanced trial.html
+ const cine2=readFileSync(new URL('../design/landing/src/cinema2.js',import.meta.url),'utf8');
+ assert.ok(!cine2.includes("h2.append(document.createTextNode(' '))"),'cinema2.js does not double-space headings');
+ assert.ok(landingHTML.includes('.plan-how li>span{width:32px;height:32px;padding:0;font-size:14px;font-weight:900;margin-top:2px}'),'plan-how step circles keep clean 32px geometry');
+ assert.ok(landingHTML.includes('.pay-done__tick svg{background:none;border:0;box-shadow:none;padding:0;width:28px;height:28px;color:#fff}'),'payment done tick has no nested clay disc');
+ assert.ok(landingHTML.includes('.sample-card__body .btn{min-height:46px;font-size:14.5px;margin-top:auto;width:100%}'),'sample cards align CTA buttons along bottom');
+ const trial=readFileSync(new URL('../design/landing/src/trial.html',import.meta.url),'utf8');
+ assert.equal((trial.match(/<div\b/g)||[]).length,(trial.match(/<\/div>/g)||[]).length,'trial.html has balanced div tags');
+});
+
+

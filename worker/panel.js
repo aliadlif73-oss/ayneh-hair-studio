@@ -118,21 +118,42 @@ function el(tag,attrs,children){var e=document.createElement(tag);attrs=attrs||{
 function h(tag,t,cls){return el(tag,{text:t,class:cls||''})}
 `;
 
-// First paint: a key box. The key is 9 chars after "AY-"; input is forgiving (spaces, case).
+// First paint: username + password (for subdomain /admin) or access key (AY-...).
 const gate = String.raw`
 function gate(msg){
- var input=el('input',{id:'pnKey',placeholder:'AY-XXXXXX XXX',autocomplete:'off',spellcheck:'false','aria-label':'کلید ورود به پنل'});
- var go=el('button',{class:'btn btn--primary',type:'button',text:'ورود به پنل',onclick:function(){
-  var key=input.value.trim().toUpperCase().replace(/\s+/g,'');
-  if(!key)return;
-  go.disabled=true;
-  api('/api/panel/login',{key:key}).then(function(){location.reload()}).catch(function(e){err.textContent=e.message;err.hidden=false;go.disabled=false});
+ var preUser=((document.querySelector('meta[name="ayneh-user"]')||{}).content||(location.search.match(/[?&]user=([^&]+)/)||[])[1]||'');
+ try{preUser=decodeURIComponent(preUser).trim().toLowerCase()}catch(e){}
+ var mode='pass';
+ var uIn=el('input',{id:'pnUser',value:preUser,placeholder:'مثلاً sanaz',autocomplete:'username',spellcheck:'false','aria-label':'نام کاربری'});
+ var pIn=el('input',{id:'pnPass',type:'password',placeholder:'رمز عبور',autocomplete:'current-password','aria-label':'رمز عبور'});
+ var kIn=el('input',{id:'pnKey',placeholder:'AY-XXXXXXXXX',autocomplete:'off',spellcheck:'false','aria-label':'کلید ورود به پنل'});
+ var passWrap=el('div',{style:'display:grid;gap:10px'},[
+  el('label',{style:'display:grid;gap:6px;font-size:13.5px;font-weight:700'},['نام کاربری',uIn]),
+  el('label',{style:'display:grid;gap:6px;font-size:13.5px;font-weight:700'},['رمز عبور',pIn])
+ ]);
+ var keyWrap=el('div',{style:'display:grid;gap:10px',hidden:true},[
+  el('label',{style:'display:grid;gap:6px;font-size:13.5px;font-weight:700'},['کلید دسترسی (AY-XXXXXXXXX)',kIn])
+ ]);
+ var tabP=el('button',{class:'pn-tab',type:'button','aria-selected':'true',text:'ورود با نام کاربری و رمز',onclick:function(){mode='pass';tabP.setAttribute('aria-selected','true');tabK.setAttribute('aria-selected','false');passWrap.hidden=false;keyWrap.hidden=true;err.hidden=true;uIn.focus()}});
+ var tabK=el('button',{class:'pn-tab',type:'button','aria-selected':'false',text:'ورود با کلید دسترسی',onclick:function(){mode='key';tabK.setAttribute('aria-selected','true');tabP.setAttribute('aria-selected','false');keyWrap.hidden=false;passWrap.hidden=true;err.hidden=true;kIn.focus()}});
+ var go=el('button',{class:'btn btn--primary',type:'button',text:'ورود به پنل مدیریت',onclick:function(){
+  var body=mode==='key'?{key:kIn.value.trim().toUpperCase().replace(/\s+/g,'')}:{username:uIn.value.trim().toLowerCase(),password:pIn.value};
+  if(mode==='key'&&!body.key)return;
+  if(mode==='pass'&&(!body.username||!body.password)){err.textContent='نام کاربری و رمز عبور را وارد کنید.';err.hidden=false;return}
+  go.disabled=true;err.hidden=true;
+  api('/api/panel/login',body).then(function(){location.reload()}).catch(function(e){err.textContent=e.message;err.hidden=false;go.disabled=false});
  }});
- input.addEventListener('keydown',function(e){if(e.key==='Enter')go.click()});
+ [uIn,pIn,kIn].forEach(function(inp){inp.addEventListener('keydown',function(e){if(e.key==='Enter')go.click()})});
  var err=el('p',{class:'notice notice--warn',hidden:true});
  $('#app').replaceChildren(el('section',{class:'pn'},[
   el('div',{class:'pn-bar'},[el('a',{class:'pn-brand',href:'/'},[el('span',{html:MARK}),'آینه'])]),
-  el('div',{class:'pn-card'},[h('h1','پنل سالن'),h('p','کلیدی را که بعد از تأیید پرداخت گرفتید اینجا وارد کنید (شبیه AY-XXXXXXXXX).'),input,go,err,el('p',{class:'pn-note'},['کلید را گم کرده‌اید؟ با پشتیبانی آینه تماس بگیرید تا کلید تازه بسازند: ',el('a',{href:'tel:'+SUPPORT_TEL,dir:'ltr',text:SUPPORT_FA}),' · ',el('a',{href:SUPPORT_TELEGRAM,target:'_blank',rel:'noopener',text:'تلگرام'}),' · ',el('a',{href:SUPPORT_WHATSAPP,target:'_blank',rel:'noopener',text:'واتس‌اپ'})])]),
+  el('div',{class:'pn-card pn-start'},[
+   h('h1','ورود به پنل مدیریت سالن'),
+   h('p','با نام کاربری و رمز عبوری که بعد از خرید گرفتید وارد شوید (یا با کلید دسترسی AY).'),
+   el('div',{class:'pn-tabs',role:'tablist'},[tabP,tabK]),
+   passWrap,keyWrap,go,err,
+   el('p',{class:'pn-note'},['اطلاعات ورود را فراموش کرده‌اید؟ با پشتیبانی آینه تماس بگیرید: ',el('a',{href:'tel:'+SUPPORT_TEL,dir:'ltr',text:SUPPORT_FA}),' · ',el('a',{href:SUPPORT_TELEGRAM,target:'_blank',rel:'noopener',text:'تلگرام'}),' · ',el('a',{href:SUPPORT_WHATSAPP,target:'_blank',rel:'noopener',text:'واتس‌اپ'})])
+  ]),
   msg?el('p',{class:'pn-who',text:msg}):null
  ]));
 }

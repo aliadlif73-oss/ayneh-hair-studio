@@ -2,7 +2,7 @@
    استودیو ساخت صفحه — rebuild of the salon-page builder in the reference language.
    Scoped to #salon-example so it can never touch the landing chrome.
    ========================================================================== */
-#salon-example{padding-block:var(--sec-y);background:var(--cream-2)}
+#salon-example{padding-block:var(--sec-y);background:rgba(248,240,232,.26)}
 #salon-example .wrap{width:100%;max-width:var(--band);margin:0 auto;padding-inline:var(--gut)}
 
 .sb-head{display:grid;justify-items:center;text-align:center;margin-bottom:clamp(26px,3.4vw,40px)}

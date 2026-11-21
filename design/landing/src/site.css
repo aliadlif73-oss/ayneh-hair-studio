@@ -218,32 +218,9 @@ ul,ol{padding:0;list-style:none}
 .compare__knob--sm svg{width:15px;height:15px}
 .compare__range{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:ew-resize;z-index:4}
 .compare__range:focus-visible{opacity:1;outline:3px solid var(--emerald-deep);outline-offset:-3px;border-radius:var(--r-lg)}
-.hero-thumbs{display:grid;grid-template-rows:repeat(4,1fr);gap:7px;width:clamp(52px,5vw,66px)}
-.hero-thumb{position:relative;padding:0;border:2px solid transparent;border-radius:12px;overflow:hidden;
-  background:var(--cream-3);cursor:pointer;transition:border-color .16s var(--ease),transform .16s var(--ease)}
-.hero-thumb img{width:100%;height:100%;object-fit:cover;object-position:50% 30%}
-.hero-thumb[aria-pressed="true"]{border-color:var(--emerald)}
-.hero-thumb:hover{transform:translateY(-1px)}
-.hero-thumb__check{position:absolute;top:3px;inset-inline-end:3px;display:none;place-items:center;width:17px;height:17px;
-  border-radius:50%;background:var(--emerald);color:#fff}
-.hero-thumb__check svg{width:10px;height:10px}
-.hero-thumb[aria-pressed="true"] .hero-thumb__check{display:grid}
 .stage-note{display:flex;align-items:center;gap:7px;justify-content:center;margin-top:10px;
   font-size:12px;font-weight:600;color:var(--muted);text-align:center;line-height:1.7}
 .stage-note svg{flex:0 0 15px;width:15px;height:15px;color:var(--emerald)}
-
-/* four benefits under the fold */
-.hero-benefits{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(10px,1.3vw,16px);
-  margin-top:clamp(26px,3.4vw,44px)}
-.hero-benefits li{display:grid;justify-items:center;text-align:center;gap:7px;padding:clamp(16px,1.9vw,24px) clamp(12px,1.4vw,18px);
-  background:var(--paper);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)}
-.hero-benefits__icon{display:grid;place-items:center;width:46px;height:46px;border-radius:50%;background:var(--emerald-wash);color:var(--emerald-deep)}
-.hero-benefits__icon svg{width:22px;height:22px}
-.hero-benefits b{font-size:15px;font-weight:800;color:var(--ink);line-height:1.5}
-.hero-benefits p{font-size:12.5px;line-height:1.8;color:var(--ink-soft)}
-@media(max-width:1000px){
-  .hero-benefits{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
 @media(max-width:900px){
   .hero-grid{grid-template-columns:1fr;gap:22px}
   .hero-copy{max-width:none}
@@ -260,10 +237,6 @@ ul,ol{padding:0;list-style:none}
   .hero-stage{padding:10px;border-radius:var(--r-lg)}
   .compare{aspect-ratio:1/1.05}
   .compare-wrap{gap:8px}
-  .hero-thumbs{width:48px}
-  .hero-benefits{grid-template-columns:1fr;gap:9px;margin-top:22px}
-  .hero-benefits li{grid-template-columns:auto 1fr;justify-items:start;text-align:start;gap:2px 11px;padding:14px 16px}
-  .hero-benefits__icon{grid-row:span 2;width:42px;height:42px}
 }
 
 /* ============================================================================
@@ -377,8 +350,8 @@ ul,ol{padding:0;list-style:none}
   border:1.5px dashed var(--line-strong);border-radius:9px;background:var(--emerald-wash);
   color:var(--emerald-deep);font-weight:800;font-size:.86em}
 .plan ul{display:grid;gap:8px;margin:4px 0;flex:1}
-.plan li{position:relative;padding-inline-start:23px;font-size:13.5px;line-height:1.8;color:var(--ink-2)}
-.plan li svg{position:absolute;inset-inline-start:0;top:4px;width:15px;height:15px;color:var(--emerald)}
+.plan li{position:relative;padding-inline-start:32px;font-size:13.5px;line-height:1.8;color:var(--ink-2)}
+.plan li svg{position:absolute;inset-inline-start:0;top:3px;width:21px;height:21px;color:var(--emerald)}
 .plan .btn{width:100%;min-height:46px;font-size:14.5px}
 /* The three cards are one row: «پیشنهاد آینه» is the emerald primary glass and the other
    two are the light glass — the same shared material, one line each further down. A plan
@@ -389,61 +362,7 @@ ul,ol{padding:0;list-style:none}
 .plan-note svg{flex:0 0 19px;width:19px;height:19px;margin-top:2px;color:var(--emerald-deep)}
 @media(max-width:900px){.plans{grid-template-columns:1fr;gap:14px}.plan__deck{min-height:0}}
 
-/* ============================================================================
-   6. Social proof
-   ========================================================================== */
-.proof-top{display:grid;justify-items:center;text-align:center;gap:8px}
-.proof-title{font-size:clamp(25px,3.4vw,41px);line-height:1.4;font-weight:900;color:var(--ink)}
-.proof-title em{font-style:normal;color:var(--emerald)}
-.proof-sub{margin-top:4px;font-size:clamp(14px,1.4vw,16.5px);line-height:1.95;color:var(--ink-soft);max-width:64ch}
-.quotes{position:relative;display:flex;align-items:center;gap:10px;margin-top:clamp(22px,3vw,34px)}
-.quotes__rail{display:flex;gap:16px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;
-  padding:4px;margin:-4px;flex:1;min-width:0}
-.quotes__rail::-webkit-scrollbar{display:none}
-.quote{position:relative;flex:0 0 calc((100% - 32px)/3);scroll-snap-align:start;display:flex;flex-direction:column;gap:11px;
-  padding:clamp(16px,2vw,24px);border-radius:var(--r-xl);
-  }
-.quote__person{display:flex;align-items:center;gap:10px}
-.quote__avatar{width:48px;height:48px;border-radius:50%;object-fit:cover;object-position:50% 25%;flex:0 0 auto;
-  border:2px solid var(--emerald-wash)}
-.quote__who b{display:block;font-size:14.5px;font-weight:800;color:var(--ink);line-height:1.5}
-.quote__who span{display:block;font-size:12px;color:var(--muted);font-weight:600}
-.quote__stars{display:flex;gap:2px;color:#E0A63F}
-.quote__stars svg{width:14px;height:14px}
-.quote__mark{position:absolute;top:calc(clamp(16px,2vw,24px) - 8px);inset-inline-end:clamp(16px,2vw,24px);
-  font-size:42px;line-height:1;font-weight:900;color:var(--emerald-soft)}
-.quote__text{font-size:13.5px;line-height:1.95;color:var(--ink-2);font-weight:500;flex:1}
-.quote__flag{font-size:12px;font-weight:800;color:var(--muted)}
-.quote-nav{flex:0 0 36px;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;
-  border:1px solid var(--line-2);color:var(--ink-2);cursor:pointer}
-.quote-nav svg{width:16px;height:16px}
-.quote-nav:hover{border-color:var(--emerald);color:var(--emerald-deep)}
-.quote-nav[disabled]{opacity:.4;cursor:default}
-.quote-dots{display:flex;justify-content:center;gap:6px;margin-top:14px}
-.quote-dots button{width:7px;height:7px;padding:0;border:0;border-radius:50%;background:var(--line-2);cursor:pointer;transition:width .2s var(--ease),background .2s var(--ease)}
-.quote-dots button[aria-selected="true"]{width:20px;border-radius:4px;background:var(--emerald)}
-
-.proof-bar{display:grid;grid-template-columns:minmax(0,1.15fr) repeat(3,minmax(0,1fr));gap:clamp(10px,1.6vw,20px);
-  align-items:center;margin-top:clamp(22px,3vw,32px);padding:clamp(14px,2vw,22px) clamp(14px,2.2vw,26px);
-  border-radius:var(--r-xl);background:var(--paper);border:1px solid var(--line);box-shadow:var(--shadow-sm)}
-.proof-badge{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:var(--ink);
-  line-height:1.6;padding-inline-end:clamp(10px,1.6vw,20px);border-inline-end:1px solid var(--line)}
-.proof-badge svg{flex:0 0 22px;width:22px;height:22px;color:#B08A4A}
-.proof-stat{display:flex;align-items:center;gap:10px}
-.proof-stat__icon{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border-radius:50%;background:var(--emerald-wash);color:var(--emerald-deep)}
-.proof-stat__icon svg{width:18px;height:18px}
-.proof-stat b{display:block;font-size:clamp(17px,2vw,22px);font-weight:900;color:var(--ink);line-height:1.3;font-variant-numeric:tabular-nums}
-.proof-stat span{display:block;font-size:12.5px;color:var(--ink-soft);font-weight:600}
-.proof-note{margin-top:10px;text-align:center;font-size:12px;color:var(--muted)}
-@media(max-width:1000px){.quote{flex-basis:calc((100% - 16px)/2)}.proof-bar{grid-template-columns:1fr 1fr}}
-@media(max-width:760px){
-  .quote{flex-basis:88%}
-  .quote{scroll-snap-align:center}
-  .quote-nav{display:none}
-  .proof-bar{grid-template-columns:1fr;gap:12px}
-  .proof-badge{border-inline-end:0;padding-inline-end:0;padding-bottom:8px;border-bottom:1px solid var(--line)}
-  .proof-stat{padding-inline-start:2px}
-}
+/* retired section 6 (social proof) removed */
 
 /* ============================================================================
    7. Final CTA
@@ -498,19 +417,7 @@ ul,ol{padding:0;list-style:none}
 .faq-item__body a{color:var(--emerald-deep);font-weight:700;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:900px){.faq-grid{grid-template-columns:1fr}.faq-art{order:2;margin-top:14px}.faq-head .btn{order:3;justify-self:start;margin-top:6px}}
 
-/* ============================================================================
-   9. Demo request block
-   ========================================================================== */
-.form-card{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(18px,3vw,42px);
-  align-items:start;padding:clamp(18px,3vw,38px);border-radius:var(--r-xl);
-  }
-.form-card__copy .h2{margin-top:10px}
-.form-card__list{display:grid;gap:8px;margin-top:16px}
-.form-card__list li{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--ink-2)}
-.form-card__list svg{flex:0 0 17px;width:17px;height:17px;color:var(--emerald)}
-.form-card__direct{margin-top:18px}
-.form-card__body{padding:clamp(13px,1.9vw,20px);border-radius:var(--r-lg);background:var(--cream-2);border:1px solid var(--line)}
-@media(max-width:880px){.form-card{grid-template-columns:1fr;padding:16px}.form-card__body{padding:13px}}
+/* retired section 9 (demo request form-card) removed */
 
 /* ============================================================================
    10. Footer
@@ -540,7 +447,7 @@ ul,ol{padding:0;list-style:none}
 .foot-social svg{width:16px;height:16px}
 .foot-col h3{display:flex;align-items:center;gap:6px;font-size:13.5px;font-weight:800;color:var(--ink);margin-bottom:11px}
 .foot-col h3 svg{width:15px;height:15px;color:var(--emerald-deep)}
-.foot-col li{margin-bottom:8px}
+.foot-col li{margin-bottom:2px}
 .foot-col a,.foot-col span{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--ink-soft);line-height:1.7}
 .foot-col a:hover{color:var(--emerald-deep)}
 .foot-col svg{width:14px;height:14px;flex:0 0 auto;color:var(--emerald-deep)}
@@ -638,9 +545,6 @@ ul,ol{padding:0;list-style:none}
 .pay-ref b{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.08em;color:var(--ink);
   background:var(--emerald-wash);border-radius:8px;padding:2px 8px}
 
-.pay-steps{margin:0;padding-inline-start:20px;display:grid;gap:4px;font-size:13.5px;color:var(--ink-soft);line-height:1.9}
-.pay-steps li::marker{color:var(--emerald);font-weight:800}
-
 .pay-coupon{display:grid;gap:10px;grid-template-columns:1fr auto;align-items:end;padding-top:4px;border-top:1px dashed var(--line-2)}
 .pay-coupon .field{display:grid;gap:6px;font-size:13.5px;font-weight:600;color:var(--ink-2)}
 
@@ -701,61 +605,7 @@ body.is-paying .sticky-cta{display:none!important}
 .plan[data-open="false"] .plan__pending{display:block}
 .plan[data-open="true"] .plan__pending{display:none}
 
-/* ============================================================================
-   Showcase films — the three service clips (#films)
-   One screen, three tabs. The frame is the page's only dark surface above the
-   footer, so the video reads as a cinema screen instead of another card.
-   ========================================================================== */
-.films{background:var(--cream)}
-.films__head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
-  gap:clamp(16px,2.6vw,32px);margin-bottom:clamp(20px,2.8vw,32px)}
-.films__head .h2{margin:0}
-.films__head .sub{margin:8px 0 0;max-width:56ch}
-.films__tabs{display:inline-flex;gap:6px;padding:5px;border-radius:var(--r-pill);
-  background:var(--cream-2);border:1px solid var(--line);box-shadow:var(--shadow-sm)}
-.film-tab{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:0 16px;border:0;
-  border-radius:var(--r-pill);color:var(--ink-soft);font:inherit;font-size:14px;
-  font-weight:800;cursor:pointer}
-.film-tab:hover{--glass-bg:rgba(255,255,255,.84);color:var(--emerald-deep)}
-.film-tab__icon{display:grid;place-items:center;width:20px;height:20px}
-.film-tab__icon svg{width:19px;height:19px}
-.films__frame{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);align-items:center;
-  border-radius:var(--r-xl);overflow:hidden;background:var(--ink);box-shadow:var(--shadow-md)}
-/* The clips are all 16:9. Without a fixed ratio the caption column would stretch the
-   screen and object-fit:cover would crop the model's head, so the screen keeps its own
-   aspect and centres itself in the row. */
-.films__screen{position:relative;background:#07161C;aspect-ratio:16/9;overflow:hidden;
-  width:100%;align-self:center}
-.films__video{width:100%;height:100%;object-fit:cover;display:block;background:#07161C}
-.films__video.is-broken{opacity:.28}
-.films__play{position:absolute;inset:0;display:grid;place-items:center;width:100%;height:100%;
-  border:0;background:rgba(7,22,28,.32);color:#fff;cursor:pointer;transition:background .18s var(--ease)}
-.films__play[hidden]{display:none}
-.films__play:hover{background:rgba(7,22,28,.34)}
-.films__play svg{width:74px;height:74px;padding:20px;border-radius:50%;background:rgba(7,22,28,.62);
-  border:2px solid rgba(252,243,235,.85);box-shadow:0 10px 30px rgba(0,0,0,.35)}
-@media(max-width:520px){.films__play svg{width:58px;height:58px;padding:15px}}
-.films__error{position:absolute;inset-inline:16px;inset-block-end:16px;margin:0;padding:10px 14px;
-  border-radius:var(--r-sm);background:rgba(7,22,28,.9);border:1px solid rgba(252,243,235,.35);
-  color:var(--cream);font-size:13px;line-height:1.8}
-.films__error[hidden]{display:none}
-.films__caption{display:flex;flex-direction:column;justify-content:center;gap:10px;
-  padding:clamp(20px,3vw,38px);background:var(--ink);color:var(--cream)}
-.films__caption strong{font-size:clamp(19px,2.2vw,25px);font-weight:900;line-height:1.5}
-.films__caption p{margin:0;font-size:14.5px;line-height:1.95;color:rgba(252,243,235,.78)}
-.films__cta{margin-top:6px;align-self:flex-start;font-size:14px;font-weight:800;color:var(--emerald-soft);
-  text-decoration:underline;text-underline-offset:4px;min-height:44px;display:inline-flex;align-items:center;gap:8px}
-.films__cta:hover{color:#fff}
-@media(max-width:900px){
-  .films__frame{grid-template-columns:1fr}
-  .films__caption{padding:20px 18px 24px}
-  .films__tabs{width:100%;justify-content:space-between}
-  .film-tab{flex:1 1 0;justify-content:center;padding:0 10px}
-}
-@media(max-width:430px){
-  .film-tab span:not(.film-tab__icon){font-size:13px}
-  .film-tab__icon{display:none}
-}
+/* retired #films showcase section removed */
 
 /* ============================================================================
    Try-on (the demo salon, embedded) — #try-on
@@ -1088,22 +938,7 @@ body.is-paying .sticky-cta{display:none!important}
   100%{opacity:1;transform:none}
 }
 
-/* ── the films: the screen lifts out of the page and the tabs deal in ── */
-#films .films__frame{
-  will-change:transform,opacity;
-  animation:cine-film 1000ms linear backwards paused;
-  animation-delay:calc(var(--fp,1) * -999ms);
-}
-@keyframes cine-film{
-  0%{opacity:0;filter:blur(6px);transform:perspective(1400px) translate3d(0,46px,-40px) scale(.94) rotateX(9deg)}
-  70%{opacity:1;filter:blur(0);transform:perspective(1400px) translate3d(0,-2px,4px) scale(1.005) rotateX(-1deg)}
-  100%{opacity:1;filter:blur(0);transform:none}
-}
-#films .film-tab{
-  animation:cine-tab 800ms linear backwards paused;
-  animation-delay:calc(var(--tp,1) * -999ms);
-}
-@keyframes cine-tab{0%{opacity:0;transform:translate3d(0,16px,0) scale(.96)}100%{opacity:1;transform:none}}
+/* retired #films animation rules removed */
 
 /* ── the demo: the window slides up, the four service buttons deal in ── */
 #try-on .tryon__frame{
@@ -1298,7 +1133,7 @@ body.is-paying .sticky-cta{display:none!important}
 /* the tick inside a plan feature is a stroke on that disc, so it gets the emboss too */
 .plan li svg{
   filter:drop-shadow(0 1px 0 rgba(255,255,255,.95)) drop-shadow(0 -1px 0 rgba(7,66,55,.22));
-  font-size:15px;
+  width:21px;height:21px;padding:3px;font-size:13.5px;
 }
 /* an arrow points the way it travels: ← forward, → back (this whole site is RTL) */
 /* The footer's social tiles are clay on a dark ground, so their hover lifts the tile rather
@@ -1478,52 +1313,32 @@ body.is-paying .sticky-cta{display:none!important}
 }
 
 /* ============================================================================
-   The storybook — one salon day, dawn to dusk, in six illustrated chapters
-   (src/story.js). The layer is fixed under the content (z-index -1, the page
-   colour lives on <html>), its art only fills the side margins, and turning
-   into the next chapter turns the current page over like a book page.
+   Scroll-scrubbed cinematic brand film (src/story.js) — full-bleed architectural
+   salon scenes visible on both phones and desktops, cross-dissolving with gentle
+   camera glide under a calibrated warm alabaster veil for crisp readability.
    ============================================================================ */
 html{background:var(--cream)}
 body{background:transparent}
-/* The sections stop painting their own flat colour so the chapter shows through; the
-   alternating rhythm survives as a light veil instead of an opaque block. */
-.section--soft,.tryon,#salon-example{background:rgba(248,240,232,.5)}
+.section--soft,.tryon,#salon-example{background:rgba(248,240,232,.26)}
+.section:not(.section--soft):not(.hero){background:rgba(252,243,235,.16)}
 .films,.play,.cta-section{background:transparent}
-.story{position:fixed;inset:0;z-index:-1;pointer-events:none;perspective:2200px;overflow:hidden;contain:strict}
-.story__page{position:absolute;inset:0;opacity:0;visibility:hidden;transform-style:preserve-3d;backface-visibility:hidden;
-  transform-origin:100% 50%;transition:opacity .45s var(--ease),visibility 0s .45s}
-.story__page.is-on{opacity:1;visibility:visible;transition:opacity .45s var(--ease),visibility 0s}
-.story__page.is-under{z-index:1}
-.story__page.is-turning{z-index:2;animation:storyTurn 1s cubic-bezier(.55,.05,.35,1) forwards}
-.story__page.is-turning.is-back{transform-origin:0% 50%;animation-name:storyTurnBack}
-/* the turning page catches light, then falls into shadow as it goes over */
-.story__page::after{content:"";position:absolute;inset:0;opacity:0;
-  /* the shadow falls on the spine, which in a Persian book is the end edge */
-  background:linear-gradient(270deg,rgba(10,32,42,.10),rgba(252,243,235,.0) 40%,rgba(252,243,235,.55) 100%)}
-.story__page.is-turning::after{animation:storyShade 1s ease-in-out forwards}
-@keyframes storyTurn{0%{transform:rotateY(0)}100%{transform:rotateY(-105deg);opacity:.15}}
-@keyframes storyTurnBack{0%{transform:rotateY(0)}100%{transform:rotateY(105deg);opacity:.15}}
-@keyframes storyShade{0%{opacity:0}45%{opacity:1}100%{opacity:.6}}
-.story__art{position:absolute;top:50%;height:min(100vh,1040px);width:auto;max-width:none;transform:translateY(-50%);opacity:.5}
-.story__art--l{inset-inline-start:0}
-.story__art--r{inset-inline-end:0}
-/* the folio: which chapter of the day this is */
-.story__folio{position:absolute;inset-inline-start:clamp(14px,2vw,28px);bottom:clamp(14px,2.4vh,26px);display:grid;gap:1px;
-  padding:7px 13px;border-radius:var(--r-pill);background:rgba(252,243,235,.86);border:1px solid var(--line-2);
-  box-shadow:var(--shadow-sm);font-size:12px;line-height:1.6;color:var(--ink-soft)}
-.story__num{font-weight:800;color:var(--emerald-deep);letter-spacing:.01em}
-.story__name{font-weight:700}
-@media(max-width:1100px){.story__folio{display:none}}
-@media(max-width:900px){
-  /* Phones and tablets: the margins are thin, so each chapter keeps one corner of art at the
-     top and one at the bottom, smaller and lighter, behind the content. */
-  .story__art{height:36vh;opacity:.2;transform:none}
-  .story__art--l{top:0}
-  .story__art--r{top:auto;bottom:0}
+.story{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;contain:strict}
+.story__frame{position:absolute;inset:0;opacity:0;will-change:opacity}
+.story__frame.is-on{visibility:visible}
+.story__img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;will-change:transform;transform:scale(1.04);filter:saturate(1.06) contrast(1.03)}
+.story__veil{position:absolute;inset:0;background:radial-gradient(ellipse 80% 70% at 50% 42%,var(--veil-tone,rgba(252,243,235,.44)) 0%,rgba(252,243,235,.22) 72%,rgba(245,235,224,.38) 100%),linear-gradient(180deg,rgba(252,243,235,.28) 0%,rgba(252,243,235,.1) 48%,rgba(252,243,235,.3) 100%);transition:background .45s var(--ease)}
+.story__rail{position:absolute;top:18vh;bottom:18vh;inset-inline-end:clamp(6px,1vw,14px);width:2.5px;border-radius:2px;background:rgba(10,107,84,.14);overflow:hidden}
+.story__rail i{display:block;width:100%;height:100%;background:linear-gradient(180deg,var(--emerald),var(--emerald-deep));transform-origin:top;transform:scaleY(0)}
+.story__bar{display:none}
+@media(max-width:760px){
+  .story__veil{background:radial-gradient(ellipse 94% 72% at 50% 42%,var(--veil-tone,rgba(252,243,235,.46)) 0%,rgba(252,243,235,.28) 78%,rgba(245,235,224,.4) 100%)}
+  .story__rail{display:none}
+  .story__bar{display:block;position:fixed;top:0;inset-inline:0;height:2.5px;background:rgba(10,107,84,.12)}
+  .story__bar i{display:block;width:100%;height:100%;background:linear-gradient(270deg,var(--emerald-deep),var(--emerald));transform-origin:right;transform:scaleX(0)}
 }
 @media(prefers-reduced-motion:reduce){
-  .story__page.is-turning{animation:none;opacity:0}
-  .story__page.is-turning::after{animation:none}
+  .story__img{transform:none!important}
+  .story__frame{transition:none}
 }
 
 /* ============================================================================
@@ -1534,80 +1349,40 @@ body{background:transparent}
 .svc__go,.foot-social a{position:relative}
 .svc__go::before,.nav-btn::before,.foot-social a::before{content:"";position:absolute;inset:-7px;border-radius:50%}
 .nav-btn::before{inset:-8px}
-.btn--login,.site-header .header-cta .btn{min-height:44px}
-.brand{min-height:44px}
-.sb-add{min-height:44px}
-.sb-color input[type=color]{height:44px}
-.foot-col a{min-height:40px}
+.btn--login,.site-header .header-cta .btn,.brand,.sb-add{min-height:44px}
+.btn--login{min-width:44px;justify-content:center}
+.sb-color input[type=color],#salon-example .sb-color input[type=color]{height:44px}
+.foot-col a{min-height:44px}
 .foot-col li{margin-bottom:2px}
-/* the testimonial dots were 7px wide targets: now 32px buttons that draw the same dot */
 .quote-dots{gap:0}
-.quote-dots button{position:relative;width:32px;height:32px;background:transparent!important;border-radius:50%}
+.quote-dots button,.quote-dots button[aria-selected="true"]{position:relative;width:44px;height:44px;background:transparent!important;border-radius:50%}
 .quote-dots button::after{content:"";position:absolute;inset:0;margin:auto;width:7px;height:7px;border-radius:50%;
   background:var(--line-2);transition:width .2s var(--ease),background .2s var(--ease)}
-.quote-dots button[aria-selected="true"]{width:32px}
 .quote-dots button[aria-selected="true"]::after{width:20px;border-radius:4px;background:var(--emerald)}
-/* Readable labels: nothing a visitor has to read is under 12px. */
-.play-card__nm{font-size:12px}
-.play-sw__nm{font-size:12px}
-.play-hint{font-size:12.5px}
-.play-dock__top h3 span,.play-dock__count{font-size:12.5px}
-.play__note,.tryon__badge{font-size:12.5px}
-.compare__tag,.compare__badge{font-size:12px}
-.sample{font-size:12px}
-.quote__flag{font-size:12px}
-#slugHint{font-size:12.5px}
-@media(max-width:520px){
-  .play-sw{width:56px;height:46px}
-  .play-sw__nm{font-size:12px}
-  .play-card{flex-basis:68px}
-  .play-card__nm{font-size:12px}
-  .play-hint{font-size:12px}
-}
-/* Focus stays visible on the dark footer and the dark film panel. */
-.site-footer :focus-visible,.films :focus-visible{outline-color:var(--cream)}
-.btn--login{min-width:44px;justify-content:center}
-.foot-col a{min-height:44px}
-.quote-dots button,.quote-dots button[aria-selected="true"]{width:44px;height:44px}
-#salon-example .sb-color input[type=color]{height:44px}
-.play-picked span{font-size:12px}
+.play-card__nm,.compare__tag,.compare__badge,.sample,.quote__flag,.play-picked span{font-size:12px}
+.play-hint,.play-dock__top h3 span,.play-dock__count,.play__note,.tryon__badge,#slugHint{font-size:12.5px}
 .play-palette h3{font-size:13px}
 .play-sw{height:auto;min-height:46px}
 .play-sw__nm{font-size:12px;white-space:normal;text-overflow:clip;line-height:1.3;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 @media(max-width:520px){
   .play-sw{width:62px;min-height:52px}
-  .play-sw__nm{font-size:12px}
-  .play-card__nm{font-size:12px}
+  .play-card{flex-basis:68px}
+  .play-hint{font-size:12px}
 }
-/* Story art never reaches under the text column: each strip is capped to the outer 22% of
-   the viewport and cropped from its inner side. */
-@media(min-width:901px){
-  .story__art{width:22vw;height:100vh;max-height:none;object-fit:cover;opacity:.46}
-  .story__art--l{object-position:0 50%}
-  .story__art--r{object-position:100% 50%}
-}
-
-/* ── strict review, round 2 ── */
-/* The AI badge labels the simulated side, so it sits over «بعد» (left in RTL), not «قبل». */
+.site-footer :focus-visible,.films :focus-visible{outline-color:var(--cream)}
 .compare__badge{inset-inline-start:auto;inset-inline-end:10px}
-/* «امکانات و خدمات»: five cards in two columns left the last one alone on its row. The odd
-   last card spans the row and lays its photo beside its text. */
 @media(min-width:861px){
   .svc-grid>.svc:last-child:nth-child(odd){grid-column:1/-1;flex-direction:row;align-items:stretch}
   .svc-grid>.svc:last-child:nth-child(odd) .svc__media{flex:0 0 50%;aspect-ratio:auto;height:260px}
   .svc-grid>.svc:last-child:nth-child(odd) .svc__media img{position:absolute;inset:0;height:100%}
   .svc-grid>.svc:last-child:nth-child(odd) .svc__foot{flex:1;align-self:center;padding:clamp(18px,2.4vw,32px)}
 }
-/* CTA chips: the forced two-line break only makes sense in the three-up row. */
 @media(max-width:560px){.cta-chips br{display:none}}
-/* Header: the menu item for the section on screen is the one underlined. */
 .nav a:not([aria-current="page"])::after{transform:scaleX(0)}
 .nav a:hover::after{transform:scaleX(1)}
 .play-replay{font-size:12.5px;min-height:48px}
 .quote-nav{flex-basis:44px;width:44px;height:44px}
-.play-sw__nm,.sample{font-size:12px}
-@media(max-width:520px){.play-sw__nm{font-size:12px}}
 .nav a{padding-inline:8px}
 /* The colour rail rides the start wall of the stage; the hint and the replay pill sit on the
    end wall, so the two never meet on a narrow screen. Both are placed with logical edges. */
@@ -1668,7 +1443,7 @@ body{background:transparent}
   -webkit-backdrop-filter:var(--glass-blur);backdrop-filter:var(--glass-blur);
   box-shadow:var(--glass-lift-p),var(--glass-shadow-p);
   color:#fff;text-shadow:0 1px 1px rgba(3,45,36,.35);
-  font-size:clamp(19px,1.9vw,23px);font-weight:900;line-height:1.4;text-align:center}
+  font-size:clamp(19px,1.9vw,23px);font-weight:900;line-height:1.4;text-align:center;font-variant-numeric:tabular-nums}
 .plan__amount b{font-size:1.25em}
 .plan ul{text-align:start}
 .plan ul li{padding-block:6px;border-bottom:1px solid var(--line)}

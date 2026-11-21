@@ -219,7 +219,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(path==='/api/panel/login'&&req.method==='POST'){
   await limited(db,'panel-login:'+clientIp(req),20,'تلاش‌های زیاد؛ کمی بعد دوباره امتحان کنید');
   const b=await req.json().catch(()=>({}));
-  const {token,maxAge}=await panelLogin(db,b.key);
+  const {token,maxAge}=await panelLogin(db,b.key?b.key:{username:b.username,password:b.password});
   return J({ok:true},200,{'Set-Cookie':'ayneh_panel='+token+'; HttpOnly'+(u.protocol==='https:'?'; Secure':'')+'; SameSite=Lax; Path=/; Max-Age='+maxAge});
  }
  if(path==='/api/panel/logout'&&req.method==='POST'){await panelLogout(req,db);return J({ok:true},200,{'Set-Cookie':'ayneh_panel=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0'});}

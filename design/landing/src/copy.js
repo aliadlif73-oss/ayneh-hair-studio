@@ -25,6 +25,14 @@
     });
     tabs.forEach(t => { t.setAttribute('aria-selected', String(t.dataset.tab === key)); t.tabIndex = t.dataset.tab === key ? 0 : -1; });
     single.forEach(el => { el.hidden = key === 'salon'; });
+    const act = document.getElementById('ptabsActive');
+    if (act) {
+      act.hidden = key === 'salon';
+      if (key !== 'salon' && tab) {
+        const b = act.querySelector && act.querySelector('b'); if (b) b.textContent = tab.textContent.trim();
+        if (act.classList) { act.classList.remove('is-pop'); void act.offsetWidth; act.classList.add('is-pop'); }
+      }
+    }
   };
   bar.hidden = tabs.length < 2;
   tabs.forEach(t => t.addEventListener('click', () => show(t.dataset.tab)));
@@ -80,5 +88,29 @@
  if(m.matches){v.autoplay=false;v.pause()}else v.play().catch(()=>{});
  m.addEventListener?.('change',e=>{if(e.matches){p=true;v.pause();st()}});
  st();
+})();
+
+/* Post-loader hero choreography: type headline center-stage (joined Persian glyphs), hold 1s, lift #h1 up, type lead, reveal perks one-by-one. */
+(()=>{
+if(!document.querySelector||typeof matchMedia!=='function'||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+const hero=document.getElementById('intro'),box=hero&&hero.querySelector('.hero-copy');if(!box)return;
+const h1=box.querySelector('#h1'),lead=box.querySelector('.hero-lead');if(!h1||!lead)return;
+const acc=h1.querySelector('.h1__accent'),perks=[...box.querySelectorAll('.hero-perk')],acts=box.querySelector('.hero-actions');
+const accTxt=acc?acc.textContent:'',mainTxt=acc?h1.textContent.slice(0,h1.textContent.length-accTxt.length):h1.textContent,leadTxt=lead.textContent.trim();
+if(!mainTxt.trim())return;
+h1.setAttribute('aria-label',(mainTxt+' '+accTxt).trim());lead.setAttribute('aria-label',leadTxt);
+const h1H=h1.getBoundingClientRect().height,leadH=lead.getBoundingClientRect().height;
+if(h1H>20)h1.style.minHeight=Math.ceil(h1H)+'px';if(leadH>16)lead.style.minHeight=Math.ceil(leadH)+'px';
+const caret=document.createElement('span');caret.className='ayn-caret';caret.setAttribute('aria-hidden','true');
+const mainNode=document.createTextNode(''),accNode=document.createTextNode(''),leadNode=document.createTextNode('');
+h1.textContent='';h1.append(mainNode,caret);if(acc){acc.textContent='';acc.append(accNode);h1.append(acc)}lead.textContent='';lead.append(leadNode);
+hero.classList.add('is-choreo','is-stage');box.classList.add('is-choreo','is-stage');
+let off=false,go=false;const tm=[],w=ms=>new Promise(r=>{tm.push(setTimeout(r,ms))});
+const fin=()=>{if(off)return;off=true;tm.forEach(clearTimeout);caret.remove();mainNode.textContent=mainTxt;if(acc)accNode.textContent=accTxt;leadNode.textContent=leadTxt;hero.classList.remove('is-stage','is-choreo');hero.classList.add('is-vis');box.classList.remove('is-stage','is-choreo');lead.classList.add('is-in');perks.forEach(p=>p.classList.add('is-in'));if(acts)acts.classList.add('is-in');h1.style.minHeight='';lead.style.minHeight=''};
+const typ=async(node,s,sp)=>{const a=[...s];for(let i=0;i<a.length;i++){if(off)return;node.textContent=a.slice(0,i+1).join('');await w(a[i]===' '?Math.round(sp*.5):sp)}};
+const onS=()=>{if(scrollY>260){fin();removeEventListener('scroll',onS)}};
+const run=async()=>{if(go||off)return;go=true;if(scrollY>260){fin();return}setTimeout(()=>{if(!off)addEventListener('scroll',onS,{passive:true})},350);await w(120);await typ(mainNode,mainTxt,36);if(acc&&accTxt&&!off){await w(180);acc.append(caret);await typ(accNode,accTxt,34)}if(off)return;await w(1000);if(off)return;hero.classList.remove('is-stage');box.classList.remove('is-stage');setTimeout(()=>{if(!off)hero.classList.add('is-vis')},180);await w(680);if(off)return;lead.classList.add('is-in');lead.append(caret);await typ(leadNode,leadTxt,22);if(off)return;caret.remove();await w(180);for(const p of perks){if(off)return;p.classList.add('is-in');await w(340)}if(off)return;await w(120);if(acts)acts.classList.add('is-in');await w(600);if(!off){hero.classList.remove('is-choreo');box.classList.remove('is-choreo');h1.style.minHeight='';lead.style.minHeight='';removeEventListener('scroll',onS)}};
+box.addEventListener('click',e=>{if(e.target&&e.target.closest&&e.target.closest('a,button'))fin()});
+if(window.__AYN_READY)run();else{addEventListener('ayneh:ready',run,{once:true});tm.push(setTimeout(run,5000))}
 })();
 
