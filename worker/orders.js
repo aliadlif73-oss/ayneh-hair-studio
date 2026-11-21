@@ -23,6 +23,7 @@ import {applyPlan, grant, balance, MONTH} from './credits.js';
 import {featuresOf, OPENED_BY, can, seatsOf} from './plans.js';
 import {confirmCustomerPack} from './customers.js';
 import {rewardReferral} from './rewards.js';
+import {uniqueAmount} from './paysms.js';
 
 const run = (db, sql, ...a) => db.prepare(sql).bind(...a).run();
 const one = (db, sql, ...a) => db.prepare(sql).bind(...a).first();
@@ -347,6 +348,8 @@ export async function createRenewal(db, env, {order: panelOrder, salon}, plan, o
 }
 
 async function insert(db, row) {
+  /* The bank SMS shows only the amount, so an open order never shares it (worker/paysms.js). */
+  if (row.status === 'open') row.amount = await uniqueAmount(db, row.amount, row.id);
   await run(db,
     'INSERT INTO orders(id,ref,plan,kind,service,users,credits,amount,salon_name,contact_name,phone,city,note,status,expires_at,access_key_hash,pass_hash,draft,coupon,discount,salon_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
     row.id, row.ref, row.plan, row.kind, row.service, Number(row.users || 0), row.credits, row.amount, row.salon_name, row.contact_name, row.phone, row.city, row.note,
@@ -393,7 +396,7 @@ export async function setCoupon(db, env, id, code, origin = '') {
   const coupon = discountFor(code, base, await couponTable(db));
   must(coupon.code, 'این کد تخفیف معتبر نیست یا ظرفیتش پر شده.', 422);
   await run(db, 'UPDATE orders SET coupon=?,discount=?,amount=?,updated_at=? WHERE id=? AND status=?',
-    coupon.code, coupon.toman * 10, (base - coupon.toman) * 10, Date.now(), id, 'open');
+    coupon.code, coupon.toman * 10, await uniqueAmount(db, (base - coupon.toman) * 10, id), Date.now(), id, 'open');
   return publicOrder(db, env, await orderById(db, id), {origin});
 }
 
@@ -425,7 +428,7 @@ export async function confirmOrder(db, env, id, {by = 'owner', origin = '', amou
   }
   let replacedPaid = null;
   if (row.status !== 'paid') {
-    const late = by === 'webhook' && reported !== null;
+    const late = (by === 'webhook' || by === 'sms') && reported !== null;
     const allowed = late ? ['open', 'reviewing', 'expired'] : ['open', 'reviewing'];
     /* A transfer to an order the same buyer replaced (a second click, a reload) may still be in
        flight: with the exact amount it is confirmed, unless an order that replaced it was paid
@@ -435,7 +438,7 @@ export async function confirmOrder(db, env, id, {by = 'owner', origin = '', amou
       if (!replacedPaid) allowed.push('cancelled');
     }
     if (!allowed.includes(row.status)) {
-      if (by === 'webhook') await missed(env, row, replacedPaid ? 'سفارش جایگزین آن (' + replacedPaid.ref + ') قبلاً پرداخت شده؛ احتمالاً دو بار واریز شده و باید برگردانده شود'
+      if (by === 'webhook' || by === 'sms') await missed(env, row, replacedPaid ? 'سفارش جایگزین آن (' + replacedPaid.ref + ') قبلاً پرداخت شده؛ احتمالاً دو بار واریز شده و باید برگردانده شود'
         : row.status === 'expired' ? 'بعد از ۱۰ دقیقه رسید و مبلغ را گزارش نکرد' : row.replaced_by ? 'سفارش جایگزین شده بود و مبلغ گزارش نشد' : 'این سفارش لغو شده بود');
       must(false, 'این سفارش بسته شده و قابل تأیید نیست.', 409);
     }

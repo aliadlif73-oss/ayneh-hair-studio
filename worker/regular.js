@@ -17,6 +17,7 @@ import {CUSTOMER_IMAGE_PRICE, CUSTOMER_PACKS, CUSTOMER_CUSTOM_DEFAULT, CUSTOMER_
 import {accountFor, anySession, customerBalance, directSalon, directUsed} from './customers.js';
 import {codeFor, referralStats} from './rewards.js';
 import {timingReport} from './timing.js';
+import {uniqueAmount} from './paysms.js';
 
 const J = (v, s = 200) => new Response(JSON.stringify(v), {status: s, headers: {'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store'}});
 const run = (db, sql, ...a) => db.prepare(sql).bind(...a).run();
@@ -66,11 +67,12 @@ export async function regularApi(req, env, u, path, {owner, clientIp}) {
       plan: 'بستهٔ ' + fa(count) + ' تصویر مشتری', amount: customerAmount(count) * 10, credits: count, created_at: now, expires_at: now + ORDER_MINUTES * 60000};
     /* No panel opens from this order: its key hash is of a random value nobody holds, and
        panel login only ever accepts kind 'plan'. */
+    row.amount = await uniqueAmount(db, row.amount, id);
     await run(db, 'INSERT INTO orders(id,ref,plan,kind,service,credits,amount,salon_name,contact_name,phone,city,note,status,expires_at,access_key_hash,coupon,discount,salon_id,customer_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
       row.id, row.ref, row.plan, 'customer_pack', '', count, row.amount, '', '', acc.phone || '', '', '', 'open', row.expires_at, await hashKey(uid()), '', 0, null, acc.id, now, now);
     try {
       const {notifyOwner} = await import('./alerts.js');
-      await notifyOwner(env, {kind: 'order', level: 'good', text: 'خرید ' + fa(count) + ' تصویر مشتری باز شد', detail: '💳 ' + row.ref + ' · ' + fa(customerAmount(count)) + ' تومان\n⏳ ' + ORDER_MINUTES + ' دقیقه'});
+      await notifyOwner(env, {kind: 'order', level: 'good', text: 'خرید ' + fa(count) + ' تصویر مشتری باز شد', detail: '💳 ' + row.ref + ' · ' + fa(row.amount / 10) + ' تومان\n⏳ ' + ORDER_MINUTES + ' دقیقه'});
     } catch {}
     return J(await packView(db, env, await orderById(db, row.id), u.origin));
   }

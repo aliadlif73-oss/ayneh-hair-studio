@@ -418,6 +418,7 @@ function payCard(){
      h('small','نشانی (POST)'),el('code',{text:p.webhook.url}),
      h('small','هدر Authorization'),el('code',{text:'Bearer '+p.webhook.key}),
      h('small','بدنهٔ نمونه'),el('code',{text:'{"ref":"'+((o.orders[0]||{}).ref||'AY······')+'","status":"paid"}'}),
+     h('small','پیامک بانک از گوشی (همین توکن؛ متن پیامک در فیلد text)'),el('code',{text:p.webhook.sms_url}),
      el('div',{class:'row'},[el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'ساخت توکن تازه',onclick:act(function(){if(!confirm('توکن قبلی از کار می‌افتد؛ سرویس سایت پرداخت را هم به‌روز کنید. ادامه؟'))return;return api('/api/owner/payment',{rotate:true}).then(load)})})])
     ]),
     h('h3','سفارش‌ها','sub'),

@@ -11,6 +11,7 @@ import {stats} from './stats.js';
 import {smsReady,inviteReady,sendOtp} from './sms.js';
 import {createTrial,trialOf,trialLive,trialPublic,spendTrialImage} from './trial.js';
 import {PLANS as PLANS_TABLE} from './prices.js';
+import {smsConfirm} from './paysms.js';
 import {createOrder,createTopup,createRenewal,customerOrder,setCoupon,confirmOrder,webhookConfirm,reopenOrder,rekeyOrder,closeExpired,cardSetting,saveCard,
  webhookKey,rotateWebhookKey,panelLogin,panelSalon,panelLogout,panelDashboard,tickChecklist,ORDER_MINUTES,SERVICE_LABEL} from './orders.js';
 import {spendCredit,planOf} from './credits.js';
@@ -136,7 +137,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
     sends Origin on a cross-site POST. A server-to-server caller (the payment site's webhook)
     sends none, and carries a bearer token instead, so the check is skipped only for that one
     path — where the token, not a cookie, is the credential. */
- if(req.method!=='GET'){if(path!=='/api/pay/confirm')must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
+ if(req.method!=='GET'){if(path!=='/api/pay/confirm'&&path!=='/api/pay/sms')must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
  if(path==='/api/event'&&req.method==='POST'){
   await limited(db,'event:'+clientIp(req),1200);
   const b=await req.json().catch(()=>({}));
@@ -211,6 +212,18 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   return J({ok:true,status:r.order.status,ref:r.order.ref,page:r.order.page_url});
  }
 
+ // The bank's deposit SMS, forwarded from the owner's phone (iPhone Shortcut or any SMS
+ // forwarder): same token as /api/pay/confirm; body JSON {text} or the plain SMS text.
+ // The amount alone picks the order (worker/paysms.js); no match opens nothing and alerts.
+ if(path==='/api/pay/sms'&&req.method==='POST'){
+  const expected=await webhookKey(db);
+  const given=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'')||req.headers.get('x-webhook-key')||'';
+  must(expected&&same(String(given),expected),'توکن وب‌هوک معتبر نیست',401);
+  const raw=await req.text();let t=raw;
+  if(/json/i.test(req.headers.get('content-type')||'')){try{const b=JSON.parse(raw);t=b.text??b.message??b.body??b.sms??''}catch{t=''}}
+  return J({ok:true,...await smsConfirm(db,env,t,u.origin)});
+ }
+
  /* ---------- salon panel (the door the plan opens) ---------- */
  // Requests, bot link, bookings, report, archive and support (worker/panelapi.js).
  {const pa=await panelApi(req,env,u,path);if(pa)return pa;}
@@ -279,7 +292,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(path==='/api/owner/payment'&&req.method==='GET'){await owner(req,env);
   const card=await cardSetting(db);
   return J({card:card.number,owner:card.owner,valid:card.valid,minutes:ORDER_MINUTES,
-   webhook:{url:(env.APP_ORIGIN||u.origin)+'/api/pay/confirm',key:await webhookKey(db)},
+   webhook:{url:(env.APP_ORIGIN||u.origin)+'/api/pay/confirm',sms_url:(env.APP_ORIGIN||u.origin)+'/api/pay/sms',key:await webhookKey(db)},
    plans:PLANS_TABLE});}
  if(path==='/api/owner/payment'&&req.method==='POST'){await owner(req,env);
   const b=await req.json().catch(()=>({}));

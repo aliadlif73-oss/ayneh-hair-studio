@@ -3027,3 +3027,52 @@ test('hero choreography, scroll cinema backdrop, and UI/UX alignment fixes',()=>
 });
 
 
+
+/* Bank SMS confirmation (worker/paysms.js): the owner's phone forwards the deposit SMS; the
+   amount alone picks the one open order, which opens exactly like the webhook. */
+test('pay sms: a forwarded Blu deposit SMS confirms the one order with that exact amount; duplicates, withdrawals and unknown amounts open nothing', async () => {
+  const {parseDeposit} = await import('../worker/paysms.js');
+  const blu = rial => 'بلو\nواریز پول\nامید عزیز،' + rial.toLocaleString('en-US') + ' ریال به حساب شما نشست.\nموجودی: 50,171,153 ریال\n۱۸:۰۲\n۱۴۰۵.۰۸.۲۵';
+  assert.equal(parseDeposit(blu(50000000)), 50000000);
+  assert.equal(parseDeposit('بلو\nواریز پول\nامید عزیز،۱۰٬۰۰۰٬۰۰۰ ریال به حساب شما نشست.\nموجودی: ۱۰٬۱۸۲٬۱۵۳ ریال'), 10000000);
+  assert.equal(parseDeposit('بلو\nبرداشت پول\n2,000,000 ریال از حساب شما کسر شد.\nموجودی: 1 ریال'), null);
+  assert.equal(parseDeposit('سلام'), null);
+  const e = fixture();
+  const restore = priced('pro', 1100000);
+  try {
+    const a = await call(e, '/api/order', orderBody());
+    const b = await call(e, '/api/order', orderBody('pro', {phone: '۰۹۱۲۷۶۵۴۳۲۱', salon: 'سالن دوم'}));
+    assert.equal(a.data.amount, 1100000, 'the first order keeps the plan price');
+    assert.notEqual(b.data.amount, a.data.amount, 'a second open order never shares an amount');
+    assert.ok(b.data.amount < 1100000 && b.data.amount >= 1100000 - 999, 'only a few toman off, never more');
+    const key = (await call(e, '/api/owner/payment', undefined, OWNER)).data.webhook.key;
+    assert.equal((await call(e, '/api/owner/payment', undefined, OWNER)).data.webhook.sms_url, origin + '/api/pay/sms');
+    const sms = (text, headers = {authorization: 'Bearer ' + key}) => app.fetch(new Request(origin + '/api/pay/sms', {method: 'POST', headers: {'content-type': 'text/plain', ...headers}, body: text}), e);
+    assert.equal((await sms(blu(b.data.amount * 10), {})).status, 401, 'no token');
+    assert.equal((await (await sms('بلو\nبرداشت پول\n2,000,000 ریال از حساب شما کسر شد.')).json()).ignored, true);
+    const none = await (await sms(blu(777000))).json();
+    assert.equal(none.matched, false);
+    const ok = await (await sms(blu(b.data.amount * 10))).json();
+    assert.equal(ok.matched, true);
+    assert.equal(ok.status, 'paid');
+    assert.equal(ok.ref, b.data.ref);
+    assert.equal((await call(e, '/api/order/' + b.data.id)).data.status, 'paid');
+    assert.equal((await call(e, '/api/order/' + a.data.id)).data.status, 'open', 'the other order is untouched');
+    assert.equal((await (await sms(blu(b.data.amount * 10))).json()).duplicate, true, 'the same SMS twice confirms once');
+    // JSON body {text} works too (an iPhone Shortcut).
+    const j = await app.fetch(new Request(origin + '/api/pay/sms', {method: 'POST', headers: {'content-type': 'application/json', authorization: 'Bearer ' + key}, body: JSON.stringify({text: blu(a.data.amount * 10)})}), e);
+    assert.equal((await j.json()).status, 'paid');
+  } finally { restore() }
+});
+
+test('pay sms: a transfer after the 10 minutes still opens the expired order with the exact amount', async () => {
+  const e = fixture();
+  const restore = priced('pro', 1100000);
+  try {
+    const a = await call(e, '/api/order', orderBody());
+    e.DB.sql.exec('UPDATE orders SET expires_at=1 WHERE id=?', a.data.id);
+    const key = (await call(e, '/api/owner/payment', undefined, OWNER)).data.webhook.key;
+    const r = await app.fetch(new Request(origin + '/api/pay/sms', {method: 'POST', headers: {authorization: 'Bearer ' + key}, body: 'بلو\nواریز پول\nامید عزیز،' + (a.data.amount * 10).toLocaleString('en-US') + ' ریال به حساب شما نشست.\nموجودی: 1 ریال'}), e);
+    assert.equal((await r.json()).status, 'paid');
+  } finally { restore() }
+});
