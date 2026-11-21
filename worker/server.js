@@ -220,7 +220,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   const given=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'')||req.headers.get('x-webhook-key')||'';
   must(expected&&same(String(given),expected),'توکن وب‌هوک معتبر نیست',401);
   const raw=await req.text();let t=raw;
-  if(/json/i.test(req.headers.get('content-type')||'')){try{const b=JSON.parse(raw);t=b.text??b.message??b.body??b.sms??''}catch{t=''}}
+  if(/json/i.test(req.headers.get('content-type')||'')){try{const b=JSON.parse(raw);t=b.text??b.message??b.body??b.sms??''}catch{t=raw}}
   return J({ok:true,...await smsConfirm(db,env,t,u.origin)});
  }
 

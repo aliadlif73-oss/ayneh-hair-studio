@@ -3062,6 +3062,11 @@ test('pay sms: a forwarded Blu deposit SMS confirms the one order with that exac
     // JSON body {text} works too (an iPhone Shortcut).
     const j = await app.fetch(new Request(origin + '/api/pay/sms', {method: 'POST', headers: {'content-type': 'application/json', authorization: 'Bearer ' + key}, body: JSON.stringify({text: blu(a.data.amount * 10)})}), e);
     assert.equal((await j.json()).status, 'paid');
+    // A forwarder that puts the raw SMS (real newlines) inside a JSON template still works.
+    const c = await call(e, '/api/order', orderBody('pro', {phone: '۰۹۱۲۰۰۰۱۱۲۲', salon: 'سالن سوم'}));
+    const broken = '{"from":"+989999987641","text":"' + blu(c.data.amount * 10) + '"}';
+    const k = await app.fetch(new Request(origin + '/api/pay/sms', {method: 'POST', headers: {'content-type': 'application/json; charset=utf-8', authorization: 'Bearer ' + key}, body: broken}), e);
+    assert.equal((await k.json()).status, 'paid');
   } finally { restore() }
 });
 
