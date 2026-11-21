@@ -12,7 +12,7 @@
 // the owner console's emergency confirm also works), which hands 'customer_pack' to customers.js.
 import {must, uid, limited} from './domain.js';
 import {smsReady} from './sms.js';
-import {publicOrder, closeExpired, orderById, panelSalon, hashKey, ORDER_MINUTES} from './orders.js';
+import {publicOrder, closeExpired, orderById, panelSalon, hashKey, ORDER_MINUTES, pickCard} from './orders.js';
 import {CUSTOMER_IMAGE_PRICE, CUSTOMER_PACKS, CUSTOMER_CUSTOM_DEFAULT, CUSTOMER_MAX_IMAGES, CUSTOMER_FREE_IMAGES, REFERRAL_IMAGES, customerAmount} from './customerprices.js';
 import {accountFor, anySession, customerBalance, directSalon, directUsed} from './customers.js';
 import {codeFor, referralStats} from './rewards.js';
@@ -68,8 +68,8 @@ export async function regularApi(req, env, u, path, {owner, clientIp}) {
     /* No panel opens from this order: its key hash is of a random value nobody holds, and
        panel login only ever accepts kind 'plan'. */
     row.amount = await uniqueAmount(db, row.amount, id);
-    await run(db, 'INSERT INTO orders(id,ref,plan,kind,service,credits,amount,salon_name,contact_name,phone,city,note,status,expires_at,access_key_hash,coupon,discount,salon_id,customer_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-      row.id, row.ref, row.plan, 'customer_pack', '', count, row.amount, '', '', acc.phone || '', '', '', 'open', row.expires_at, await hashKey(uid()), '', 0, null, acc.id, now, now);
+    await run(db, 'INSERT INTO orders(id,ref,plan,kind,service,credits,amount,salon_name,contact_name,phone,city,note,status,expires_at,access_key_hash,coupon,discount,salon_id,customer_id,card,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+      row.id, row.ref, row.plan, 'customer_pack', '', count, row.amount, '', '', acc.phone || '', '', '', 'open', row.expires_at, await hashKey(uid()), '', 0, null, acc.id, await pickCard(db), now, now);
     try {
       const {notifyOwner} = await import('./alerts.js');
       await notifyOwner(env, {kind: 'order', level: 'good', text: 'خرید ' + fa(count) + ' تصویر مشتری باز شد', detail: '💳 ' + row.ref + ' · ' + fa(row.amount / 10) + ' تومان\n⏳ ' + ORDER_MINUTES + ' دقیقه'});

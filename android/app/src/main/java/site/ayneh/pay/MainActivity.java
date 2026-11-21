@@ -61,7 +61,21 @@ public class MainActivity extends Activity {
         super.onResume();
         Store.setListener(this::render);
         render();
-        if (Store.paired(this)) Sender.schedule(this);
+        if (Store.paired(this)) { Sender.schedule(this); refreshConfig(); }
+    }
+
+    /** Picks up cards added in /admin (their bank SMS numbers) and notices a rotated token. */
+    private void refreshConfig() {
+        new Thread(() -> {
+            try {
+                Api.Result r = Api.post(Store.origin(this) + "/api/pay/ping", Store.key(this), new JSONObject());
+                if (r.code == 401) Store.setAuthFailed(getApplicationContext(), true);
+                else if (r.ok()) {
+                    Store.setSenders(getApplicationContext(), r.body.optJSONArray("senders"));
+                    if (Store.authFailed(this)) Store.setAuthFailed(getApplicationContext(), false);
+                }
+            } catch (Exception ignored) { }
+        }).start();
     }
 
     @Override
@@ -146,7 +160,7 @@ public class MainActivity extends Activity {
         LinearLayout c = card();
         c.addView(text("سه اجازه، فقط یک بار", 18, INK, true));
         c.addView(spaced(text("روی هر «اجازه بده» بزنید و در پنجرهٔ اندروید «Allow / اجازه» را انتخاب کنید.", 13, MUTED, false), 4));
-        c.addView(permRow("خواندن پیامک‌های بلو", "فقط پیامک‌های واریز بلو به سایت آینه فرستاده می‌شوند.", sms,
+        c.addView(permRow("خواندن پیامک‌های واریز", "فقط پیامک‌های واریز بانک کارت‌های شما به سایت آینه فرستاده می‌شوند.", sms,
                 v -> ask(Manifest.permission.RECEIVE_SMS)));
         if (Build.VERSION.SDK_INT >= 33)
             c.addView(permRow("اعلان‌ها", "با هر واریز تأییدشده خبرتان می‌کند.", notes,
@@ -193,7 +207,7 @@ public class MainActivity extends Activity {
         View dot = new View(this);
         dot.setBackground(round(ready ? EMERALD : 0xFFE08A00, 99, 0));
         row.addView(dot, new LinearLayout.LayoutParams(dp(12), dp(12)));
-        TextView st = text(ready ? "آماده است؛ واریزهای بلو خودکار تأیید می‌شوند" : "برای شروع، اجازه‌های بالا را بدهید", 15, INK, true);
+        TextView st = text(ready ? "آماده است؛ واریزها خودکار تأیید می‌شوند" : "برای شروع، اجازه‌های بالا را بدهید", 15, INK, true);
         st.setPadding(dp(10), 0, 0, 0);
         row.addView(st);
         c.addView(row);
@@ -227,7 +241,7 @@ public class MainActivity extends Activity {
         root.addView(spaced(text("واریزها", 18, INK, true), 4), matchWrap(dp(4), 0, dp(4), dp(8)));
         if (list.isEmpty()) {
             LinearLayout c = card();
-            c.addView(text("هنوز واریزی نیامده. اولین پیامک واریز بلو این‌جا دیده می‌شود.", 14, MUTED, false));
+            c.addView(text("هنوز واریزی نیامده. اولین پیامک واریز این‌جا دیده می‌شود.", 14, MUTED, false));
             root.addView(c, matchWrap(0, 0, 0, dp(14)));
             return;
         }
@@ -314,6 +328,7 @@ public class MainActivity extends Activity {
                 Api.Result r = Api.post(Api.DEFAULT_ORIGIN + "/api/pay/pair", null, new JSONObject().put("code", code));
                 if (r.ok() && !r.body.optString("key").isEmpty()) {
                     String origin = r.body.optString("origin", Api.DEFAULT_ORIGIN);
+                    Store.setSenders(getApplicationContext(), r.body.optJSONArray("senders"));
                     Store.pair(getApplicationContext(), origin.isEmpty() ? Api.DEFAULT_ORIGIN : origin, r.body.optString("key"));
                 } else err = r.error();
             } catch (Exception ex) { err = "به اینترنت وصل نیستید یا سایت در دسترس نیست."; }
@@ -341,6 +356,7 @@ public class MainActivity extends Activity {
                 if (r.code == 401) { Store.setAuthFailed(getApplicationContext(), true); msg = r.error(); }
                 else if (r.ok()) {
                     Store.setAuthFailed(getApplicationContext(), false);
+                    Store.setSenders(getApplicationContext(), r.body.optJSONArray("senders"));
                     msg = r.body.optBoolean("card") ? "اتصال سالم است ✓" : "اتصال سالم است، ولی شمارهٔ کارت در پنل مدیر ثبت نشده.";
                 } else msg = r.error();
             } catch (Exception ex) { msg = "به اینترنت وصل نیستید یا سایت در دسترس نیست."; }

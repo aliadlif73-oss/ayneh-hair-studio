@@ -32,7 +32,7 @@ public class SmsReceiver extends BroadcastReceiver {
         boolean any = false;
         for (Map.Entry<String, StringBuilder> e : bySender.entrySet()) {
             String body = e.getValue().toString();
-            if (Store.isDeposit(e.getKey(), body)) {
+            if (Store.isDeposit(context, e.getKey(), body)) {
                 Store.add(context, body, at);
                 any = true;
             }

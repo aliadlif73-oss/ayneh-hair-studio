@@ -377,8 +377,9 @@ function payCard(){
  var body=el('div',{class:'pay-admin'}),out=el('p',{class:'hint'});
  var cardEl=el('input',{id:'payCardNumber',dir:'ltr',inputmode:'numeric',maxlength:'19',placeholder:'۱۶ رقم، بدون خط تیره',autocomplete:'off'});
  var ownerEl=el('input',{id:'payCardOwner',maxlength:'60',placeholder:'نام و نام خانوادگی صاحب کارت'});
- var saveBtn=el('button',{class:'btn btn--primary',type:'button',text:'ذخیرهٔ کارت',onclick:act(function(){
-  return api('/api/owner/payment',{card:cardEl.value,owner:ownerEl.value}).then(function(d){out.textContent='ذخیره شد: '+d.card.number;out.hidden=false;load()})
+ var senderEl=el('input',{id:'payCardSender',dir:'ltr',inputmode:'numeric',maxlength:'16',value:'9999987641',placeholder:'9999987641'});
+ var saveBtn=el('button',{class:'btn btn--primary',type:'button',text:'افزودن / ذخیرهٔ کارت',onclick:act(function(){
+  return api('/api/owner/payment',{card:cardEl.value,owner:ownerEl.value,sender:senderEl.value}).then(function(d){out.textContent='ذخیره شد: '+d.card.number;out.hidden=false;cardEl.value='';ownerEl.value='';load()})
  })});
  // Persian digits and spaces are forgiven; the server still validates the number.
  cardEl.addEventListener('input',function(){cardEl.value=cardEl.value.replace(/[۰-۹]/g,function(x){return '۰۱۲۳۴۵۶۷۸۹'.indexOf(x)}).replace(/[^0-9 ]/g,'').replace(/(\d{4})(?=\d)/g,'$1 ').slice(0,19)});
@@ -405,14 +406,14 @@ function payCard(){
  function load(){
   return Promise.all([api('/api/owner/payment'),api('/api/owner/orders')]).then(function(r){
    var p=r[0],o=r[1];
-   cardEl.value=p.card||'';(function(){if(!ownerEl.value)ownerEl.value=p.owner||''})();
+   var cards=(p.cards||[]).map(function(c){return el('div',{class:'pay-admin__card',style:'display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap'},[el('span',{text:c.number.replace(/(\d{4})(?=\d)/g,'$1 ')+'  ·  '+c.owner+'  ·  پیامک از '+c.sender}),el('button',{class:'btn btn--ghost btn--sm',type:'button',text:'حذف',onclick:act(function(){if(!confirm('کارت '+c.number+' حذف شود؟ سفارش‌های تازه دیگر این کارت را نشان نمی‌دهند.'))return Promise.resolve();return api('/api/owner/payment',{remove:c.number}).then(load)})})])});
    out.hidden=true;
    var row=el('div',{class:'pay-admin__row'},[el('label',{class:'field'},[h('span','شمارهٔ کارت','lbl'),cardEl]),el('label',{class:'field'},[h('span','صاحب کارت','lbl'),ownerEl]),saveBtn]);
    var appCode=el('div',{class:'pay-admin__card',hidden:true,style:'text-align:center'});
    body.replaceChildren(
-    h('p','مشتری بعد از انتخاب پنل، همین کارت را می‌بیند و مبلغ را واریز می‌کند. تا این کارت پر نشود، صفحهٔ پرداخت جای آن را خالی می‌گذارد و هیچ شماره‌ای از خودش نمی‌سازد.','lead'),
-    el('div',{class:'pay-admin__card'+(p.valid?'':' is-empty'),text:p.valid?p.card:'شمارهٔ کارت هنوز ذخیره نشده'}),
-    row,out,
+    h('p','هر سفارش تازه یکی از این کارت‌ها را تصادفی به مشتری نشان می‌دهد. «پیامک از» شمارهٔ پیامک واریز بانک همان کارت است (بلو: 9999987641)؛ اپ‌های آینه‌پی پیامک همین شماره‌ها را می‌فرستند.','lead'),
+    cards.length?el('div',{class:'stack',style:'display:grid;gap:8px'},cards):el('div',{class:'pay-admin__card is-empty',text:'شمارهٔ کارت هنوز ذخیره نشده'}),
+    row,el('label',{class:'field'},[h('span','شمارهٔ پیامک بانک این کارت','lbl'),senderEl]),out,
     h('h3','اتصال سایت پرداخت','sub'),
     h('p','هر سرویسی که بتواند یک درخواست POST بفرستد، با این توکن پرداخت را تأیید می‌کند: سفارش با همان کد یا شناسه، خودکار تأیید و پنل مشتری باز می‌شود.','lead'),
     el('div',{class:'hook'},[

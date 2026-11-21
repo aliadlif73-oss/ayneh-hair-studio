@@ -13,7 +13,7 @@ import {createTrial,trialOf,trialLive,trialPublic,spendTrialImage} from './trial
 import {PLANS as PLANS_TABLE} from './prices.js';
 import {smsConfirm,newPairCode,redeemPairCode} from './paysms.js';
 import {createOrder,createTopup,createRenewal,customerOrder,setCoupon,confirmOrder,webhookConfirm,reopenOrder,rekeyOrder,closeExpired,cardSetting,saveCard,
- webhookKey,rotateWebhookKey,panelLogin,panelSalon,panelLogout,panelDashboard,tickChecklist,ORDER_MINUTES,SERVICE_LABEL} from './orders.js';
+ webhookKey,rotateWebhookKey,cardList,removeCard,smsSenders,panelLogin,panelSalon,panelLogout,panelDashboard,tickChecklist,ORDER_MINUTES,SERVICE_LABEL} from './orders.js';
 import {spendCredit,planOf} from './credits.js';
 import {can,featuresOf,OPENED_BY,linesOf} from './plans.js';
 import {panelApi,bookingTick} from './panelapi.js';
@@ -98,6 +98,10 @@ export const salonLines=s=>linesOf(s);
 export async function owner(req,env){const who=await identity(req,env);must(who,'برای ورود، رمز مدیر را وارد کنید',401);must(who.via==='password'||(env.OWNER_EMAIL&&who.email===env.OWNER_EMAIL),'فقط مدیر آینه به این بخش دسترسی دارد',403);return who;}
 export async function session(req,db,salon){const t=(req.headers.get('cookie')||'').match(/(?:^|; )ayneh=([a-f0-9]{64})(?:;|$)/)?.[1];must(t,'جلسه پیدا نشد؛ صفحه را تازه کنید',401);const s=await one(db,'SELECT * FROM sessions WHERE token_hash=? AND salon_id=? AND expires_at>?',await hash(t),salon.id,Date.now());must(s,'جلسه منقضی شده؛ صفحه را تازه کنید',401);return s;}
 async function newSession(db,salon){const raw=token(),s={id:uid(),salon_id:salon.id,customer_id:null,token_hash:await hash(raw),expires_at:Date.now()+7*86400000,created_at:Date.now()};await run(db,'INSERT INTO sessions(id,salon_id,customer_id,token_hash,expires_at,created_at) VALUES(?,?,?,?,?,?)',...Object.values(s));return {s,raw};}
+/* The payment apps' token: the Authorization header (Android, any server), or the iPhone page's
+   SameSite=Strict cookie — accepted only from a same-origin request, since /api/pay/* skips the
+   general Origin check. */
+const payToken=(req,u)=>{const h=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'')||req.headers.get('x-webhook-key')||'';if(h)return h;if(req.headers.get('origin')!==u.origin)return '';return decodeURIComponent((req.headers.get('cookie')||'').match(/(?:^|; )aynehpay=([^;]+)/)?.[1]||'')};
 const clientIp=req=>req.headers.get('cf-connecting-ip')||(req.headers.get('x-forwarded-for')||'').split(',')[0].trim()||req.headers.get('x-real-ip')||'unknown';
 // A customer may only use their own uploads, or published portfolio items the salon marked for try-on.
 async function ownMedia(db,s,id){must(/^[a-f0-9-]{36}$/.test(String(id||'')),'عکس معتبر نیست؛ دوباره عکس بگذارید',400);const m=await one(db,'SELECT * FROM media WHERE id=? AND salon_id=?',id,s.salon_id);must(m,'عکس یافت نشد');if(m.session_id!==s.id)must(await one(db,"SELECT 1 FROM portfolio WHERE salon_id=? AND published=1 AND try_on=1 AND EXISTS(SELECT 1 FROM json_each(images) WHERE value=?)",s.salon_id,id),'عکس متعلق به این جلسه نیست',403);return m;}
@@ -137,7 +141,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
     sends Origin on a cross-site POST. A server-to-server caller (the payment site's webhook)
     sends none, and carries a bearer token instead, so the check is skipped only for that one
     path — where the token, not a cookie, is the credential. */
- if(req.method!=='GET'){if(!['/api/pay/confirm','/api/pay/sms','/api/pay/pair','/api/pay/ping'].includes(path))must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
+ if(req.method!=='GET'){if(!['/api/pay/confirm','/api/pay/sms','/api/pay/pair','/api/pay/ping','/api/pay/history'].includes(path))must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
  if(path==='/api/event'&&req.method==='POST'){
   await limited(db,'event:'+clientIp(req),1200);
   const b=await req.json().catch(()=>({}));
@@ -217,7 +221,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  // The amount alone picks the order (worker/paysms.js); no match opens nothing and alerts.
  if(path==='/api/pay/sms'&&req.method==='POST'){
   const expected=await webhookKey(db);
-  const given=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'')||req.headers.get('x-webhook-key')||'';
+  const given=payToken(req,u);
   must(expected&&same(String(given),expected),'توکن وب‌هوک معتبر نیست',401);
   const raw=await req.text();let t=raw;
   if(/json/i.test(req.headers.get('content-type')||'')){try{const b=JSON.parse(raw);t=b.text??b.message??b.body??b.sms??''}catch{t=raw}}
@@ -232,13 +236,24 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   must(await redeemPairCode(db,b.code),'کد درست نیست یا تمام شده؛ در پنل مدیر کد تازه بسازید',403);
   const o=env.APP_ORIGIN||u.origin;
   await notifyOwner(env,{kind:'order',level:'good',text:'اپ اندروید پرداخت به سایت وصل شد'});
-  return J({ok:true,key:await webhookKey(db),sms_url:o+'/api/pay/sms',origin:o});
+  const key=await webhookKey(db);
+  /* The iPhone page keeps the token in a first-party, HttpOnly, SameSite=Strict cookie (Safari keeps it, page scripts cannot read it). */
+  const cookie=b.web?{'Set-Cookie':'aynehpay='+encodeURIComponent(key)+'; HttpOnly; Secure; SameSite=Strict; Path=/api/pay; Max-Age=34560000'}:{};
+  return J({ok:true,key:b.web?'':key,sms_url:o+'/api/pay/sms',origin:o,senders:await smsSenders(db)},200,cookie);
  }
  if(path==='/api/pay/ping'&&req.method==='POST'){
   const expected=await webhookKey(db);
-  const given=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
+  const given=payToken(req,u);
   must(expected&&same(String(given),expected),'اتصال اپ باطل شده؛ دوباره با کد تازه وصل شوید',401);
-  return J({ok:true,card:(await cardSetting(db)).valid});
+  return J({ok:true,card:(await cardSetting(db)).valid,senders:await smsSenders(db)});
+ }
+ // The payment apps' list: what each forwarded SMS became (newest first), for the owner only.
+ if(path==='/api/pay/history'&&req.method==='POST'){
+  const expected=await webhookKey(db);
+  const given=payToken(req,u);
+  must(expected&&same(String(given),expected),'اتصال باطل شده؛ دوباره با کد تازه وصل شوید',401);
+  const rows=await all(db,"SELECT p.amount,p.result,p.created_at,o.ref,o.salon_name,o.contact_name,o.plan,o.kind FROM pay_sms p LEFT JOIN orders o ON o.id=p.order_id ORDER BY p.created_at DESC LIMIT 60");
+  return J({items:rows.map(r=>({amount:Math.round(Number(r.amount||0)/10),result:r.result,at:r.created_at,ref:r.ref||'',name:r.salon_name||r.contact_name||(r.kind==='customer_pack'?'مشتری آینه':''),label:r.kind==='topup'?'اعتبار عکس':(r.plan||'')}))});
  }
  if(path==='/api/owner/app-code'&&req.method==='POST'){await owner(req,env);return J(await newPairCode(db));}
 
@@ -309,13 +324,14 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
  if(path==='/api/owner/alerts-unlink'&&req.method==='POST'){await owner(req,env);await run(db,'DELETE FROM owner_chats');return J({ok:true});}
  if(path==='/api/owner/payment'&&req.method==='GET'){await owner(req,env);
   const card=await cardSetting(db);
-  return J({card:card.number,owner:card.owner,valid:card.valid,minutes:ORDER_MINUTES,
+  return J({card:card.number,owner:card.owner,valid:card.valid,cards:(await cardList(db)).map(c=>({number:c.number,owner:c.owner,sender:c.sender})),minutes:ORDER_MINUTES,
    webhook:{url:(env.APP_ORIGIN||u.origin)+'/api/pay/confirm',sms_url:(env.APP_ORIGIN||u.origin)+'/api/pay/sms',key:await webhookKey(db)},
    plans:PLANS_TABLE});}
  if(path==='/api/owner/payment'&&req.method==='POST'){await owner(req,env);
   const b=await req.json().catch(()=>({}));
   if(b.rotate)return J({key:await rotateWebhookKey(db)});
-  return J({ok:true,card:await saveCard(db,b.card,b.owner)});}
+  if(b.remove){await removeCard(db,b.remove);return J({ok:true});}
+  return J({ok:true,card:await saveCard(db,b.card,b.owner,b.sender)});}
  if(path==='/api/owner/orders'&&req.method==='GET'){await owner(req,env);
   await closeExpired(db);
   const rows=await all(db,'SELECT id,ref,plan,kind,service,users,credits,amount,salon_name,contact_name,phone,city,status,receipt_note,confirmed_by,created_at,expires_at FROM orders ORDER BY created_at DESC LIMIT 100');

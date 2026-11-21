@@ -3111,3 +3111,68 @@ test('payment app: a one-time 6-digit code from /admin pairs the Android app; wr
   assert.equal(page.status, 200);
   assert.match(await page.text(), /آینه‌پی/);
 });
+
+test('cards: several saved cards, one picked per order and kept on it; senders and history for the payment apps', async () => {
+  const e = fixture();
+  const restore = priced('pro', 1100000);
+  try {
+    const A = '6037991122334455';
+    let B = '6219861000000000';
+    for (let i = 0; i < 10 && !cardValid(B); i++) B = B.slice(0, 15) + i;
+    assert.ok(cardValid(B));
+    assert.equal((await call(e, '/api/owner/payment', {card: A, owner: 'علی ادلی'}, OWNER)).status, 200);
+    assert.equal((await call(e, '/api/owner/payment', {card: B, owner: 'امید ادلی', sender: '+98 999 998 7641'}, OWNER)).status, 200);
+    const conf = (await call(e, '/api/owner/payment', undefined, OWNER)).data;
+    assert.deepEqual(conf.cards.map(c => c.number), [A, B]);
+    assert.ok(conf.cards.every(c => c.sender === '9999987641'));
+    const seen = new Set();
+    for (let i = 0; i < 10; i++) {
+      const o = await call(e, '/api/order', orderBody('pro', {phone: '0912' + String(1000000 + i).slice(-7)}));
+      assert.equal(o.status, 200, JSON.stringify(o.data));
+      seen.add(o.data.card);
+      assert.equal((await call(e, '/api/order/' + o.data.id)).data.card, o.data.card, 'the order keeps its card');
+    }
+    assert.deepEqual([...seen].sort(), [A, B].sort(), 'both cards are shown');
+    assert.equal((await call(e, '/api/owner/payment', {remove: B}, OWNER)).status, 200);
+    assert.deepEqual((await call(e, '/api/owner/payment', undefined, OWNER)).data.cards.map(c => c.number), [A]);
+    const key = conf.webhook.key;
+    const ping = await (await app.fetch(new Request(origin + '/api/pay/ping', {method: 'POST', headers: {authorization: 'Bearer ' + key}}), e)).json();
+    assert.deepEqual(ping.senders, ['9999987641']);
+    e.DB.sql.exec('DELETE FROM limits');
+    const o = await call(e, '/api/order', orderBody('pro', {phone: '09129998877'}));
+    await app.fetch(new Request(origin + '/api/pay/sms', {method: 'POST', headers: {authorization: 'Bearer ' + key}, body: 'بلو\nواریز پول\nامید عزیز،' + (o.data.amount * 10).toLocaleString('en-US') + ' ریال به حساب شما نشست.\nموجودی: 1 ریال'}), e);
+    const hist = await (await app.fetch(new Request(origin + '/api/pay/history', {method: 'POST', headers: {authorization: 'Bearer ' + key}}), e)).json();
+    assert.equal(hist.items[0].result, 'paid');
+    assert.equal(hist.items[0].amount, o.data.amount);
+    assert.equal(hist.items[0].ref, o.data.ref);
+    assert.equal((await app.fetch(new Request(origin + '/api/pay/history', {method: 'POST'}), e)).status, 401);
+  } finally { restore() }
+});
+
+test('iPhone page: pairing sets a Strict cookie (no key in the page); the cookie works only from the same origin', async () => {
+  const e = fixture();
+  const restore = priced('pro', 1100000);
+  try {
+    const page = await app.fetch(new Request(origin + '/app/i?sms=x'), e);
+    assert.equal(page.status, 200);
+    assert.match(await page.text(), /آینه‌پی/);
+    const made = await call(e, '/api/owner/app-code', {}, OWNER);
+    const res = await app.fetch(new Request(origin + '/api/pay/pair', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({code: made.data.code, web: true})}), e);
+    const body = await res.json();
+    assert.equal(body.key, '', 'the iPhone page never sees the token');
+    const set = res.headers.get('set-cookie') || '';
+    assert.match(set, /aynehpay=whk_/);
+    assert.match(set, /HttpOnly/); assert.match(set, /SameSite=Strict/);
+    const cookie = set.split(';')[0];
+    const o = await call(e, '/api/order', orderBody());
+    const sms = 'بلو\nواریز پول\nامید عزیز،' + (o.data.amount * 10).toLocaleString('en-US') + ' ریال به حساب شما نشست.\nموجودی: 1 ریال';
+    const cross = await app.fetch(new Request(origin + '/api/pay/sms', {method: 'POST', headers: {'content-type': 'application/json', cookie, origin: 'https://evil.example'}, body: JSON.stringify({text: sms})}), e);
+    assert.equal(cross.status, 401, 'another site cannot use the cookie');
+    const noOrigin = await app.fetch(new Request(origin + '/api/pay/sms', {method: 'POST', headers: {'content-type': 'application/json', cookie}, body: JSON.stringify({text: sms})}), e);
+    assert.equal(noOrigin.status, 401);
+    const ok = await app.fetch(new Request(origin + '/api/pay/sms', {method: 'POST', headers: {'content-type': 'application/json', cookie, origin}, body: JSON.stringify({text: sms})}), e);
+    assert.equal((await ok.json()).status, 'paid');
+    const hist = await app.fetch(new Request(origin + '/api/pay/history', {method: 'POST', headers: {cookie, origin}}), e);
+    assert.equal((await hist.json()).items[0].result, 'paid');
+  } finally { restore() }
+});

@@ -30,6 +30,9 @@ const one = (db, sql, ...a) => db.prepare(sql).bind(...a).first();
 const all = async (db, sql, ...a) => (await db.prepare(sql).bind(...a).all()).results;
 
 export const PAY_CARD = 'pay_card';
+export const PAY_CARDS = 'pay_cards';
+/* Blu's SMS sender; a card from another bank names its own (the Android app listens to these). */
+export const BLU_SENDER = '9999987641';
 export const WEBHOOK_KEY = 'pay_webhook_key';
 export const COUPONS = 'pay_coupons';
 /* Plans are sold per service (owner's decision): hair = hairstyle, color = hair colour, nails,
@@ -181,7 +184,8 @@ export function orderSummary(row) {
 
 /* What the page needs to draw: the figures, never the internals. */
 export async function publicOrder(db, env, row, {key = '', password = '', origin = ''} = {}) {
-  const card = (await one(db, 'SELECT value FROM app_settings WHERE key=?', PAY_CARD))?.value || '';
+  /* The card picked for this order; an order made before any card was saved shows the first one. */
+  const card = row.card || (await cardList(db))[0]?.raw || '';
   const salon = row.salon_id ? await one(db, 'SELECT slug FROM salons WHERE id=?', row.salon_id) : null;
   const base = env.APP_ORIGIN || origin;
   const root = rootDomainOf(env, origin);
@@ -215,19 +219,58 @@ function cardOwner(v) {
   return s.replace(/[\d—–]/g, '').trim();
 }
 
-export async function cardSetting(db) {
-  const raw = (await one(db, 'SELECT value FROM app_settings WHERE key=?', PAY_CARD))?.value || '';
-  const d = cardDigits(raw);
-  return {number: d, owner: cardOwner(raw), valid: cardValid(d), raw};
+/* The owner's cards: app_settings 'pay_cards' = [{number, owner, sender}], managed in /admin.
+   A site that only ever saved the old single card ('pay_card') reads it as a one-card list. */
+const senderOf = v => digits(String(v ?? '')).replace(/\D/g, '').slice(-10);
+export async function cardList(db) {
+  let list = null;
+  try { list = JSON.parse((await one(db, 'SELECT value FROM app_settings WHERE key=?', PAY_CARDS))?.value || 'null'); } catch {}
+  if (!Array.isArray(list)) {
+    const raw = (await one(db, 'SELECT value FROM app_settings WHERE key=?', PAY_CARD))?.value || '';
+    const d = cardDigits(raw);
+    list = d ? [{number: d, owner: cardOwner(raw), sender: BLU_SENDER}] : [];
+  }
+  return list.filter(c => cardValid(cardDigits(c?.number)))
+    .map(c => ({number: cardDigits(c.number), owner: String(c.owner || ''), sender: senderOf(c.sender) || BLU_SENDER, raw: cardDigits(c.number) + ' — ' + String(c.owner || '')}));
 }
-
-export async function saveCard(db, number, owner) {
+async function saveCards(db, list) {
+  await run(db, 'INSERT INTO app_settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at',
+    PAY_CARDS, JSON.stringify(list.map(c => ({number: c.number, owner: c.owner, sender: c.sender}))), Date.now());
+}
+export async function cardSetting(db) {
+  const c = (await cardList(db))[0];
+  return c ? {number: c.number, owner: c.owner, valid: true, raw: c.raw} : {number: '', owner: '', valid: false, raw: ''};
+}
+/* Adds a card, or updates the owner/sender of a saved one. */
+export async function saveCard(db, number, owner, sender) {
   const d = cardDigits(number);
   must(!d || cardValid(d), 'شمارهٔ کارت باید ۱۶ رقم و معتبر باشد.');
   const name = text(String(owner || '').replace(/[۰-۹]/g, x => '۰۱۲۳۴۵۶۷۸۹'.indexOf(x)).replace(/[٠-٩]/g, x => '٠١٢٣٤٥٦٧٨٩'.indexOf(x)).replace(/[\d]/g, ''), 60);
   must(d ? name.length >= 3 : true, 'نام صاحب حساب را بنویسید.');
-  await run(db, 'INSERT INTO app_settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at', PAY_CARD, d ? d + ' — ' + name : '', Date.now());
+  if (!d) return {number: '', owner: ''};
+  const from = senderOf(sender) || BLU_SENDER;
+  must(from.length >= 4, 'شمارهٔ پیامک بانک معتبر نیست.');
+  const list = await cardList(db);
+  const at = list.findIndex(c => c.number === d);
+  if (at >= 0) list[at] = {number: d, owner: name, sender: from};
+  else { must(list.length < 10, 'حداکثر ۱۰ کارت.'); list.push({number: d, owner: name, sender: from}); }
+  await saveCards(db, list);
   return {number: d, owner: name};
+}
+export async function removeCard(db, number) {
+  const d = cardDigits(number);
+  await saveCards(db, (await cardList(db)).filter(c => c.number !== d));
+}
+/* A random saved card for a new order (empty when none is saved yet). */
+export async function pickCard(db) {
+  const list = await cardList(db);
+  if (!list.length) return '';
+  return list[crypto.getRandomValues(new Uint32Array(1))[0] % list.length].raw;
+}
+/* The SMS senders the Android app forwards: one per bank in use. */
+export async function smsSenders(db) {
+  const s = [...new Set((await cardList(db)).map(c => c.sender))];
+  return s.length ? s : [BLU_SENDER];
 }
 
 /* Webhook token: generated once, shown in /admin, compared in constant time. */
@@ -350,10 +393,11 @@ export async function createRenewal(db, env, {order: panelOrder, salon}, plan, o
 async function insert(db, row) {
   /* The bank SMS shows only the amount, so an open order never shares it (worker/paysms.js). */
   if (row.status === 'open') row.amount = await uniqueAmount(db, row.amount, row.id);
+  if (row.card === undefined) row.card = await pickCard(db);
   await run(db,
-    'INSERT INTO orders(id,ref,plan,kind,service,users,credits,amount,salon_name,contact_name,phone,city,note,status,expires_at,access_key_hash,pass_hash,draft,coupon,discount,salon_id,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+    'INSERT INTO orders(id,ref,plan,kind,service,users,credits,amount,salon_name,contact_name,phone,city,note,status,expires_at,access_key_hash,pass_hash,draft,coupon,discount,salon_id,card,created_at,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
     row.id, row.ref, row.plan, row.kind, row.service, Number(row.users || 0), row.credits, row.amount, row.salon_name, row.contact_name, row.phone, row.city, row.note,
-    row.status, row.expires_at, row.access_key_hash, row.pass_hash || '', row.draft || '', row.coupon, row.discount, row.salon_id || null, row.created_at, row.updated_at);
+    row.status, row.expires_at, row.access_key_hash, row.pass_hash || '', row.draft || '', row.coupon, row.discount, row.salon_id || null, row.card || '', row.created_at, row.updated_at);
 }
 
 /* The owner hears about new orders on the alert channel. The mobile is the buyer's (a salon

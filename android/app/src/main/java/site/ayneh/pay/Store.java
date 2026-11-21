@@ -54,9 +54,27 @@ final class Store {
 
     /** Is this SMS a Blu deposit? Only Blu's own sender number counts: the text alone proves
      *  nothing, since anyone can text «واریز … ریال» to this phone. */
-    static boolean isDeposit(String sender, String body) {
+    static boolean isDeposit(Context c, String sender, String body) {
         String digits = sender == null ? "" : sender.replaceAll("\\D", "");
-        return digits.endsWith(BLU_NUMBER) && body != null && (body.contains("واریز") || body.contains("نشست"));
+        if (digits.isEmpty() || body == null || !(body.contains("واریز") || body.contains("نشست"))) return false;
+        for (String s : senders(c)) if (!s.isEmpty() && digits.endsWith(s)) return true;
+        return false;
+    }
+
+    /** The bank SMS numbers of the owner's cards (from /admin); Blu until the site says otherwise. */
+    static String[] senders(Context c) {
+        String v = prefs(c).getString("senders", BLU_NUMBER);
+        return v.isEmpty() ? new String[]{BLU_NUMBER} : v.split(",");
+    }
+
+    static void setSenders(Context c, org.json.JSONArray a) {
+        if (a == null || a.length() == 0) return;
+        StringBuilder b = new StringBuilder();
+        for (int i = 0; i < a.length(); i++) {
+            String s = a.optString(i, "").replaceAll("\\D", "");
+            if (s.length() >= 4) { if (b.length() > 0) b.append(','); b.append(s); }
+        }
+        if (b.length() > 0) prefs(c).edit().putString("senders", b.toString()).apply();
     }
 
     /** A permission asked once and still refused is only grantable from the app's settings. */
