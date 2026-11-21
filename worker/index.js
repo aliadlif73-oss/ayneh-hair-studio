@@ -87,13 +87,9 @@ export default {
      has never existed cannot be cached, so /new serves the current build under a fresh path.
      It carries no robots policy change — it is the same page, just honest about being new. */
   if(u.pathname==='/new')return new Response(landingHTML.replaceAll('__ORIGIN__',env.APP_ORIGIN||u.origin).replaceAll('__CANON__','/'),{headers:{...htmlHeaders,'Cache-Control':'no-store','X-Robots-Tag':'noindex'}});
-  /* The owner's Android payment app (android/, built by .github/workflows/android.yml into KV). */
-  if(u.pathname==='/app/ayneh-pay.apk'){
-   const got=env.KV?await env.KV.getWithMetadata('app:ayneh-pay.apk',{type:'arrayBuffer'}):null;
-   if(!got?.value)return new Response(appPage(false),{status:404,headers:{...htmlHeaders,'X-Robots-Tag':'noindex'}});
-   return new Response(got.value,{headers:{'Content-Type':'application/vnd.android.package-archive','Content-Disposition':'attachment; filename="ayneh-pay.apk"','Cache-Control':'no-store','X-Robots-Tag':'noindex'}});
-  }
-  if(/^\/app\/?$/.test(u.pathname)){const ready=!!(env.KV&&await env.KV.get('app:ayneh-pay.apk:v'));return new Response(appPage(ready,ready?await env.KV.get('app:ayneh-pay.apk:v'):''),{headers:{...htmlHeaders,'X-Robots-Tag':'noindex'}});}
+  /* The owner's Android payment app (android/): the APK is a static file built by deploy.yml
+     (public/app/ayneh-pay.apk, served before the worker); this is its download page. */
+  if(/^\/app\/?$/.test(u.pathname)){let ver='';try{const r=env.ASSETS?await env.ASSETS.fetch(new Request(u.origin+'/app/version.txt')):null;if(r&&r.ok)ver=(await r.text()).trim().slice(0,20)}catch{}return new Response(appPage(!!ver,ver),{headers:{...htmlHeaders,'X-Robots-Tag':'noindex'}});}
   if(!pages.some(r=>r.test(u.pathname)))return new Response(notFound,{status:404,headers:htmlHeaders});
   if(/^\/i\/[a-z0-9-]{1,64}\/?$/.test(u.pathname)){const html=await sharePage(u,env);return new Response(html||notFound,{status:html?200:404,headers:htmlHeaders});}
   if(/^\/s\/[a-z0-9-]{1,64}\/?$/.test(u.pathname)){const html=await salonPage(u,env);return html?new Response(html,{headers:{...htmlHeaders,'X-Frame-Options':'SAMEORIGIN','Content-Security-Policy':htmlHeaders['Content-Security-Policy'].replace("frame-ancestors 'none'","frame-ancestors 'self'")}}):new Response(notFound,{status:404,headers:htmlHeaders});}

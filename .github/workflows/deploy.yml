@@ -35,6 +35,49 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: d1 migrations apply DB --remote
+      # The owner's Android payment app «آینه‌پی» (android/) ships with the site as a static file
+      # (public/app/ayneh-pay.apk; download page /app). Its signing key is made once and kept in
+      # D1 (table ci_store, never in git), so every build installs as an update. A failed app
+      # build never stops the site deploy.
+      - uses: actions/setup-java@v4
+        if: steps.config.outputs.ready == 'true'
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.config.outputs.ready == 'true'
+        with:
+          gradle-version: '8.9'
+      - name: Build the Android payment app
+        if: steps.config.outputs.ready == 'true'
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          VERSION_CODE: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          npm install --no-save --prefix /tmp/w wrangler@4 >/dev/null 2>&1
+          W=/tmp/w/node_modules/.bin/wrangler
+          q() { $W d1 execute DB --remote --json --command "$1" 2>/dev/null; }
+          q "CREATE TABLE IF NOT EXISTS ci_store (key TEXT PRIMARY KEY, value TEXT NOT NULL)" >/dev/null
+          q "SELECT key,value FROM ci_store WHERE key IN ('android_ks','android_ks_pass')" > /tmp/ks.json || echo '[]' > /tmp/ks.json
+          node -e 'const r=(JSON.parse(require("fs").readFileSync("/tmp/ks.json","utf8"))[0]||{}).results||[];const m=Object.fromEntries(r.map(x=>[x.key,x.value]));if(m.android_ks&&m.android_ks_pass){require("fs").writeFileSync("android/app/release.jks",Buffer.from(m.android_ks,"base64"));require("fs").writeFileSync("/tmp/ks.pass",m.android_ks_pass)}'
+          if [ ! -s android/app/release.jks ] || [ ! -s /tmp/ks.pass ]; then
+            echo "no stored signing key: making one and storing it in D1"
+            rm -f android/app/release.jks
+            head -c 32 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 24 > /tmp/ks.pass
+            keytool -genkeypair -keystore android/app/release.jks -storetype PKCS12 -alias aynehpay -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass "$(cat /tmp/ks.pass)" -keypass "$(cat /tmp/ks.pass)" -dname "CN=Ayneh Pay, O=Ayneh, C=IR" >/dev/null 2>&1
+            q "INSERT OR REPLACE INTO ci_store(key,value) VALUES('android_ks','$(base64 -w0 android/app/release.jks)'),('android_ks_pass','$(cat /tmp/ks.pass)')" >/dev/null
+          fi
+          echo "::add-mask::$(cat /tmp/ks.pass)"
+          KS_PASS="$(cat /tmp/ks.pass)" gradle -p android assembleRelease --no-daemon -q
+          mkdir -p public/app
+          cp android/app/build/outputs/apk/release/app-release.apk public/app/ayneh-pay.apk
+          printf '1.0.%s' "$VERSION_CODE" > public/app/version.txt
+          rm -f android/app/release.jks /tmp/ks.pass /tmp/ks.json
+          ls -la public/app
       - name: Deploy worker
         id: deploy
         if: steps.config.outputs.ready == 'true'

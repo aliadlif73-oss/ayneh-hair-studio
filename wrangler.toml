@@ -46,3 +46,4 @@ id = "ae40a3715bf54972a105cdb9b8d5814b"
 # Catalog style photos (public/catalog/NN.webp) are served as static files before the worker.
 [assets]
 directory = "./public"
+binding = "ASSETS"
