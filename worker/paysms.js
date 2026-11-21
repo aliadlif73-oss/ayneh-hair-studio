@@ -86,12 +86,43 @@ export async function smsConfirm(db, env, rawText, origin = '') {
     return {matched: false, amount: toman, many: true};
   }
   const {confirmOrder} = await import('./orders.js');
+  const who = await db.prepare('SELECT salon_name,contact_name,plan,kind FROM orders WHERE id=?').bind(hits[0].id).first();
+  /* What the owner's payment app shows next to the deposit: the buyer as the owner already
+     sees it in /admin (salon or buyer name and what was bought), never a mobile. */
+  const name = who?.salon_name || who?.contact_name || (who?.kind === 'customer_pack' ? 'مشتری آینه' : '');
+  const label = who?.kind === 'topup' ? 'اعتبار عکس' : String(who?.plan || '');
   try {
     const r = await confirmOrder(db, env, hits[0].id, {by: 'sms', origin, amount: toman});
     await done('paid', hits[0].id);
-    return {matched: true, ref: r.order.ref, status: r.order.status, page: r.order.page_url};
+    return {matched: true, amount: toman, ref: r.order.ref, status: r.order.status, page: r.order.page_url, name, label};
   } catch (e) {
     await done('closed', hits[0].id);
-    return {matched: false, ref: hits[0].ref, error: e.message};
+    return {matched: false, amount: toman, ref: hits[0].ref, error: e.message, name, label};
   }
+}
+
+/* Pairing the owner's Android payment app (android/): /admin makes a 6-digit code that lives
+   10 minutes and works once; the app trades it for the payment token. Only the code's hash is
+   kept. A wrong code counts toward the per-network limit in server.js and burns the code
+   after 5 tries. */
+const PAIR = 'app_pair', PAIR_MINUTES = 10;
+export async function newPairCode(db) {
+  const n = crypto.getRandomValues(new Uint32Array(1))[0] % 1000000;
+  const code = String(n).padStart(6, '0');
+  await run(db, 'INSERT INTO app_settings(key,value,updated_at) VALUES(?,?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at',
+    PAIR, JSON.stringify({h: await hash('pair:' + code), exp: Date.now() + PAIR_MINUTES * 60000, tries: 0}), Date.now());
+  return {code, minutes: PAIR_MINUTES};
+}
+export async function redeemPairCode(db, raw) {
+  const code = digits(String(raw || '')).replace(/\D/g, '');
+  const row = await db.prepare('SELECT value FROM app_settings WHERE key=?').bind(PAIR).first();
+  let p = null; try { p = row ? JSON.parse(row.value) : null } catch {}
+  if (!p || !p.h || p.exp < Date.now() || p.tries >= 5) return false;
+  if (code.length === 6 && (await hash('pair:' + code)) === p.h) {
+    await run(db, 'DELETE FROM app_settings WHERE key=?', PAIR);
+    return true;
+  }
+  p.tries = Number(p.tries || 0) + 1;
+  await run(db, 'UPDATE app_settings SET value=?,updated_at=? WHERE key=?', JSON.stringify(p), Date.now(), PAIR);
+  return false;
 }

@@ -3081,3 +3081,33 @@ test('pay sms: a transfer after the 10 minutes still opens the expired order wit
     assert.equal((await r.json()).status, 'paid');
   } finally { restore() }
 });
+
+test('payment app: a one-time 6-digit code from /admin pairs the Android app; wrong codes burn it; ping checks the token', async () => {
+  const e = fixture();
+  const pair = code => app.fetch(new Request(origin + '/api/pay/pair', {method: 'POST', headers: {'content-type': 'application/json'}, body: JSON.stringify({code})}), e);
+  assert.equal((await pair('123456')).status, 403, 'no code made yet');
+  const made = await call(e, '/api/owner/app-code', {}, OWNER);
+  assert.match(made.data.code, /^\d{6}$/);
+  assert.equal((await call(e, '/api/owner/app-code', {})).status, 401, 'only the owner makes a code');
+  const wrong = made.data.code === '000000' ? '111111' : '000000';
+  assert.equal((await pair(wrong)).status, 403);
+  const ok = await pair(made.data.code);
+  assert.equal(ok.status, 200);
+  const body = await ok.json();
+  const key = (await call(e, '/api/owner/payment', undefined, OWNER)).data.webhook.key;
+  assert.equal(body.key, key);
+  assert.equal(body.sms_url, origin + '/api/pay/sms');
+  assert.equal((await pair(made.data.code)).status, 403, 'a code works once');
+  const ping = t => app.fetch(new Request(origin + '/api/pay/ping', {method: 'POST', headers: {authorization: 'Bearer ' + t}}), e);
+  assert.equal((await ping(key)).status, 200);
+  assert.equal((await ping('whk_' + '0'.repeat(48))).status, 401);
+  // Five wrong tries burn the code.
+  const again = await call(e, '/api/owner/app-code', {}, OWNER);
+  const bad = again.data.code === '999999' ? '888888' : '999999';
+  for (let i = 0; i < 5; i++) await pair(bad);
+  assert.equal((await pair(again.data.code)).status, 403);
+  // The download page answers even before the first build.
+  const page = await app.fetch(new Request(origin + '/app'), e);
+  assert.equal(page.status, 200);
+  assert.match(await page.text(), /آینه‌پی/);
+});

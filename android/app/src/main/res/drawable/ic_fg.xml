@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A hand mirror (Ayneh) with a check: 108dp adaptive-icon canvas, art inside the 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:pathData="M54,28 C66,28 74,37 74,49 C74,61 66,70 54,70 C42,70 34,61 34,49 C34,37 42,28 54,28 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M50,70 L58,70 L58,84 C58,86.2 56.2,88 54,88 C51.8,88 50,86.2 50,84 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M45,49 L51.5,55.5 L63,43" />
+</vector>

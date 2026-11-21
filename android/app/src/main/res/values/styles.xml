@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="cream">#FCF3EB</color>
+    <color name="emerald">#068F6C</color>
+    <color name="emerald_deep">#0A6B54</color>
+
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/cream</item>
+        <item name="android:statusBarColor">@color/cream</item>
+        <item name="android:navigationBarColor">@color/cream</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:colorPrimary">@color/emerald</item>
+        <item name="android:colorPrimaryDark">@color/emerald_deep</item>
+        <item name="android:colorAccent">@color/emerald</item>
+    </style>
+</resources>

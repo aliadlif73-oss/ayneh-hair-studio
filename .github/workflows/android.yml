@@ -1,0 +1,73 @@
+# Builds the owner's Android payment app (android/, «آینه‌پی») and publishes the APK to the
+# site's KV (served at /app/ayneh-pay.apk, download page /app). The signing key is made on the
+# first run and kept in the same KV (never in git), so every later build installs as an update.
+# The build log tail is written to KV (ci:android-log) for debugging without GitHub access.
+name: Android app
+on:
+  push:
+    branches: [main]
+    paths: ['android/**', '.github/workflows/android.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: android-app
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      KV_NS: ded9d8ee91da4d3ebb2a5f220ef90df2
+      VERSION_CODE: ${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Wrangler
+        run: npm install --no-save --prefix /tmp/w wrangler@4 >/dev/null 2>&1 && echo "W=/tmp/w/node_modules/.bin/wrangler" >> "$GITHUB_ENV"
+      - name: Mark start
+        run: |
+          echo "started run ${{ github.run_number }} $(date -u)" > /tmp/start.txt
+          $W kv key put ci:android-log --path /tmp/start.txt --namespace-id "$KV_NS" --remote || true
+      - name: Signing key (from KV, or made once and stored there)
+        id: key
+        run: |
+          set +e
+          $W kv key get ci:android-ks --namespace-id "$KV_NS" --remote --text > /tmp/ks.b64 2>/dev/null
+          $W kv key get ci:android-ks-pass --namespace-id "$KV_NS" --remote --text > /tmp/ks.pass 2>/dev/null
+          if ! base64 -d /tmp/ks.b64 > android/app/release.jks 2>/dev/null || [ ! -s android/app/release.jks ] || [ ! -s /tmp/ks.pass ] || ! keytool -list -keystore android/app/release.jks -storepass "$(cat /tmp/ks.pass)" >/dev/null 2>&1; then
+            echo "no stored key: making one"
+            rm -f android/app/release.jks
+            head -c 32 /dev/urandom | base64 | tr -dc 'A-Za-z0-9' | head -c 24 > /tmp/ks.pass
+            keytool -genkeypair -keystore android/app/release.jks -storetype PKCS12 -alias aynehpay -keyalg RSA -keysize 2048 -validity 10000 \
+              -storepass "$(cat /tmp/ks.pass)" -keypass "$(cat /tmp/ks.pass)" -dname "CN=Ayneh Pay, O=Ayneh, C=IR"
+            base64 -w0 android/app/release.jks > /tmp/ks.b64
+            $W kv key put ci:android-ks --path /tmp/ks.b64 --namespace-id "$KV_NS" --remote
+            $W kv key put ci:android-ks-pass --path /tmp/ks.pass --namespace-id "$KV_NS" --remote
+          fi
+          echo "::add-mask::$(cat /tmp/ks.pass)"
+          echo "KS_PASS=$(cat /tmp/ks.pass)" >> "$GITHUB_ENV"
+      - name: Build APK
+        run: |
+          set -o pipefail
+          gradle -p android assembleRelease --no-daemon --stacktrace 2>&1 | tee /tmp/build.log
+      - name: Publish APK to the site
+        run: |
+          set -e
+          apk=$(ls android/app/build/outputs/apk/release/*.apk | head -1)
+          ls -la "$apk"
+          $W kv key put app:ayneh-pay.apk --path "$apk" --namespace-id "$KV_NS" --remote
+          printf '1.0.%s' "$VERSION_CODE" > /tmp/v.txt
+          $W kv key put app:ayneh-pay.apk:v --path /tmp/v.txt --namespace-id "$KV_NS" --remote
+      - name: Save log
+        if: always()
+        run: |
+          { echo "run ${{ github.run_number }} status=${{ job.status }} $(date -u)"; tail -c 30000 /tmp/build.log 2>/dev/null; } > /tmp/log.txt
+          $W kv key put ci:android-log --path /tmp/log.txt --namespace-id "$KV_NS" --remote || true

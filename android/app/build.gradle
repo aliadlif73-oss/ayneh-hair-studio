@@ -1,0 +1,42 @@
+plugins {
+    id 'com.android.application'
+}
+
+/* The owner's payment app. No libraries: only the Android framework, so the build has nothing
+   to drift. CI (.github/workflows/android.yml) passes VERSION_CODE and the signing key. */
+def ks = file('release.jks')
+android {
+    namespace 'site.ayneh.pay'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'site.ayneh.pay'
+        minSdk 26
+        targetSdk 34
+        versionCode((System.getenv('VERSION_CODE') ?: '1') as int)
+        versionName "1.0." + (System.getenv('VERSION_CODE') ?: '1')
+    }
+    signingConfigs {
+        release {
+            if (ks.exists()) {
+                storeFile ks
+                storePassword System.getenv('KS_PASS') ?: ''
+                keyAlias 'aynehpay'
+                keyPassword System.getenv('KS_PASS') ?: ''
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            signingConfig ks.exists() ? signingConfigs.release : signingConfigs.debug
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    lint {
+        checkReleaseBuilds false
+        abortOnError false
+    }
+}

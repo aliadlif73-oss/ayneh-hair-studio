@@ -11,7 +11,7 @@ import {stats} from './stats.js';
 import {smsReady,inviteReady,sendOtp} from './sms.js';
 import {createTrial,trialOf,trialLive,trialPublic,spendTrialImage} from './trial.js';
 import {PLANS as PLANS_TABLE} from './prices.js';
-import {smsConfirm} from './paysms.js';
+import {smsConfirm,newPairCode,redeemPairCode} from './paysms.js';
 import {createOrder,createTopup,createRenewal,customerOrder,setCoupon,confirmOrder,webhookConfirm,reopenOrder,rekeyOrder,closeExpired,cardSetting,saveCard,
  webhookKey,rotateWebhookKey,panelLogin,panelSalon,panelLogout,panelDashboard,tickChecklist,ORDER_MINUTES,SERVICE_LABEL} from './orders.js';
 import {spendCredit,planOf} from './credits.js';
@@ -137,7 +137,7 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
     sends Origin on a cross-site POST. A server-to-server caller (the payment site's webhook)
     sends none, and carries a bearer token instead, so the check is skipped only for that one
     path — where the token, not a cookie, is the credential. */
- if(req.method!=='GET'){if(path!=='/api/pay/confirm'&&path!=='/api/pay/sms')must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
+ if(req.method!=='GET'){if(!['/api/pay/confirm','/api/pay/sms','/api/pay/pair','/api/pay/ping'].includes(path))must(req.headers.get('origin')===u.origin,'مبدأ درخواست مجاز نیست',403);must(Number(req.headers.get('content-length')||0)<12000000,'حجم درخواست زیاد است',413);}
  if(path==='/api/event'&&req.method==='POST'){
   await limited(db,'event:'+clientIp(req),1200);
   const b=await req.json().catch(()=>({}));
@@ -223,6 +223,24 @@ export async function api(req,env){const u=new URL(req.url),path=u.pathname;must
   if(/json/i.test(req.headers.get('content-type')||'')){try{const b=JSON.parse(raw);t=b.text??b.message??b.body??b.sms??''}catch{t=raw}}
   return J({ok:true,...await smsConfirm(db,env,t,u.origin)});
  }
+
+ // The owner's Android payment app (android/): a one-time 6-digit code from /admin buys the
+ // payment token; /api/pay/ping lets the app check its token still works (after a rotation).
+ if(path==='/api/pay/pair'&&req.method==='POST'){
+  await limited(db,'pair:'+clientIp(req),15,'تلاش زیادی شد؛ کمی بعد دوباره امتحان کنید');
+  const b=await req.json().catch(()=>({}));
+  must(await redeemPairCode(db,b.code),'کد درست نیست یا تمام شده؛ در پنل مدیر کد تازه بسازید',403);
+  const o=env.APP_ORIGIN||u.origin;
+  await notifyOwner(env,{kind:'order',level:'good',text:'اپ اندروید پرداخت به سایت وصل شد'});
+  return J({ok:true,key:await webhookKey(db),sms_url:o+'/api/pay/sms',origin:o});
+ }
+ if(path==='/api/pay/ping'&&req.method==='POST'){
+  const expected=await webhookKey(db);
+  const given=(req.headers.get('authorization')||'').replace(/^Bearer\s+/i,'');
+  must(expected&&same(String(given),expected),'اتصال اپ باطل شده؛ دوباره با کد تازه وصل شوید',401);
+  return J({ok:true,card:(await cardSetting(db)).valid});
+ }
+ if(path==='/api/owner/app-code'&&req.method==='POST'){await owner(req,env);return J(await newPairCode(db));}
 
  /* ---------- salon panel (the door the plan opens) ---------- */
  // Requests, bot link, bookings, report, archive and support (worker/panelapi.js).
