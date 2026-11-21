@@ -52,12 +52,16 @@ final class Store {
     static boolean authFailed(Context c) { return prefs(c).getBoolean("auth_failed", false); }
     static void setAuthFailed(Context c, boolean v) { prefs(c).edit().putBoolean("auth_failed", v).apply(); changed(); }
 
-    /** Is this SMS a Blu deposit? Sender number (in any spelling) or Blu's own wording. */
+    /** Is this SMS a Blu deposit? Only Blu's own sender number counts: the text alone proves
+     *  nothing, since anyone can text «واریز … ریال» to this phone. */
     static boolean isDeposit(String sender, String body) {
         String digits = sender == null ? "" : sender.replaceAll("\\D", "");
-        boolean fromBlu = digits.endsWith(BLU_NUMBER) || (body != null && body.contains("بلو"));
-        return fromBlu && body != null && (body.contains("واریز") || body.contains("نشست"));
+        return digits.endsWith(BLU_NUMBER) && body != null && (body.contains("واریز") || body.contains("نشست"));
     }
+
+    /** A permission asked once and still refused is only grantable from the app's settings. */
+    static boolean askedBefore(Context c, String perm) { return prefs(c).getBoolean("asked:" + perm, false); }
+    static void markAsked(Context c, String perm) { prefs(c).edit().putBoolean("asked:" + perm, true).apply(); }
 
     /** The deposited amount in rials, for display only (the server decides for itself). */
     static long amountOf(String body) {

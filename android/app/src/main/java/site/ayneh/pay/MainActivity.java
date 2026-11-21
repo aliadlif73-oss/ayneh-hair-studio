@@ -147,10 +147,12 @@ public class MainActivity extends Activity {
         c.addView(text("سه اجازه، فقط یک بار", 18, INK, true));
         c.addView(spaced(text("روی هر «اجازه بده» بزنید و در پنجرهٔ اندروید «Allow / اجازه» را انتخاب کنید.", 13, MUTED, false), 4));
         c.addView(permRow("خواندن پیامک‌های بلو", "فقط پیامک‌های واریز بلو به سایت آینه فرستاده می‌شوند.", sms,
-                v -> requestPermissions(new String[]{Manifest.permission.RECEIVE_SMS}, REQ_PERMS)));
+                v -> ask(Manifest.permission.RECEIVE_SMS)));
         if (Build.VERSION.SDK_INT >= 33)
             c.addView(permRow("اعلان‌ها", "با هر واریز تأییدشده خبرتان می‌کند.", notes,
-                    v -> requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, REQ_PERMS)));
+                    v -> ask("android.permission.POST_NOTIFICATIONS")));
+        if (!sms && Store.askedBefore(this, Manifest.permission.RECEIVE_SMS))
+            c.addView(spaced(text("اگر پنجرهٔ اجازه باز نشد: در صفحهٔ تنظیمات اپ، منوی ⋮ بالا ← «Allow restricted settings»، بعد «Permissions» ← «SMS» ← Allow.", 12, 0xFFA35A00, false), 12));
         c.addView(permRow("همیشه روشن (باتری)", "تا اندروید اپ را در پس‌زمینه نبندد.", battery, v -> askBattery()));
         root.addView(c, matchWrap(0, 0, 0, dp(14)));
     }
@@ -324,6 +326,7 @@ public class MainActivity extends Activity {
                     List<String> ask = new ArrayList<>();
                     if (!has(Manifest.permission.RECEIVE_SMS)) ask.add(Manifest.permission.RECEIVE_SMS);
                     if (Build.VERSION.SDK_INT >= 33 && !has("android.permission.POST_NOTIFICATIONS")) ask.add("android.permission.POST_NOTIFICATIONS");
+                    for (String p : ask) Store.markAsked(this, p);
                     if (!ask.isEmpty()) requestPermissions(ask.toArray(new String[0]), REQ_PERMS);
                 }
             });
@@ -344,6 +347,18 @@ public class MainActivity extends Activity {
             final String m = msg;
             runOnUiThread(() -> Toast.makeText(this, m, Toast.LENGTH_LONG).show());
         }).start();
+    }
+
+    /** First time: Android's own dialog. After a refusal Android stops showing it, so open the app's settings. */
+    private void ask(String perm) {
+        if (Store.askedBefore(this, perm) && !shouldShowRequestPermissionRationale(perm)) {
+            try {
+                startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:" + getPackageName())));
+                return;
+            } catch (Exception ignored) { }
+        }
+        Store.markAsked(this, perm);
+        requestPermissions(new String[]{perm}, REQ_PERMS);
     }
 
     private void askBattery() {
